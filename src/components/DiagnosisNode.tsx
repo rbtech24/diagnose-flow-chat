@@ -1,10 +1,27 @@
 
 import { memo } from 'react';
-import { Handle, Position } from '@xyflow/react';
+import { Handle, Position, useStore } from '@xyflow/react';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 
-function DiagnosisNode({ data }) {
+function DiagnosisNode({ id, data }) {
+  // Get connected edges for this node to check handle connections
+  const connected = useStore((store) => {
+    const edges = store.edges;
+    const leftConnections = edges.filter(
+      (edge) => (edge.target === id && edge.targetHandle === 'left') ||
+                (edge.source === id && edge.sourceHandle === 'left')
+    );
+    const rightConnections = edges.filter(
+      (edge) => (edge.target === id && edge.targetHandle === 'right') ||
+                (edge.source === id && edge.sourceHandle === 'right')
+    );
+    return {
+      left: leftConnections.length > 0,
+      right: rightConnections.length > 0,
+    };
+  });
+
   const getTechnicalContent = () => {
     if (!data.technicalSpecs) return null;
     
@@ -36,10 +53,29 @@ function DiagnosisNode({ data }) {
     }
   };
 
+  const handleStyle = (isConnected) => ({
+    width: '12px',
+    height: '12px',
+    border: '2px solid',
+    borderColor: isConnected ? '#22c55e' : '#ef4444',
+    backgroundColor: isConnected ? '#bbf7d0' : '#fecaca',
+  });
+
   return (
     <Card className="min-w-[200px] max-w-[300px] p-4 bg-white shadow-sm border-2">
-      <Handle type="target" position={Position.Top} className="!bg-gray-300" />
+      <Handle 
+        type="target" 
+        position={Position.Top} 
+        style={handleStyle(false)}
+      />
       
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="left"
+        style={handleStyle(connected.left)}
+      />
+
       <div className="space-y-3">
         <Badge variant="outline" className="mb-2">
           {data.type}
@@ -68,7 +104,18 @@ function DiagnosisNode({ data }) {
         )}
       </div>
 
-      <Handle type="source" position={Position.Bottom} className="!bg-gray-300" />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="right"
+        style={handleStyle(connected.right)}
+      />
+
+      <Handle 
+        type="source" 
+        position={Position.Bottom} 
+        style={handleStyle(false)}
+      />
     </Card>
   );
 }
