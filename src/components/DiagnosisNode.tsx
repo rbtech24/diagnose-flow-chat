@@ -105,10 +105,11 @@ function DiagnosisNode({ id, data }) {
       ? (connection.isNoOutcome ? '#fecdd3' : '#bbf7d0')
       : '#fecaca',
     cursor: connection.isConnected ? 'pointer' : 'default',
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
   });
 
   return (
-    <Card className="min-w-[200px] max-w-[300px] p-4 bg-white shadow-sm border-2">
+    <Card className="min-w-[200px] max-w-[300px] p-4 bg-white border-[#1A1F2C] border-2 shadow-[0_4px_12px_rgba(0,0,0,0.1)]">
       {/* Allow both source and target on top */}
       <Handle 
         type="source" 
