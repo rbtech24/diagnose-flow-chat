@@ -1,10 +1,13 @@
 
 import { memo } from 'react';
-import { Handle, Position, useStore } from '@xyflow/react';
+import { Handle, Position, useStore, useReactFlow } from '@xyflow/react';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
+import { toast } from '@/hooks/use-toast';
 
 function DiagnosisNode({ id, data }) {
+  const { setEdges } = useReactFlow();
+  
   // Get connected edges for this node to check handle connections
   const connected = useStore((store) => {
     const edges = store.edges;
@@ -21,6 +24,21 @@ function DiagnosisNode({ id, data }) {
       bottom: handleConnections(edges, id, 'bottom')
     };
   });
+
+  const handleDisconnect = (handleId) => {
+    setEdges((edges) => 
+      edges.filter(
+        (edge) => !(
+          (edge.target === id && edge.targetHandle === handleId) ||
+          (edge.source === id && edge.sourceHandle === handleId)
+        )
+      )
+    );
+    toast({
+      title: "Connection Removed",
+      description: "The connection has been removed successfully."
+    });
+  };
 
   const getTechnicalContent = () => {
     if (!data.technicalSpecs) return null;
@@ -59,6 +77,7 @@ function DiagnosisNode({ id, data }) {
     border: '2px solid',
     borderColor: isConnected ? '#22c55e' : '#ef4444',
     backgroundColor: isConnected ? '#bbf7d0' : '#fecaca',
+    cursor: isConnected ? 'pointer' : 'default',
   });
 
   return (
@@ -68,6 +87,7 @@ function DiagnosisNode({ id, data }) {
         position={Position.Top} 
         id="top"
         style={handleStyle(connected.top)}
+        onClick={() => connected.top && handleDisconnect('top')}
       />
       
       <Handle
@@ -75,6 +95,7 @@ function DiagnosisNode({ id, data }) {
         position={Position.Left}
         id="left"
         style={handleStyle(connected.left)}
+        onClick={() => connected.left && handleDisconnect('left')}
       />
 
       <div className="space-y-3">
@@ -110,6 +131,7 @@ function DiagnosisNode({ id, data }) {
         position={Position.Right}
         id="right"
         style={handleStyle(connected.right)}
+        onClick={() => connected.right && handleDisconnect('right')}
       />
 
       <Handle 
@@ -117,6 +139,7 @@ function DiagnosisNode({ id, data }) {
         position={Position.Bottom}
         id="bottom" 
         style={handleStyle(connected.bottom)}
+        onClick={() => connected.bottom && handleDisconnect('bottom')}
       />
     </Card>
   );
