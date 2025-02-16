@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { useLocation } from "react-router-dom";
-import { SavedWorkflow } from "@/utils/flowUtils";
+import { SavedWorkflow } from "@/utils/flow";
 import Workflows from "./Workflows";
 
 export default function Index() {

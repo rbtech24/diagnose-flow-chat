@@ -1,7 +1,7 @@
 
 import { Button } from '../ui/button';
 import { SaveWorkflowDialog } from './SaveWorkflowDialog';
-import { handleSaveWorkflow } from '@/utils/flowUtils';
+import { handleSaveWorkflow } from '@/utils/flow';
 import { Download, Upload, Plus, Copy, Clipboard, Search, Link2 } from 'lucide-react';
 import { useFlowState } from '@/hooks/useFlowState';
 import { useCallback } from 'react';
