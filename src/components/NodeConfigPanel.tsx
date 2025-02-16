@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card } from './ui/card';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
@@ -13,9 +13,30 @@ import {
   SelectValue,
 } from './ui/select';
 
-export default function NodeConfigPanel() {
+export default function NodeConfigPanel({ node }) {
   const [nodeType, setNodeType] = useState('question');
+  const [label, setLabel] = useState('');
+  const [content, setContent] = useState('');
+  const [options, setOptions] = useState('');
   const [showTechnicalFields, setShowTechnicalFields] = useState(false);
+
+  useEffect(() => {
+    if (node) {
+      setNodeType(node.data.type || 'question');
+      setLabel(node.data.label || '');
+      setContent(node.data.content || '');
+      setOptions(node.data.options?.join('\n') || '');
+      setShowTechnicalFields(['voltage-check', 'resistance-check', 'inspection'].includes(node.data.type));
+    }
+  }, [node]);
+
+  if (!node) {
+    return (
+      <div className="p-4 text-center text-gray-500">
+        Select a node to edit its properties
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 h-full overflow-y-auto">
@@ -25,7 +46,7 @@ export default function NodeConfigPanel() {
         <div className="space-y-2">
           <Label>Node Type</Label>
           <Select 
-            defaultValue={nodeType} 
+            value={nodeType} 
             onValueChange={(value) => {
               setNodeType(value);
               setShowTechnicalFields(['voltage-check', 'resistance-check', 'inspection'].includes(value));
@@ -48,12 +69,21 @@ export default function NodeConfigPanel() {
 
         <div className="space-y-2">
           <Label>Label</Label>
-          <Input placeholder="Enter node label" />
+          <Input 
+            placeholder="Enter node label" 
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+          />
         </div>
 
         <div className="space-y-2">
           <Label>Content</Label>
-          <Textarea placeholder="Enter node content" className="min-h-[100px]" />
+          <Textarea 
+            placeholder="Enter node content" 
+            className="min-h-[100px]"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+          />
         </div>
 
         {showTechnicalFields && (
@@ -108,6 +138,8 @@ export default function NodeConfigPanel() {
           <Textarea 
             placeholder="Enter each possible response on a new line:&#10;Within range&#10;Out of range&#10;Open circuit&#10;Need further testing" 
             className="min-h-[100px]"
+            value={options}
+            onChange={(e) => setOptions(e.target.value)}
           />
         </div>
 
@@ -116,13 +148,13 @@ export default function NodeConfigPanel() {
           <pre className="text-xs overflow-x-auto">
             {JSON.stringify({
               type: nodeType,
-              label: "Node Label",
-              content: "Node Content",
+              label,
+              content,
               technicalSpecs: showTechnicalFields ? {
                 range: { min: 0, max: 0 },
                 testPoints: "Between terminals",
               } : undefined,
-              options: ["Within range", "Out of range", "Need further testing"]
+              options: options.split('\n').filter(Boolean)
             }, null, 2)}
           </pre>
         </Card>

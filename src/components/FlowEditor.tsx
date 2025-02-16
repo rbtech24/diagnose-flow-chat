@@ -39,7 +39,7 @@ const initialNodes: Node[] = [
 
 const initialEdges: Edge[] = [];
 
-export default function FlowEditor() {
+export default function FlowEditor({ onNodeSelect }) {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
@@ -47,6 +47,11 @@ export default function FlowEditor() {
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
+
+  const onSelectionChange = useCallback(({ nodes: selectedNodes }) => {
+    const selectedNode = selectedNodes[0];
+    onNodeSelect(selectedNode || null);
+  }, [onNodeSelect]);
 
   const addNewNode = () => {
     const newNode = {
@@ -75,6 +80,7 @@ export default function FlowEditor() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onSelectionChange={onSelectionChange}
         nodeTypes={nodeTypes}
         fitView
         className="bg-gray-50"
