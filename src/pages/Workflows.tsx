@@ -33,40 +33,7 @@ export default function Workflows() {
   const [isReordering, setIsReordering] = useState(false);
   const [editingAppliance, setEditingAppliance] = useState<{index: number, name: string} | null>(null);
   const [deletingApplianceIndex, setDeletingApplianceIndex] = useState<number | null>(null);
-  const [appliances, setAppliances] = useState<Appliance[]>([
-    {
-      name: 'Electric Dryers',
-      order: 0,
-      symptoms: [
-        { name: 'Not Drying Clothes', isActive: true, order: 0 },
-        { name: 'Dead or Not Spinning', isActive: true, order: 1 },
-        { name: 'No Heat', isActive: false, order: 2 },
-        { name: 'Loud Noises', isActive: true, order: 3 }
-      ]
-    },
-    {
-      name: 'Gas Dryers',
-      order: 1,
-      symptoms: [
-        { name: 'Not Drying Clothes', isActive: true, order: 0 },
-        { name: 'Dead or Not Spinning', isActive: false, order: 1 },
-        { name: 'No Heat', isActive: true, order: 2 },
-        { name: 'Loud Noises', isActive: true, order: 3 }
-      ]
-    },
-    {
-      name: 'Top Load Washer',
-      order: 2,
-      symptoms: [
-        { name: 'Not Draining', isActive: true, order: 0 },
-        { name: 'Not Filling', isActive: true, order: 1 },
-        { name: 'Not Spinning', isActive: false, order: 2 },
-        { name: 'Not Agitating', isActive: true, order: 3 },
-        { name: 'Does Not Finish Cycle', isActive: true, order: 4 },
-        { name: 'Leaking', isActive: true, order: 5 }
-      ]
-    }
-  ]);
+  const [appliances, setAppliances] = useState<Appliance[]>([]);
 
   const handleAddAppliance = (name: string) => {
     const newAppliance: Appliance = {
