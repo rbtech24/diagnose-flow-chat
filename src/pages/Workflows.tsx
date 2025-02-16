@@ -6,7 +6,18 @@ import { Switch } from '@/components/ui/switch';
 import { ArrowLeft, Edit, Trash, Share, GripVertical } from 'lucide-react';
 import { getFolders, getWorkflowsInFolder } from '@/utils/flowUtils';
 import { AddApplianceDialog } from '@/components/appliance/AddApplianceDialog';
+import { EditApplianceDialog } from '@/components/appliance/EditApplianceDialog';
 import { toast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Appliance {
   name: string;
@@ -21,6 +32,8 @@ interface Appliance {
 export default function Workflows() {
   const navigate = useNavigate();
   const [isReordering, setIsReordering] = useState(false);
+  const [editingAppliance, setEditingAppliance] = useState<{index: number, name: string} | null>(null);
+  const [deletingApplianceIndex, setDeletingApplianceIndex] = useState<number | null>(null);
   const [appliances, setAppliances] = useState<Appliance[]>([
     {
       name: 'Electric Dryers',
@@ -94,7 +107,6 @@ export default function Workflows() {
     const [movedSymptom] = symptoms.splice(fromIndex, 1);
     symptoms.splice(toIndex, 0, movedSymptom);
     
-    // Update order values
     symptoms.forEach((symptom, index) => {
       symptom.order = index;
     });
@@ -110,12 +122,32 @@ export default function Workflows() {
     const [movedAppliance] = newAppliances.splice(fromIndex, 1);
     newAppliances.splice(toIndex, 0, movedAppliance);
     
-    // Update order values
     newAppliances.forEach((appliance, index) => {
       appliance.order = index;
     });
     
     setAppliances(newAppliances);
+  };
+
+  const handleEditAppliance = (index: number, newName: string) => {
+    const newAppliances = [...appliances];
+    newAppliances[index].name = newName;
+    setAppliances(newAppliances);
+  };
+
+  const handleDeleteAppliance = (index: number) => {
+    const newAppliances = [...appliances];
+    newAppliances.splice(index, 1);
+    
+    newAppliances.forEach((appliance, i) => {
+      appliance.order = i;
+    });
+    
+    setAppliances(newAppliances);
+    toast({
+      title: "Appliance Deleted",
+      description: "The appliance and its workflows have been deleted."
+    });
   };
 
   const openWorkflowEditor = (applianceName: string, symptomName?: string) => {
@@ -174,10 +206,20 @@ export default function Workflows() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-[#14162F]">{appliance.name}</h2>
               <div className="flex gap-2">
-                <Button variant="ghost" size="sm" className="text-blue-500 hover:text-blue-600">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-blue-500 hover:text-blue-600"
+                  onClick={() => setEditingAppliance({ index: applianceIndex, name: appliance.name })}
+                >
                   <Edit className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-red-500 hover:text-red-600"
+                  onClick={() => setDeletingApplianceIndex(applianceIndex)}
+                >
                   <Trash className="h-4 w-4" />
                 </Button>
               </div>
@@ -243,6 +285,43 @@ export default function Workflows() {
           </Card>
         ))}
       </div>
+
+      {editingAppliance && (
+        <EditApplianceDialog
+          applianceName={editingAppliance.name}
+          isOpen={true}
+          onClose={() => setEditingAppliance(null)}
+          onSave={(newName) => handleEditAppliance(editingAppliance.index, newName)}
+        />
+      )}
+
+      <AlertDialog 
+        open={deletingApplianceIndex !== null} 
+        onOpenChange={() => setDeletingApplianceIndex(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the appliance and all its workflows. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-500 hover:bg-red-600"
+              onClick={() => {
+                if (deletingApplianceIndex !== null) {
+                  handleDeleteAppliance(deletingApplianceIndex);
+                  setDeletingApplianceIndex(null);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
