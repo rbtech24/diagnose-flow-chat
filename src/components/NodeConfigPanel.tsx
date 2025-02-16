@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Card } from './ui/card';
 import { Label } from './ui/label';
@@ -46,7 +45,6 @@ export default function NodeConfigPanel({ node, onUpdate }) {
       setNodeType(node.data.type || 'question');
       setLabel(node.data.label || '');
       
-      // Initialize fields from node data
       const initialFields: Field[] = [];
       
       if (node.data.content) {
@@ -88,17 +86,14 @@ export default function NodeConfigPanel({ node, onUpdate }) {
   const handleApplyChanges = () => {
     if (!node) return;
 
-    // Collect all content from content fields
     const contentFields = fields.filter(f => f.type === 'content');
     const combinedContent = contentFields.map(f => f.content).filter(Boolean).join('\n\n');
 
-    // Collect all media from media fields
     const mediaFields = fields.filter(f => f.type === 'media');
     const combinedMedia = mediaFields.reduce((acc, field) => {
       return acc.concat(field.media || []);
     }, [] as MediaItem[]);
 
-    // Collect all options from options fields
     const optionsFields = fields.filter(f => f.type === 'options');
     const combinedOptions = optionsFields.reduce((acc, field) => {
       return acc.concat(field.options || []);
@@ -160,7 +155,7 @@ export default function NodeConfigPanel({ node, onUpdate }) {
 
   const renderField = (field: Field, index: number) => {
     return (
-      <div key={field.id} className="flex gap-2 items-start group border p-4 rounded-lg bg-white">
+      <div key={field.id} className="flex gap-2 items-start group border p-4 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow">
         <button 
           className="cursor-move opacity-0 group-hover:opacity-100 transition-opacity"
           onMouseDown={(e) => {
@@ -189,7 +184,7 @@ export default function NodeConfigPanel({ node, onUpdate }) {
             document.addEventListener('mouseup', handleMouseUp);
           }}
         >
-          <GripVertical className="w-4 h-4" />
+          <GripVertical className="w-4 h-4 text-gray-400" />
         </button>
         
         <div className="flex-1 space-y-2">
@@ -200,6 +195,7 @@ export default function NodeConfigPanel({ node, onUpdate }) {
               onChange={(e) => setFields(fields.map(f => 
                 f.id === field.id ? { ...f, content: e.target.value } : f
               ))}
+              className="min-h-[100px] resize-none"
             />
           )}
           
@@ -209,12 +205,12 @@ export default function NodeConfigPanel({ node, onUpdate }) {
                 {field.media?.map((item, i) => (
                   <div key={i} className="relative group">
                     {item.type === 'image' ? (
-                      <img src={item.url} alt="" className="w-20 h-20 object-cover rounded" />
+                      <img src={item.url} alt="" className="w-20 h-20 object-cover rounded-lg" />
                     ) : (
-                      <iframe src={item.url} className="w-40 h-24 rounded" />
+                      <iframe src={item.url} className="w-40 h-24 rounded-lg" />
                     )}
                     <button
-                      className="absolute top-1 right-1 bg-white rounded-full p-1 opacity-0 group-hover:opacity-100"
+                      className="absolute top-1 right-1 bg-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:shadow-md"
                       onClick={() => setFields(fields.map(f => 
                         f.id === field.id 
                           ? { ...f, media: f.media?.filter((_, index) => index !== i) } 
@@ -232,10 +228,12 @@ export default function NodeConfigPanel({ node, onUpdate }) {
                   accept="image/*" 
                   multiple 
                   onChange={handleFileUpload}
+                  className="text-sm"
                 />
                 <Input
                   type="url"
                   placeholder="Enter video URL"
+                  className="text-sm"
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
                       const input = e.currentTarget;
@@ -262,6 +260,7 @@ export default function NodeConfigPanel({ node, onUpdate }) {
               onChange={(e) => setFields(fields.map(f => 
                 f.id === field.id ? { ...f, options: e.target.value.split('\n').filter(Boolean) } : f
               ))}
+              className="min-h-[100px] resize-none"
             />
           )}
         </div>
@@ -270,6 +269,7 @@ export default function NodeConfigPanel({ node, onUpdate }) {
           variant="ghost" 
           size="icon"
           onClick={() => removeField(field.id)}
+          className="hover:bg-red-50 hover:text-red-500 transition-colors"
         >
           <X className="w-4 h-4" />
         </Button>
@@ -323,14 +323,15 @@ export default function NodeConfigPanel({ node, onUpdate }) {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <Label>Fields</Label>
-            <div className="space-x-2">
+            <Label className="text-base font-semibold">Fields</Label>
+            <div className="flex gap-2">
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={() => addField('content')}
+                className="bg-white hover:bg-gray-50"
               >
                 Add Content
               </Button>
@@ -338,6 +339,7 @@ export default function NodeConfigPanel({ node, onUpdate }) {
                 variant="outline" 
                 size="sm"
                 onClick={() => addField('media')}
+                className="bg-white hover:bg-gray-50"
               >
                 Add Media
               </Button>
@@ -345,14 +347,20 @@ export default function NodeConfigPanel({ node, onUpdate }) {
                 variant="outline" 
                 size="sm"
                 onClick={() => addField('options')}
+                className="bg-white hover:bg-gray-50"
               >
                 Add Options
               </Button>
             </div>
           </div>
           
-          <div className="space-y-2">
+          <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
             {fields.map((field, index) => renderField(field, index))}
+            {fields.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                No fields added yet. Use the buttons above to add fields.
+              </div>
+            )}
           </div>
         </div>
 
