@@ -1,4 +1,3 @@
-
 import { useCallback, useRef, useEffect, useState } from 'react';
 import {
   ReactFlow,
@@ -153,7 +152,7 @@ function FlowEditorContent({ onNodeSelect, appliances }: FlowEditorProps) {
     });
   }, [setNodes, edges, nodeCounter, history]);
 
-  const addNewNode = () => {
+  const addNewNode = useCallback(() => {
     setIsLoading(true);
     try {
       const uniqueId = `N${String(nodeCounter).padStart(3, '0')}`;
@@ -186,7 +185,7 @@ function FlowEditorContent({ onNodeSelect, appliances }: FlowEditorProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [nodes, edges, nodeCounter, history, setNodes, setNodeCounter]);
 
   const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
