@@ -1,6 +1,6 @@
 
 import { Button } from '../ui/button';
-import { PlusCircle, Upload, ZoomIn, ZoomOut, Grid, Search, Copy, Paste } from 'lucide-react';
+import { PlusCircle, Upload, ZoomIn, ZoomOut, Grid, Search, Copy, ClipboardCopy } from 'lucide-react';
 import { Panel, useReactFlow } from '@xyflow/react';
 import { SaveWorkflowDialog } from './SaveWorkflowDialog';
 import { Input } from '../ui/input';
@@ -87,7 +87,7 @@ export default function FlowToolbar({
           size="icon"
           onClick={onPaste}
         >
-          <Paste className="w-4 h-4" />
+          <ClipboardCopy className="w-4 h-4" />
         </Button>
       </div>
 

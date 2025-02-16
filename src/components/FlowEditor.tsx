@@ -57,8 +57,8 @@ export default function FlowEditor({ onNodeSelect, appliances }: FlowEditorProps
   const [isLoading, setIsLoading] = useState(false);
   const [snapToGrid, setSnapToGrid] = useState(true);
   const [copiedNodes, setCopiedNodes] = useState<Node[]>([]);
+  const { getViewport } = useReactFlow();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { project } = useReactFlow();
 
   const [history, setHistory] = useState<HistoryState>(() => 
     createHistoryState({ nodes, edges, nodeCounter })
@@ -237,7 +237,9 @@ export default function FlowEditor({ onNodeSelect, appliances }: FlowEditorProps
       Math.min(...copiedNodes.map(node => node.position.y))
     ];
 
-    const { x, y } = project({ x: 0, y: 0 });
+    const viewport = getViewport();
+    const x = -viewport.x + viewport.width / 2;
+    const y = -viewport.y + viewport.height / 2;
 
     const newNodes = copiedNodes.map(node => ({
       ...node,
@@ -267,7 +269,7 @@ export default function FlowEditor({ onNodeSelect, appliances }: FlowEditorProps
       title: "Nodes Pasted",
       description: `${newNodes.length} node(s) pasted`
     });
-  }, [copiedNodes, project, edges, nodeCounter, history]);
+  }, [copiedNodes, getViewport, edges, nodeCounter, history]);
 
   return (
     <div className="w-full h-full relative">
