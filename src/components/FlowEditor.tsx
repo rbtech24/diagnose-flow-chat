@@ -1,5 +1,6 @@
 
 import { useCallback, useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   ReactFlow,
   MiniMap,
@@ -20,6 +21,8 @@ import '@xyflow/react/dist/style.css';
 import DiagnosisNode from './DiagnosisNode';
 import FlowToolbar from './flow/FlowToolbar';
 import { toast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { ListTodo } from 'lucide-react';
 import {
   defaultEdgeOptions,
   initialNodes,
@@ -276,6 +279,16 @@ function FlowEditorContent({ onNodeSelect, appliances }: FlowEditorProps) {
 
   return (
     <div className="w-full h-full relative">
+      <Link 
+        to="/workflows" 
+        className="absolute top-4 right-4 z-50"
+      >
+        <Button variant="secondary" className="gap-2">
+          <ListTodo className="h-4 w-4" />
+          Workflows
+        </Button>
+      </Link>
+
       {isLoading && (
         <div className="absolute inset-0 bg-white/50 z-50 flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
