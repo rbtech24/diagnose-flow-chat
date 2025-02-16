@@ -19,8 +19,8 @@ export function useFlowState() {
     return { nodes: [], edges: [], nodeCounter: 1 };
   };
 
-  const [nodes, setNodes] = useNodesState(loadInitialState().nodes);
-  const [edges, setEdges] = useEdgesState(loadInitialState().edges);
+  const [nodes, setNodes, onNodesChange] = useNodesState(loadInitialState().nodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(loadInitialState().edges);
   const [nodeCounter, setNodeCounter] = useState(loadInitialState().nodeCounter);
   const [isLoading, setIsLoading] = useState(false);
   const [snapToGrid, setSnapToGrid] = useState(true);
@@ -45,5 +45,7 @@ export function useFlowState() {
     copiedNodes,
     setCopiedNodes,
     clearSavedState,
+    onNodesChange,
+    onEdgesChange,
   };
 }

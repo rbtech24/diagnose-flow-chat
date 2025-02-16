@@ -58,6 +58,7 @@ function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEd
     setCopiedNodes,
     onNodesChange,
     onEdgesChange,
+    clearSavedState,
   } = useFlowState();
 
   const { getViewport } = useReactFlow();
@@ -72,6 +73,7 @@ function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEd
     const isNew = searchParams.get('new') === 'true';
     
     if (isNew) {
+      clearSavedState();
       setNodes(initialNodes);
       setEdges(initialEdges);
       setNodeCounter(1);
