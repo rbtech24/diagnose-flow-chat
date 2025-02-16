@@ -6,6 +6,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Save } from 'lucide-react';
 import { useAppliances } from '@/hooks/useAppliances';
+import { getFolders } from '@/utils/flowUtils';
 
 interface SaveWorkflowDialogProps {
   onSave: (name: string, folder: string) => void;
@@ -17,6 +18,12 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
   const [selectedAppliance, setSelectedAppliance] = useState('');
   const [newFolder, setNewFolder] = useState('');
   const { appliances } = useAppliances();
+  const existingFolders = getFolders();
+  
+  const allFolders = [...new Set([
+    ...appliances.map(a => a.name),
+    ...existingFolders
+  ])];
 
   const handleSave = () => {
     const folder = newFolder || selectedAppliance;
@@ -54,7 +61,7 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
           </div>
           
           <div className="space-y-2">
-            <Label>Save to Appliance</Label>
+            <Label>Save to Folder</Label>
             <select
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
               value={selectedAppliance}
@@ -63,10 +70,10 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
                 setNewFolder('');
               }}
             >
-              <option value="">Select an appliance...</option>
-              {appliances.map((appliance) => (
-                <option key={appliance.name} value={appliance.name}>
-                  {appliance.name}
+              <option value="">Select a folder...</option>
+              {allFolders.map((folder) => (
+                <option key={folder} value={folder}>
+                  {folder}
                 </option>
               ))}
             </select>
