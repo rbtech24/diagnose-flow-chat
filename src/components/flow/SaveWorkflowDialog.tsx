@@ -1,13 +1,14 @@
 
 import { useState } from 'react';
 import { Button } from '../ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Save } from 'lucide-react';
 import { useAppliances } from '@/hooks/useAppliances';
 import { getFolders } from '@/utils/flowUtils';
 import { useLocation } from 'react-router-dom';
+import { toast } from '@/hooks/use-toast';
 
 interface SaveWorkflowDialogProps {
   onSave: (name: string, folder: string) => void;
@@ -16,7 +17,7 @@ interface SaveWorkflowDialogProps {
 export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [workflowName, setWorkflowName] = useState('');
-  const [selectedAppliance, setSelectedAppliance] = useState('');
+  const [selectedFolder, setSelectedFolder] = useState('');
   const [newFolder, setNewFolder] = useState('');
   const { appliances } = useAppliances();
   const existingFolders = getFolders();
@@ -28,15 +29,22 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
     : [...new Set([...appliances.map(a => a.name), ...existingFolders])];
 
   const handleSave = () => {
-    const folder = newFolder || selectedAppliance;
-    if (!workflowName || !folder) {
+    const targetFolder = newFolder || selectedFolder;
+    
+    if (!workflowName || !targetFolder) {
+      toast({
+        title: "Validation Error",
+        description: "Please provide both a workflow name and select or create a folder",
+        variant: "destructive"
+      });
       return;
     }
-    onSave(workflowName, folder);
+
+    onSave(workflowName, targetFolder);
     setIsOpen(false);
     setWorkflowName('');
     setNewFolder('');
-    setSelectedAppliance('');
+    setSelectedFolder('');
   };
 
   return (
@@ -50,6 +58,9 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Save Workflow</DialogTitle>
+          <DialogDescription>
+            Save your workflow to an existing folder or create a new one.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 pt-4">
           <div className="space-y-2">
@@ -66,9 +77,9 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
             <Label>Save to Folder</Label>
             <select
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              value={selectedAppliance}
+              value={selectedFolder}
               onChange={(e) => {
-                setSelectedAppliance(e.target.value);
+                setSelectedFolder(e.target.value);
                 setNewFolder('');
               }}
             >
@@ -88,7 +99,7 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
               value={newFolder}
               onChange={(e) => {
                 setNewFolder(e.target.value);
-                setSelectedAppliance('');
+                setSelectedFolder('');
               }}
               placeholder="Enter new folder name"
             />
@@ -97,7 +108,7 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
           <Button 
             className="w-full" 
             onClick={handleSave}
-            disabled={!workflowName || (!newFolder && !selectedAppliance)}
+            disabled={!workflowName || (!newFolder && !selectedFolder)}
           >
             Save
           </Button>

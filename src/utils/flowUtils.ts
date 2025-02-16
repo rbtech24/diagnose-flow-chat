@@ -1,4 +1,3 @@
-
 import { Node, Edge, Connection, MarkerType } from '@xyflow/react';
 import { toast } from '@/hooks/use-toast';
 
@@ -53,7 +52,7 @@ export const getFolders = (): string[] => {
   const folderSet = new Set<string>();
   
   workflows.forEach(workflow => {
-    if (workflow.metadata.folder && workflow.nodes.length > 0) {
+    if (workflow.metadata.folder) {
       folderSet.add(workflow.metadata.folder);
     }
   });
@@ -63,8 +62,7 @@ export const getFolders = (): string[] => {
 
 export const getAllWorkflows = (): SavedWorkflow[] => {
   const storedWorkflows = localStorage.getItem('diagnostic-workflows');
-  const workflows = storedWorkflows ? JSON.parse(storedWorkflows) : [];
-  return workflows.filter(w => w.nodes.length > 0); // Only return workflows that have nodes
+  return storedWorkflows ? JSON.parse(storedWorkflows) : [];
 };
 
 export const getWorkflowsInFolder = (folder: string): SavedWorkflow[] => {
@@ -81,6 +79,15 @@ export const handleSaveWorkflow = (
   appliance?: string,
   symptom?: string
 ) => {
+  if (!name || !folder) {
+    toast({
+      title: "Error",
+      description: "Workflow name and folder are required",
+      variant: "destructive"
+    });
+    return;
+  }
+
   const workflows = getAllWorkflows();
   
   const newWorkflow: SavedWorkflow = {
@@ -110,15 +117,19 @@ export const handleSaveWorkflow = (
         createdAt: workflows[existingIndex].metadata.createdAt
       }
     };
+    toast({
+      title: "Workflow Updated",
+      description: `Updated "${name}" in folder "${folder}"`
+    });
   } else {
     workflows.push(newWorkflow);
+    toast({
+      title: "Workflow Saved",
+      description: `Saved "${name}" to folder "${folder}"`
+    });
   }
 
   localStorage.setItem('diagnostic-workflows', JSON.stringify(workflows));
-  toast({
-    title: "Workflow Saved",
-    description: `Saved "${name}" to ${appliance ? 'appliance' : 'folder'} "${folder}"`
-  });
 };
 
 export const handleImportWorkflow = (
