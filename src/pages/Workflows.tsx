@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
@@ -119,9 +118,14 @@ export default function Workflows() {
     setAppliances(newAppliances);
   };
 
-  const openWorkflowEditor = (applianceName: string, symptomName: string) => {
-    // Here you would navigate to the workflow editor with the appropriate parameters
-    navigate(`/?appliance=${encodeURIComponent(applianceName)}&symptom=${encodeURIComponent(symptomName)}`);
+  const openWorkflowEditor = (applianceName: string, symptomName?: string) => {
+    const params = new URLSearchParams({
+      appliance: applianceName,
+    });
+    if (symptomName) {
+      params.append('symptom', symptomName);
+    }
+    navigate(`/?${params.toString()}`);
   };
 
   const sortedAppliances = [...appliances].sort((a, b) => a.order - b.order);
@@ -232,6 +236,7 @@ export default function Workflows() {
             <Button 
               variant="ghost" 
               className="mt-4 text-[#14162F] hover:bg-gray-100 w-full"
+              onClick={() => openWorkflowEditor(appliance.name)}
             >
               Add Issue
             </Button>
