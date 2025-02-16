@@ -1,3 +1,4 @@
+
 import { Button } from '../ui/button';
 import { SaveWorkflowDialog } from './SaveWorkflowDialog';
 import { handleSaveWorkflow } from '@/utils/flowUtils';
@@ -11,8 +12,8 @@ export function FlowToolbar() {
   const handleImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    handleSaveWorkflow(nodes, edges, nodeCounter, file.name, file.path);
-  }, []);
+    handleSaveWorkflow(nodes, edges, nodeCounter, file.name, 'import');
+  }, [nodes, edges, nodeCounter]);
 
   const onSave = (name: string, folder: string) => {
     handleSaveWorkflow(nodes, edges, nodeCounter, name, folder);
