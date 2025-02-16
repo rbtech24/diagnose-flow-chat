@@ -1,37 +1,31 @@
 
-import { useCallback, useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useCallback, useRef, useEffect } from 'react';
 import {
   ReactFlow,
   MiniMap,
   Controls,
   Background,
-  useNodesState,
-  useEdgesState,
   addEdge,
   Connection,
   useReactFlow,
-  getConnectedEdges,
   Node,
   Edge,
-  ReactFlowProvider,
-  Viewport
+  ReactFlowProvider
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import DiagnosisNode from './DiagnosisNode';
 import FlowToolbar from './flow/FlowToolbar';
+import { LoadingOverlay } from './flow/LoadingOverlay';
+import { WorkflowActions } from './flow/WorkflowActions';
 import { toast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { Link2 } from 'lucide-react';
 import {
   defaultEdgeOptions,
-  initialNodes,
-  initialEdges,
   handleSaveWorkflow,
   handleImportWorkflow,
 } from '@/utils/flowUtils';
-import { WorkflowState, HistoryState, createHistoryState, addToHistory, undo, redo } from '@/utils/workflowHistory';
+import { createHistoryState, addToHistory, undo, redo } from '@/utils/workflowHistory';
 import { useHotkeys } from 'react-hotkeys-hook';
+import { useFlowState } from '@/hooks/useFlowState';
 
 const nodeTypes = {
   diagnosis: DiagnosisNode,
@@ -45,28 +39,25 @@ interface FlowEditorProps {
 }
 
 function FlowEditorContent({ onNodeSelect, appliances }: FlowEditorProps) {
-  const loadInitialState = (): WorkflowState => {
-    const savedState = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (savedState) {
-      try {
-        return JSON.parse(savedState);
-      } catch (e) {
-        console.error('Failed to parse saved workflow state');
-      }
-    }
-    return { nodes: initialNodes, edges: initialEdges, nodeCounter: 1 };
-  };
+  const {
+    nodes,
+    setNodes,
+    edges,
+    setEdges,
+    nodeCounter,
+    setNodeCounter,
+    isLoading,
+    setIsLoading,
+    snapToGrid,
+    copiedNodes,
+    setCopiedNodes,
+    onNodesChange,
+    onEdgesChange,
+  } = useFlowState();
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(loadInitialState().nodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(loadInitialState().edges);
-  const [nodeCounter, setNodeCounter] = useState(loadInitialState().nodeCounter);
-  const [isLoading, setIsLoading] = useState(false);
-  const [snapToGrid, setSnapToGrid] = useState(true);
-  const [copiedNodes, setCopiedNodes] = useState<Node[]>([]);
   const { getViewport } = useReactFlow();
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const [history, setHistory] = useState<HistoryState>(() => 
+  const [history, setHistory] = useState(() => 
     createHistoryState({ nodes, edges, nodeCounter })
   );
 
@@ -148,10 +139,7 @@ function FlowEditorContent({ onNodeSelect, appliances }: FlowEditorProps) {
     setNodes((nds) => {
       const newNodes = nds.map((node) => {
         if (node.id === nodeId) {
-          return {
-            ...node,
-            data: { ...node.data, ...newData }
-          };
+          return { ...node, data: { ...node.data, ...newData } };
         }
         return node;
       });
@@ -233,17 +221,17 @@ function FlowEditorContent({ onNodeSelect, appliances }: FlowEditorProps) {
         description: `${selectedNodes.length} node(s) copied to clipboard`
       });
     }
-  }, [nodes]);
+  }, [nodes, setCopiedNodes]);
 
   const handlePaste = useCallback(() => {
     if (copiedNodes.length === 0) return;
 
+    const viewport = getViewport();
     const [minX, minY] = [
       Math.min(...copiedNodes.map(node => node.position.x)),
       Math.min(...copiedNodes.map(node => node.position.y))
     ];
 
-    const viewport = getViewport();
     const x = -viewport.x + window.innerWidth / 2;
     const y = -viewport.y + window.innerHeight / 2;
 
@@ -275,25 +263,13 @@ function FlowEditorContent({ onNodeSelect, appliances }: FlowEditorProps) {
       title: "Nodes Pasted",
       description: `${newNodes.length} node(s) pasted`
     });
-  }, [copiedNodes, getViewport, edges, nodeCounter, history]);
+  }, [copiedNodes, getViewport, edges, nodeCounter, history, setNodes, setNodeCounter]);
 
   return (
     <div className="w-full h-full relative">
-      <Link 
-        to="/workflows" 
-        className="absolute top-4 right-4 z-50 translate-y-14"
-      >
-        <Button variant="secondary" className="gap-2">
-          <Link2 className="h-4 w-4" />
-          Workflows
-        </Button>
-      </Link>
-
-      {isLoading && (
-        <div className="absolute inset-0 bg-white/50 z-50 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        </div>
-      )}
+      <WorkflowActions />
+      {isLoading && <LoadingOverlay />}
+      
       <input 
         type="file" 
         ref={fileInputRef}
@@ -301,6 +277,7 @@ function FlowEditorContent({ onNodeSelect, appliances }: FlowEditorProps) {
         accept=".json"
         onChange={handleFileImport}
       />
+
       <ReactFlow
         nodes={nodes}
         edges={edges}
