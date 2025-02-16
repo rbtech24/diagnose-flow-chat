@@ -8,14 +8,20 @@ import { toast } from '@/hooks/use-toast';
 function DiagnosisNode({ id, data }) {
   const { setEdges } = useReactFlow();
   
-  // Get connected edges for this node to check handle connections
+  // Get connected edges for this node to check handle connections and edge colors
   const connected = useStore((store) => {
     const edges = store.edges;
-    const handleConnections = (edges, nodeId, handleId = null) => 
-      edges.some(edge => 
+    const handleConnections = (edges, nodeId, handleId = null) => {
+      const edge = edges.find(edge => 
         (edge.source === nodeId && (!handleId || edge.sourceHandle === handleId)) ||
         (edge.target === nodeId && (!handleId || edge.targetHandle === handleId))
       );
+      
+      return {
+        isConnected: !!edge,
+        isNoOutcome: edge?.data?.isNoOutcome || false
+      };
+    };
 
     return {
       left: handleConnections(edges, id, 'left'),
@@ -38,6 +44,23 @@ function DiagnosisNode({ id, data }) {
       title: "Connection Removed",
       description: "The connection has been removed successfully."
     });
+  };
+
+  const handleConnect = (params) => {
+    // Check if this is a "no" outcome connection
+    const isNoOutcome = data.options && 
+      data.options.includes('No') && 
+      params.sourceHandle === 'right';
+    
+    // Add the edge with appropriate styling for "no" outcomes
+    setEdges((eds) => [
+      ...eds,
+      {
+        ...params,
+        data: { isNoOutcome },
+        style: isNoOutcome ? { stroke: '#ea384c' } : undefined
+      }
+    ]);
   };
 
   const getTechnicalContent = () => {
@@ -71,13 +94,17 @@ function DiagnosisNode({ id, data }) {
     }
   };
 
-  const handleStyle = (isConnected) => ({
+  const handleStyle = (connection) => ({
     width: '12px',
     height: '12px',
     border: '2px solid',
-    borderColor: isConnected ? '#22c55e' : '#ef4444',
-    backgroundColor: isConnected ? '#bbf7d0' : '#fecaca',
-    cursor: isConnected ? 'pointer' : 'default',
+    borderColor: connection.isConnected 
+      ? (connection.isNoOutcome ? '#ea384c' : '#22c55e') 
+      : '#ef4444',
+    backgroundColor: connection.isConnected 
+      ? (connection.isNoOutcome ? '#fecdd3' : '#bbf7d0')
+      : '#fecaca',
+    cursor: connection.isConnected ? 'pointer' : 'default',
   });
 
   return (
@@ -88,14 +115,14 @@ function DiagnosisNode({ id, data }) {
         position={Position.Top} 
         id="top"
         style={{...handleStyle(connected.top), left: 'calc(50% - 12px)'}}
-        onClick={() => connected.top && handleDisconnect('top')}
+        onClick={() => connected.top.isConnected && handleDisconnect('top')}
       />
       <Handle 
         type="target" 
         position={Position.Top} 
         id="top"
         style={{...handleStyle(connected.top), left: 'calc(50% + 12px)'}}
-        onClick={() => connected.top && handleDisconnect('top')}
+        onClick={() => connected.top.isConnected && handleDisconnect('top')}
       />
       
       {/* Allow both source and target on left */}
@@ -104,14 +131,14 @@ function DiagnosisNode({ id, data }) {
         position={Position.Left}
         id="left"
         style={{...handleStyle(connected.left), top: 'calc(50% - 12px)'}}
-        onClick={() => connected.left && handleDisconnect('left')}
+        onClick={() => connected.left.isConnected && handleDisconnect('left')}
       />
       <Handle
         type="target"
         position={Position.Left}
         id="left"
         style={{...handleStyle(connected.left), top: 'calc(50% + 12px)'}}
-        onClick={() => connected.left && handleDisconnect('left')}
+        onClick={() => connected.left.isConnected && handleDisconnect('left')}
       />
 
       <div className="space-y-3">
@@ -169,14 +196,14 @@ function DiagnosisNode({ id, data }) {
         position={Position.Right}
         id="right"
         style={{...handleStyle(connected.right), top: 'calc(50% - 12px)'}}
-        onClick={() => connected.right && handleDisconnect('right')}
+        onClick={() => connected.right.isConnected && handleDisconnect('right')}
       />
       <Handle
         type="target"
         position={Position.Right}
         id="right"
         style={{...handleStyle(connected.right), top: 'calc(50% + 12px)'}}
-        onClick={() => connected.right && handleDisconnect('right')}
+        onClick={() => connected.right.isConnected && handleDisconnect('right')}
       />
 
       {/* Allow both source and target on bottom */}
@@ -185,14 +212,14 @@ function DiagnosisNode({ id, data }) {
         position={Position.Bottom}
         id="bottom" 
         style={{...handleStyle(connected.bottom), left: 'calc(50% - 12px)'}}
-        onClick={() => connected.bottom && handleDisconnect('bottom')}
+        onClick={() => connected.bottom.isConnected && handleDisconnect('bottom')}
       />
       <Handle 
         type="target" 
         position={Position.Bottom}
         id="bottom" 
         style={{...handleStyle(connected.bottom), left: 'calc(50% + 12px)'}}
-        onClick={() => connected.bottom && handleDisconnect('bottom')}
+        onClick={() => connected.bottom.isConnected && handleDisconnect('bottom')}
       />
     </Card>
   );
