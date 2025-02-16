@@ -14,7 +14,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import DiagnosisNode from './DiagnosisNode';
-import FlowToolbar from './flow/FlowToolbar';
+import { FlowToolbar } from './flow/FlowToolbar';
 import { LoadingOverlay } from './flow/LoadingOverlay';
 import { WorkflowActions } from './flow/WorkflowActions';
 import { toast } from '@/hooks/use-toast';
