@@ -44,13 +44,19 @@ export default function FlowEditor({ onNodeSelect }) {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+    (params: Connection) => {
+      setEdges((eds) => addEdge(params, eds));
+      toast({
+        title: "Connection Added",
+        description: "Nodes have been connected successfully."
+      });
+    },
     [setEdges]
   );
 
-  const onSelectionChange = useCallback(({ nodes: selectedNodes }) => {
-    const selectedNode = selectedNodes[0];
-    onNodeSelect(selectedNode || null);
+  // Modified to only trigger when a node is clicked, not during connection
+  const onNodeClick = useCallback((event, node) => {
+    onNodeSelect(node);
   }, [onNodeSelect]);
 
   const updateNode = (nodeId, newData) => {
@@ -76,7 +82,6 @@ export default function FlowEditor({ onNodeSelect }) {
       nodes,
       edges
     };
-    // For now, we'll just save to localStorage. In a real app, you'd save to a backend
     localStorage.setItem('diagnostic-workflow', JSON.stringify(workflow));
     toast({
       title: "Workflow Saved",
@@ -111,7 +116,7 @@ export default function FlowEditor({ onNodeSelect }) {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        onSelectionChange={onSelectionChange}
+        onNodeClick={onNodeClick}
         nodeTypes={nodeTypes}
         fitView
         className="bg-gray-50"
