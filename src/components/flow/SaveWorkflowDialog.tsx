@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '../ui/dialog';
 import { Input } from '../ui/input';
@@ -19,14 +19,22 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
   const [workflowName, setWorkflowName] = useState('');
   const [selectedFolder, setSelectedFolder] = useState('');
   const [newFolder, setNewFolder] = useState('');
+  const [folders, setFolders] = useState<string[]>([]);
   const { appliances } = useAppliances();
-  const existingFolders = getFolders();
   const location = useLocation();
   
   const isWorkflowsPage = location.pathname === '/workflows';
-  const dropdownOptions = isWorkflowsPage 
-    ? existingFolders 
-    : [...new Set([...appliances.map(a => a.name), ...existingFolders])];
+  
+  useEffect(() => {
+    // Update folders list when dialog opens
+    if (isOpen) {
+      const existingFolders = getFolders();
+      const availableFolders = isWorkflowsPage 
+        ? existingFolders 
+        : [...new Set([...appliances.map(a => a.name), ...existingFolders])];
+      setFolders(availableFolders);
+    }
+  }, [isOpen, isWorkflowsPage, appliances]);
 
   const handleSave = () => {
     const targetFolder = newFolder || selectedFolder;
@@ -84,7 +92,7 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
               }}
             >
               <option value="">Select a folder...</option>
-              {dropdownOptions.map((folder) => (
+              {folders.map((folder) => (
                 <option key={folder} value={folder}>
                   {folder}
                 </option>

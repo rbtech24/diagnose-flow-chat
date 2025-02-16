@@ -60,15 +60,12 @@ export const getFolders = (): string[] => {
   const folderSet = new Set<string>();
   
   workflows.forEach(workflow => {
-    if (workflow.metadata.folder) {
-      console.log('Found folder:', workflow.metadata.folder, 'with nodes:', workflow.nodes.length);
+    if (workflow.metadata?.folder && workflow.nodes.length > 0) {
       folderSet.add(workflow.metadata.folder);
     }
   });
   
-  const folders = Array.from(folderSet).sort();
-  console.log('Available folders:', folders);
-  return folders;
+  return Array.from(folderSet).sort();
 };
 
 export const getAllWorkflows = (): SavedWorkflow[] => {
@@ -130,7 +127,7 @@ export const handleSaveWorkflow = (
 
   const workflows = getAllWorkflows();
   
-  const newWorkflow: SavedWorkflow = {
+  const newWorkflow = {
     metadata: {
       name,
       folder,
@@ -171,7 +168,7 @@ export const handleSaveWorkflow = (
   }
 
   localStorage.setItem('diagnostic-workflows', JSON.stringify(workflows));
-  cleanupWorkflows(); // Clean up after saving
+  return newWorkflow;
 };
 
 export const handleImportWorkflow = (
