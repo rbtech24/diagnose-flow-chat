@@ -21,7 +21,6 @@ import {
   defaultEdgeOptions,
   handleSaveWorkflow,
   handleImportWorkflow,
-  handleQuickSave,
   SavedWorkflow,
   initialNodes,
   initialEdges
@@ -131,7 +130,13 @@ function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEd
   };
 
   const handleQuickSave = () => {
-    handleSaveWorkflow(nodes, edges, nodeCounter, 'Quick Save', 'autosave');
+    handleSaveWorkflow(
+      nodes,
+      edges,
+      nodeCounter,
+      currentWorkflow.metadata.name,
+      currentWorkflow.metadata.folder
+    );
     toast({
       title: "Workflow Auto-saved",
       description: "Your changes have been saved automatically."
@@ -140,7 +145,17 @@ function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEd
 
   const handleQuickSaveClick = () => {
     if (currentWorkflow) {
-      handleQuickSave(nodes, edges, nodeCounter, currentWorkflow);
+      handleSaveWorkflow(
+        nodes,
+        edges,
+        nodeCounter,
+        currentWorkflow.metadata.name,
+        currentWorkflow.metadata.folder
+      );
+      toast({
+        title: "Workflow Auto-saved",
+        description: "Your changes have been saved automatically."
+      });
     } else {
       toast({
         title: "Cannot Quick Save",
@@ -234,8 +249,8 @@ function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEd
     }
   };
 
-  const handleSave = (name: string, folder: string) => {
-    handleSaveWorkflow(nodes, edges, nodeCounter, name, folder);
+  const handleSave = async (name: string, folder: string) => {
+    return Promise.resolve(handleSaveWorkflow(nodes, edges, nodeCounter, name, folder));
   };
 
   const handleCopySelected = useCallback(() => {
