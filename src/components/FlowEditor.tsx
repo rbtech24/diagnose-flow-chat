@@ -1,4 +1,3 @@
-
 import { useCallback, useRef, useEffect, useState } from 'react';
 import {
   ReactFlow,
@@ -97,7 +96,9 @@ function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEd
 
   useHotkeys('ctrl+s', (e) => {
     e.preventDefault();
-    handleQuickSave();
+    if (currentWorkflow) {
+      handleQuickSave(nodes, edges, nodeCounter, currentWorkflow);
+    }
   });
 
   useHotkeys('ctrl+c', (e) => {
@@ -249,6 +250,51 @@ function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEd
         event.target.value = '';
       }
     }
+  };
+
+  const handleNodeUpdate = (nodeId: string, newData: any) => {
+    setNodes((nds) => nds.map((node) => {
+      if (node.id === nodeId) {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            ...newData,
+          },
+        };
+      }
+      return node;
+    }));
+  };
+
+  const handleAddNode = () => {
+    const newNodeId = `node-${nodeCounter}`;
+    const newNode = {
+      id: newNodeId,
+      type: 'diagnosis',
+      position: {
+        x: window.innerWidth / 2 - 75,
+        y: window.innerHeight / 2 - 75,
+      },
+      data: {
+        label: `Node ${nodeCounter}`,
+        type: 'question',
+        nodeId: `N${String(nodeCounter).padStart(3, '0')}`,
+        content: '',
+        options: [],
+      },
+    };
+
+    setNodes((nds) => [...nds, newNode]);
+    setNodeCounter((nc) => nc + 1);
+    
+    const newState = { nodes: [...nodes, newNode], edges, nodeCounter: nodeCounter + 1 };
+    setHistory(addToHistory(history, newState));
+
+    toast({
+      title: "Node Added",
+      description: "New node has been added to the workflow."
+    });
   };
 
   return (

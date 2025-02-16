@@ -23,6 +23,7 @@ interface NodeConfigFormProps {
   onMoveField: (dragIndex: number, hoverIndex: number) => void;
   onReset: () => void;
   onApply: () => void;
+  hasValidationErrors?: boolean;
 }
 
 export function NodeConfigForm({
@@ -39,7 +40,8 @@ export function NodeConfigForm({
   onRemoveField,
   onMoveField,
   onReset,
-  onApply
+  onApply,
+  hasValidationErrors
 }: NodeConfigFormProps) {
   return (
     <div className="space-y-6">

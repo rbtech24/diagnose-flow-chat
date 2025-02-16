@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Field, TechnicalSpecs } from '@/types/node-config';
 import { toast } from '@/hooks/use-toast';
@@ -20,6 +19,7 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
     measurementPoints: '',
     points: ''
   });
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   useEffect(() => {
     if (node) {
@@ -36,6 +36,27 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
       });
     }
   }, [node]);
+
+  const validateNode = () => {
+    const errors: string[] = [];
+    
+    if (!label.trim()) {
+      errors.push('Label is required');
+    }
+    
+    if (fields.length === 0) {
+      errors.push('At least one field is required');
+    }
+    
+    if (showTechnicalFields) {
+      if (technicalSpecs.range.max <= technicalSpecs.range.min) {
+        errors.push('Maximum range must be greater than minimum range');
+      }
+    }
+    
+    setValidationErrors(errors);
+    return errors.length === 0;
+  };
 
   const initializeFields = (data: any) => {
     const initialFields: Field[] = [];
@@ -79,6 +100,15 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
 
   const handleApplyChanges = () => {
     if (!node) return;
+    
+    if (!validateNode()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fix the errors before applying changes.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     let combinedContent = '';
     const combinedMedia: any[] = [];
@@ -127,6 +157,7 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
     setNodeType(node.data.type);
     setLabel(node.data.label);
     initializeFields(node.data);
+    setValidationErrors([]);
   };
 
   const addField = (type: Field['type']) => {
@@ -158,6 +189,7 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
     fields,
     showTechnicalFields,
     technicalSpecs,
+    validationErrors,
     handleNodeTypeChange,
     setLabel,
     setFields,
