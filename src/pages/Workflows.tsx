@@ -1,9 +1,10 @@
+
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Edit, Trash, ExternalLink, GripVertical } from 'lucide-react';
+import { ArrowLeft, Edit, Trash, ArrowUpRight, GripVertical, Plus } from 'lucide-react';
 import { AddApplianceDialog } from '@/components/appliance/AddApplianceDialog';
 import { EditApplianceDialog } from '@/components/appliance/EditApplianceDialog';
 import { toast } from '@/hooks/use-toast';
@@ -161,12 +162,12 @@ export default function Workflows() {
 
   const getSymptomCardColor = (index: number) => {
     const colors = [
-      'bg-[#E5DEFF]', // Soft Purple
-      'bg-[#D3E4FD]', // Soft Blue
-      'bg-[#FDE1D3]', // Soft Peach
-      'bg-[#F2FCE2]', // Soft Green
-      'bg-[#FEF7CD]', // Soft Yellow
-      'bg-[#FFDEE2]', // Soft Pink
+      'bg-[#E5DEFF] hover:bg-[#DCD2FF]', // Soft Purple with hover
+      'bg-[#D3E4FD] hover:bg-[#C4DBFF]', // Soft Blue with hover
+      'bg-[#FDE1D3] hover:bg-[#FFD4C2]', // Soft Peach with hover
+      'bg-[#F2FCE2] hover:bg-[#E9F9D4]', // Soft Green with hover
+      'bg-[#FEF7CD] hover:bg-[#FFF2B8]', // Soft Yellow with hover
+      'bg-[#FFDEE2] hover:bg-[#FFD0D6]', // Soft Pink with hover
     ];
     return colors[index % colors.length];
   };
@@ -178,11 +179,11 @@ export default function Workflows() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <Link to="/">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="hover:bg-gray-100">
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold">Appliances</h1>
+          <h1 className="text-2xl font-bold text-[#14162F]">Appliances</h1>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
@@ -198,7 +199,7 @@ export default function Workflows() {
         {sortedAppliances.map((appliance, applianceIndex) => (
           <Card 
             key={appliance.name} 
-            className={`p-4 shadow-sm border-gray-100 ${isReordering ? 'cursor-move' : ''}`}
+            className={`p-4 shadow-sm border-gray-100 hover:shadow-md transition-shadow ${isReordering ? 'cursor-move' : ''}`}
             draggable={isReordering}
             onDragStart={(e) => {
               e.dataTransfer.setData('appliance-index', applianceIndex.toString());
@@ -220,7 +221,7 @@ export default function Workflows() {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="text-blue-500 hover:text-blue-600"
+                  className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
                   onClick={() => setEditingAppliance({ index: applianceIndex, name: appliance.name })}
                 >
                   <Edit className="h-4 w-4" />
@@ -228,7 +229,7 @@ export default function Workflows() {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="text-red-500 hover:text-red-600"
+                  className="text-red-500 hover:text-red-600 hover:bg-red-50"
                   onClick={() => setDeletingApplianceIndex(applianceIndex)}
                 >
                   <Trash className="h-4 w-4" />
@@ -236,15 +237,15 @@ export default function Workflows() {
               </div>
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {[...appliance.symptoms]
                 .sort((a, b) => a.order - b.order)
                 .map((symptom, symptomIndex) => (
                 <div 
                   key={symptom.name}
-                  className={`flex items-center justify-between p-3 rounded-md ${
+                  className={`flex items-center justify-between p-3.5 rounded-lg ${
                     getSymptomCardColor(symptomIndex)
-                  } transition-colors ${isReordering ? 'cursor-move' : ''}`}
+                  } transition-all duration-200 ${isReordering ? 'cursor-move' : ''}`}
                   draggable={isReordering}
                   onDragStart={(e) => {
                     e.dataTransfer.setData('symptom-index', symptomIndex.toString());
@@ -266,16 +267,16 @@ export default function Workflows() {
                     {isReordering && (
                       <GripVertical className="h-4 w-4 text-gray-400" />
                     )}
-                    <span className="text-gray-700">{symptom.name}</span>
+                    <span className="text-gray-700 font-medium">{symptom.name}</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="text-[#8B5CF6] hover:text-[#7C3AED] h-8 w-8 p-0"
+                      className="text-[#8B5CF6] hover:text-[#7C3AED] hover:bg-[#8B5CF6]/10 h-8 w-8 p-0 rounded-full"
                       onClick={() => openWorkflowEditor(appliance.name, symptom.name)}
                     >
-                      <ExternalLink className="h-4 w-4" />
+                      <ArrowUpRight className="h-4 w-4" />
                     </Button>
                     <Switch 
                       checked={symptom.isActive}
@@ -287,9 +288,10 @@ export default function Workflows() {
             </div>
             
             <Button 
-              className="mt-4 w-full bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+              className="mt-4 w-full bg-gradient-to-r from-[#9b87f5] to-[#8B5CF6] hover:from-[#8B5CF6] hover:to-[#7C3AED] text-white gap-2 shadow-sm"
               onClick={() => openWorkflowEditor(appliance.name)}
             >
+              <Plus className="h-4 w-4" />
               Add Issue
             </Button>
           </Card>
