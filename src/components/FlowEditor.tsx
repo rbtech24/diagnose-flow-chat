@@ -1,3 +1,4 @@
+
 import { useCallback, useState, useRef } from 'react';
 import {
   ReactFlow,
@@ -98,19 +99,10 @@ export default function FlowEditor({ onNodeSelect }) {
       edges,
       nodeCounter
     };
-    const blob = new Blob([JSON.stringify(workflow, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'diagnostic-workflow.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
+    localStorage.setItem('diagnostic-workflow', JSON.stringify(workflow));
     toast({
-      title: "Workflow Exported",
-      description: "Your workflow has been saved to a JSON file."
+      title: "Workflow Saved",
+      description: "Your workflow has been saved successfully."
     });
   };
 
@@ -195,7 +187,7 @@ export default function FlowEditor({ onNodeSelect }) {
           </Button>
           <Button onClick={saveWorkflow} variant="secondary" className="flex items-center gap-2">
             <Save className="w-4 h-4" />
-            Export
+            Save Workflow
           </Button>
           <Button 
             onClick={() => fileInputRef.current?.click()} 
