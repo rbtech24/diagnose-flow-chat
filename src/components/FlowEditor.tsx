@@ -1,4 +1,3 @@
-
 import { useCallback, useState, useRef } from 'react';
 import {
   ReactFlow,
@@ -58,6 +57,7 @@ export default function FlowEditor({ onNodeSelect }) {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [nodeCounter, setNodeCounter] = useState(1);
+  const [selectedNode, setSelectedNode] = useState(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const onConnect = useCallback(
@@ -72,26 +72,29 @@ export default function FlowEditor({ onNodeSelect }) {
   );
 
   const onNodeClick = useCallback((event, node) => {
+    setSelectedNode(node);
     onNodeSelect(node);
   }, [onNodeSelect]);
 
-  const updateNode = (nodeId, newData) => {
+  const updateNode = useCallback((nodeId: string, newData: any) => {
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === nodeId) {
-          return {
+          const updatedNode = {
             ...node,
             data: { ...node.data, ...newData }
           };
+          // Update selected node if this is the one being edited
+          if (selectedNode?.id === nodeId) {
+            setSelectedNode(updatedNode);
+            onNodeSelect(updatedNode);
+          }
+          return updatedNode;
         }
         return node;
       })
     );
-    toast({
-      title: "Node Updated",
-      description: "The node has been updated successfully."
-    });
-  };
+  }, [setNodes, selectedNode, onNodeSelect]);
 
   const saveWorkflow = () => {
     const workflow = {
