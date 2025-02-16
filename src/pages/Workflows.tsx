@@ -38,12 +38,12 @@ export default function Workflows() {
 
   const getSymptomCardColor = (index: number) => {
     const colors = [
-      'bg-[#E5DEFF] hover:bg-[#DCD2FF]', // Soft Purple with hover
-      'bg-[#D3E4FD] hover:bg-[#C4DBFF]', // Soft Blue with hover
-      'bg-[#FDE1D3] hover:bg-[#FFD4C2]', // Soft Peach with hover
-      'bg-[#F2FCE2] hover:bg-[#E9F9D4]', // Soft Green with hover
-      'bg-[#FEF7CD] hover:bg-[#FFF2B8]', // Soft Yellow with hover
-      'bg-[#FFDEE2] hover:bg-[#FFD0D6]', // Soft Pink with hover
+      'bg-[#E5DEFF] hover:bg-[#DCD2FF]',
+      'bg-[#D3E4FD] hover:bg-[#C4DBFF]',
+      'bg-[#FDE1D3] hover:bg-[#FFD4C2]',
+      'bg-[#F2FCE2] hover:bg-[#E9F9D4]',
+      'bg-[#FEF7CD] hover:bg-[#FFF2B8]',
+      'bg-[#FFDEE2] hover:bg-[#FFD0D6]',
     ];
     return colors[index % colors.length];
   };
@@ -74,13 +74,17 @@ export default function Workflows() {
   };
 
   const openWorkflowEditor = (applianceName: string, symptomName?: string) => {
-    const params = new URLSearchParams({
-      appliance: applianceName,
+    navigate('/', {
+      state: { isNew: !symptomName },
+      search: new URLSearchParams({
+        ...(applianceName && { appliance: applianceName }),
+        ...(symptomName && { symptom: symptomName })
+      }).toString()
     });
-    if (symptomName) {
-      params.append('symptom', symptomName);
-    }
-    navigate(`/?${params.toString()}`);
+  };
+
+  const handleAddIssue = (applianceName: string) => {
+    openWorkflowEditor(applianceName);
   };
 
   return (
@@ -117,6 +121,7 @@ export default function Workflows() {
             onMoveSymptom={(fromIndex, toIndex) => moveSymptom(index, fromIndex, toIndex)}
             onMoveAppliance={moveAppliance}
             onOpenWorkflowEditor={(symptomName) => openWorkflowEditor(appliance.name, symptomName)}
+            onAddIssue={() => handleAddIssue(appliance.name)}
             getSymptomCardColor={getSymptomCardColor}
           />
         ))}
