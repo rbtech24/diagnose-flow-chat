@@ -30,22 +30,30 @@ export default function NodeConfigPanel({ node, onUpdate }) {
       
       const initialFields: Field[] = [];
       
+      // Split content by double newlines to create separate content fields
       if (node.data.content) {
-        initialFields.push({
-          id: 'content-1',
-          type: 'content',
-          content: node.data.content
+        const contentBlocks = node.data.content.split('\n\n').filter(Boolean);
+        contentBlocks.forEach((content, index) => {
+          initialFields.push({
+            id: `content-${index + 1}`,
+            type: 'content',
+            content: content.trim()
+          });
         });
       }
       
-      if (node.data.media) {
-        initialFields.push({
-          id: 'media-1',
-          type: 'media',
-          media: node.data.media
+      // Create separate media fields for each media item
+      if (node.data.media && node.data.media.length > 0) {
+        node.data.media.forEach((media, index) => {
+          initialFields.push({
+            id: `media-${index + 1}`,
+            type: 'media',
+            media: [media]
+          });
         });
       }
       
+      // Create a single options field
       if (node.data.options) {
         initialFields.push({
           id: 'options-1',
@@ -69,32 +77,30 @@ export default function NodeConfigPanel({ node, onUpdate }) {
   const handleApplyChanges = () => {
     if (!node) return;
 
-    // Create an object to store field data based on type
-    const fieldData = {
-      content: '',
-      media: [] as any[],
-      options: [] as string[]
-    };
+    // Combine all fields of the same type while preserving order
+    let combinedContent = '';
+    const combinedMedia: any[] = [];
+    let combinedOptions: string[] = [];
 
     // Process fields in their current order
-    fields.forEach(field => {
+    fields.forEach((field, index) => {
       switch (field.type) {
         case 'content':
           if (field.content) {
-            // Append content with a line break if there's existing content
-            fieldData.content = fieldData.content
-              ? `${fieldData.content}\n\n${field.content}`
+            combinedContent = combinedContent
+              ? `${combinedContent}\n\n${field.content}`
               : field.content;
           }
           break;
         case 'media':
           if (field.media) {
-            fieldData.media = [...fieldData.media, ...field.media];
+            combinedMedia.push(...field.media);
           }
           break;
         case 'options':
           if (field.options) {
-            fieldData.options = [...fieldData.options, ...field.options];
+            // For options, we'll use the last options field's values
+            combinedOptions = field.options;
           }
           break;
       }
@@ -103,9 +109,9 @@ export default function NodeConfigPanel({ node, onUpdate }) {
     const updatedData = {
       type: nodeType,
       label,
-      content: fieldData.content,
-      media: fieldData.media,
-      options: fieldData.options,
+      content: combinedContent,
+      media: combinedMedia,
+      options: combinedOptions,
       technicalSpecs: showTechnicalFields ? technicalSpecs : undefined
     };
 
@@ -117,7 +123,14 @@ export default function NodeConfigPanel({ node, onUpdate }) {
   };
 
   const addField = (type: Field['type']) => {
-    setFields([...fields, { id: `${type}-${fields.length + 1}`, type }]);
+    const newId = `${type}-${fields.filter(f => f.type === type).length + 1}`;
+    setFields([...fields, { 
+      id: newId, 
+      type,
+      ...(type === 'options' && { options: [] }),
+      ...(type === 'media' && { media: [] }),
+      ...(type === 'content' && { content: '' })
+    }]);
   };
 
   const removeField = (id: string) => {
@@ -182,8 +195,8 @@ export default function NodeConfigPanel({ node, onUpdate }) {
             {JSON.stringify({
               type: nodeType,
               label,
-              content: fields.find(f => f.type === 'content')?.content,
-              media: fields.find(f => f.type === 'media')?.media,
+              content: fields.filter(f => f.type === 'content').map(f => f.content).join('\n\n'),
+              media: fields.filter(f => f.type === 'media').flatMap(f => f.media || []),
               options: fields.find(f => f.type === 'options')?.options,
               technicalSpecs: showTechnicalFields ? technicalSpecs : undefined
             }, null, 2)}
@@ -194,15 +207,33 @@ export default function NodeConfigPanel({ node, onUpdate }) {
           <Button variant="outline" onClick={() => {
             setNodeType(node.data.type);
             setLabel(node.data.label);
+            // Initialize fields based on current node data
             const initialFields = [];
             if (node.data.content) {
-              initialFields.push({ id: 'content-1', type: 'content', content: node.data.content });
+              const contentBlocks = node.data.content.split('\n\n').filter(Boolean);
+              contentBlocks.forEach((content, index) => {
+                initialFields.push({
+                  id: `content-${index + 1}`,
+                  type: 'content',
+                  content: content.trim()
+                });
+              });
             }
             if (node.data.media) {
-              initialFields.push({ id: 'media-1', type: 'media', media: node.data.media });
+              node.data.media.forEach((media, index) => {
+                initialFields.push({
+                  id: `media-${index + 1}`,
+                  type: 'media',
+                  media: [media]
+                });
+              });
             }
             if (node.data.options) {
-              initialFields.push({ id: 'options-1', type: 'options', options: node.data.options });
+              initialFields.push({
+                id: 'options-1',
+                type: 'options',
+                options: node.data.options
+              });
             }
             setFields(initialFields);
           }}>
