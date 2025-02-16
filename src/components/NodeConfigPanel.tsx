@@ -88,12 +88,28 @@ export default function NodeConfigPanel({ node, onUpdate }) {
   const handleApplyChanges = () => {
     if (!node) return;
 
+    // Collect all content from content fields
+    const contentFields = fields.filter(f => f.type === 'content');
+    const combinedContent = contentFields.map(f => f.content).filter(Boolean).join('\n\n');
+
+    // Collect all media from media fields
+    const mediaFields = fields.filter(f => f.type === 'media');
+    const combinedMedia = mediaFields.reduce((acc, field) => {
+      return acc.concat(field.media || []);
+    }, [] as MediaItem[]);
+
+    // Collect all options from options fields
+    const optionsFields = fields.filter(f => f.type === 'options');
+    const combinedOptions = optionsFields.reduce((acc, field) => {
+      return acc.concat(field.options || []);
+    }, [] as string[]);
+
     const updatedData = {
       type: nodeType,
       label,
-      content: fields.find(f => f.type === 'content')?.content || '',
-      media: fields.find(f => f.type === 'media')?.media || [],
-      options: fields.find(f => f.type === 'options')?.options || [],
+      content: combinedContent,
+      media: combinedMedia,
+      options: combinedOptions,
       technicalSpecs: showTechnicalFields ? technicalSpecs : undefined
     };
 
