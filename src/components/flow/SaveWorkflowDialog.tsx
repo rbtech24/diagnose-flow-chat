@@ -6,19 +6,20 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Save } from 'lucide-react';
 import { getFolders } from '@/utils/flowUtils';
+import { useAppliances } from '@/hooks/useAppliances';
 
 interface SaveWorkflowDialogProps {
   onSave: (name: string, folder: string) => void;
-  appliances: string[];
 }
 
-export function SaveWorkflowDialog({ onSave, appliances }: SaveWorkflowDialogProps) {
+export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [workflowName, setWorkflowName] = useState('');
   const [folderName, setFolderName] = useState('');
   const [selectedAppliance, setSelectedAppliance] = useState('');
   const [newFolder, setNewFolder] = useState('');
   const existingFolders = getFolders();
+  const { appliances } = useAppliances();
 
   const handleSave = () => {
     const folder = newFolder || folderName || selectedAppliance;
@@ -69,8 +70,8 @@ export function SaveWorkflowDialog({ onSave, appliances }: SaveWorkflowDialogPro
             >
               <option value="">Select an appliance...</option>
               {appliances.map((appliance) => (
-                <option key={appliance} value={appliance}>
-                  {appliance}
+                <option key={appliance.name} value={appliance.name}>
+                  {appliance.name}
                 </option>
               ))}
             </select>
