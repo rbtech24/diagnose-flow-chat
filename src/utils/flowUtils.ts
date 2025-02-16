@@ -52,7 +52,7 @@ export const getFolders = (): string[] => {
   const folderSet = new Set<string>();
   
   workflows.forEach(workflow => {
-    if (workflow.metadata.folder) {
+    if (workflow.metadata.folder && workflow.nodes.length > 0) {
       folderSet.add(workflow.metadata.folder);
     }
   });
@@ -61,8 +61,10 @@ export const getFolders = (): string[] => {
 };
 
 export const getAllWorkflows = (): SavedWorkflow[] => {
-  const storedWorkflows = localStorage.getItem('diagnostic-workflows');
-  return storedWorkflows ? JSON.parse(storedWorkflows) : [];
+  const storedWorkflows = localStorage.getItem('diagnostic-workflows') || '[]';
+  const workflows = JSON.parse(storedWorkflows);
+  
+  return workflows.filter(workflow => workflow.nodes.length > 0);
 };
 
 export const getWorkflowsInFolder = (folder: string): SavedWorkflow[] => {
@@ -104,7 +106,6 @@ export const handleSaveWorkflow = (
     nodeCounter
   };
 
-  // Check if workflow with same name and folder exists
   const existingIndex = workflows.findIndex(
     w => w.metadata.name === name && w.metadata.folder === folder
   );
