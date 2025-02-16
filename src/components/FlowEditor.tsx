@@ -1,5 +1,5 @@
 
-import { useCallback, useState, useRef } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
 import {
   ReactFlow,
   MiniMap,
@@ -21,6 +21,8 @@ import {
   handleSaveWorkflow,
   handleImportWorkflow,
 } from '@/utils/flowUtils';
+import { WorkflowState, HistoryState, createHistoryState, addToHistory, undo, redo } from '@/utils/workflowHistory';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 const nodeTypes = {
   diagnosis: DiagnosisNode,
@@ -31,26 +33,102 @@ interface FlowEditorProps {
   appliances: string[];
 }
 
+const LOCAL_STORAGE_KEY = 'workflow-state';
+
 export default function FlowEditor({ onNodeSelect, appliances }: FlowEditorProps) {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [nodeCounter, setNodeCounter] = useState(1);
+  // Load initial state from localStorage or use default
+  const loadInitialState = (): WorkflowState => {
+    const savedState = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (savedState) {
+      try {
+        return JSON.parse(savedState);
+      } catch (e) {
+        console.error('Failed to parse saved workflow state');
+      }
+    }
+    return { nodes: initialNodes, edges: initialEdges, nodeCounter: 1 };
+  };
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(loadInitialState().nodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(loadInitialState().edges);
+  const [nodeCounter, setNodeCounter] = useState(loadInitialState().nodeCounter);
+  const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Initialize history
+  const [history, setHistory] = useState<HistoryState>(() => 
+    createHistoryState({ nodes, edges, nodeCounter })
+  );
+
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    const state = { nodes, edges, nodeCounter };
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
+  }, [nodes, edges, nodeCounter]);
+
+  // Keyboard shortcuts
+  useHotkeys('ctrl+z', (e) => {
+    e.preventDefault();
+    handleUndo();
+  });
+
+  useHotkeys('ctrl+shift+z', (e) => {
+    e.preventDefault();
+    handleRedo();
+  });
+
+  useHotkeys('ctrl+s', (e) => {
+    e.preventDefault();
+    handleQuickSave();
+  });
+
+  const handleUndo = () => {
+    const newHistory = undo(history);
+    if (newHistory !== history) {
+      setHistory(newHistory);
+      setNodes(newHistory.present.nodes);
+      setEdges(newHistory.present.edges);
+      setNodeCounter(newHistory.present.nodeCounter);
+    }
+  };
+
+  const handleRedo = () => {
+    const newHistory = redo(history);
+    if (newHistory !== history) {
+      setHistory(newHistory);
+      setNodes(newHistory.present.nodes);
+      setEdges(newHistory.present.edges);
+      setNodeCounter(newHistory.present.nodeCounter);
+    }
+  };
+
+  const handleQuickSave = () => {
+    handleSaveWorkflow(nodes, edges, nodeCounter, 'Quick Save', 'autosave');
+    toast({
+      title: "Workflow Auto-saved",
+      description: "Your changes have been saved automatically."
+    });
+  };
 
   const onConnect = useCallback(
     (params: Connection) => {
-      setEdges((eds) => addEdge(params, eds));
+      setEdges((eds) => {
+        const newEdges = addEdge(params, eds);
+        const newState = { nodes, edges: newEdges, nodeCounter };
+        setHistory(addToHistory(history, newState));
+        return newEdges;
+      });
       toast({
         title: "Connection Added",
         description: "Nodes have been connected successfully."
       });
     },
-    [setEdges]
+    [setEdges, nodes, nodeCounter, history]
   );
 
   const updateNode = useCallback((nodeId: string, newData: any) => {
-    setNodes((nds) =>
-      nds.map((node) => {
+    setNodes((nds) => {
+      const newNodes = nds.map((node) => {
         if (node.id === nodeId) {
           return {
             ...node,
@@ -58,55 +136,83 @@ export default function FlowEditor({ onNodeSelect, appliances }: FlowEditorProps
           };
         }
         return node;
-      })
-    );
+      });
+      const newState = { nodes: newNodes, edges, nodeCounter };
+      setHistory(addToHistory(history, newState));
+      return newNodes;
+    });
     toast({
       title: "Node Updated",
       description: "The node has been updated successfully."
     });
-  }, [setNodes]);
-
-  const onNodeClick = useCallback((event, node) => {
-    onNodeSelect(node, updateNode);
-  }, [onNodeSelect, updateNode]);
+  }, [setNodes, edges, nodeCounter, history]);
 
   const addNewNode = () => {
-    const uniqueId = `N${String(nodeCounter).padStart(3, '0')}`;
-    setNodeCounter(prev => prev + 1);
-    
-    const newNode = {
-      id: `node-${nodes.length + 1}`,
-      type: 'diagnosis',
-      position: { x: 250, y: (nodes.length + 1) * 150 },
-      data: {
-        label: `New Step [${uniqueId}]`,
-        type: 'question',
-        content: 'Enter question or instruction',
-        options: ['Yes', 'No'],
-        nodeId: uniqueId
-      }
-    };
-    setNodes([...nodes, newNode]);
-    toast({
-      title: "Node Added",
-      description: `New diagnosis step (${uniqueId}) has been added to the workflow.`
-    });
-  };
-
-  const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      handleImportWorkflow(file, setNodes, setEdges, setNodeCounter);
-      event.target.value = '';
+    setIsLoading(true);
+    try {
+      const uniqueId = `N${String(nodeCounter).padStart(3, '0')}`;
+      const newNodeCounter = nodeCounter + 1;
+      setNodeCounter(newNodeCounter);
+      
+      const newNode = {
+        id: `node-${nodes.length + 1}`,
+        type: 'diagnosis',
+        position: { x: 250, y: (nodes.length + 1) * 150 },
+        data: {
+          label: `New Step [${uniqueId}]`,
+          type: 'question',
+          content: 'Enter question or instruction',
+          options: ['Yes', 'No'],
+          nodeId: uniqueId
+        }
+      };
+      
+      const newNodes = [...nodes, newNode];
+      setNodes(newNodes);
+      
+      const newState = { nodes: newNodes, edges, nodeCounter: newNodeCounter };
+      setHistory(addToHistory(history, newState));
+      
+      toast({
+        title: "Node Added",
+        description: `New diagnosis step (${uniqueId}) has been added to the workflow.`
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleSave = (name: string, folder: string) => {
-    handleSaveWorkflow(nodes, edges, nodeCounter, name, folder);
+  const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setIsLoading(true);
+      try {
+        await handleImportWorkflow(file, setNodes, setEdges, setNodeCounter);
+        const newState = { nodes, edges, nodeCounter };
+        setHistory(addToHistory(history, newState));
+      } finally {
+        setIsLoading(false);
+        event.target.value = '';
+      }
+    }
+  };
+
+  const handleSave = async (name: string, folder: string) => {
+    setIsLoading(true);
+    try {
+      await handleSaveWorkflow(nodes, edges, nodeCounter, name, folder);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full relative">
+      {isLoading && (
+        <div className="absolute inset-0 bg-white/50 z-50 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        </div>
+      )}
       <input 
         type="file" 
         ref={fileInputRef}
@@ -120,7 +226,7 @@ export default function FlowEditor({ onNodeSelect, appliances }: FlowEditorProps
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        onNodeClick={onNodeClick}
+        onNodeClick={(event, node) => onNodeSelect(node, updateNode)}
         nodeTypes={nodeTypes}
         defaultEdgeOptions={defaultEdgeOptions}
         fitView
