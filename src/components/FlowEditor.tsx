@@ -1,5 +1,4 @@
-
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef } from 'react';
 import {
   ReactFlow,
   MiniMap,
@@ -16,7 +15,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Button } from './ui/button';
-import { PlusCircle, Save } from 'lucide-react';
+import { PlusCircle, Save, Upload } from 'lucide-react';
 import DiagnosisNode from './DiagnosisNode';
 import { toast } from '@/hooks/use-toast';
 
@@ -58,6 +57,7 @@ export default function FlowEditor({ onNodeSelect }) {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [nodeCounter, setNodeCounter] = useState(1);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -95,13 +95,50 @@ export default function FlowEditor({ onNodeSelect }) {
   const saveWorkflow = () => {
     const workflow = {
       nodes,
-      edges
+      edges,
+      nodeCounter
     };
-    localStorage.setItem('diagnostic-workflow', JSON.stringify(workflow));
+    const blob = new Blob([JSON.stringify(workflow, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'diagnostic-workflow.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
     toast({
-      title: "Workflow Saved",
-      description: "Your workflow has been saved successfully."
+      title: "Workflow Exported",
+      description: "Your workflow has been saved to a JSON file."
     });
+  };
+
+  const importWorkflow = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const workflow = JSON.parse(e.target?.result as string);
+        setNodes(workflow.nodes);
+        setEdges(workflow.edges);
+        setNodeCounter(workflow.nodeCounter || nodes.length + 1);
+        toast({
+          title: "Workflow Imported",
+          description: "Your workflow has been imported successfully."
+        });
+      } catch (error) {
+        toast({
+          title: "Import Error",
+          description: "Failed to import workflow. Please check the file format.",
+          variant: "destructive"
+        });
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = ''; // Reset file input
   };
 
   const addNewNode = () => {
@@ -129,6 +166,13 @@ export default function FlowEditor({ onNodeSelect }) {
 
   return (
     <div className="w-full h-full">
+      <input 
+        type="file" 
+        ref={fileInputRef}
+        className="hidden"
+        accept=".json"
+        onChange={importWorkflow}
+      />
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -151,7 +195,15 @@ export default function FlowEditor({ onNodeSelect }) {
           </Button>
           <Button onClick={saveWorkflow} variant="secondary" className="flex items-center gap-2">
             <Save className="w-4 h-4" />
-            Save Workflow
+            Export
+          </Button>
+          <Button 
+            onClick={() => fileInputRef.current?.click()} 
+            variant="secondary" 
+            className="flex items-center gap-2"
+          >
+            <Upload className="w-4 h-4" />
+            Import
           </Button>
         </Panel>
       </ReactFlow>
