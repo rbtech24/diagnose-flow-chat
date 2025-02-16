@@ -220,12 +220,7 @@ function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEd
   };
 
   const handleSave = async (name: string, folder: string) => {
-    setIsLoading(true);
-    try {
-      await handleSaveWorkflow(nodes, edges, nodeCounter, name, folder);
-    } finally {
-      setIsLoading(false);
-    }
+    return handleSaveWorkflow(nodes, edges, nodeCounter, name, folder);
   };
 
   const handleCopySelected = useCallback(() => {

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -74,12 +73,13 @@ export default function Workflows() {
   };
 
   const openWorkflowEditor = (applianceName: string, symptomName?: string) => {
-    navigate('/', {
-      state: { isNew: !symptomName },
-      search: new URLSearchParams({
-        ...(applianceName && { appliance: applianceName }),
-        ...(symptomName && { symptom: symptomName })
-      }).toString()
+    const params = new URLSearchParams();
+    if (applianceName) params.set('appliance', applianceName);
+    if (symptomName) params.set('symptom', symptomName);
+    
+    navigate({
+      pathname: '/',
+      search: params.toString(),
     });
   };
 

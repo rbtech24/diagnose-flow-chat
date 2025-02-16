@@ -15,6 +15,7 @@ interface ApplianceCardProps {
   onMoveSymptom: (fromIndex: number, toIndex: number) => void;
   onMoveAppliance: (fromIndex: number, toIndex: number) => void;
   onOpenWorkflowEditor: (symptomName?: string) => void;
+  onAddIssue: () => void;
   getSymptomCardColor: (index: number) => string;
 }
 
@@ -28,6 +29,7 @@ export function ApplianceCard({
   onMoveSymptom,
   onMoveAppliance,
   onOpenWorkflowEditor,
+  onAddIssue,
   getSymptomCardColor
 }: ApplianceCardProps) {
   return (
@@ -122,7 +124,7 @@ export function ApplianceCard({
       
       <Button 
         className="mt-4 w-full bg-gradient-to-r from-[#9b87f5] to-[#8B5CF6] hover:from-[#8B5CF6] hover:to-[#7C3AED] text-white gap-2 shadow-sm"
-        onClick={() => onOpenWorkflowEditor()}
+        onClick={onAddIssue}
       >
         <Plus className="h-4 w-4" />
         Add Issue
