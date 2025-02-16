@@ -9,18 +9,28 @@ import { ChevronRight, ChevronLeft } from "lucide-react";
 export default function Index() {
   const [showConfig, setShowConfig] = useState(true);
   const [selectedNode, setSelectedNode] = useState(null);
+  const [updateNodeFn, setUpdateNodeFn] = useState(null);
+
+  const handleNodeSelect = useCallback((node, updateFn) => {
+    setSelectedNode(node);
+    setUpdateNodeFn(() => updateFn);
+  }, []);
 
   const handleNodeUpdate = useCallback((nodeId: string, newData: any) => {
-    setSelectedNode(prev => ({
-      ...prev,
-      data: { ...prev.data, ...newData }
-    }));
-  }, []);
+    if (updateNodeFn) {
+      updateNodeFn(nodeId, newData);
+      // Update the selected node preview in the config panel
+      setSelectedNode(prev => ({
+        ...prev,
+        data: { ...prev.data, ...newData }
+      }));
+    }
+  }, [updateNodeFn]);
 
   return (
     <div className="h-screen flex">
       <main className="flex-1 bg-gray-50">
-        <FlowEditor onNodeSelect={setSelectedNode} />
+        <FlowEditor onNodeSelect={handleNodeSelect} />
       </main>
       
       <div className={`transition-all duration-300 ${showConfig ? 'w-96' : 'w-0'}`}>
