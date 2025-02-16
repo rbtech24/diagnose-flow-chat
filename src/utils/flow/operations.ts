@@ -1,85 +1,8 @@
-import { Node, Edge, Connection, MarkerType } from '@xyflow/react';
+
+import { Node, Edge } from '@xyflow/react';
 import { toast } from '@/hooks/use-toast';
-
-export const defaultEdgeOptions = {
-  type: 'smoothstep',
-  animated: true,
-  markerEnd: {
-    type: MarkerType.ArrowClosed,
-    color: '#22c55e',
-  },
-  style: {
-    strokeWidth: 2,
-    stroke: '#22c55e',
-  },
-};
-
-export const initialNodes: Node[] = [
-  {
-    id: 'start',
-    type: 'diagnosis',
-    position: { x: 250, y: 0 },
-    data: { 
-      label: 'Start Diagnosis [START]',
-      type: 'symptom',
-      content: 'Select the main symptom',
-      options: ['Dryer No Heat', 'No Power', 'Loud Noise'],
-      nodeId: 'START'
-    }
-  },
-];
-
-export const initialEdges: Edge[] = [];
-
-interface WorkflowMetadata {
-  name: string;
-  folder: string;
-  createdAt: string;
-  updatedAt: string;
-  appliance?: string;
-  symptom?: string;
-}
-
-export interface SavedWorkflow {
-  metadata: WorkflowMetadata;
-  nodes: Node[];
-  edges: Edge[];
-  nodeCounter: number;
-}
-
-export const cleanupWorkflows = () => {
-  const storedWorkflows = localStorage.getItem('diagnostic-workflows') || '[]';
-  const workflows = JSON.parse(storedWorkflows);
-  const cleanedWorkflows = workflows.filter(workflow => workflow.nodes.length > 0);
-  localStorage.setItem('diagnostic-workflows', JSON.stringify(cleanedWorkflows));
-  return cleanedWorkflows;
-};
-
-export const getFolders = (): string[] => {
-  const workflows = cleanupWorkflows();
-  const folderSet = new Set<string>();
-  
-  workflows.forEach(workflow => {
-    if (workflow.metadata?.folder && workflow.nodes.length > 0) {
-      folderSet.add(workflow.metadata.folder);
-    }
-  });
-  
-  return Array.from(folderSet).sort();
-};
-
-export const getAllWorkflows = (): SavedWorkflow[] => {
-  return cleanupWorkflows();
-};
-
-export const getWorkflowsInFolder = (folder: string): SavedWorkflow[] => {
-  const workflows = getAllWorkflows();
-  console.log('Getting workflows for folder:', folder);
-  console.log('All workflows:', workflows);
-  const folderWorkflows = workflows.filter(w => w.metadata.folder === folder);
-  console.log(`Found ${folderWorkflows.length} workflows in folder ${folder}`);
-  return folderWorkflows;
-};
+import { SavedWorkflow } from './types';
+import { getAllWorkflows } from './storage';
 
 export const handleQuickSave = (
   nodes: Node[],

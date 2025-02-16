@@ -24,7 +24,7 @@ import {
   SavedWorkflow,
   initialNodes,
   initialEdges
-} from '@/utils/flowUtils';
+} from '@/utils/flow';
 import { createHistoryState, addToHistory, undo, redo } from '@/utils/workflowHistory';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useFlowState } from '@/hooks/useFlowState';

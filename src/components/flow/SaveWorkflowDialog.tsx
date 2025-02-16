@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '../ui/dialog';
@@ -6,7 +5,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Save } from 'lucide-react';
 import { useAppliances } from '@/hooks/useAppliances';
-import { getFolders } from '@/utils/flowUtils';
+import { getFolders } from '@/utils/flow';
 import { useLocation } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 
