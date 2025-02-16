@@ -22,7 +22,7 @@ import DiagnosisNode from './DiagnosisNode';
 import FlowToolbar from './flow/FlowToolbar';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { ListTodo } from 'lucide-react';
+import { Link2 } from 'lucide-react';
 import {
   defaultEdgeOptions,
   initialNodes,
@@ -284,7 +284,7 @@ function FlowEditorContent({ onNodeSelect, appliances }: FlowEditorProps) {
         className="absolute top-4 right-4 z-50 translate-y-14"
       >
         <Button variant="secondary" className="gap-2">
-          <ListTodo className="h-4 w-4" />
+          <Link2 className="h-4 w-4" />
           Workflows
         </Button>
       </Link>

@@ -4,7 +4,7 @@ import FlowEditor from "@/components/FlowEditor";
 import NodeConfigPanel from "@/components/NodeConfigPanel";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft, Link2 } from "lucide-react";
 import { useLocation } from "react-router-dom";
 
 export default function Index() {
