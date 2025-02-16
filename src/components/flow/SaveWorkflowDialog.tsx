@@ -9,17 +9,19 @@ import { getFolders } from '@/utils/flowUtils';
 
 interface SaveWorkflowDialogProps {
   onSave: (name: string, folder: string) => void;
+  appliances: string[];
 }
 
-export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
+export function SaveWorkflowDialog({ onSave, appliances }: SaveWorkflowDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [workflowName, setWorkflowName] = useState('');
   const [folderName, setFolderName] = useState('');
+  const [selectedAppliance, setSelectedAppliance] = useState('');
   const [newFolder, setNewFolder] = useState('');
   const existingFolders = getFolders();
 
   const handleSave = () => {
-    const folder = newFolder || folderName;
+    const folder = newFolder || folderName || selectedAppliance;
     if (!workflowName || !folder) {
       return;
     }
@@ -28,6 +30,7 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
     setWorkflowName('');
     setFolderName('');
     setNewFolder('');
+    setSelectedAppliance('');
   };
 
   return (
@@ -54,13 +57,34 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
           </div>
           
           <div className="space-y-2">
-            <Label>Select Folder</Label>
+            <Label>Save to Appliance</Label>
+            <select
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              value={selectedAppliance}
+              onChange={(e) => {
+                setSelectedAppliance(e.target.value);
+                setFolderName('');
+                setNewFolder('');
+              }}
+            >
+              <option value="">Select an appliance...</option>
+              {appliances.map((appliance) => (
+                <option key={appliance} value={appliance}>
+                  {appliance}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Or Select Existing Folder</Label>
             <select
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
               value={folderName}
               onChange={(e) => {
                 setFolderName(e.target.value);
                 setNewFolder('');
+                setSelectedAppliance('');
               }}
             >
               <option value="">Select a folder...</option>
@@ -80,6 +104,7 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
               onChange={(e) => {
                 setNewFolder(e.target.value);
                 setFolderName('');
+                setSelectedAppliance('');
               }}
               placeholder="Enter new folder name"
             />
@@ -88,7 +113,7 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
           <Button 
             className="w-full" 
             onClick={handleSave}
-            disabled={!workflowName || (!folderName && !newFolder)}
+            disabled={!workflowName || (!folderName && !newFolder && !selectedAppliance)}
           >
             Save
           </Button>

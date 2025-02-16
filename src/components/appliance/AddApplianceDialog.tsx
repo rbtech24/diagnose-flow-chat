@@ -5,6 +5,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Plus } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface AddApplianceDialogProps {
   onSave: (applianceName: string, symptoms: string[]) => void;

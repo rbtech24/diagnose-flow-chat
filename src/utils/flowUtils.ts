@@ -37,6 +37,8 @@ interface WorkflowMetadata {
   folder: string;
   createdAt: string;
   updatedAt: string;
+  appliance?: string;
+  symptom?: string;
 }
 
 export interface SavedWorkflow {
@@ -67,7 +69,9 @@ export const handleSaveWorkflow = (
   edges: Edge[], 
   nodeCounter: number,
   name: string,
-  folder: string
+  folder: string,
+  appliance?: string,
+  symptom?: string
 ) => {
   const workflows = getAllWorkflows();
   
@@ -76,7 +80,9 @@ export const handleSaveWorkflow = (
       name,
       folder,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      appliance,
+      symptom
     },
     nodes,
     edges,
@@ -103,7 +109,7 @@ export const handleSaveWorkflow = (
   localStorage.setItem('diagnostic-workflows', JSON.stringify(workflows));
   toast({
     title: "Workflow Saved",
-    description: `Saved "${name}" to folder "${folder}"`
+    description: `Saved "${name}" to ${appliance ? 'appliance' : 'folder'} "${folder}"`
   });
 };
 
