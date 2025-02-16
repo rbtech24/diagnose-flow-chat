@@ -2,9 +2,10 @@
 import { Button } from '../ui/button';
 import { SaveWorkflowDialog } from './SaveWorkflowDialog';
 import { handleSaveWorkflow } from '@/utils/flowUtils';
-import { Download, Upload, Plus, Copy, Clipboard, Search } from 'lucide-react';
+import { Download, Upload, Plus, Copy, Clipboard, Search, Link2 } from 'lucide-react';
 import { useFlowState } from '@/hooks/useFlowState';
 import { useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { Input } from '../ui/input';
 
 interface FlowToolbarProps {
@@ -84,6 +85,17 @@ export function FlowToolbar({
           <Download className="w-4 h-4" />
         </Button>
       </div>
+
+      <Link to="/workflows">
+        <Button 
+          variant="secondary"
+          size="sm"
+          className="flex items-center gap-2"
+        >
+          <Link2 className="w-4 h-4" />
+          Workflows
+        </Button>
+      </Link>
 
       <div className="flex-1" />
 
