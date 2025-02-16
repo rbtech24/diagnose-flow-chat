@@ -2,7 +2,7 @@
 import { Button } from '../ui/button';
 import { SaveWorkflowDialog } from './SaveWorkflowDialog';
 import { handleSaveWorkflow } from '@/utils/flowUtils';
-import { Download, Upload } from 'lucide-react';
+import { Download, Upload, Plus, Copy, Clipboard } from 'lucide-react';
 import { useFlowState } from '@/hooks/useFlowState';
 import { useCallback } from 'react';
 
@@ -33,6 +33,18 @@ export function FlowToolbar({
 
   return (
     <div className="absolute top-4 right-4 flex items-center gap-2">
+      <Button variant="secondary" className="flex items-center gap-2" onClick={onAddNode}>
+        <Plus className="w-4 h-4" />
+        Add Node
+      </Button>
+      <Button variant="secondary" className="flex items-center gap-2" onClick={onCopySelected}>
+        <Copy className="w-4 h-4" />
+        Copy
+      </Button>
+      <Button variant="secondary" className="flex items-center gap-2" onClick={onPaste}>
+        <Clipboard className="w-4 h-4" />
+        Paste
+      </Button>
       <SaveWorkflowDialog onSave={onSave} />
       <Button variant="secondary" className="flex items-center gap-2" onClick={() => {
         handleSaveWorkflow(nodes, edges, nodeCounter, 'Exported Workflow', 'export');
