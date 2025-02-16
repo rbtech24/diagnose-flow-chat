@@ -234,7 +234,7 @@ function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEd
     }
   };
 
-  const handleSave = async (name: string, folder: string) => {
+  const handleSave = (name: string, folder: string) => {
     handleSaveWorkflow(nodes, edges, nodeCounter, name, folder);
   };
 
