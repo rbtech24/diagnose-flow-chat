@@ -8,17 +8,17 @@ function DiagnosisNode({ id, data }) {
   // Get connected edges for this node to check handle connections
   const connected = useStore((store) => {
     const edges = store.edges;
-    const leftConnections = edges.filter(
-      (edge) => (edge.target === id && edge.targetHandle === 'left') ||
-                (edge.source === id && edge.sourceHandle === 'left')
-    );
-    const rightConnections = edges.filter(
-      (edge) => (edge.target === id && edge.targetHandle === 'right') ||
-                (edge.source === id && edge.sourceHandle === 'right')
-    );
+    const handleConnections = (edges, nodeId, handleId = null) => 
+      edges.some(edge => 
+        (edge.source === nodeId && (!handleId || edge.sourceHandle === handleId)) ||
+        (edge.target === nodeId && (!handleId || edge.targetHandle === handleId))
+      );
+
     return {
-      left: leftConnections.length > 0,
-      right: rightConnections.length > 0,
+      left: handleConnections(edges, id, 'left'),
+      right: handleConnections(edges, id, 'right'),
+      top: handleConnections(edges, id, 'top'),
+      bottom: handleConnections(edges, id, 'bottom')
     };
   });
 
@@ -66,7 +66,8 @@ function DiagnosisNode({ id, data }) {
       <Handle 
         type="target" 
         position={Position.Top} 
-        style={handleStyle(false)}
+        id="top"
+        style={handleStyle(connected.top)}
       />
       
       <Handle
@@ -113,8 +114,9 @@ function DiagnosisNode({ id, data }) {
 
       <Handle 
         type="source" 
-        position={Position.Bottom} 
-        style={handleStyle(false)}
+        position={Position.Bottom}
+        id="bottom" 
+        style={handleStyle(connected.bottom)}
       />
     </Card>
   );

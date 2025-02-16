@@ -12,6 +12,7 @@ import {
   Edge,
   Node,
   Panel,
+  MarkerType,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Button } from './ui/button';
@@ -21,6 +22,19 @@ import { toast } from '@/hooks/use-toast';
 
 const nodeTypes = {
   diagnosis: DiagnosisNode,
+};
+
+const defaultEdgeOptions = {
+  type: 'smoothstep',
+  animated: true,
+  markerEnd: {
+    type: MarkerType.ArrowClosed,
+    color: '#22c55e',
+  },
+  style: {
+    strokeWidth: 2,
+    stroke: '#22c55e',
+  },
 };
 
 const initialNodes: Node[] = [
@@ -54,7 +68,6 @@ export default function FlowEditor({ onNodeSelect }) {
     [setEdges]
   );
 
-  // Modified to only trigger when a node is clicked, not during connection
   const onNodeClick = useCallback((event, node) => {
     onNodeSelect(node);
   }, [onNodeSelect]);
@@ -118,6 +131,7 @@ export default function FlowEditor({ onNodeSelect }) {
         onConnect={onConnect}
         onNodeClick={onNodeClick}
         nodeTypes={nodeTypes}
+        defaultEdgeOptions={defaultEdgeOptions}
         fitView
         className="bg-gray-50"
       >
