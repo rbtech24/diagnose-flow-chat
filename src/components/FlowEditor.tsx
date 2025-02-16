@@ -281,7 +281,7 @@ function FlowEditorContent({ onNodeSelect, appliances }: FlowEditorProps) {
     <div className="w-full h-full relative">
       <Link 
         to="/workflows" 
-        className="absolute top-4 right-4 z-50"
+        className="absolute top-4 right-4 z-50 translate-y-14"
       >
         <Button variant="secondary" className="gap-2">
           <ListTodo className="h-4 w-4" />
