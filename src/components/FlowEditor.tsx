@@ -1,3 +1,4 @@
+
 import { useCallback, useState, useRef } from 'react';
 import {
   ReactFlow,
@@ -8,50 +9,22 @@ import {
   useEdgesState,
   addEdge,
   Connection,
-  Edge,
-  Node,
-  Panel,
-  MarkerType,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Button } from './ui/button';
-import { PlusCircle, Save, Upload } from 'lucide-react';
 import DiagnosisNode from './DiagnosisNode';
+import FlowToolbar from './flow/FlowToolbar';
 import { toast } from '@/hooks/use-toast';
+import {
+  defaultEdgeOptions,
+  initialNodes,
+  initialEdges,
+  handleSaveWorkflow,
+  handleImportWorkflow,
+} from '@/utils/flowUtils';
 
 const nodeTypes = {
   diagnosis: DiagnosisNode,
 };
-
-const defaultEdgeOptions = {
-  type: 'smoothstep',
-  animated: true,
-  markerEnd: {
-    type: MarkerType.ArrowClosed,
-    color: '#22c55e',
-  },
-  style: {
-    strokeWidth: 2,
-    stroke: '#22c55e',
-  },
-};
-
-const initialNodes: Node[] = [
-  {
-    id: 'start',
-    type: 'diagnosis',
-    position: { x: 250, y: 0 },
-    data: { 
-      label: 'Start Diagnosis [START]',
-      type: 'symptom',
-      content: 'Select the main symptom',
-      options: ['Dryer No Heat', 'No Power', 'Loud Noise'],
-      nodeId: 'START'
-    }
-  },
-];
-
-const initialEdges: Edge[] = [];
 
 export default function FlowEditor({ onNodeSelect }) {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -92,46 +65,6 @@ export default function FlowEditor({ onNodeSelect }) {
     onNodeSelect(node, updateNode);
   }, [onNodeSelect, updateNode]);
 
-  const saveWorkflow = () => {
-    const workflow = {
-      nodes,
-      edges,
-      nodeCounter
-    };
-    localStorage.setItem('diagnostic-workflow', JSON.stringify(workflow));
-    toast({
-      title: "Workflow Saved",
-      description: "Your workflow has been saved successfully."
-    });
-  };
-
-  const importWorkflow = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const workflow = JSON.parse(e.target?.result as string);
-        setNodes(workflow.nodes);
-        setEdges(workflow.edges);
-        setNodeCounter(workflow.nodeCounter || nodes.length + 1);
-        toast({
-          title: "Workflow Imported",
-          description: "Your workflow has been imported successfully."
-        });
-      } catch (error) {
-        toast({
-          title: "Import Error",
-          description: "Failed to import workflow. Please check the file format.",
-          variant: "destructive"
-        });
-      }
-    };
-    reader.readAsText(file);
-    event.target.value = ''; // Reset file input
-  };
-
   const addNewNode = () => {
     const uniqueId = `N${String(nodeCounter).padStart(3, '0')}`;
     setNodeCounter(prev => prev + 1);
@@ -155,6 +88,14 @@ export default function FlowEditor({ onNodeSelect }) {
     });
   };
 
+  const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleImportWorkflow(file, setNodes, setEdges, setNodeCounter);
+      event.target.value = '';
+    }
+  };
+
   return (
     <div className="w-full h-full">
       <input 
@@ -162,7 +103,7 @@ export default function FlowEditor({ onNodeSelect }) {
         ref={fileInputRef}
         className="hidden"
         accept=".json"
-        onChange={importWorkflow}
+        onChange={handleFileImport}
       />
       <ReactFlow
         nodes={nodes}
@@ -179,24 +120,11 @@ export default function FlowEditor({ onNodeSelect }) {
         <Background />
         <Controls />
         <MiniMap />
-        <Panel position="top-left" className="bg-white p-2 rounded-lg shadow-sm flex gap-2">
-          <Button onClick={addNewNode} className="flex items-center gap-2">
-            <PlusCircle className="w-4 h-4" />
-            Add Step
-          </Button>
-          <Button onClick={saveWorkflow} variant="secondary" className="flex items-center gap-2">
-            <Save className="w-4 h-4" />
-            Save Workflow
-          </Button>
-          <Button 
-            onClick={() => fileInputRef.current?.click()} 
-            variant="secondary" 
-            className="flex items-center gap-2"
-          >
-            <Upload className="w-4 h-4" />
-            Import
-          </Button>
-        </Panel>
+        <FlowToolbar
+          onAddNode={addNewNode}
+          onSave={() => handleSaveWorkflow(nodes, edges, nodeCounter)}
+          onImportClick={() => fileInputRef.current?.click()}
+        />
       </ReactFlow>
     </div>
   );
