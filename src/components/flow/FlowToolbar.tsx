@@ -1,108 +1,45 @@
-
 import { Button } from '../ui/button';
-import { PlusCircle, Upload, ZoomIn, ZoomOut, Grid, Search, Copy, ClipboardCopy } from 'lucide-react';
-import { Panel, useReactFlow } from '@xyflow/react';
 import { SaveWorkflowDialog } from './SaveWorkflowDialog';
-import { Input } from '../ui/input';
-import { useState } from 'react';
+import { handleSaveWorkflow } from '@/utils/flowUtils';
+import { Download, Upload } from 'lucide-react';
+import { useFlowState } from '@/hooks/useFlowState';
+import { useCallback } from 'react';
 
-interface FlowToolbarProps {
-  onAddNode: () => void;
-  onSave: (name: string, folder: string) => void;
-  onImportClick: () => void;
-  onCopySelected: () => void;
-  onPaste: () => void;
-  appliances: string[];
-}
+export function FlowToolbar() {
+  const { nodes, edges, nodeCounter } = useFlowState();
 
-export default function FlowToolbar({ 
-  onAddNode, 
-  onSave, 
-  onImportClick, 
-  onCopySelected,
-  onPaste,
-  appliances 
-}: FlowToolbarProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showGrid, setShowGrid] = useState(true);
-  const { zoomIn, zoomOut } = useReactFlow();
+  const handleImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    handleSaveWorkflow(nodes, edges, nodeCounter, file.name, file.path);
+  }, []);
+
+  const onSave = (name: string, folder: string) => {
+    handleSaveWorkflow(nodes, edges, nodeCounter, name, folder);
+  };
 
   return (
-    <Panel position="top-left" className="bg-white p-2 rounded-lg shadow-sm flex gap-2 items-center flex-wrap">
-      <div className="flex gap-2">
-        <Button onClick={onAddNode} className="flex items-center gap-2">
-          <PlusCircle className="w-4 h-4" />
-          Add Step
-        </Button>
-        <SaveWorkflowDialog onSave={onSave} appliances={appliances} />
-        <Button 
-          onClick={onImportClick}
-          variant="secondary" 
-          className="flex items-center gap-2"
-        >
-          <Upload className="w-4 h-4" />
-          Import
-        </Button>
-      </div>
-      
-      <div className="h-6 w-px bg-gray-200" />
-      
-      <div className="flex gap-2">
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={() => zoomIn()}
-        >
-          <ZoomIn className="w-4 h-4" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={() => zoomOut()}
-        >
-          <ZoomOut className="w-4 h-4" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={() => setShowGrid(!showGrid)}
-          className={showGrid ? 'bg-gray-100' : ''}
-        >
-          <Grid className="w-4 h-4" />
-        </Button>
-      </div>
-
-      <div className="h-6 w-px bg-gray-200" />
-
-      <div className="flex gap-2">
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={onCopySelected}
-        >
-          <Copy className="w-4 h-4" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={onPaste}
-        >
-          <ClipboardCopy className="w-4 h-4" />
-        </Button>
-      </div>
-
-      <div className="h-6 w-px bg-gray-200" />
-
-      <div className="flex items-center gap-2">
-        <Search className="w-4 h-4 text-gray-500" />
-        <Input
-          type="text"
-          placeholder="Search nodes..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="h-9 w-40"
-        />
-      </div>
-    </Panel>
+    <div className="absolute top-4 right-4 flex items-center gap-2">
+      <SaveWorkflowDialog onSave={onSave} />
+      <Button variant="secondary" className="flex items-center gap-2" onClick={() => {
+        handleSaveWorkflow(nodes, edges, nodeCounter, 'Exported Workflow', 'export');
+      }}>
+        <Download className="w-4 h-4" />
+        Export
+      </Button>
+      <Button variant="secondary" className="flex items-center gap-2" onClick={() => {
+        document.getElementById('import-workflow')?.click();
+      }}>
+        <Upload className="w-4 h-4" />
+        Import
+      </Button>
+      <input
+        type="file"
+        id="import-workflow"
+        className="hidden"
+        accept=".json"
+        onChange={handleImport}
+      />
+    </div>
   );
 }

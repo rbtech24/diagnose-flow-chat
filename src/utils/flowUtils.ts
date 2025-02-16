@@ -50,13 +50,21 @@ export interface SavedWorkflow {
 
 export const getFolders = (): string[] => {
   const workflows = getAllWorkflows();
-  const folders = new Set(workflows.map(w => w.metadata.folder));
-  return Array.from(folders).sort();
+  const folderSet = new Set<string>();
+  
+  workflows.forEach(workflow => {
+    if (workflow.metadata.folder && workflow.nodes.length > 0) {
+      folderSet.add(workflow.metadata.folder);
+    }
+  });
+  
+  return Array.from(folderSet).sort();
 };
 
 export const getAllWorkflows = (): SavedWorkflow[] => {
   const storedWorkflows = localStorage.getItem('diagnostic-workflows');
-  return storedWorkflows ? JSON.parse(storedWorkflows) : [];
+  const workflows = storedWorkflows ? JSON.parse(storedWorkflows) : [];
+  return workflows.filter(w => w.nodes.length > 0); // Only return workflows that have nodes
 };
 
 export const getWorkflowsInFolder = (folder: string): SavedWorkflow[] => {
