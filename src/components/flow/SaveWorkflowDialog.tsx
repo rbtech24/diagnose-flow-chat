@@ -7,6 +7,7 @@ import { Label } from '../ui/label';
 import { Save } from 'lucide-react';
 import { useAppliances } from '@/hooks/useAppliances';
 import { getFolders } from '@/utils/flowUtils';
+import { useLocation } from 'react-router-dom';
 
 interface SaveWorkflowDialogProps {
   onSave: (name: string, folder: string) => void;
@@ -19,11 +20,12 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
   const [newFolder, setNewFolder] = useState('');
   const { appliances } = useAppliances();
   const existingFolders = getFolders();
+  const location = useLocation();
   
-  const allFolders = [...new Set([
-    ...appliances.map(a => a.name),
-    ...existingFolders
-  ])];
+  const isWorkflowsPage = location.pathname === '/workflows';
+  const dropdownOptions = isWorkflowsPage 
+    ? existingFolders 
+    : [...new Set([...appliances.map(a => a.name), ...existingFolders])];
 
   const handleSave = () => {
     const folder = newFolder || selectedAppliance;
@@ -71,7 +73,7 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
               }}
             >
               <option value="">Select a folder...</option>
-              {allFolders.map((folder) => (
+              {dropdownOptions.map((folder) => (
                 <option key={folder} value={folder}>
                   {folder}
                 </option>
