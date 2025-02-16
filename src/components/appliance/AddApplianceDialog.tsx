@@ -4,8 +4,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Plus } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
 
 interface AddApplianceDialogProps {
   onSave: (applianceName: string, symptoms: string[]) => void;
@@ -14,24 +12,12 @@ interface AddApplianceDialogProps {
 export function AddApplianceDialog({ onSave }: AddApplianceDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [applianceName, setApplianceName] = useState('');
-  const [symptoms, setSymptoms] = useState(['']);
-
-  const handleAddSymptom = () => {
-    setSymptoms([...symptoms, '']);
-  };
-
-  const handleSymptomChange = (index: number, value: string) => {
-    const newSymptoms = [...symptoms];
-    newSymptoms[index] = value;
-    setSymptoms(newSymptoms);
-  };
 
   const handleSave = () => {
-    if (!applianceName || symptoms.some(s => !s)) return;
-    onSave(applianceName, symptoms.filter(s => s));
+    if (!applianceName) return;
+    onSave(applianceName, []);
     setIsOpen(false);
     setApplianceName('');
-    setSymptoms(['']);
   };
 
   return (
@@ -54,32 +40,10 @@ export function AddApplianceDialog({ onSave }: AddApplianceDialogProps) {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Symptoms</Label>
-            {symptoms.map((symptom, index) => (
-              <Input
-                key={index}
-                value={symptom}
-                onChange={(e) => handleSymptomChange(index, e.target.value)}
-                placeholder="Enter symptom"
-                className="mb-2"
-              />
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleAddSymptom}
-              className="w-full"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Symptom
-            </Button>
-          </div>
-
           <Button 
             className="w-full" 
             onClick={handleSave}
-            disabled={!applianceName || symptoms.some(s => !s)}
+            disabled={!applianceName}
           >
             Save Appliance
           </Button>

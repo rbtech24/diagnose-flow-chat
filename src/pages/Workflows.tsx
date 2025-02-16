@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
@@ -69,15 +68,11 @@ export default function Workflows() {
     }
   ]);
 
-  const handleAddAppliance = (name: string, symptoms: string[]) => {
+  const handleAddAppliance = (name: string) => {
     const newAppliance: Appliance = {
       name,
       order: appliances.length,
-      symptoms: symptoms.map((name, index) => ({
-        name,
-        isActive: true,
-        order: index
-      }))
+      symptoms: []
     };
     setAppliances([...appliances, newAppliance]);
     toast({
