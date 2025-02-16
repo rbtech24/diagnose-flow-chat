@@ -82,20 +82,36 @@ function DiagnosisNode({ id, data }) {
 
   return (
     <Card className="min-w-[200px] max-w-[300px] p-4 bg-white shadow-sm border-2">
+      {/* Top Handles */}
+      <Handle 
+        type="source" 
+        position={Position.Top} 
+        id="top-source"
+        style={{...handleStyle(connected.top), left: '25%'}}
+        onClick={() => connected.top && handleDisconnect('top-source')}
+      />
       <Handle 
         type="target" 
         position={Position.Top} 
-        id="top"
-        style={handleStyle(connected.top)}
-        onClick={() => connected.top && handleDisconnect('top')}
+        id="top-target"
+        style={{...handleStyle(connected.top), left: '75%'}}
+        onClick={() => connected.top && handleDisconnect('top-target')}
       />
       
+      {/* Left Handles */}
+      <Handle
+        type="source"
+        position={Position.Left}
+        id="left-source"
+        style={{...handleStyle(connected.left), top: '25%'}}
+        onClick={() => connected.left && handleDisconnect('left-source')}
+      />
       <Handle
         type="target"
         position={Position.Left}
-        id="left"
-        style={handleStyle(connected.left)}
-        onClick={() => connected.left && handleDisconnect('left')}
+        id="left-target"
+        style={{...handleStyle(connected.left), top: '75%'}}
+        onClick={() => connected.left && handleDisconnect('left-target')}
       />
 
       <div className="space-y-3">
@@ -147,20 +163,36 @@ function DiagnosisNode({ id, data }) {
         )}
       </div>
 
+      {/* Right Handles */}
       <Handle
         type="source"
         position={Position.Right}
-        id="right"
-        style={handleStyle(connected.right)}
-        onClick={() => connected.right && handleDisconnect('right')}
+        id="right-source"
+        style={{...handleStyle(connected.right), top: '25%'}}
+        onClick={() => connected.right && handleDisconnect('right-source')}
+      />
+      <Handle
+        type="target"
+        position={Position.Right}
+        id="right-target"
+        style={{...handleStyle(connected.right), top: '75%'}}
+        onClick={() => connected.right && handleDisconnect('right-target')}
       />
 
+      {/* Bottom Handles */}
       <Handle 
         type="source" 
         position={Position.Bottom}
-        id="bottom" 
-        style={handleStyle(connected.bottom)}
-        onClick={() => connected.bottom && handleDisconnect('bottom')}
+        id="bottom-source"
+        style={{...handleStyle(connected.bottom), left: '25%'}}
+        onClick={() => connected.bottom && handleDisconnect('bottom-source')}
+      />
+      <Handle 
+        type="target" 
+        position={Position.Bottom}
+        id="bottom-target"
+        style={{...handleStyle(connected.bottom), left: '75%'}}
+        onClick={() => connected.bottom && handleDisconnect('bottom-target')}
       />
     </Card>
   );
