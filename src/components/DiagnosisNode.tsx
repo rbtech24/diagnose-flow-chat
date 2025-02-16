@@ -105,9 +105,30 @@ function DiagnosisNode({ id, data }) {
         
         <h3 className="font-medium text-sm">{data.label}</h3>
         
-        <p className="text-sm text-gray-600">
-          {data.content}
-        </p>
+        {data.content && (
+          <p className="text-sm text-gray-600">
+            {data.content}
+          </p>
+        )}
+
+        {data.media && data.media.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {data.media.map((item, index) => (
+              <div key={index} className="relative">
+                {item.type === 'image' ? (
+                  <img src={item.url} alt="" className="w-20 h-20 object-cover rounded" />
+                ) : (
+                  <iframe 
+                    src={item.url} 
+                    className="w-40 h-24 rounded" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
 
         {getTechnicalContent()}
 

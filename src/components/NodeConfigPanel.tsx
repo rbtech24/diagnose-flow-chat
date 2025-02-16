@@ -6,6 +6,7 @@ import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { toast } from '@/hooks/use-toast';
+import { GripVertical, X } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -14,11 +15,23 @@ import {
   SelectValue,
 } from './ui/select';
 
+type MediaItem = {
+  type: 'image' | 'video';
+  url: string;
+};
+
+type Field = {
+  id: string;
+  type: 'content' | 'media' | 'options';
+  content?: string;
+  media?: MediaItem[];
+  options?: string[];
+};
+
 export default function NodeConfigPanel({ node, onUpdate }) {
   const [nodeType, setNodeType] = useState('question');
   const [label, setLabel] = useState('');
-  const [content, setContent] = useState('');
-  const [options, setOptions] = useState('');
+  const [fields, setFields] = useState<Field[]>([]);
   const [showTechnicalFields, setShowTechnicalFields] = useState(false);
   const [technicalSpecs, setTechnicalSpecs] = useState({
     range: { min: 0, max: 0 },
@@ -32,8 +45,35 @@ export default function NodeConfigPanel({ node, onUpdate }) {
     if (node) {
       setNodeType(node.data.type || 'question');
       setLabel(node.data.label || '');
-      setContent(node.data.content || '');
-      setOptions(node.data.options?.join('\n') || '');
+      
+      // Initialize fields from node data
+      const initialFields: Field[] = [];
+      
+      if (node.data.content) {
+        initialFields.push({
+          id: 'content-1',
+          type: 'content',
+          content: node.data.content
+        });
+      }
+      
+      if (node.data.media) {
+        initialFields.push({
+          id: 'media-1',
+          type: 'media',
+          media: node.data.media
+        });
+      }
+      
+      if (node.data.options) {
+        initialFields.push({
+          id: 'options-1',
+          type: 'options',
+          options: node.data.options
+        });
+      }
+      
+      setFields(initialFields.length > 0 ? initialFields : [{ id: 'content-1', type: 'content', content: '' }]);
       setShowTechnicalFields(['voltage-check', 'resistance-check', 'inspection'].includes(node.data.type));
       setTechnicalSpecs(node.data.technicalSpecs || {
         range: { min: 0, max: 0 },
@@ -51,8 +91,9 @@ export default function NodeConfigPanel({ node, onUpdate }) {
     const updatedData = {
       type: nodeType,
       label,
-      content,
-      options: options.split('\n').filter(Boolean),
+      content: fields.find(f => f.type === 'content')?.content || '',
+      media: fields.find(f => f.type === 'media')?.media || [],
+      options: fields.find(f => f.type === 'options')?.options || [],
       technicalSpecs: showTechnicalFields ? technicalSpecs : undefined
     };
 
@@ -61,6 +102,163 @@ export default function NodeConfigPanel({ node, onUpdate }) {
       title: "Changes Applied",
       description: "Node configuration has been updated."
     });
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    const newMedia: MediaItem[] = [];
+    Array.from(files).forEach(file => {
+      const url = URL.createObjectURL(file);
+      newMedia.push({ type: 'image', url });
+    });
+
+    const mediaField = fields.find(f => f.type === 'media');
+    if (mediaField) {
+      setFields(fields.map(field => 
+        field.id === mediaField.id 
+          ? { ...field, media: [...(field.media || []), ...newMedia] }
+          : field
+      ));
+    } else {
+      setFields([...fields, { id: `media-${fields.length + 1}`, type: 'media', media: newMedia }]);
+    }
+  };
+
+  const addField = (type: Field['type']) => {
+    setFields([...fields, { id: `${type}-${fields.length + 1}`, type }]);
+  };
+
+  const removeField = (id: string) => {
+    setFields(fields.filter(f => f.id !== id));
+  };
+
+  const moveField = (dragIndex: number, hoverIndex: number) => {
+    const newFields = [...fields];
+    const dragField = newFields[dragIndex];
+    newFields.splice(dragIndex, 1);
+    newFields.splice(hoverIndex, 0, dragField);
+    setFields(newFields);
+  };
+
+  const renderField = (field: Field, index: number) => {
+    return (
+      <div key={field.id} className="flex gap-2 items-start group border p-4 rounded-lg bg-white">
+        <button 
+          className="cursor-move opacity-0 group-hover:opacity-100 transition-opacity"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            const target = e.currentTarget.parentElement;
+            if (!target) return;
+            
+            const initialY = e.pageY;
+            const initialIndex = index;
+            
+            const handleMouseMove = (moveEvent: MouseEvent) => {
+              const currentY = moveEvent.pageY;
+              const diff = currentY - initialY;
+              const newIndex = initialIndex + Math.round(diff / 50);
+              if (newIndex >= 0 && newIndex < fields.length) {
+                moveField(initialIndex, newIndex);
+              }
+            };
+            
+            const handleMouseUp = () => {
+              document.removeEventListener('mousemove', handleMouseMove);
+              document.removeEventListener('mouseup', handleMouseUp);
+            };
+            
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+          }}
+        >
+          <GripVertical className="w-4 h-4" />
+        </button>
+        
+        <div className="flex-1 space-y-2">
+          {field.type === 'content' && (
+            <Textarea 
+              placeholder="Enter content"
+              value={field.content || ''}
+              onChange={(e) => setFields(fields.map(f => 
+                f.id === field.id ? { ...f, content: e.target.value } : f
+              ))}
+            />
+          )}
+          
+          {field.type === 'media' && (
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-2">
+                {field.media?.map((item, i) => (
+                  <div key={i} className="relative group">
+                    {item.type === 'image' ? (
+                      <img src={item.url} alt="" className="w-20 h-20 object-cover rounded" />
+                    ) : (
+                      <iframe src={item.url} className="w-40 h-24 rounded" />
+                    )}
+                    <button
+                      className="absolute top-1 right-1 bg-white rounded-full p-1 opacity-0 group-hover:opacity-100"
+                      onClick={() => setFields(fields.map(f => 
+                        f.id === field.id 
+                          ? { ...f, media: f.media?.filter((_, index) => index !== i) } 
+                          : f
+                      ))}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input 
+                  type="file" 
+                  accept="image/*" 
+                  multiple 
+                  onChange={handleFileUpload}
+                />
+                <Input
+                  type="url"
+                  placeholder="Enter video URL"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      const input = e.currentTarget;
+                      const url = input.value;
+                      if (url) {
+                        setFields(fields.map(f => 
+                          f.id === field.id 
+                            ? { ...f, media: [...(f.media || []), { type: 'video', url }] }
+                            : f
+                        ));
+                        input.value = '';
+                      }
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          )}
+          
+          {field.type === 'options' && (
+            <Textarea 
+              placeholder="Enter options (one per line)"
+              value={field.options?.join('\n') || ''}
+              onChange={(e) => setFields(fields.map(f => 
+                f.id === field.id ? { ...f, options: e.target.value.split('\n').filter(Boolean) } : f
+              ))}
+            />
+          )}
+        </div>
+        
+        <Button 
+          variant="ghost" 
+          size="icon"
+          onClick={() => removeField(field.id)}
+        >
+          <X className="w-4 h-4" />
+        </Button>
+      </div>
+    );
   };
 
   if (!node) {
@@ -110,13 +308,36 @@ export default function NodeConfigPanel({ node, onUpdate }) {
         </div>
 
         <div className="space-y-2">
-          <Label>Content</Label>
-          <Textarea 
-            placeholder="Enter node content" 
-            className="min-h-[100px]"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-          />
+          <div className="flex justify-between items-center">
+            <Label>Fields</Label>
+            <div className="space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => addField('content')}
+              >
+                Add Content
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => addField('media')}
+              >
+                Add Media
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => addField('options')}
+              >
+                Add Options
+              </Button>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            {fields.map((field, index) => renderField(field, index))}
+          </div>
         </div>
 
         {showTechnicalFields && (
@@ -214,25 +435,16 @@ export default function NodeConfigPanel({ node, onUpdate }) {
           </div>
         )}
 
-        <div className="space-y-2">
-          <Label>Response Options (one per line)</Label>
-          <Textarea 
-            placeholder="Enter each possible response on a new line:&#10;Within range&#10;Out of range&#10;Open circuit&#10;Need further testing" 
-            className="min-h-[100px]"
-            value={options}
-            onChange={(e) => setOptions(e.target.value)}
-          />
-        </div>
-
         <Card className="p-4 bg-gray-50">
           <Label className="mb-2 block">JSON Preview</Label>
           <pre className="text-xs overflow-x-auto">
             {JSON.stringify({
               type: nodeType,
               label,
-              content,
-              technicalSpecs: showTechnicalFields ? technicalSpecs : undefined,
-              options: options.split('\n').filter(Boolean)
+              content: fields.find(f => f.type === 'content')?.content,
+              media: fields.find(f => f.type === 'media')?.media,
+              options: fields.find(f => f.type === 'options')?.options,
+              technicalSpecs: showTechnicalFields ? technicalSpecs : undefined
             }, null, 2)}
           </pre>
         </Card>
@@ -241,8 +453,17 @@ export default function NodeConfigPanel({ node, onUpdate }) {
           <Button variant="outline" onClick={() => {
             setNodeType(node.data.type);
             setLabel(node.data.label);
-            setContent(node.data.content);
-            setOptions(node.data.options?.join('\n') || '');
+            const initialFields = [];
+            if (node.data.content) {
+              initialFields.push({ id: 'content-1', type: 'content', content: node.data.content });
+            }
+            if (node.data.media) {
+              initialFields.push({ id: 'media-1', type: 'media', media: node.data.media });
+            }
+            if (node.data.options) {
+              initialFields.push({ id: 'options-1', type: 'options', options: node.data.options });
+            }
+            setFields(initialFields);
           }}>
             Reset
           </Button>
