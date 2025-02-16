@@ -22,19 +22,20 @@ import {
   handleSaveWorkflow,
   handleImportWorkflow,
   handleQuickSave,
-  SavedWorkflow
+  SavedWorkflow,
+  initialNodes,
+  initialEdges
 } from '@/utils/flowUtils';
 import { createHistoryState, addToHistory, undo, redo } from '@/utils/workflowHistory';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useFlowState } from '@/hooks/useFlowState';
 import { Button } from './ui/button';
 import { Save } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 const nodeTypes = {
   diagnosis: DiagnosisNode,
 };
-
-const LOCAL_STORAGE_KEY = 'workflow-state';
 
 interface FlowEditorProps {
   onNodeSelect: (node: any, updateNode: (nodeId: string, newData: any) => void) => void;
@@ -64,11 +65,23 @@ function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEd
   const [history, setHistory] = useState(() => 
     createHistoryState({ nodes, edges, nodeCounter })
   );
+  const location = useLocation();
 
   useEffect(() => {
-    const state = { nodes, edges, nodeCounter };
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
-  }, [nodes, edges, nodeCounter]);
+    const searchParams = new URLSearchParams(location.search);
+    const isNew = searchParams.get('new') === 'true';
+    
+    if (isNew) {
+      setNodes(initialNodes);
+      setEdges(initialEdges);
+      setNodeCounter(1);
+      setHistory(createHistoryState({ 
+        nodes: initialNodes, 
+        edges: initialEdges, 
+        nodeCounter: 1 
+      }));
+    }
+  }, [location.search]);
 
   useHotkeys('ctrl+z', (e) => {
     e.preventDefault();

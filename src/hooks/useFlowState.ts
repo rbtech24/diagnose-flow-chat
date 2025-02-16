@@ -19,12 +19,17 @@ export function useFlowState() {
     return { nodes: [], edges: [], nodeCounter: 1 };
   };
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(loadInitialState().nodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(loadInitialState().edges);
+  const [nodes, setNodes] = useNodesState(loadInitialState().nodes);
+  const [edges, setEdges] = useEdgesState(loadInitialState().edges);
   const [nodeCounter, setNodeCounter] = useState(loadInitialState().nodeCounter);
   const [isLoading, setIsLoading] = useState(false);
   const [snapToGrid, setSnapToGrid] = useState(true);
   const [copiedNodes, setCopiedNodes] = useState<Node[]>([]);
+
+  // Clear local storage when resetting the state
+  const clearSavedState = useCallback(() => {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+  }, []);
 
   return {
     nodes,
@@ -39,7 +44,6 @@ export function useFlowState() {
     setSnapToGrid,
     copiedNodes,
     setCopiedNodes,
-    onNodesChange,
-    onEdgesChange,
+    clearSavedState,
   };
 }

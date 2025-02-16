@@ -76,6 +76,7 @@ export default function Workflows() {
     const params = new URLSearchParams();
     if (applianceName) params.set('appliance', applianceName);
     if (symptomName) params.set('symptom', symptomName);
+    if (!symptomName) params.set('new', 'true');
     
     navigate({
       pathname: '/',
