@@ -3,8 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Edit, Trash, Share, GripVertical } from 'lucide-react';
-import { getFolders, getWorkflowsInFolder } from '@/utils/flowUtils';
+import { ArrowLeft, Edit, Trash, ExternalLink, GripVertical } from 'lucide-react';
 import { AddApplianceDialog } from '@/components/appliance/AddApplianceDialog';
 import { EditApplianceDialog } from '@/components/appliance/EditApplianceDialog';
 import { toast } from '@/hooks/use-toast';
@@ -160,6 +159,18 @@ export default function Workflows() {
     navigate(`/?${params.toString()}`);
   };
 
+  const getSymptomCardColor = (index: number) => {
+    const colors = [
+      'bg-[#E5DEFF]', // Soft Purple
+      'bg-[#D3E4FD]', // Soft Blue
+      'bg-[#FDE1D3]', // Soft Peach
+      'bg-[#F2FCE2]', // Soft Green
+      'bg-[#FEF7CD]', // Soft Yellow
+      'bg-[#FFDEE2]', // Soft Pink
+    ];
+    return colors[index % colors.length];
+  };
+
   const sortedAppliances = [...appliances].sort((a, b) => a.order - b.order);
 
   return (
@@ -231,9 +242,9 @@ export default function Workflows() {
                 .map((symptom, symptomIndex) => (
                 <div 
                   key={symptom.name}
-                  className={`flex items-center justify-between p-3 bg-gray-50 rounded-md ${
-                    isReordering ? 'cursor-move' : ''
-                  }`}
+                  className={`flex items-center justify-between p-3 rounded-md ${
+                    getSymptomCardColor(symptomIndex)
+                  } transition-colors ${isReordering ? 'cursor-move' : ''}`}
                   draggable={isReordering}
                   onDragStart={(e) => {
                     e.dataTransfer.setData('symptom-index', symptomIndex.toString());
@@ -261,10 +272,10 @@ export default function Workflows() {
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="text-blue-500 hover:text-blue-600 h-8 w-8 p-0"
+                      className="text-[#8B5CF6] hover:text-[#7C3AED] h-8 w-8 p-0"
                       onClick={() => openWorkflowEditor(appliance.name, symptom.name)}
                     >
-                      <Share className="h-4 w-4" />
+                      <ExternalLink className="h-4 w-4" />
                     </Button>
                     <Switch 
                       checked={symptom.isActive}
@@ -276,8 +287,7 @@ export default function Workflows() {
             </div>
             
             <Button 
-              variant="ghost" 
-              className="mt-4 text-[#14162F] hover:bg-gray-100 w-full"
+              className="mt-4 w-full bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
               onClick={() => openWorkflowEditor(appliance.name)}
             >
               Add Issue
