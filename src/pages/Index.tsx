@@ -5,11 +5,18 @@ import NodeConfigPanel from "@/components/NodeConfigPanel";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, ChevronLeft } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 export default function Index() {
   const [showConfig, setShowConfig] = useState(true);
   const [selectedNode, setSelectedNode] = useState(null);
   const [updateNodeFn, setUpdateNodeFn] = useState(null);
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const appliance = searchParams.get('appliance');
+
+  // Create an array of appliances from the URL parameter
+  const appliances = appliance ? [appliance] : [];
 
   const handleNodeSelect = useCallback((node, updateFn) => {
     setSelectedNode(node);
@@ -30,7 +37,7 @@ export default function Index() {
   return (
     <div className="h-screen flex">
       <main className="flex-1 bg-gray-50">
-        <FlowEditor onNodeSelect={handleNodeSelect} />
+        <FlowEditor onNodeSelect={handleNodeSelect} appliances={appliances} />
       </main>
       
       <div className={`transition-all duration-300 ${showConfig ? 'w-96' : 'w-0'}`}>
