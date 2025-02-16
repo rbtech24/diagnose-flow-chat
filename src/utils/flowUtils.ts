@@ -48,7 +48,8 @@ export interface SavedWorkflow {
 }
 
 export const cleanupWorkflows = () => {
-  const workflows = getAllWorkflows();
+  const storedWorkflows = localStorage.getItem('diagnostic-workflows') || '[]';
+  const workflows = JSON.parse(storedWorkflows);
   const cleanedWorkflows = workflows.filter(workflow => workflow.nodes.length > 0);
   localStorage.setItem('diagnostic-workflows', JSON.stringify(cleanedWorkflows));
   return cleanedWorkflows;
@@ -71,11 +72,7 @@ export const getFolders = (): string[] => {
 };
 
 export const getAllWorkflows = (): SavedWorkflow[] => {
-  const storedWorkflows = localStorage.getItem('diagnostic-workflows') || '[]';
-  const workflows = JSON.parse(storedWorkflows);
-  const validWorkflows = workflows.filter(workflow => workflow.nodes.length > 0);
-  console.log('Total workflows:', validWorkflows.length);
-  return validWorkflows;
+  return cleanupWorkflows();
 };
 
 export const getWorkflowsInFolder = (folder: string): SavedWorkflow[] => {
@@ -83,6 +80,32 @@ export const getWorkflowsInFolder = (folder: string): SavedWorkflow[] => {
   const folderWorkflows = workflows.filter(w => w.metadata.folder === folder);
   console.log(`Workflows in folder ${folder}:`, folderWorkflows.length);
   return folderWorkflows;
+};
+
+export const handleQuickSave = (
+  nodes: Node[],
+  edges: Edge[],
+  nodeCounter: number,
+  currentWorkflow: SavedWorkflow
+) => {
+  if (!currentWorkflow?.metadata?.folder || !currentWorkflow?.metadata?.name) {
+    toast({
+      title: "Error",
+      description: "No folder information available for quick save",
+      variant: "destructive"
+    });
+    return;
+  }
+
+  handleSaveWorkflow(
+    nodes,
+    edges,
+    nodeCounter,
+    currentWorkflow.metadata.name,
+    currentWorkflow.metadata.folder,
+    currentWorkflow.metadata.appliance,
+    currentWorkflow.metadata.symptom
+  );
 };
 
 export const handleSaveWorkflow = (

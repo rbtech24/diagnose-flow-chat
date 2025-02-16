@@ -4,18 +4,18 @@ import FlowEditor from "@/components/FlowEditor";
 import NodeConfigPanel from "@/components/NodeConfigPanel";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, ChevronLeft, Link2 } from "lucide-react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 import { useLocation } from "react-router-dom";
+import { SavedWorkflow } from "@/utils/flowUtils";
 
 export default function Index() {
   const [showConfig, setShowConfig] = useState(true);
   const [selectedNode, setSelectedNode] = useState(null);
   const [updateNodeFn, setUpdateNodeFn] = useState(null);
+  const [currentWorkflow, setCurrentWorkflow] = useState<SavedWorkflow | undefined>();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const appliance = searchParams.get('appliance');
-
-  // Create an array of appliances from the URL parameter
   const appliances = appliance ? [appliance] : [];
 
   const handleNodeSelect = useCallback((node, updateFn) => {
@@ -26,7 +26,6 @@ export default function Index() {
   const handleNodeUpdate = useCallback((nodeId: string, newData: any) => {
     if (updateNodeFn) {
       updateNodeFn(nodeId, newData);
-      // Update the selected node preview in the config panel
       setSelectedNode(prev => ({
         ...prev,
         data: { ...prev.data, ...newData }
@@ -37,7 +36,11 @@ export default function Index() {
   return (
     <div className="h-screen flex">
       <main className="flex-1 bg-gray-50">
-        <FlowEditor onNodeSelect={handleNodeSelect} appliances={appliances} />
+        <FlowEditor 
+          onNodeSelect={handleNodeSelect} 
+          appliances={appliances}
+          currentWorkflow={currentWorkflow}
+        />
       </main>
       
       <div className={`transition-all duration-300 ${showConfig ? 'w-96' : 'w-0'}`}>

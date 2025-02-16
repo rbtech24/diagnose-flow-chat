@@ -21,10 +21,14 @@ import {
   defaultEdgeOptions,
   handleSaveWorkflow,
   handleImportWorkflow,
+  handleQuickSave,
+  SavedWorkflow
 } from '@/utils/flowUtils';
 import { createHistoryState, addToHistory, undo, redo } from '@/utils/workflowHistory';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useFlowState } from '@/hooks/useFlowState';
+import { Button } from './ui/button';
+import { Save } from 'lucide-react';
 
 const nodeTypes = {
   diagnosis: DiagnosisNode,
@@ -35,9 +39,10 @@ const LOCAL_STORAGE_KEY = 'workflow-state';
 interface FlowEditorProps {
   onNodeSelect: (node: any, updateNode: (nodeId: string, newData: any) => void) => void;
   appliances: string[];
+  currentWorkflow?: SavedWorkflow;
 }
 
-function FlowEditorContent({ onNodeSelect, appliances }: FlowEditorProps) {
+function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEditorProps) {
   const {
     nodes,
     setNodes,
@@ -116,6 +121,18 @@ function FlowEditorContent({ onNodeSelect, appliances }: FlowEditorProps) {
       title: "Workflow Auto-saved",
       description: "Your changes have been saved automatically."
     });
+  };
+
+  const handleQuickSaveClick = () => {
+    if (currentWorkflow) {
+      handleQuickSave(nodes, edges, nodeCounter, currentWorkflow);
+    } else {
+      toast({
+        title: "Cannot Quick Save",
+        description: "This is a new workflow. Please use 'Save Workflow' to save it first.",
+        variant: "destructive"
+      });
+    }
   };
 
   const onConnect = useCallback(
@@ -266,7 +283,21 @@ function FlowEditorContent({ onNodeSelect, appliances }: FlowEditorProps) {
 
   return (
     <div className="w-full h-full relative">
-      <WorkflowActions />
+      <div className="absolute top-4 right-4 z-50 flex gap-2">
+        {currentWorkflow && (
+          <Button
+            variant="default"
+            size="sm"
+            onClick={handleQuickSaveClick}
+            className="flex items-center gap-2"
+          >
+            <Save className="w-4 h-4" />
+            Save
+          </Button>
+        )}
+        <WorkflowActions />
+      </div>
+      
       {isLoading && <LoadingOverlay />}
       
       <input 
