@@ -36,6 +36,30 @@ export function NodeFields({ fields, onFieldsChange, onAddField, onRemoveField, 
     }
   };
 
+  const getFieldTitle = (type: Field['type']) => {
+    switch (type) {
+      case 'content':
+        return 'Question or Instruction';
+      case 'media':
+        return 'Images or Videos';
+      case 'options':
+        return 'Response Options';
+      default:
+        return 'Field';
+    }
+  };
+
+  const getFieldPlaceholder = (type: Field['type']) => {
+    switch (type) {
+      case 'content':
+        return 'Enter the question or instruction text for this step...';
+      case 'options':
+        return 'Enter options (one per line)\nExample:\nYes\nNo\nNot applicable';
+      default:
+        return '';
+    }
+  };
+
   const renderField = (field: Field, index: number) => {
     return (
       <div key={field.id} className="flex gap-2 items-start group border p-4 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow">
@@ -71,9 +95,13 @@ export function NodeFields({ fields, onFieldsChange, onAddField, onRemoveField, 
         </button>
         
         <div className="flex-1 space-y-2">
+          <Label className="text-sm font-medium text-gray-700">
+            {getFieldTitle(field.type)}
+          </Label>
+
           {field.type === 'content' && (
             <Textarea 
-              placeholder="Enter content"
+              placeholder={getFieldPlaceholder(field.type)}
               value={field.content || ''}
               onChange={(e) => onFieldsChange(fields.map(f => 
                 f.id === field.id ? { ...f, content: e.target.value } : f
@@ -138,7 +166,7 @@ export function NodeFields({ fields, onFieldsChange, onAddField, onRemoveField, 
           
           {field.type === 'options' && (
             <Textarea 
-              placeholder="Enter options (one per line)"
+              placeholder={getFieldPlaceholder(field.type)}
               value={field.options?.join('\n') || ''}
               onChange={(e) => onFieldsChange(fields.map(f => 
                 f.id === field.id ? { ...f, options: e.target.value.split('\n').filter(Boolean) } : f
