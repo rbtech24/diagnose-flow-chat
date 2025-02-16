@@ -26,7 +26,12 @@ const nodeTypes = {
   diagnosis: DiagnosisNode,
 };
 
-export default function FlowEditor({ onNodeSelect }) {
+interface FlowEditorProps {
+  onNodeSelect: (node: any, updateNode: (nodeId: string, newData: any) => void) => void;
+  appliances: string[];
+}
+
+export default function FlowEditor({ onNodeSelect, appliances }: FlowEditorProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [nodeCounter, setNodeCounter] = useState(1);
@@ -128,6 +133,7 @@ export default function FlowEditor({ onNodeSelect }) {
           onAddNode={addNewNode}
           onSave={handleSave}
           onImportClick={() => fileInputRef.current?.click()}
+          appliances={appliances}
         />
       </ReactFlow>
     </div>
