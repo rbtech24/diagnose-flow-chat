@@ -69,25 +69,43 @@ export default function NodeConfigPanel({ node, onUpdate }) {
   const handleApplyChanges = () => {
     if (!node) return;
 
-    const contentFields = fields.filter(f => f.type === 'content');
-    const combinedContent = contentFields.map(f => f.content).filter(Boolean).join('\n\n');
+    // Create an object to store field data based on type
+    const fieldData = {
+      content: '',
+      media: [] as any[],
+      options: [] as string[]
+    };
 
-    const mediaFields = fields.filter(f => f.type === 'media');
-    const combinedMedia = mediaFields.reduce((acc, field) => {
-      return acc.concat(field.media || []);
-    }, [] as any[]);
-
-    const optionsFields = fields.filter(f => f.type === 'options');
-    const combinedOptions = optionsFields.reduce((acc, field) => {
-      return acc.concat(field.options || []);
-    }, [] as string[]);
+    // Process fields in their current order
+    fields.forEach(field => {
+      switch (field.type) {
+        case 'content':
+          if (field.content) {
+            // Append content with a line break if there's existing content
+            fieldData.content = fieldData.content
+              ? `${fieldData.content}\n\n${field.content}`
+              : field.content;
+          }
+          break;
+        case 'media':
+          if (field.media) {
+            fieldData.media = [...fieldData.media, ...field.media];
+          }
+          break;
+        case 'options':
+          if (field.options) {
+            fieldData.options = [...fieldData.options, ...field.options];
+          }
+          break;
+      }
+    });
 
     const updatedData = {
       type: nodeType,
       label,
-      content: combinedContent,
-      media: combinedMedia,
-      options: combinedOptions,
+      content: fieldData.content,
+      media: fieldData.media,
+      options: fieldData.options,
       technicalSpecs: showTechnicalFields ? technicalSpecs : undefined
     };
 
