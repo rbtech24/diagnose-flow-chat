@@ -96,6 +96,10 @@ export default function FlowEditor({ onNodeSelect }) {
     }
   };
 
+  const handleSave = (name: string, folder: string) => {
+    handleSaveWorkflow(nodes, edges, nodeCounter, name, folder);
+  };
+
   return (
     <div className="w-full h-full">
       <input 
@@ -122,7 +126,7 @@ export default function FlowEditor({ onNodeSelect }) {
         <MiniMap />
         <FlowToolbar
           onAddNode={addNewNode}
-          onSave={() => handleSaveWorkflow(nodes, edges, nodeCounter)}
+          onSave={handleSave}
           onImportClick={() => fileInputRef.current?.click()}
         />
       </ReactFlow>

@@ -32,12 +32,78 @@ export const initialNodes: Node[] = [
 
 export const initialEdges: Edge[] = [];
 
-export const handleSaveWorkflow = (nodes: Node[], edges: Edge[], nodeCounter: number) => {
-  const workflow = { nodes, edges, nodeCounter };
-  localStorage.setItem('diagnostic-workflow', JSON.stringify(workflow));
+interface WorkflowMetadata {
+  name: string;
+  folder: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SavedWorkflow {
+  metadata: WorkflowMetadata;
+  nodes: Node[];
+  edges: Edge[];
+  nodeCounter: number;
+}
+
+export const getFolders = (): string[] => {
+  const workflows = getAllWorkflows();
+  const folders = new Set(workflows.map(w => w.metadata.folder));
+  return Array.from(folders).sort();
+};
+
+export const getAllWorkflows = (): SavedWorkflow[] => {
+  const storedWorkflows = localStorage.getItem('diagnostic-workflows');
+  return storedWorkflows ? JSON.parse(storedWorkflows) : [];
+};
+
+export const getWorkflowsInFolder = (folder: string): SavedWorkflow[] => {
+  const workflows = getAllWorkflows();
+  return workflows.filter(w => w.metadata.folder === folder);
+};
+
+export const handleSaveWorkflow = (
+  nodes: Node[], 
+  edges: Edge[], 
+  nodeCounter: number,
+  name: string,
+  folder: string
+) => {
+  const workflows = getAllWorkflows();
+  
+  const newWorkflow: SavedWorkflow = {
+    metadata: {
+      name,
+      folder,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    nodes,
+    edges,
+    nodeCounter
+  };
+
+  // Check if workflow with same name and folder exists
+  const existingIndex = workflows.findIndex(
+    w => w.metadata.name === name && w.metadata.folder === folder
+  );
+
+  if (existingIndex >= 0) {
+    workflows[existingIndex] = {
+      ...newWorkflow,
+      metadata: {
+        ...newWorkflow.metadata,
+        createdAt: workflows[existingIndex].metadata.createdAt
+      }
+    };
+  } else {
+    workflows.push(newWorkflow);
+  }
+
+  localStorage.setItem('diagnostic-workflows', JSON.stringify(workflows));
   toast({
     title: "Workflow Saved",
-    description: "Your workflow has been saved successfully."
+    description: `Saved "${name}" to folder "${folder}"`
   });
 };
 

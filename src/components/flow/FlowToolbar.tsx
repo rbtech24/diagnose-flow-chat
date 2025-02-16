@@ -1,11 +1,12 @@
 
 import { Button } from '../ui/button';
-import { PlusCircle, Save, Upload } from 'lucide-react';
+import { PlusCircle, Upload } from 'lucide-react';
 import { Panel } from '@xyflow/react';
+import { SaveWorkflowDialog } from './SaveWorkflowDialog';
 
 interface FlowToolbarProps {
   onAddNode: () => void;
-  onSave: () => void;
+  onSave: (name: string, folder: string) => void;
   onImportClick: () => void;
 }
 
@@ -16,10 +17,7 @@ export default function FlowToolbar({ onAddNode, onSave, onImportClick }: FlowTo
         <PlusCircle className="w-4 h-4" />
         Add Step
       </Button>
-      <Button onClick={onSave} variant="secondary" className="flex items-center gap-2">
-        <Save className="w-4 h-4" />
-        Save Workflow
-      </Button>
+      <SaveWorkflowDialog onSave={onSave} />
       <Button 
         onClick={onImportClick}
         variant="secondary" 
