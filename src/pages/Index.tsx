@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { SavedWorkflow } from "@/utils/flowUtils";
+import Workflows from "./Workflows";
 
 export default function Index() {
   const [showConfig, setShowConfig] = useState(true);
@@ -14,6 +15,12 @@ export default function Index() {
   const [updateNodeFn, setUpdateNodeFn] = useState(null);
   const [currentWorkflow, setCurrentWorkflow] = useState<SavedWorkflow | undefined>();
   const location = useLocation();
+  
+  // If we're on the workflows route, render the Workflows component
+  if (location.pathname === '/workflows') {
+    return <Workflows />;
+  }
+
   const searchParams = new URLSearchParams(location.search);
   const appliance = searchParams.get('appliance');
   const appliances = appliance ? [appliance] : [];
