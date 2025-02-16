@@ -249,8 +249,9 @@ function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEd
     }
   };
 
-  const handleSave = async (name: string, folder: string) => {
-    return Promise.resolve(handleSaveWorkflow(nodes, edges, nodeCounter, name, folder));
+  const handleSave = async (name: string, folder: string): Promise<void> => {
+    handleSaveWorkflow(nodes, edges, nodeCounter, name, folder);
+    return Promise.resolve();
   };
 
   const handleCopySelected = useCallback(() => {
