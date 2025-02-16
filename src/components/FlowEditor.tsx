@@ -1,3 +1,4 @@
+
 import { useCallback, useState, useRef, useEffect } from 'react';
 import {
   ReactFlow,
@@ -32,6 +33,8 @@ import { useHotkeys } from 'react-hotkeys-hook';
 const nodeTypes = {
   diagnosis: DiagnosisNode,
 };
+
+const LOCAL_STORAGE_KEY = 'workflow-state';
 
 interface FlowEditorProps {
   onNodeSelect: (node: any, updateNode: (nodeId: string, newData: any) => void) => void;
