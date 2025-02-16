@@ -11,7 +11,7 @@ import { useLocation } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 
 interface SaveWorkflowDialogProps {
-  onSave: (name: string, folder: string) => void;
+  onSave: (name: string, folder: string) => Promise<void>;
 }
 
 export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
@@ -26,7 +26,6 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
   const isWorkflowsPage = location.pathname === '/workflows';
   
   useEffect(() => {
-    // Update folders list when dialog opens
     if (isOpen) {
       const existingFolders = getFolders();
       const availableFolders = isWorkflowsPage 
@@ -36,7 +35,7 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
     }
   }, [isOpen, isWorkflowsPage, appliances]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const targetFolder = newFolder || selectedFolder;
     
     if (!workflowName || !targetFolder) {
@@ -48,11 +47,24 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
       return;
     }
 
-    onSave(workflowName, targetFolder);
-    setIsOpen(false);
-    setWorkflowName('');
-    setNewFolder('');
-    setSelectedFolder('');
+    try {
+      await onSave(workflowName, targetFolder);
+      setIsOpen(false);
+      setWorkflowName('');
+      setNewFolder('');
+      setSelectedFolder('');
+      
+      toast({
+        title: "Success",
+        description: `Workflow "${workflowName}" saved to folder "${targetFolder}"`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save the workflow. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (

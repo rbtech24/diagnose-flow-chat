@@ -74,8 +74,10 @@ export const getAllWorkflows = (): SavedWorkflow[] => {
 
 export const getWorkflowsInFolder = (folder: string): SavedWorkflow[] => {
   const workflows = getAllWorkflows();
+  console.log('Getting workflows for folder:', folder);
+  console.log('All workflows:', workflows);
   const folderWorkflows = workflows.filter(w => w.metadata.folder === folder);
-  console.log(`Workflows in folder ${folder}:`, folderWorkflows.length);
+  console.log(`Found ${folderWorkflows.length} workflows in folder ${folder}`);
   return folderWorkflows;
 };
 
@@ -125,50 +127,52 @@ export const handleSaveWorkflow = (
     return;
   }
 
-  const workflows = getAllWorkflows();
-  
-  const newWorkflow = {
-    metadata: {
-      name,
-      folder,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      appliance,
-      symptom
-    },
-    nodes,
-    edges,
-    nodeCounter
-  };
-
-  const existingIndex = workflows.findIndex(
-    w => w.metadata.name === name && w.metadata.folder === folder
-  );
-
-  if (existingIndex >= 0) {
-    workflows[existingIndex] = {
-      ...newWorkflow,
+  try {
+    const workflows = getAllWorkflows();
+    
+    const newWorkflow = {
       metadata: {
-        ...newWorkflow.metadata,
-        createdAt: workflows[existingIndex].metadata.createdAt
-      }
+        name,
+        folder,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        appliance,
+        symptom
+      },
+      nodes,
+      edges,
+      nodeCounter
     };
-    console.log('Updated existing workflow at index:', existingIndex);
-    toast({
-      title: "Workflow Updated",
-      description: `Updated "${name}" in folder "${folder}"`
-    });
-  } else {
-    workflows.push(newWorkflow);
-    console.log('Added new workflow, total workflows:', workflows.length);
-    toast({
-      title: "Workflow Saved",
-      description: `Saved "${name}" to folder "${folder}"`
-    });
-  }
 
-  localStorage.setItem('diagnostic-workflows', JSON.stringify(workflows));
-  return newWorkflow;
+    const existingIndex = workflows.findIndex(
+      w => w.metadata.name === name && w.metadata.folder === folder
+    );
+
+    if (existingIndex >= 0) {
+      workflows[existingIndex] = {
+        ...newWorkflow,
+        metadata: {
+          ...newWorkflow.metadata,
+          createdAt: workflows[existingIndex].metadata.createdAt
+        }
+      };
+      console.log('Updated existing workflow at index:', existingIndex);
+    } else {
+      workflows.push(newWorkflow);
+      console.log('Added new workflow, total workflows:', workflows.length);
+    }
+
+    localStorage.setItem('diagnostic-workflows', JSON.stringify(workflows));
+    return newWorkflow;
+  } catch (error) {
+    console.error('Error saving workflow:', error);
+    toast({
+      title: "Error",
+      description: "Failed to save workflow. Please try again.",
+      variant: "destructive"
+    });
+    throw error;
+  }
 };
 
 export const handleImportWorkflow = (
