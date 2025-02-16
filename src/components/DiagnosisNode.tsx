@@ -5,6 +5,37 @@ import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 
 function DiagnosisNode({ data }) {
+  const getTechnicalContent = () => {
+    if (!data.technicalSpecs) return null;
+    
+    switch (data.type) {
+      case 'voltage-check':
+        return (
+          <div className="mt-2 text-xs bg-blue-50 p-2 rounded">
+            <p>Expected: {data.technicalSpecs.range.min}V - {data.technicalSpecs.range.max}V</p>
+            <p>Test Points: {data.technicalSpecs.testPoints}</p>
+          </div>
+        );
+      case 'resistance-check':
+        return (
+          <div className="mt-2 text-xs bg-blue-50 p-2 rounded">
+            <p>Expected: {data.technicalSpecs.value}Ω</p>
+            <p>Measure: {data.technicalSpecs.measurementPoints}</p>
+          </div>
+        );
+      case 'inspection':
+        return (
+          <div className="mt-2 text-xs bg-blue-50 p-2 rounded">
+            <div dangerouslySetInnerHTML={{ 
+              __html: data.technicalSpecs.points.replace(/\n/g, '<br/>') 
+            }} />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <Card className="min-w-[200px] max-w-[300px] p-4 bg-white shadow-sm border-2">
       <Handle type="target" position={Position.Top} className="!bg-gray-300" />
@@ -20,10 +51,16 @@ function DiagnosisNode({ data }) {
           {data.content}
         </p>
 
+        {getTechnicalContent()}
+
         {data.options && (
           <div className="flex flex-wrap gap-2 mt-2">
             {data.options.map((option: string, index: number) => (
-              <Badge key={index} variant="secondary" className="text-xs">
+              <Badge 
+                key={index} 
+                variant="secondary" 
+                className="text-xs cursor-pointer hover:bg-gray-100"
+              >
                 {option}
               </Badge>
             ))}

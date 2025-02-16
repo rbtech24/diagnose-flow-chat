@@ -15,6 +15,7 @@ import {
 
 export default function NodeConfigPanel() {
   const [nodeType, setNodeType] = useState('question');
+  const [showTechnicalFields, setShowTechnicalFields] = useState(false);
 
   return (
     <div className="p-4 h-full overflow-y-auto">
@@ -23,14 +24,23 @@ export default function NodeConfigPanel() {
       <div className="space-y-6">
         <div className="space-y-2">
           <Label>Node Type</Label>
-          <Select defaultValue={nodeType} onValueChange={setNodeType}>
+          <Select 
+            defaultValue={nodeType} 
+            onValueChange={(value) => {
+              setNodeType(value);
+              setShowTechnicalFields(['voltage-check', 'resistance-check', 'inspection'].includes(value));
+            }}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="symptom">Symptom</SelectItem>
               <SelectItem value="question">Question</SelectItem>
-              <SelectItem value="action">Action</SelectItem>
+              <SelectItem value="instruction">Instruction</SelectItem>
+              <SelectItem value="voltage-check">Voltage Check</SelectItem>
+              <SelectItem value="resistance-check">Resistance Check</SelectItem>
+              <SelectItem value="inspection">Visual Inspection</SelectItem>
               <SelectItem value="result">Result</SelectItem>
             </SelectContent>
           </Select>
@@ -46,10 +56,57 @@ export default function NodeConfigPanel() {
           <Textarea placeholder="Enter node content" className="min-h-[100px]" />
         </div>
 
+        {showTechnicalFields && (
+          <div className="space-y-4 border rounded-lg p-4 bg-gray-50">
+            <h3 className="font-medium text-sm">Technical Specifications</h3>
+            
+            {nodeType === 'voltage-check' && (
+              <>
+                <div className="space-y-2">
+                  <Label>Expected Voltage Range</Label>
+                  <div className="flex gap-2 items-center">
+                    <Input type="number" placeholder="Min" className="w-24" />
+                    <span>to</span>
+                    <Input type="number" placeholder="Max" className="w-24" />
+                    <span>V</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Test Points</Label>
+                  <Input placeholder="e.g., 'Between terminal 1 and ground'" />
+                </div>
+              </>
+            )}
+            
+            {nodeType === 'resistance-check' && (
+              <>
+                <div className="space-y-2">
+                  <Label>Expected Resistance</Label>
+                  <div className="flex gap-2 items-center">
+                    <Input type="number" placeholder="Value" className="w-32" />
+                    <span>Ω</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Measurement Points</Label>
+                  <Input placeholder="e.g., 'Across heating element'" />
+                </div>
+              </>
+            )}
+            
+            {nodeType === 'inspection' && (
+              <div className="space-y-2">
+                <Label>Inspection Points</Label>
+                <Textarea placeholder="List specific points to inspect&#10;1. Check for visible damage&#10;2. Verify connection integrity" />
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="space-y-2">
-          <Label>Options (one per line)</Label>
+          <Label>Response Options (one per line)</Label>
           <Textarea 
-            placeholder="Yes&#10;No" 
+            placeholder="Enter each possible response on a new line:&#10;Within range&#10;Out of range&#10;Open circuit&#10;Need further testing" 
             className="min-h-[100px]"
           />
         </div>
@@ -61,7 +118,11 @@ export default function NodeConfigPanel() {
               type: nodeType,
               label: "Node Label",
               content: "Node Content",
-              options: ["Yes", "No"]
+              technicalSpecs: showTechnicalFields ? {
+                range: { min: 0, max: 0 },
+                testPoints: "Between terminals",
+              } : undefined,
+              options: ["Within range", "Out of range", "Need further testing"]
             }, null, 2)}
           </pre>
         </Card>
