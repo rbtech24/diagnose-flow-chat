@@ -5,6 +5,7 @@ import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
+import { toast } from '@/hooks/use-toast';
 import {
   Select,
   SelectContent,
@@ -13,12 +14,19 @@ import {
   SelectValue,
 } from './ui/select';
 
-export default function NodeConfigPanel({ node }) {
+export default function NodeConfigPanel({ node, onUpdate }) {
   const [nodeType, setNodeType] = useState('question');
   const [label, setLabel] = useState('');
   const [content, setContent] = useState('');
   const [options, setOptions] = useState('');
   const [showTechnicalFields, setShowTechnicalFields] = useState(false);
+  const [technicalSpecs, setTechnicalSpecs] = useState({
+    range: { min: 0, max: 0 },
+    testPoints: '',
+    value: 0,
+    measurementPoints: '',
+    points: ''
+  });
 
   useEffect(() => {
     if (node) {
@@ -27,8 +35,33 @@ export default function NodeConfigPanel({ node }) {
       setContent(node.data.content || '');
       setOptions(node.data.options?.join('\n') || '');
       setShowTechnicalFields(['voltage-check', 'resistance-check', 'inspection'].includes(node.data.type));
+      setTechnicalSpecs(node.data.technicalSpecs || {
+        range: { min: 0, max: 0 },
+        testPoints: '',
+        value: 0,
+        measurementPoints: '',
+        points: ''
+      });
     }
   }, [node]);
+
+  const handleApplyChanges = () => {
+    if (!node) return;
+
+    const updatedData = {
+      type: nodeType,
+      label,
+      content,
+      options: options.split('\n').filter(Boolean),
+      technicalSpecs: showTechnicalFields ? technicalSpecs : undefined
+    };
+
+    onUpdate(node.id, updatedData);
+    toast({
+      title: "Changes Applied",
+      description: "Node configuration has been updated."
+    });
+  };
 
   if (!node) {
     return (
@@ -95,15 +128,40 @@ export default function NodeConfigPanel({ node }) {
                 <div className="space-y-2">
                   <Label>Expected Voltage Range</Label>
                   <div className="flex gap-2 items-center">
-                    <Input type="number" placeholder="Min" className="w-24" />
+                    <Input 
+                      type="number" 
+                      placeholder="Min" 
+                      className="w-24"
+                      value={technicalSpecs.range?.min || 0}
+                      onChange={(e) => setTechnicalSpecs(prev => ({
+                        ...prev,
+                        range: { ...prev.range, min: Number(e.target.value) }
+                      }))}
+                    />
                     <span>to</span>
-                    <Input type="number" placeholder="Max" className="w-24" />
+                    <Input 
+                      type="number" 
+                      placeholder="Max" 
+                      className="w-24"
+                      value={technicalSpecs.range?.max || 0}
+                      onChange={(e) => setTechnicalSpecs(prev => ({
+                        ...prev,
+                        range: { ...prev.range, max: Number(e.target.value) }
+                      }))}
+                    />
                     <span>V</span>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label>Test Points</Label>
-                  <Input placeholder="e.g., 'Between terminal 1 and ground'" />
+                  <Input 
+                    placeholder="e.g., 'Between terminal 1 and ground'"
+                    value={technicalSpecs.testPoints || ''}
+                    onChange={(e) => setTechnicalSpecs(prev => ({
+                      ...prev,
+                      testPoints: e.target.value
+                    }))}
+                  />
                 </div>
               </>
             )}
@@ -113,13 +171,29 @@ export default function NodeConfigPanel({ node }) {
                 <div className="space-y-2">
                   <Label>Expected Resistance</Label>
                   <div className="flex gap-2 items-center">
-                    <Input type="number" placeholder="Value" className="w-32" />
+                    <Input 
+                      type="number" 
+                      placeholder="Value" 
+                      className="w-32"
+                      value={technicalSpecs.value || 0}
+                      onChange={(e) => setTechnicalSpecs(prev => ({
+                        ...prev,
+                        value: Number(e.target.value)
+                      }))}
+                    />
                     <span>Ω</span>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label>Measurement Points</Label>
-                  <Input placeholder="e.g., 'Across heating element'" />
+                  <Input 
+                    placeholder="e.g., 'Across heating element'"
+                    value={technicalSpecs.measurementPoints || ''}
+                    onChange={(e) => setTechnicalSpecs(prev => ({
+                      ...prev,
+                      measurementPoints: e.target.value
+                    }))}
+                  />
                 </div>
               </>
             )}
@@ -127,7 +201,14 @@ export default function NodeConfigPanel({ node }) {
             {nodeType === 'inspection' && (
               <div className="space-y-2">
                 <Label>Inspection Points</Label>
-                <Textarea placeholder="List specific points to inspect&#10;1. Check for visible damage&#10;2. Verify connection integrity" />
+                <Textarea 
+                  placeholder="List specific points to inspect&#10;1. Check for visible damage&#10;2. Verify connection integrity"
+                  value={technicalSpecs.points || ''}
+                  onChange={(e) => setTechnicalSpecs(prev => ({
+                    ...prev,
+                    points: e.target.value
+                  }))}
+                />
               </div>
             )}
           </div>
@@ -150,18 +231,22 @@ export default function NodeConfigPanel({ node }) {
               type: nodeType,
               label,
               content,
-              technicalSpecs: showTechnicalFields ? {
-                range: { min: 0, max: 0 },
-                testPoints: "Between terminals",
-              } : undefined,
+              technicalSpecs: showTechnicalFields ? technicalSpecs : undefined,
               options: options.split('\n').filter(Boolean)
             }, null, 2)}
           </pre>
         </Card>
 
         <div className="flex justify-end gap-2">
-          <Button variant="outline">Reset</Button>
-          <Button>Apply Changes</Button>
+          <Button variant="outline" onClick={() => {
+            setNodeType(node.data.type);
+            setLabel(node.data.label);
+            setContent(node.data.content);
+            setOptions(node.data.options?.join('\n') || '');
+          }}>
+            Reset
+          </Button>
+          <Button onClick={handleApplyChanges}>Apply Changes</Button>
         </div>
       </div>
     </div>

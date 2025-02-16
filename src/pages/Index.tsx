@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import FlowEditor from "@/components/FlowEditor";
 import NodeConfigPanel from "@/components/NodeConfigPanel";
 import { Card } from "@/components/ui/card";
@@ -10,6 +10,13 @@ export default function Index() {
   const [showConfig, setShowConfig] = useState(true);
   const [selectedNode, setSelectedNode] = useState(null);
 
+  const handleNodeUpdate = useCallback((nodeId: string, newData: any) => {
+    setSelectedNode(prev => ({
+      ...prev,
+      data: { ...prev.data, ...newData }
+    }));
+  }, []);
+
   return (
     <div className="h-screen flex">
       <main className="flex-1 bg-gray-50">
@@ -18,7 +25,7 @@ export default function Index() {
       
       <div className={`transition-all duration-300 ${showConfig ? 'w-96' : 'w-0'}`}>
         <Card className={`h-full overflow-hidden transition-all duration-300 ${showConfig ? 'opacity-100' : 'opacity-0'}`}>
-          {showConfig && <NodeConfigPanel node={selectedNode} />}
+          {showConfig && <NodeConfigPanel node={selectedNode} onUpdate={handleNodeUpdate} />}
         </Card>
       </div>
 

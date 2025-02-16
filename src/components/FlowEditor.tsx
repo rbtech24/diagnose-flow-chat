@@ -15,7 +15,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Button } from './ui/button';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Save } from 'lucide-react';
 import DiagnosisNode from './DiagnosisNode';
 import { toast } from '@/hooks/use-toast';
 
@@ -53,6 +53,37 @@ export default function FlowEditor({ onNodeSelect }) {
     onNodeSelect(selectedNode || null);
   }, [onNodeSelect]);
 
+  const updateNode = (nodeId, newData) => {
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === nodeId) {
+          return {
+            ...node,
+            data: { ...node.data, ...newData }
+          };
+        }
+        return node;
+      })
+    );
+    toast({
+      title: "Node Updated",
+      description: "The node has been updated successfully."
+    });
+  };
+
+  const saveWorkflow = () => {
+    const workflow = {
+      nodes,
+      edges
+    };
+    // For now, we'll just save to localStorage. In a real app, you'd save to a backend
+    localStorage.setItem('diagnostic-workflow', JSON.stringify(workflow));
+    toast({
+      title: "Workflow Saved",
+      description: "Your workflow has been saved successfully."
+    });
+  };
+
   const addNewNode = () => {
     const newNode = {
       id: `node-${nodes.length + 1}`,
@@ -88,10 +119,14 @@ export default function FlowEditor({ onNodeSelect }) {
         <Background />
         <Controls />
         <MiniMap />
-        <Panel position="top-left" className="bg-white p-2 rounded-lg shadow-sm">
+        <Panel position="top-left" className="bg-white p-2 rounded-lg shadow-sm flex gap-2">
           <Button onClick={addNewNode} className="flex items-center gap-2">
             <PlusCircle className="w-4 h-4" />
             Add Step
+          </Button>
+          <Button onClick={saveWorkflow} variant="secondary" className="flex items-center gap-2">
+            <Save className="w-4 h-4" />
+            Save Workflow
           </Button>
         </Panel>
       </ReactFlow>
