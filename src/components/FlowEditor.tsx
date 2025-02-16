@@ -1,4 +1,3 @@
-
 import { useCallback, useState, useRef, useEffect } from 'react';
 import {
   ReactFlow,
@@ -9,6 +8,10 @@ import {
   useEdgesState,
   addEdge,
   Connection,
+  useReactFlow,
+  getConnectedEdges,
+  Node,
+  Edge,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import DiagnosisNode from './DiagnosisNode';
@@ -36,7 +39,6 @@ interface FlowEditorProps {
 const LOCAL_STORAGE_KEY = 'workflow-state';
 
 export default function FlowEditor({ onNodeSelect, appliances }: FlowEditorProps) {
-  // Load initial state from localStorage or use default
   const loadInitialState = (): WorkflowState => {
     const savedState = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (savedState) {
@@ -53,20 +55,20 @@ export default function FlowEditor({ onNodeSelect, appliances }: FlowEditorProps
   const [edges, setEdges, onEdgesChange] = useEdgesState(loadInitialState().edges);
   const [nodeCounter, setNodeCounter] = useState(loadInitialState().nodeCounter);
   const [isLoading, setIsLoading] = useState(false);
+  const [snapToGrid, setSnapToGrid] = useState(true);
+  const [copiedNodes, setCopiedNodes] = useState<Node[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { project } = useReactFlow();
 
-  // Initialize history
   const [history, setHistory] = useState<HistoryState>(() => 
     createHistoryState({ nodes, edges, nodeCounter })
   );
 
-  // Save state to localStorage whenever it changes
   useEffect(() => {
     const state = { nodes, edges, nodeCounter };
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
   }, [nodes, edges, nodeCounter]);
 
-  // Keyboard shortcuts
   useHotkeys('ctrl+z', (e) => {
     e.preventDefault();
     handleUndo();
@@ -80,6 +82,16 @@ export default function FlowEditor({ onNodeSelect, appliances }: FlowEditorProps
   useHotkeys('ctrl+s', (e) => {
     e.preventDefault();
     handleQuickSave();
+  });
+
+  useHotkeys('ctrl+c', (e) => {
+    e.preventDefault();
+    handleCopySelected();
+  });
+
+  useHotkeys('ctrl+v', (e) => {
+    e.preventDefault();
+    handlePaste();
   });
 
   const handleUndo = () => {
@@ -206,6 +218,57 @@ export default function FlowEditor({ onNodeSelect, appliances }: FlowEditorProps
     }
   };
 
+  const handleCopySelected = useCallback(() => {
+    const selectedNodes = nodes.filter(node => node.selected);
+    if (selectedNodes.length > 0) {
+      setCopiedNodes(selectedNodes);
+      toast({
+        title: "Nodes Copied",
+        description: `${selectedNodes.length} node(s) copied to clipboard`
+      });
+    }
+  }, [nodes]);
+
+  const handlePaste = useCallback(() => {
+    if (copiedNodes.length === 0) return;
+
+    const [minX, minY] = [
+      Math.min(...copiedNodes.map(node => node.position.x)),
+      Math.min(...copiedNodes.map(node => node.position.y))
+    ];
+
+    const { x, y } = project({ x: 0, y: 0 });
+
+    const newNodes = copiedNodes.map(node => ({
+      ...node,
+      id: `${node.id}-copy-${Date.now()}`,
+      position: {
+        x: x + (node.position.x - minX),
+        y: y + (node.position.y - minY),
+      },
+      data: {
+        ...node.data,
+        label: `${node.data.label} (Copy)`,
+        nodeId: `N${String(nodeCounter + 1).padStart(3, '0')}`
+      },
+      selected: false
+    }));
+
+    setNodes(prevNodes => {
+      const updatedNodes = [...prevNodes, ...newNodes];
+      const newState = { nodes: updatedNodes, edges, nodeCounter: nodeCounter + newNodes.length };
+      setHistory(addToHistory(history, newState));
+      return updatedNodes;
+    });
+
+    setNodeCounter(prev => prev + newNodes.length);
+
+    toast({
+      title: "Nodes Pasted",
+      description: `${newNodes.length} node(s) pasted`
+    });
+  }, [copiedNodes, project, edges, nodeCounter, history]);
+
   return (
     <div className="w-full h-full relative">
       {isLoading && (
@@ -229,16 +292,20 @@ export default function FlowEditor({ onNodeSelect, appliances }: FlowEditorProps
         onNodeClick={(event, node) => onNodeSelect(node, updateNode)}
         nodeTypes={nodeTypes}
         defaultEdgeOptions={defaultEdgeOptions}
+        snapToGrid={snapToGrid}
+        snapGrid={[15, 15]}
         fitView
         className="bg-gray-50"
       >
-        <Background />
+        <Background gap={15} />
         <Controls />
         <MiniMap />
         <FlowToolbar
           onAddNode={addNewNode}
           onSave={handleSave}
           onImportClick={() => fileInputRef.current?.click()}
+          onCopySelected={handleCopySelected}
+          onPaste={handlePaste}
           appliances={appliances}
         />
       </ReactFlow>
