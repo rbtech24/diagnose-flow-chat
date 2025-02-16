@@ -12,6 +12,8 @@ import {
   getConnectedEdges,
   Node,
   Edge,
+  ReactFlowProvider,
+  Viewport
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import DiagnosisNode from './DiagnosisNode';
@@ -36,9 +38,7 @@ interface FlowEditorProps {
   appliances: string[];
 }
 
-const LOCAL_STORAGE_KEY = 'workflow-state';
-
-export default function FlowEditor({ onNodeSelect, appliances }: FlowEditorProps) {
+function FlowEditorContent({ onNodeSelect, appliances }: FlowEditorProps) {
   const loadInitialState = (): WorkflowState => {
     const savedState = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (savedState) {
@@ -238,8 +238,8 @@ export default function FlowEditor({ onNodeSelect, appliances }: FlowEditorProps
     ];
 
     const viewport = getViewport();
-    const x = -viewport.x + viewport.width / 2;
-    const y = -viewport.y + viewport.height / 2;
+    const x = -viewport.x + window.innerWidth / 2;
+    const y = -viewport.y + window.innerHeight / 2;
 
     const newNodes = copiedNodes.map(node => ({
       ...node,
@@ -312,5 +312,13 @@ export default function FlowEditor({ onNodeSelect, appliances }: FlowEditorProps
         />
       </ReactFlow>
     </div>
+  );
+}
+
+export default function FlowEditor(props: FlowEditorProps) {
+  return (
+    <ReactFlowProvider>
+      <FlowEditorContent {...props} />
+    </ReactFlowProvider>
   );
 }
