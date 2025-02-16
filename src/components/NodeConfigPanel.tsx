@@ -1,38 +1,21 @@
+
 import { useEffect, useState } from 'react';
 import { Card } from './ui/card';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
-import { Textarea } from './ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { GripVertical, X } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select';
-
-type MediaItem = {
-  type: 'image' | 'video';
-  url: string;
-};
-
-type Field = {
-  id: string;
-  type: 'content' | 'media' | 'options';
-  content?: string;
-  media?: MediaItem[];
-  options?: string[];
-};
+import { NodeTypeSelect } from './node-config/NodeTypeSelect';
+import { NodeFields } from './node-config/NodeFields';
+import { TechnicalSpecsPanel } from './node-config/TechnicalSpecs';
+import { Field, TechnicalSpecs } from '@/types/node-config';
 
 export default function NodeConfigPanel({ node, onUpdate }) {
   const [nodeType, setNodeType] = useState('question');
   const [label, setLabel] = useState('');
   const [fields, setFields] = useState<Field[]>([]);
   const [showTechnicalFields, setShowTechnicalFields] = useState(false);
-  const [technicalSpecs, setTechnicalSpecs] = useState({
+  const [technicalSpecs, setTechnicalSpecs] = useState<TechnicalSpecs>({
     range: { min: 0, max: 0 },
     testPoints: '',
     value: 0,
@@ -92,7 +75,7 @@ export default function NodeConfigPanel({ node, onUpdate }) {
     const mediaFields = fields.filter(f => f.type === 'media');
     const combinedMedia = mediaFields.reduce((acc, field) => {
       return acc.concat(field.media || []);
-    }, [] as MediaItem[]);
+    }, [] as any[]);
 
     const optionsFields = fields.filter(f => f.type === 'options');
     const combinedOptions = optionsFields.reduce((acc, field) => {
@@ -115,28 +98,6 @@ export default function NodeConfigPanel({ node, onUpdate }) {
     });
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files) return;
-
-    const newMedia: MediaItem[] = [];
-    Array.from(files).forEach(file => {
-      const url = URL.createObjectURL(file);
-      newMedia.push({ type: 'image', url });
-    });
-
-    const mediaField = fields.find(f => f.type === 'media');
-    if (mediaField) {
-      setFields(fields.map(field => 
-        field.id === mediaField.id 
-          ? { ...field, media: [...(field.media || []), ...newMedia] }
-          : field
-      ));
-    } else {
-      setFields([...fields, { id: `media-${fields.length + 1}`, type: 'media', media: newMedia }]);
-    }
-  };
-
   const addField = (type: Field['type']) => {
     setFields([...fields, { id: `${type}-${fields.length + 1}`, type }]);
   };
@@ -153,130 +114,6 @@ export default function NodeConfigPanel({ node, onUpdate }) {
     setFields(newFields);
   };
 
-  const renderField = (field: Field, index: number) => {
-    return (
-      <div key={field.id} className="flex gap-2 items-start group border p-4 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow">
-        <button 
-          className="cursor-move opacity-0 group-hover:opacity-100 transition-opacity"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            const target = e.currentTarget.parentElement;
-            if (!target) return;
-            
-            const initialY = e.pageY;
-            const initialIndex = index;
-            
-            const handleMouseMove = (moveEvent: MouseEvent) => {
-              const currentY = moveEvent.pageY;
-              const diff = currentY - initialY;
-              const newIndex = initialIndex + Math.round(diff / 50);
-              if (newIndex >= 0 && newIndex < fields.length) {
-                moveField(initialIndex, newIndex);
-              }
-            };
-            
-            const handleMouseUp = () => {
-              document.removeEventListener('mousemove', handleMouseMove);
-              document.removeEventListener('mouseup', handleMouseUp);
-            };
-            
-            document.addEventListener('mousemove', handleMouseMove);
-            document.addEventListener('mouseup', handleMouseUp);
-          }}
-        >
-          <GripVertical className="w-4 h-4 text-gray-400" />
-        </button>
-        
-        <div className="flex-1 space-y-2">
-          {field.type === 'content' && (
-            <Textarea 
-              placeholder="Enter content"
-              value={field.content || ''}
-              onChange={(e) => setFields(fields.map(f => 
-                f.id === field.id ? { ...f, content: e.target.value } : f
-              ))}
-              className="min-h-[100px] resize-none"
-            />
-          )}
-          
-          {field.type === 'media' && (
-            <div className="space-y-2">
-              <div className="flex flex-wrap gap-2">
-                {field.media?.map((item, i) => (
-                  <div key={i} className="relative group">
-                    {item.type === 'image' ? (
-                      <img src={item.url} alt="" className="w-20 h-20 object-cover rounded-lg" />
-                    ) : (
-                      <iframe src={item.url} className="w-40 h-24 rounded-lg" />
-                    )}
-                    <button
-                      className="absolute top-1 right-1 bg-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:shadow-md"
-                      onClick={() => setFields(fields.map(f => 
-                        f.id === field.id 
-                          ? { ...f, media: f.media?.filter((_, index) => index !== i) } 
-                          : f
-                      ))}
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <Input 
-                  type="file" 
-                  accept="image/*" 
-                  multiple 
-                  onChange={handleFileUpload}
-                  className="text-sm"
-                />
-                <Input
-                  type="url"
-                  placeholder="Enter video URL"
-                  className="text-sm"
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      const input = e.currentTarget;
-                      const url = input.value;
-                      if (url) {
-                        setFields(fields.map(f => 
-                          f.id === field.id 
-                            ? { ...f, media: [...(f.media || []), { type: 'video', url }] }
-                            : f
-                        ));
-                        input.value = '';
-                      }
-                    }
-                  }}
-                />
-              </div>
-            </div>
-          )}
-          
-          {field.type === 'options' && (
-            <Textarea 
-              placeholder="Enter options (one per line)"
-              value={field.options?.join('\n') || ''}
-              onChange={(e) => setFields(fields.map(f => 
-                f.id === field.id ? { ...f, options: e.target.value.split('\n').filter(Boolean) } : f
-              ))}
-              className="min-h-[100px] resize-none"
-            />
-          )}
-        </div>
-        
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={() => removeField(field.id)}
-          className="hover:bg-red-50 hover:text-red-500 transition-colors"
-        >
-          <X className="w-4 h-4" />
-        </Button>
-      </div>
-    );
-  };
-
   if (!node) {
     return (
       <div className="p-4 text-center text-gray-500">
@@ -290,29 +127,13 @@ export default function NodeConfigPanel({ node, onUpdate }) {
       <h2 className="text-lg font-semibold mb-4">Node Configuration</h2>
       
       <div className="space-y-6">
-        <div className="space-y-2">
-          <Label>Node Type</Label>
-          <Select 
-            value={nodeType} 
-            onValueChange={(value) => {
-              setNodeType(value);
-              setShowTechnicalFields(['voltage-check', 'resistance-check', 'inspection'].includes(value));
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="symptom">Symptom</SelectItem>
-              <SelectItem value="question">Question</SelectItem>
-              <SelectItem value="instruction">Instruction</SelectItem>
-              <SelectItem value="voltage-check">Voltage Check</SelectItem>
-              <SelectItem value="resistance-check">Resistance Check</SelectItem>
-              <SelectItem value="inspection">Visual Inspection</SelectItem>
-              <SelectItem value="result">Result</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <NodeTypeSelect 
+          value={nodeType} 
+          onChange={(value) => {
+            setNodeType(value);
+            setShowTechnicalFields(['voltage-check', 'resistance-check', 'inspection'].includes(value));
+          }}
+        />
 
         <div className="space-y-2">
           <Label>Label</Label>
@@ -323,141 +144,19 @@ export default function NodeConfigPanel({ node, onUpdate }) {
           />
         </div>
 
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <Label className="text-base font-semibold">Fields</Label>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => addField('content')}
-                className="bg-white hover:bg-gray-50"
-              >
-                Add Content
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => addField('media')}
-                className="bg-white hover:bg-gray-50"
-              >
-                Add Media
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => addField('options')}
-                className="bg-white hover:bg-gray-50"
-              >
-                Add Options
-              </Button>
-            </div>
-          </div>
-          
-          <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
-            {fields.map((field, index) => renderField(field, index))}
-            {fields.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                No fields added yet. Use the buttons above to add fields.
-              </div>
-            )}
-          </div>
-        </div>
+        <NodeFields 
+          fields={fields}
+          onFieldsChange={setFields}
+          onAddField={addField}
+          onRemoveField={removeField}
+          onMoveField={moveField}
+        />
 
-        {showTechnicalFields && (
-          <div className="space-y-4 border rounded-lg p-4 bg-gray-50">
-            <h3 className="font-medium text-sm">Technical Specifications</h3>
-            
-            {nodeType === 'voltage-check' && (
-              <>
-                <div className="space-y-2">
-                  <Label>Expected Voltage Range</Label>
-                  <div className="flex gap-2 items-center">
-                    <Input 
-                      type="number" 
-                      placeholder="Min" 
-                      className="w-24"
-                      value={technicalSpecs.range?.min || 0}
-                      onChange={(e) => setTechnicalSpecs(prev => ({
-                        ...prev,
-                        range: { ...prev.range, min: Number(e.target.value) }
-                      }))}
-                    />
-                    <span>to</span>
-                    <Input 
-                      type="number" 
-                      placeholder="Max" 
-                      className="w-24"
-                      value={technicalSpecs.range?.max || 0}
-                      onChange={(e) => setTechnicalSpecs(prev => ({
-                        ...prev,
-                        range: { ...prev.range, max: Number(e.target.value) }
-                      }))}
-                    />
-                    <span>V</span>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Test Points</Label>
-                  <Input 
-                    placeholder="e.g., 'Between terminal 1 and ground'"
-                    value={technicalSpecs.testPoints || ''}
-                    onChange={(e) => setTechnicalSpecs(prev => ({
-                      ...prev,
-                      testPoints: e.target.value
-                    }))}
-                  />
-                </div>
-              </>
-            )}
-            
-            {nodeType === 'resistance-check' && (
-              <>
-                <div className="space-y-2">
-                  <Label>Expected Resistance</Label>
-                  <div className="flex gap-2 items-center">
-                    <Input 
-                      type="number" 
-                      placeholder="Value" 
-                      className="w-32"
-                      value={technicalSpecs.value || 0}
-                      onChange={(e) => setTechnicalSpecs(prev => ({
-                        ...prev,
-                        value: Number(e.target.value)
-                      }))}
-                    />
-                    <span>Ω</span>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Measurement Points</Label>
-                  <Input 
-                    placeholder="e.g., 'Across heating element'"
-                    value={technicalSpecs.measurementPoints || ''}
-                    onChange={(e) => setTechnicalSpecs(prev => ({
-                      ...prev,
-                      measurementPoints: e.target.value
-                    }))}
-                  />
-                </div>
-              </>
-            )}
-            
-            {nodeType === 'inspection' && (
-              <div className="space-y-2">
-                <Label>Inspection Points</Label>
-                <Textarea 
-                  placeholder="List specific points to inspect&#10;1. Check for visible damage&#10;2. Verify connection integrity"
-                  value={technicalSpecs.points || ''}
-                  onChange={(e) => setTechnicalSpecs(prev => ({
-                    ...prev,
-                    points: e.target.value
-                  }))}
-                />
-              </div>
-            )}
-          </div>
-        )}
+        <TechnicalSpecsPanel 
+          nodeType={nodeType}
+          value={technicalSpecs}
+          onChange={setTechnicalSpecs}
+        />
 
         <Card className="p-4 bg-gray-50">
           <Label className="mb-2 block">JSON Preview</Label>
