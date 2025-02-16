@@ -1,6 +1,8 @@
 
 import { useNodeConfig } from './node-config/useNodeConfig';
 import { NodeConfigForm } from './node-config/NodeConfigForm';
+import { Alert, AlertDescription } from './ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 export default function NodeConfigPanel({ node, onUpdate }) {
   const {
@@ -17,7 +19,8 @@ export default function NodeConfigPanel({ node, onUpdate }) {
     removeField,
     moveField,
     handleReset,
-    handleApplyChanges
+    handleApplyChanges,
+    validationErrors
   } = useNodeConfig({ node, onUpdate });
 
   if (!node) {
@@ -31,6 +34,17 @@ export default function NodeConfigPanel({ node, onUpdate }) {
   return (
     <div className="p-4 h-full overflow-y-auto">
       <h2 className="text-lg font-semibold mb-4">Node Configuration</h2>
+      
+      {validationErrors.length > 0 && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {validationErrors.map((error, index) => (
+              <div key={index}>{error}</div>
+            ))}
+          </AlertDescription>
+        </Alert>
+      )}
       
       <NodeConfigForm
         nodeType={nodeType}
@@ -47,6 +61,7 @@ export default function NodeConfigPanel({ node, onUpdate }) {
         onMoveField={moveField}
         onReset={handleReset}
         onApply={handleApplyChanges}
+        hasValidationErrors={validationErrors.length > 0}
       />
     </div>
   );

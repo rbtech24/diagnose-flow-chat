@@ -1,3 +1,4 @@
+
 import { useCallback, useRef, useEffect, useState } from 'react';
 import {
   ReactFlow,
@@ -23,7 +24,8 @@ import {
   handleImportWorkflow,
   SavedWorkflow,
   initialNodes,
-  initialEdges
+  initialEdges,
+  handleQuickSave
 } from '@/utils/flow';
 import { createHistoryState, addToHistory, undo, redo } from '@/utils/workflowHistory';
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -65,7 +67,6 @@ function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEd
   const [history, setHistory] = useState(() => 
     createHistoryState({ nodes, edges, nodeCounter })
   );
-  const location = useLocation();
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -82,7 +83,7 @@ function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEd
         nodeCounter: 1 
       }));
     }
-  }, [location.search]);
+  }, [location.search, clearSavedState, setNodes, setEdges, setNodeCounter]);
 
   useHotkeys('ctrl+z', (e) => {
     e.preventDefault();
@@ -109,6 +110,22 @@ function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEd
     handlePaste();
   });
 
+  const handleConnect = useCallback(
+    (params: Connection) => {
+      setEdges((eds) => {
+        const newEdges = addEdge(params, eds);
+        const newState = { nodes, edges: newEdges, nodeCounter };
+        setHistory(addToHistory(history, newState));
+        return newEdges;
+      });
+      toast({
+        title: "Connection Added",
+        description: "Nodes have been connected successfully."
+      });
+    },
+    [setEdges, nodes, nodeCounter, history, setHistory]
+  );
+
   const handleUndo = () => {
     const newHistory = undo(history);
     if (newHistory !== history) {
@@ -129,29 +146,9 @@ function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEd
     }
   };
 
-  const handleQuickSave = () => {
-    handleSaveWorkflow(
-      nodes,
-      edges,
-      nodeCounter,
-      currentWorkflow.metadata.name,
-      currentWorkflow.metadata.folder
-    );
-    toast({
-      title: "Workflow Auto-saved",
-      description: "Your changes have been saved automatically."
-    });
-  };
-
   const handleQuickSaveClick = () => {
     if (currentWorkflow) {
-      handleSaveWorkflow(
-        nodes,
-        edges,
-        nodeCounter,
-        currentWorkflow.metadata.name,
-        currentWorkflow.metadata.folder
-      );
+      handleQuickSave(nodes, edges, nodeCounter, currentWorkflow);
       toast({
         title: "Workflow Auto-saved",
         description: "Your changes have been saved automatically."
@@ -165,93 +162,24 @@ function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEd
     }
   };
 
-  const onConnect = useCallback(
-    (params: Connection) => {
-      setEdges((eds) => {
-        const newEdges = addEdge(params, eds);
-        const newState = { nodes, edges: newEdges, nodeCounter };
-        setHistory(addToHistory(history, newState));
-        return newEdges;
-      });
-      toast({
-        title: "Connection Added",
-        description: "Nodes have been connected successfully."
-      });
-    },
-    [setEdges, nodes, nodeCounter, history]
-  );
-
-  const updateNode = useCallback((nodeId: string, newData: any) => {
-    setNodes((nds) => {
-      const newNodes = nds.map((node) => {
-        if (node.id === nodeId) {
-          return { ...node, data: { ...node.data, ...newData } };
-        }
-        return node;
-      });
-      const newState = { nodes: newNodes, edges, nodeCounter };
-      setHistory(addToHistory(history, newState));
-      return newNodes;
-    });
-    toast({
-      title: "Node Updated",
-      description: "The node has been updated successfully."
-    });
-  }, [setNodes, edges, nodeCounter, history]);
-
-  const addNewNode = useCallback(() => {
-    setIsLoading(true);
-    try {
-      const uniqueId = `N${String(nodeCounter).padStart(3, '0')}`;
-      const newNodeCounter = nodeCounter + 1;
-      setNodeCounter(newNodeCounter);
-      
-      const newNode = {
-        id: `node-${nodes.length + 1}`,
-        type: 'diagnosis',
-        position: { x: 250, y: (nodes.length + 1) * 150 },
-        data: {
-          label: `New Step [${uniqueId}]`,
-          type: 'question',
-          content: 'Enter question or instruction',
-          options: ['Yes', 'No'],
-          nodeId: uniqueId
-        }
-      };
-      
-      const newNodes = [...nodes, newNode];
-      setNodes(newNodes);
-      
-      const newState = { nodes: newNodes, edges, nodeCounter: newNodeCounter };
-      setHistory(addToHistory(history, newState));
-      
-      toast({
-        title: "Node Added",
-        description: `New diagnosis step (${uniqueId}) has been added to the workflow.`
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [nodes, edges, nodeCounter, history, setNodes, setNodeCounter]);
-
-  const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setIsLoading(true);
-      try {
-        await handleImportWorkflow(file, setNodes, setEdges, setNodeCounter);
-        const newState = { nodes, edges, nodeCounter };
-        setHistory(addToHistory(history, newState));
-      } finally {
-        setIsLoading(false);
-        event.target.value = '';
-      }
-    }
-  };
-
   const handleSave = async (name: string, folder: string): Promise<void> => {
-    handleSaveWorkflow(nodes, edges, nodeCounter, name, folder);
-    return Promise.resolve();
+    try {
+      const workflow = await handleSaveWorkflow(nodes, edges, nodeCounter, name, folder);
+      if (workflow) {
+        toast({
+          title: "Workflow Saved",
+          description: `Successfully saved "${name}" to folder "${folder}"`
+        });
+      }
+      return Promise.resolve();
+    } catch (error) {
+      toast({
+        title: "Save Failed",
+        description: "Failed to save the workflow. Please try again.",
+        variant: "destructive"
+      });
+      return Promise.reject(error);
+    }
   };
 
   const handleCopySelected = useCallback(() => {
@@ -274,15 +202,12 @@ function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEd
       Math.min(...copiedNodes.map(node => node.position.y))
     ];
 
-    const x = -viewport.x + window.innerWidth / 2;
-    const y = -viewport.y + window.innerHeight / 2;
-
     const newNodes = copiedNodes.map(node => ({
       ...node,
       id: `${node.id}-copy-${Date.now()}`,
       position: {
-        x: x + (node.position.x - minX),
-        y: y + (node.position.y - minY),
+        x: -viewport.x + window.innerWidth / 2 + (node.position.x - minX),
+        y: -viewport.y + window.innerHeight / 2 + (node.position.y - minY),
       },
       data: {
         ...node.data,
@@ -305,7 +230,26 @@ function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEd
       title: "Nodes Pasted",
       description: `${newNodes.length} node(s) pasted`
     });
-  }, [copiedNodes, getViewport, edges, nodeCounter, history, setNodes, setNodeCounter]);
+  }, [copiedNodes, getViewport, edges, nodeCounter, history, setNodes, setNodeCounter, setHistory]);
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setIsLoading(true);
+      try {
+        await handleImportWorkflow(file, setNodes, setEdges, setNodeCounter);
+        const newState = { nodes, edges, nodeCounter };
+        setHistory(addToHistory(history, newState));
+      } finally {
+        setIsLoading(false);
+        event.target.value = '';
+      }
+    }
+  };
 
   return (
     <div className="w-full h-full relative">
@@ -339,8 +283,8 @@ function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEd
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onNodeClick={(event, node) => onNodeSelect(node, updateNode)}
+        onConnect={handleConnect}
+        onNodeClick={(event, node) => onNodeSelect(node, handleNodeUpdate)}
         nodeTypes={nodeTypes}
         defaultEdgeOptions={defaultEdgeOptions}
         snapToGrid={snapToGrid}
@@ -352,9 +296,9 @@ function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEd
         <Controls />
         <MiniMap />
         <FlowToolbar
-          onAddNode={addNewNode}
+          onAddNode={handleAddNode}
           onSave={handleSave}
-          onImportClick={() => fileInputRef.current?.click()}
+          onImportClick={handleImportClick}
           onCopySelected={handleCopySelected}
           onPaste={handlePaste}
           appliances={appliances}
