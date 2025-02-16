@@ -47,29 +47,42 @@ export interface SavedWorkflow {
   nodeCounter: number;
 }
 
-export const getFolders = (): string[] => {
+export const cleanupWorkflows = () => {
   const workflows = getAllWorkflows();
+  const cleanedWorkflows = workflows.filter(workflow => workflow.nodes.length > 0);
+  localStorage.setItem('diagnostic-workflows', JSON.stringify(cleanedWorkflows));
+  return cleanedWorkflows;
+};
+
+export const getFolders = (): string[] => {
+  const workflows = cleanupWorkflows();
   const folderSet = new Set<string>();
   
   workflows.forEach(workflow => {
-    if (workflow.metadata.folder && workflow.nodes.length > 0) {
+    if (workflow.metadata.folder) {
+      console.log('Found folder:', workflow.metadata.folder, 'with nodes:', workflow.nodes.length);
       folderSet.add(workflow.metadata.folder);
     }
   });
   
-  return Array.from(folderSet).sort();
+  const folders = Array.from(folderSet).sort();
+  console.log('Available folders:', folders);
+  return folders;
 };
 
 export const getAllWorkflows = (): SavedWorkflow[] => {
   const storedWorkflows = localStorage.getItem('diagnostic-workflows') || '[]';
   const workflows = JSON.parse(storedWorkflows);
-  
-  return workflows.filter(workflow => workflow.nodes.length > 0);
+  const validWorkflows = workflows.filter(workflow => workflow.nodes.length > 0);
+  console.log('Total workflows:', validWorkflows.length);
+  return validWorkflows;
 };
 
 export const getWorkflowsInFolder = (folder: string): SavedWorkflow[] => {
   const workflows = getAllWorkflows();
-  return workflows.filter(w => w.metadata.folder === folder);
+  const folderWorkflows = workflows.filter(w => w.metadata.folder === folder);
+  console.log(`Workflows in folder ${folder}:`, folderWorkflows.length);
+  return folderWorkflows;
 };
 
 export const handleSaveWorkflow = (
@@ -81,6 +94,8 @@ export const handleSaveWorkflow = (
   appliance?: string,
   symptom?: string
 ) => {
+  console.log('Saving workflow:', { name, folder, nodeCount: nodes.length });
+  
   if (!name || !folder) {
     toast({
       title: "Error",
@@ -118,12 +133,14 @@ export const handleSaveWorkflow = (
         createdAt: workflows[existingIndex].metadata.createdAt
       }
     };
+    console.log('Updated existing workflow at index:', existingIndex);
     toast({
       title: "Workflow Updated",
       description: `Updated "${name}" in folder "${folder}"`
     });
   } else {
     workflows.push(newWorkflow);
+    console.log('Added new workflow, total workflows:', workflows.length);
     toast({
       title: "Workflow Saved",
       description: `Saved "${name}" to folder "${folder}"`
@@ -131,6 +148,7 @@ export const handleSaveWorkflow = (
   }
 
   localStorage.setItem('diagnostic-workflows', JSON.stringify(workflows));
+  cleanupWorkflows(); // Clean up after saving
 };
 
 export const handleImportWorkflow = (
