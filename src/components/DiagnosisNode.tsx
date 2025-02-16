@@ -82,19 +82,35 @@ function DiagnosisNode({ id, data }) {
 
   return (
     <Card className="min-w-[200px] max-w-[300px] p-4 bg-white shadow-sm border-2">
+      {/* Allow both source and target on top */}
+      <Handle 
+        type="source" 
+        position={Position.Top} 
+        id="top"
+        style={{...handleStyle(connected.top), left: 'calc(50% - 12px)'}}
+        onClick={() => connected.top && handleDisconnect('top')}
+      />
       <Handle 
         type="target" 
         position={Position.Top} 
         id="top"
-        style={handleStyle(connected.top)}
+        style={{...handleStyle(connected.top), left: 'calc(50% + 12px)'}}
         onClick={() => connected.top && handleDisconnect('top')}
       />
       
+      {/* Allow both source and target on left */}
+      <Handle
+        type="source"
+        position={Position.Left}
+        id="left"
+        style={{...handleStyle(connected.left), top: 'calc(50% - 12px)'}}
+        onClick={() => connected.left && handleDisconnect('left')}
+      />
       <Handle
         type="target"
         position={Position.Left}
         id="left"
-        style={handleStyle(connected.left)}
+        style={{...handleStyle(connected.left), top: 'calc(50% + 12px)'}}
         onClick={() => connected.left && handleDisconnect('left')}
       />
 
@@ -147,19 +163,35 @@ function DiagnosisNode({ id, data }) {
         )}
       </div>
 
+      {/* Allow both source and target on right */}
       <Handle
         type="source"
         position={Position.Right}
         id="right"
-        style={handleStyle(connected.right)}
+        style={{...handleStyle(connected.right), top: 'calc(50% - 12px)'}}
+        onClick={() => connected.right && handleDisconnect('right')}
+      />
+      <Handle
+        type="target"
+        position={Position.Right}
+        id="right"
+        style={{...handleStyle(connected.right), top: 'calc(50% + 12px)'}}
         onClick={() => connected.right && handleDisconnect('right')}
       />
 
+      {/* Allow both source and target on bottom */}
       <Handle 
         type="source" 
         position={Position.Bottom}
         id="bottom" 
-        style={handleStyle(connected.bottom)}
+        style={{...handleStyle(connected.bottom), left: 'calc(50% - 12px)'}}
+        onClick={() => connected.bottom && handleDisconnect('bottom')}
+      />
+      <Handle 
+        type="target" 
+        position={Position.Bottom}
+        id="bottom" 
+        style={{...handleStyle(connected.bottom), left: 'calc(50% + 12px)'}}
         onClick={() => connected.bottom && handleDisconnect('bottom')}
       />
     </Card>
