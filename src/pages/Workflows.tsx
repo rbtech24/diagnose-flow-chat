@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,12 +29,22 @@ interface Appliance {
   order: number;
 }
 
+const STORAGE_KEY = 'appliances-data';
+
 export default function Workflows() {
   const navigate = useNavigate();
   const [isReordering, setIsReordering] = useState(false);
   const [editingAppliance, setEditingAppliance] = useState<{index: number, name: string} | null>(null);
   const [deletingApplianceIndex, setDeletingApplianceIndex] = useState<number | null>(null);
-  const [appliances, setAppliances] = useState<Appliance[]>([]);
+  const [appliances, setAppliances] = useState<Appliance[]>(() => {
+    const savedAppliances = localStorage.getItem(STORAGE_KEY);
+    return savedAppliances ? JSON.parse(savedAppliances) : [];
+  });
+
+  // Save to localStorage whenever appliances change
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(appliances));
+  }, [appliances]);
 
   const handleAddAppliance = (name: string) => {
     const newAppliance: Appliance = {
