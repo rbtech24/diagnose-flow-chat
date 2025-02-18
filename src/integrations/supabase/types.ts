@@ -3053,7 +3053,9 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           description: string | null
+          flow_data: Json | null
           id: string
+          is_active: boolean | null
           name: string
           previous_version: string | null
           published_at: string | null
@@ -3068,7 +3070,9 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          flow_data?: Json | null
           id?: string
+          is_active?: boolean | null
           name: string
           previous_version?: string | null
           published_at?: string | null
@@ -3083,7 +3087,9 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          flow_data?: Json | null
           id?: string
+          is_active?: boolean | null
           name?: string
           previous_version?: string | null
           published_at?: string | null
