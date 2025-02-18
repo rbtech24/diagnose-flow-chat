@@ -109,7 +109,7 @@ export function ApplianceCard({
           {applianceWorkflows.map((workflow: SavedWorkflow, workflowIndex: number) => (
             <div
               key={workflow.metadata.name}
-              className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+              className="flex items-center justify-between p-2.5 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200"
               draggable={isReordering}
               onDragStart={(e) => {
                 e.dataTransfer.setData('workflow-index', workflowIndex.toString());
