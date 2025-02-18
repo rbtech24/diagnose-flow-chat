@@ -5,6 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { ArrowLeft, Plus } from 'lucide-react';
 import { AddApplianceDialog } from '@/components/appliance/AddApplianceDialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface WorkflowHeaderProps {
   searchTerm: string;
@@ -45,18 +52,22 @@ export function WorkflowHeader({
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-64"
           />
-          <select
-            className="px-3 py-2 border border-gray-300 rounded-md"
+          <Select
             value={selectedFolder}
-            onChange={(e) => onFolderChange(e.target.value)}
+            onValueChange={onFolderChange}
           >
-            <option value="">All Folders</option>
-            {folders.map((folder) => (
-              <option key={folder} value={folder}>
-                {folder}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-[180px] bg-white">
+              <SelectValue placeholder="All Folders" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Folders</SelectItem>
+              {folders.map((folder) => (
+                <SelectItem key={folder} value={folder}>
+                  {folder}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-600">Re-arrange:</span>

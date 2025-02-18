@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { SavedWorkflow } from '@/utils/flow/types';
 import { getAllWorkflows, moveWorkflowToFolder } from '@/utils/flow';
@@ -8,8 +8,17 @@ export function useWorkflows() {
   const [workflowsState, setWorkflowsState] = useState(getAllWorkflows());
   const [selectedFolder, setSelectedFolder] = useState<string>('');
 
+  // Get all appliances from localStorage
+  const getAppliances = () => {
+    const appliancesData = localStorage.getItem('appliances-data');
+    return appliancesData ? JSON.parse(appliancesData) : [];
+  };
+
   // Get all workflows to build the folders list
-  const folders = [...new Set(workflowsState.map(w => w.metadata?.folder || 'Default'))];
+  const folders = [...new Set([
+    ...workflowsState.map(w => w.metadata?.folder || 'Default'),
+    ...getAppliances().map((a: { name: string }) => a.name)
+  ])].sort();
   
   // Get workflows for the selected folder or all workflows if no folder is selected
   const workflows = selectedFolder 
