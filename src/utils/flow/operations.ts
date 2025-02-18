@@ -1,4 +1,3 @@
-
 import { Node, Edge } from '@xyflow/react';
 import { toast } from '@/hooks/use-toast';
 import { SavedWorkflow } from './types';
@@ -19,14 +18,13 @@ export const handleQuickSave = (
     return;
   }
 
-  handleSaveWorkflow(
+  return handleSaveWorkflow(
     nodes,
     edges,
     nodeCounter,
     currentWorkflow.metadata.name,
-    currentWorkflow.metadata.appliance, // Use appliance as the folder
     currentWorkflow.metadata.appliance,
-    currentWorkflow.metadata.symptom
+    currentWorkflow.metadata.appliance
   );
 };
 
@@ -36,31 +34,29 @@ export const handleSaveWorkflow = (
   nodeCounter: number,
   name: string,
   folder: string,
-  appliance?: string,
+  appliance: string,
   symptom?: string
 ) => {
-  console.log('Saving workflow:', { name, folder, appliance, symptom, nodeCount: nodes.length });
-  
   if (!name || !appliance) {
     toast({
       title: "Error",
       description: "Workflow name and appliance are required",
       variant: "destructive"
     });
-    return;
+    return null;
   }
 
   try {
     const workflows = getAllWorkflows();
     
-    const newWorkflow = {
+    const newWorkflow: SavedWorkflow = {
       metadata: {
         name,
-        folder: appliance, // Use appliance as the folder
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        folder,
         appliance,
         symptom,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         isActive: true
       },
       nodes,
@@ -82,10 +78,8 @@ export const handleSaveWorkflow = (
           isActive: workflows[existingIndex].metadata.isActive
         }
       };
-      console.log('Updated existing workflow at index:', existingIndex);
     } else {
       workflows.push(newWorkflow);
-      console.log('Added new workflow, total workflows:', workflows.length);
     }
 
     localStorage.setItem('diagnostic-workflows', JSON.stringify(workflows));

@@ -11,16 +11,16 @@ import { useLocation } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 
 interface SaveWorkflowDialogProps {
-  onSave: (name: string, folder: string, appliance?: string) => Promise<void>;
+  onSave: (name: string, folder: string, appliance: string) => Promise<void>;
 }
 
 export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [workflowName, setWorkflowName] = useState('');
-  const [selectedFolder, setSelectedFolder] = useState('');
-  const [newFolder, setNewFolder] = useState('');
-  const [folders, setFolders] = useState<string[]>([]);
-  const { appliances } = useAppliances();
+  const [selectedAppliance, setSelectedAppliance] = useState('');
+  const [newAppliance, setNewAppliance] = useState('');
+  const [appliances, setAppliances] = useState<string[]>([]);
+  const { appliances: appliancesList } = useAppliances();
   const location = useLocation();
   
   const isWorkflowsPage = location.pathname === '/workflows';
@@ -28,15 +28,15 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
   useEffect(() => {
     if (isOpen) {
       const existingFolders = getFolders();
-      const availableFolders = isWorkflowsPage 
+      const availableAppliances = isWorkflowsPage 
         ? existingFolders 
-        : [...new Set([...appliances.map(a => a.name), ...existingFolders])];
-      setFolders(availableFolders);
-      if (availableFolders.length > 0) {
-        setSelectedFolder(availableFolders[0]);
+        : [...new Set([...appliancesList.map(a => a.name), ...existingFolders])];
+      setAppliances(availableAppliances);
+      if (availableAppliances.length > 0) {
+        setSelectedAppliance(availableAppliances[0]);
       }
     }
-  }, [isOpen, isWorkflowsPage, appliances]);
+  }, [isOpen, isWorkflowsPage, appliancesList]);
 
   const handleSave = async () => {
     if (!workflowName) {
@@ -48,28 +48,22 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
       return;
     }
 
-    const targetFolder = newFolder || selectedFolder;
-    if (!targetFolder) {
+    const targetAppliance = newAppliance || selectedAppliance;
+    if (!targetAppliance) {
       toast({
         title: "Validation Error",
-        description: "Please select or create a folder",
+        description: "Please select or create an appliance category",
         variant: "destructive"
       });
       return;
     }
 
     try {
-      console.log('Saving workflow:', {
-        name: workflowName,
-        folder: targetFolder,
-        appliance: targetFolder // Pass the folder as the appliance
-      });
-      
-      await onSave(workflowName, targetFolder, targetFolder);
+      await onSave(workflowName, targetAppliance, targetAppliance);
       setIsOpen(false);
       setWorkflowName('');
-      setNewFolder('');
-      setSelectedFolder(folders[0] || '');
+      setNewAppliance('');
+      setSelectedAppliance(appliances[0] || '');
     } catch (error) {
       console.error('Error saving workflow:', error);
       toast({
@@ -110,28 +104,28 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
             <Label>Select Appliance</Label>
             <select
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              value={selectedFolder}
+              value={selectedAppliance}
               onChange={(e) => {
-                setSelectedFolder(e.target.value);
-                setNewFolder('');
+                setSelectedAppliance(e.target.value);
+                setNewAppliance('');
               }}
             >
-              {folders.map((folder) => (
-                <option key={folder} value={folder}>
-                  {folder}
+              {appliances.map((appliance) => (
+                <option key={appliance} value={appliance}>
+                  {appliance}
                 </option>
               ))}
             </select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="newFolder">Or Create New Appliance Category</Label>
+            <Label htmlFor="newAppliance">Or Create New Appliance Category</Label>
             <Input
-              id="newFolder"
-              value={newFolder}
+              id="newAppliance"
+              value={newAppliance}
               onChange={(e) => {
-                setNewFolder(e.target.value);
-                setSelectedFolder('');
+                setNewAppliance(e.target.value);
+                setSelectedAppliance('');
               }}
               placeholder="Enter new appliance category"
             />
@@ -140,7 +134,7 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
           <Button 
             className="w-full" 
             onClick={handleSave}
-            disabled={!workflowName || (!selectedFolder && !newFolder)}
+            disabled={!workflowName || (!selectedAppliance && !newAppliance)}
           >
             Save
           </Button>
