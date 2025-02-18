@@ -18,7 +18,9 @@ export function useWorkflows() {
   const folders = [...new Set([
     ...workflowsState.map(w => w.metadata?.folder || 'Default'),
     ...getAppliances().map((a: { name: string }) => a.name)
-  ])].sort();
+  ])]
+    .filter(folder => folder && folder.trim() !== '') // Filter out empty or whitespace-only folders
+    .sort();
   
   // Get workflows for the selected folder or all workflows if no folder is selected
   const workflows = selectedFolder 
