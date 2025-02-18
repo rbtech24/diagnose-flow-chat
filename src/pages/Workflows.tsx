@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppliances } from '@/hooks/useAppliances';
@@ -26,7 +25,8 @@ export default function Workflows() {
     deleteAppliance,
     toggleWorkflow,
     moveAppliance,
-    moveSymptom
+    moveSymptom,
+    moveWorkflowToFolder
   } = useAppliances();
 
   // Get all workflows to build the folders list
@@ -117,9 +117,30 @@ export default function Workflows() {
       setWorkflowsState(updatedWorkflows);
       localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
     }
+
+    toast({
+      title: "Workflow Moved",
+      description: `${movedWorkflow.metadata.name} has been reordered successfully.`
+    });
   };
 
-  // Add the missing functions
+  const handleMoveWorkflowToFolder = (workflow: SavedWorkflow, targetFolder: string) => {
+    if (moveWorkflowToFolder(workflow, targetFolder)) {
+      // Refresh the workflows state
+      setWorkflowsState(getAllWorkflows());
+      toast({
+        title: "Workflow Moved",
+        description: `${workflow.metadata.name} has been moved to ${targetFolder}.`
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to move workflow to the selected folder.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const openWorkflowEditor = (folder: string, name?: string) => {
     const path = name 
       ? `/workflow-editor/${encodeURIComponent(folder)}/${encodeURIComponent(name)}`

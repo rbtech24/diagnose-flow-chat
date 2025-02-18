@@ -47,7 +47,13 @@ export const getFolders = (): string[] => {
 
 export const getAllWorkflows = (): SavedWorkflow[] => {
   try {
-    return cleanupWorkflows();
+    const workflows = cleanupWorkflows();
+    // Sort workflows by folder and then by name
+    return workflows.sort((a, b) => {
+      const folderCompare = (a.metadata.folder || 'Default').localeCompare(b.metadata.folder || 'Default');
+      if (folderCompare !== 0) return folderCompare;
+      return a.metadata.name.localeCompare(b.metadata.name);
+    });
   } catch (error) {
     console.error('Error getting all workflows:', error);
     return [];
@@ -61,6 +67,40 @@ export const getWorkflowsInFolder = (folder: string): SavedWorkflow[] => {
   } catch (error) {
     console.error('Error getting workflows in folder:', error);
     return [];
+  }
+};
+
+export const moveWorkflowToFolder = (
+  workflow: SavedWorkflow,
+  targetFolder: string
+): boolean => {
+  try {
+    const workflows = getAllWorkflows();
+    const workflowIndex = workflows.findIndex(
+      w => w.metadata.name === workflow.metadata.name && 
+           w.metadata.folder === workflow.metadata.folder
+    );
+
+    if (workflowIndex === -1) {
+      console.error('Workflow not found');
+      return false;
+    }
+
+    // Update the workflow's folder
+    workflows[workflowIndex] = {
+      ...workflow,
+      metadata: {
+        ...workflow.metadata,
+        folder: targetFolder,
+        updatedAt: new Date().toISOString()
+      }
+    };
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(workflows));
+    return true;
+  } catch (error) {
+    console.error('Error moving workflow to folder:', error);
+    return false;
   }
 };
 

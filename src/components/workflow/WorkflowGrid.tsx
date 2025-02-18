@@ -1,4 +1,3 @@
-
 import { ApplianceCard } from '@/components/appliance/ApplianceCard';
 import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
@@ -21,6 +20,7 @@ interface WorkflowGridProps {
   onDeleteWorkflow: (workflow: SavedWorkflow) => void;
   onMoveWorkflow: (fromIndex: number, toIndex: number) => void;
   onToggleWorkflowActive: (workflow: SavedWorkflow) => void;
+  onMoveWorkflowToFolder?: (workflow: SavedWorkflow, targetFolder: string) => void;
   getSymptomCardColor: (index: number) => string;
 }
 
@@ -38,6 +38,7 @@ export function WorkflowGrid({
   onDeleteWorkflow,
   onMoveWorkflow,
   onToggleWorkflowActive,
+  onMoveWorkflowToFolder,
   getSymptomCardColor,
 }: WorkflowGridProps) {
   if (appliances.length === 0 && workflows.length === 0) {
@@ -50,7 +51,6 @@ export function WorkflowGrid({
 
   return (
     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {/* Display Appliances */}
       {appliances.map((appliance, index) => (
         <ApplianceCard
           key={`appliance-${appliance.name}`}
@@ -68,7 +68,6 @@ export function WorkflowGrid({
         />
       ))}
 
-      {/* Display Workflows */}
       {workflows.map((workflow, index) => (
         <Card 
           key={`workflow-${workflow.metadata.name}-${workflow.metadata.folder}`}
@@ -76,6 +75,7 @@ export function WorkflowGrid({
           draggable={isReordering}
           onDragStart={(e) => {
             e.dataTransfer.setData('workflow-index', index.toString());
+            e.dataTransfer.setData('workflow-data', JSON.stringify(workflow));
           }}
           onDragOver={(e) => {
             e.preventDefault();
@@ -83,7 +83,11 @@ export function WorkflowGrid({
           onDrop={(e) => {
             e.preventDefault();
             const fromIndex = parseInt(e.dataTransfer.getData('workflow-index'));
-            if (fromIndex !== index) {
+            const draggedWorkflow = JSON.parse(e.dataTransfer.getData('workflow-data'));
+            
+            if (draggedWorkflow.metadata.folder !== workflow.metadata.folder) {
+              onMoveWorkflowToFolder?.(draggedWorkflow, workflow.metadata.folder);
+            } else if (fromIndex !== index) {
               onMoveWorkflow(fromIndex, index);
             }
           }}
