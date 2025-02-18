@@ -23,9 +23,9 @@ export const getAllWorkflows = async (): Promise<SavedWorkflow[]> => {
         updatedAt: workflow.updated_at,
         isActive: workflow.is_active
       },
-      nodes: workflow.flow_data.nodes,
-      edges: workflow.flow_data.edges,
-      nodeCounter: workflow.flow_data.nodeCounter
+      nodes: JSON.parse(workflow.flow_data).nodes,
+      edges: JSON.parse(workflow.flow_data).edges,
+      nodeCounter: JSON.parse(workflow.flow_data).nodeCounter
     }));
   } catch (error) {
     console.error('Error getting all workflows:', error);
@@ -60,13 +60,39 @@ export const getWorkflowsInFolder = async (folder: string): Promise<SavedWorkflo
         updatedAt: workflow.updated_at,
         isActive: workflow.is_active
       },
-      nodes: workflow.flow_data.nodes,
-      edges: workflow.flow_data.edges,
-      nodeCounter: workflow.flow_data.nodeCounter
+      nodes: JSON.parse(workflow.flow_data).nodes,
+      edges: JSON.parse(workflow.flow_data).edges,
+      nodeCounter: JSON.parse(workflow.flow_data).nodeCounter
     }));
   } catch (error) {
     console.error('Error getting workflows in folder:', error);
     return [];
+  }
+};
+
+export const moveWorkflowToFolder = async (
+  workflow: SavedWorkflow,
+  targetAppliance: string
+): Promise<boolean> => {
+  try {
+    const category = await getOrCreateCategory(targetAppliance);
+    if (!category) return false;
+    
+    // Update workflow
+    const { error } = await supabase
+      .from('workflows')
+      .update({ 
+        category_id: category.id,
+        updated_at: new Date().toISOString()
+      })
+      .eq('name', workflow.metadata.name);
+      
+    if (error) throw error;
+    
+    return true;
+  } catch (error) {
+    console.error('Error moving workflow to folder:', error);
+    return false;
   }
 };
 

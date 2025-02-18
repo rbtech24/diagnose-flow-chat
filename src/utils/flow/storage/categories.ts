@@ -10,7 +10,7 @@ export const getOrCreateCategory = async (name: string): Promise<Category | null
   try {
     let { data: category } = await supabase
       .from('workflow_categories')
-      .select('id')
+      .select('id, name')
       .eq('name', name)
       .single();
       
@@ -18,7 +18,7 @@ export const getOrCreateCategory = async (name: string): Promise<Category | null
       const { data: newCategory, error: createError } = await supabase
         .from('workflow_categories')
         .insert({ name })
-        .select('id')
+        .select('id, name')
         .single();
         
       if (createError) throw createError;
