@@ -1,6 +1,6 @@
 
 import { useCallback } from 'react';
-import { Connection, Node, Edge, useReactFlow } from '@xyflow/react';
+import { Connection, Node, Edge, useReactFlow, addEdge } from '@xyflow/react';
 import { toast } from './use-toast';
 import { addToHistory } from '@/utils/workflowHistory';
 import { handleQuickSave } from '@/utils/flow';
@@ -15,7 +15,9 @@ export function useFlowActions(
   setNodeCounter: (nc: number | ((nc: number) => number)) => void,
   history: any,
   setHistory: (history: any) => void,
-  currentWorkflow?: SavedWorkflow
+  currentWorkflow?: SavedWorkflow,
+  copiedNodes: Node[],
+  setCopiedNodes: (nodes: Node[]) => void
 ) {
   const { getViewport } = useReactFlow();
 
@@ -44,7 +46,7 @@ export function useFlowActions(
         description: `${selectedNodes.length} node(s) copied to clipboard`
       });
     }
-  }, [nodes]);
+  }, [nodes, setCopiedNodes]);
 
   const handlePaste = useCallback(() => {
     if (copiedNodes.length === 0) return;
@@ -101,10 +103,49 @@ export function useFlowActions(
     }
   }, [nodes, edges, nodeCounter, currentWorkflow]);
 
+  const handleAddNode = useCallback(() => {
+    const newNodeId = `node-${nodeCounter}`;
+    const newNode = {
+      id: newNodeId,
+      type: 'diagnosis',
+      position: {
+        x: window.innerWidth / 2 - 75,
+        y: window.innerHeight / 2 - 75,
+      },
+      data: {
+        label: `Node ${nodeCounter}`,
+        type: 'question',
+        nodeId: `N${String(nodeCounter).padStart(3, '0')}`,
+        content: 'Enter your question or instruction here',
+        options: ['Yes', 'No'],
+        media: [],
+        technicalSpecs: {
+          range: { min: 0, max: 0 },
+          testPoints: '',
+          value: 0,
+          measurementPoints: '',
+          points: ''
+        }
+      },
+    };
+
+    setNodes((nds) => [...nds, newNode]);
+    setNodeCounter((nc) => nc + 1);
+    
+    const newState = { nodes: [...nodes, newNode], edges, nodeCounter: nodeCounter + 1 };
+    setHistory(addToHistory(history, newState));
+
+    toast({
+      title: "Node Added",
+      description: "New node has been added to the workflow."
+    });
+  }, [nodes, edges, nodeCounter, setNodes, setNodeCounter, setHistory, history]);
+
   return {
     handleConnect,
     handleCopySelected,
     handlePaste,
     handleQuickSaveClick,
+    handleAddNode,
   };
 }

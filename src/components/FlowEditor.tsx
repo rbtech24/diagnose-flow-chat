@@ -1,5 +1,4 @@
-
-import { useCallback, useRef, useEffect } from 'react';
+import { useCallback, useRef, useEffect, useState } from 'react';
 import {
   ReactFlow,
   addEdge,
@@ -74,6 +73,7 @@ function FlowEditorContent({
     handleCopySelected,
     handlePaste,
     handleQuickSaveClick,
+    handleAddNode,
   } = useFlowActions(
     nodes,
     edges,
@@ -83,7 +83,9 @@ function FlowEditorContent({
     setNodeCounter,
     history,
     setHistory,
-    currentWorkflow
+    currentWorkflow,
+    copiedNodes,
+    setCopiedNodes
   );
 
   const fileInputRef = useRef<HTMLInputElement>(null);
