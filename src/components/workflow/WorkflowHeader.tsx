@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Plus } from 'lucide-react';
 import { AddApplianceDialog } from '@/components/appliance/AddApplianceDialog';
 
 interface WorkflowHeaderProps {
@@ -63,6 +63,12 @@ export function WorkflowHeader({
           <Switch checked={isReordering} onCheckedChange={onReorderingChange} />
           <span className="text-sm font-medium">{isReordering ? 'ON' : 'OFF'}</span>
         </div>
+        <Link to="/workflow-editor">
+          <Button className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white gap-2">
+            <Plus className="h-4 w-4" />
+            New Workflow
+          </Button>
+        </Link>
         <AddApplianceDialog onSave={onAddAppliance} />
       </div>
     </div>

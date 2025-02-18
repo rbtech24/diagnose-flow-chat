@@ -37,6 +37,11 @@ export function ApplianceCard({
   const applianceWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]')
     .filter((w: SavedWorkflow) => w.metadata.folder === appliance.name);
 
+  const handleOpenWorkflowEditor = (applianceName: string, workflowName?: string) => {
+    const path = `/workflow-editor?folder=${encodeURIComponent(applianceName)}${workflowName ? `&name=${encodeURIComponent(workflowName)}` : ''}`;
+    window.location.href = path;
+  };
+
   return (
     <Card 
       className={`p-4 shadow-sm border-gray-100 hover:shadow-md transition-shadow ${isReordering ? 'cursor-move' : ''}`}
@@ -112,7 +117,7 @@ export function ApplianceCard({
                   variant="ghost"
                   size="sm"
                   className="h-8 w-8 p-0"
-                  onClick={() => onOpenWorkflowEditor(appliance.name, workflow.metadata.name)}
+                  onClick={() => handleOpenWorkflowEditor(appliance.name, workflow.metadata.name)}
                 >
                   <ArrowUpRight className="h-4 w-4" />
                 </Button>
@@ -195,7 +200,7 @@ export function ApplianceCard({
       
       <Button 
         className="mt-4 w-full bg-gradient-to-r from-[#9b87f5] to-[#8B5CF6] hover:from-[#8B5CF6] hover:to-[#7C3AED] text-white gap-2 shadow-sm"
-        onClick={() => onAddIssue(appliance.name)}
+        onClick={() => handleOpenWorkflowEditor(appliance.name)}
       >
         <Plus className="h-4 w-4" />
         Add Issue
