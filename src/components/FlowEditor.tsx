@@ -31,14 +31,13 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import { useFlowState } from '@/hooks/useFlowState';
 import { Button } from './ui/button';
 import { Save } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
 
 const nodeTypes = {
   diagnosis: DiagnosisNode,
 };
 
 interface FlowEditorProps {
-  onNodeSelect?: (node: any, updateNode: (nodeId: string, newData: any) => void) => void;
+  onNodeSelect?: (node: Node, updateNode: (nodeId: string, newData: any) => void) => void;
   appliances?: string[];
   currentWorkflow?: SavedWorkflow;
   folder: string;
@@ -305,6 +304,12 @@ function FlowEditorContent({
     });
   };
 
+  const handleNodeClick = (event: React.MouseEvent, node: Node) => {
+    if (onNodeSelect) {
+      onNodeSelect(node, handleNodeUpdate);
+    }
+  };
+
   return (
     <div className="w-full h-full relative">
       <div className="absolute top-4 right-4 z-50 flex gap-2">
@@ -338,7 +343,7 @@ function FlowEditorContent({
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={handleConnect}
-        onNodeClick={(event, node) => onNodeSelect(node, handleNodeUpdate)}
+        onNodeClick={handleNodeClick}
         nodeTypes={nodeTypes}
         defaultEdgeOptions={defaultEdgeOptions}
         snapToGrid={snapToGrid}
