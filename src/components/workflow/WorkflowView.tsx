@@ -14,6 +14,7 @@ interface WorkflowViewProps {
   onMoveSymptom: (applianceIndex: number, fromIndex: number, toIndex: number) => void;
   onMoveAppliance: (fromIndex: number, toIndex: number) => void;
   onOpenWorkflowEditor: (folder: string, name?: string) => void;
+  onAddIssue: (applianceName: string) => void;
   onDeleteWorkflow: (workflow: SavedWorkflow) => void;
   onMoveWorkflow: (fromIndex: number, toIndex: number) => void;
   onToggleWorkflowActive: (workflow: SavedWorkflow) => void;
@@ -31,6 +32,7 @@ export function WorkflowView({
   onMoveSymptom,
   onMoveAppliance,
   onOpenWorkflowEditor,
+  onAddIssue,
   onDeleteWorkflow,
   onMoveWorkflow,
   onToggleWorkflowActive,
@@ -66,10 +68,8 @@ export function WorkflowView({
         onToggleWorkflow={onToggleWorkflow}
         onMoveSymptom={onMoveSymptom}
         onMoveAppliance={onMoveAppliance}
-        onOpenWorkflowEditor={(applianceName, symptomName) => 
-          onOpenWorkflowEditor(applianceName, symptomName)
-        }
-        onAddIssue={(applianceName) => onOpenWorkflowEditor(applianceName)}
+        onOpenWorkflowEditor={onOpenWorkflowEditor}
+        onAddIssue={onAddIssue}
         onDeleteWorkflow={onDeleteWorkflow}
         onMoveWorkflow={onMoveWorkflow}
         onToggleWorkflowActive={onToggleWorkflowActive}
