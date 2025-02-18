@@ -8,24 +8,46 @@ export interface Category {
 
 export const getOrCreateCategory = async (name: string): Promise<Category | null> => {
   try {
-    let { data: category } = await supabase
+    // First try to get the category
+    const { data: existingCategory, error: fetchError } = await supabase
       .from('workflow_categories')
       .select('id, name')
       .eq('name', name)
+      .maybeSingle(); // Use maybeSingle instead of single
+      
+    if (existingCategory) {
+      return existingCategory;
+    }
+
+    // If category doesn't exist, get the user's company_id
+    const { data: userInfo, error: userError } = await supabase
+      .from('technicians')
+      .select('company_id')
+      .eq('id', supabase.auth.user()?.id)
       .single();
       
-    if (!category) {
-      const { data: newCategory, error: createError } = await supabase
-        .from('workflow_categories')
-        .insert({ name })
-        .select('id, name')
-        .single();
-        
-      if (createError) throw createError;
-      category = newCategory;
+    if (userError) {
+      console.error('Error getting user company:', userError);
+      return null;
     }
-    
-    return category;
+
+    // Create new category with company_id
+    const { data: newCategory, error: createError } = await supabase
+      .from('workflow_categories')
+      .insert({ 
+        name,
+        company_id: userInfo.company_id,
+        is_active: true
+      })
+      .select('id, name')
+      .single();
+        
+    if (createError) {
+      console.error('Error creating category:', createError);
+      return null;
+    }
+
+    return newCategory;
   } catch (error) {
     console.error('Error getting or creating category:', error);
     return null;
@@ -39,7 +61,10 @@ export const getFolders = async (): Promise<string[]> => {
       .select('category_id, workflow_categories(name)')
       .eq('is_active', true);
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error getting folders:', error);
+      return [];
+    }
     
     const folderSet = new Set<string>();
     workflows?.forEach(workflow => {

@@ -21,7 +21,7 @@ export const getAllWorkflows = async (): Promise<SavedWorkflow[]> => {
     if (error) throw error;
     
     return workflows.map(workflow => {
-      const flowData = workflow.flow_data as WorkflowData;
+      const flowData = workflow.flow_data as unknown as WorkflowData;
       return {
         metadata: {
           name: workflow.name,
@@ -48,7 +48,7 @@ export const getWorkflowsInFolder = async (folder: string): Promise<SavedWorkflo
       .from('workflow_categories')
       .select('id')
       .eq('name', folder)
-      .single();
+      .maybeSingle();
       
     if (!category) return [];
     
@@ -61,7 +61,7 @@ export const getWorkflowsInFolder = async (folder: string): Promise<SavedWorkflo
     if (error) throw error;
     
     return workflows.map(workflow => {
-      const flowData = workflow.flow_data as WorkflowData;
+      const flowData = workflow.flow_data as unknown as WorkflowData;
       return {
         metadata: {
           name: workflow.name,
@@ -118,6 +118,12 @@ export const saveWorkflowToStorage = async (workflow: SavedWorkflow): Promise<bo
     const category = await getOrCreateCategory(workflow.metadata.appliance);
     if (!category) return false;
 
+    const flowData = {
+      nodes: workflow.nodes,
+      edges: workflow.edges,
+      nodeCounter: workflow.nodeCounter
+    };
+
     // Save workflow
     const { error } = await supabase
       .from('workflows')
@@ -125,11 +131,7 @@ export const saveWorkflowToStorage = async (workflow: SavedWorkflow): Promise<bo
         name: workflow.metadata.name,
         category_id: category.id,
         description: '',
-        flow_data: {
-          nodes: workflow.nodes,
-          edges: workflow.edges,
-          nodeCounter: workflow.nodeCounter
-        },
+        flow_data: flowData as unknown as Json,
         is_active: workflow.metadata.isActive ?? true,
         updated_at: new Date().toISOString()
       })
