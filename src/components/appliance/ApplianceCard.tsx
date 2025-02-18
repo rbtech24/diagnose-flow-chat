@@ -6,6 +6,7 @@ import { Edit, Trash, ArrowUpRight, GripVertical, Plus, FileText } from 'lucide-
 import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 interface ApplianceCardProps {
   appliance: Appliance;
@@ -35,8 +36,10 @@ export function ApplianceCard({
   getSymptomCardColor
 }: ApplianceCardProps) {
   const navigate = useNavigate();
-  const applianceWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]')
-    .filter((w: SavedWorkflow) => w.metadata.folder === appliance.name);
+  const [workflows, setWorkflows] = useState(() => 
+    JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]')
+      .filter((w: SavedWorkflow) => w.metadata.folder === appliance.name)
+  );
 
   const handleOpenWorkflowEditor = (applianceName: string, workflowName?: string) => {
     const path = `/workflow-editor?folder=${encodeURIComponent(applianceName)}${workflowName ? `&name=${encodeURIComponent(workflowName)}` : ''}`;
@@ -44,14 +47,14 @@ export function ApplianceCard({
   };
 
   const handleMoveWorkflow = (fromIndex: number, toIndex: number) => {
-    const workflows = [...applianceWorkflows];
-    const [movedWorkflow] = workflows.splice(fromIndex, 1);
-    workflows.splice(toIndex, 0, movedWorkflow);
+    const newWorkflows = [...workflows];
+    const [movedWorkflow] = newWorkflows.splice(fromIndex, 1);
+    newWorkflows.splice(toIndex, 0, movedWorkflow);
     
     const allWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');
     const updatedWorkflows = allWorkflows.map((w: SavedWorkflow) => {
       if (w.metadata.folder === appliance.name) {
-        const matchingWorkflow = workflows.find((moved: SavedWorkflow) => 
+        const matchingWorkflow = newWorkflows.find((moved: SavedWorkflow) => 
           moved.metadata.name === w.metadata.name
         );
         return matchingWorkflow || w;
@@ -60,7 +63,55 @@ export function ApplianceCard({
     });
     
     localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
-    window.location.reload();
+    setWorkflows(newWorkflows);
+  };
+
+  const handleToggleWorkflow = (workflow: SavedWorkflow) => {
+    const updatedWorkflows = workflows.map(w => {
+      if (w.metadata.name === workflow.metadata.name) {
+        return {
+          ...w,
+          metadata: {
+            ...w.metadata,
+            isActive: !w.metadata.isActive
+          }
+        };
+      }
+      return w;
+    });
+
+    const allWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');
+    const newAllWorkflows = allWorkflows.map((w: SavedWorkflow) => {
+      if (w.metadata.name === workflow.metadata.name && 
+          w.metadata.folder === workflow.metadata.folder) {
+        return {
+          ...w,
+          metadata: {
+            ...w.metadata,
+            isActive: !w.metadata.isActive
+          }
+        };
+      }
+      return w;
+    });
+
+    localStorage.setItem('diagnostic-workflows', JSON.stringify(newAllWorkflows));
+    setWorkflows(updatedWorkflows);
+  };
+
+  const handleDeleteWorkflow = (workflow: SavedWorkflow) => {
+    const updatedWorkflows = workflows.filter(w => 
+      !(w.metadata.name === workflow.metadata.name)
+    );
+
+    const allWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');
+    const newAllWorkflows = allWorkflows.filter((w: SavedWorkflow) => 
+      !(w.metadata.name === workflow.metadata.name && 
+        w.metadata.folder === workflow.metadata.folder)
+    );
+
+    localStorage.setItem('diagnostic-workflows', JSON.stringify(newAllWorkflows));
+    setWorkflows(updatedWorkflows);
   };
 
   return (
@@ -103,10 +154,10 @@ export function ApplianceCard({
         </div>
       </div>
       
-      {applianceWorkflows.length > 0 && (
+      {workflows.length > 0 && (
         <div className="mb-4 space-y-2">
           <h3 className="text-sm font-medium text-gray-700 mb-2">Workflows</h3>
-          {applianceWorkflows.map((workflow: SavedWorkflow, workflowIndex: number) => (
+          {workflows.map((workflow: SavedWorkflow, workflowIndex: number) => (
             <div
               key={workflow.metadata.name}
               className="flex items-center justify-between p-2.5 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200"
@@ -139,13 +190,7 @@ export function ApplianceCard({
                   className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
                   onClick={(e) => {
                     e.stopPropagation();
-                    const updatedWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]')
-                      .filter((w: SavedWorkflow) => 
-                        !(w.metadata.name === workflow.metadata.name && 
-                          w.metadata.folder === workflow.metadata.folder)
-                      );
-                    localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
-                    window.location.reload();
+                    handleDeleteWorkflow(workflow);
                   }}
                 >
                   <Trash className="h-4 w-4" />
@@ -160,24 +205,7 @@ export function ApplianceCard({
                 </Button>
                 <Switch 
                   checked={workflow.metadata.isActive}
-                  onCheckedChange={() => {
-                    const updatedWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]')
-                      .map((w: SavedWorkflow) => {
-                        if (w.metadata.name === workflow.metadata.name && 
-                            w.metadata.folder === workflow.metadata.folder) {
-                          return {
-                            ...w,
-                            metadata: {
-                              ...w.metadata,
-                              isActive: !w.metadata.isActive
-                            }
-                          };
-                        }
-                        return w;
-                      });
-                    localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
-                    window.location.reload();
-                  }}
+                  onCheckedChange={() => handleToggleWorkflow(workflow)}
                 />
               </div>
             </div>
