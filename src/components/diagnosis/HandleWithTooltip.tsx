@@ -29,10 +29,10 @@ export function HandleWithTooltip({
 }: HandleWithTooltipProps) {
   const isIncoming = type === 'target';
   const tooltipClasses = {
-    top: '-top-4 left-1/2 -translate-x-1/2',
-    bottom: '-bottom-4 left-1/2 -translate-x-1/2',
-    left: '-left-12',
-    right: '-right-12'
+    top: '-top-6 left-1/2 -translate-x-1/2',
+    bottom: '-bottom-6 left-1/2 -translate-x-1/2',
+    left: '-left-16 top-1/2 -translate-y-1/2',
+    right: '-right-16 top-1/2 -translate-y-1/2'
   };
 
   const iconClasses = {
@@ -65,6 +65,8 @@ export function HandleWithTooltip({
           px-1.5 py-0.5 rounded-sm 
           shadow-sm backdrop-blur-[2px]
           whitespace-nowrap
+          pointer-events-none
+          z-50
         `}
       >
         {isIncoming ? 'Incoming' : 'Outgoing'}
