@@ -319,6 +319,44 @@ export type Database = {
           },
         ]
       }
+      appliance_types: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appliance_types_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           created_at: string | null
@@ -995,6 +1033,79 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diagnostic_sessions: {
+        Row: {
+          appliance_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          current_node_id: string | null
+          diagnosis_result: string | null
+          id: string
+          notes: string | null
+          recommended_action: string | null
+          session_data: Json | null
+          started_at: string | null
+          status: string | null
+          technician_id: string | null
+          updated_at: string | null
+          workflow_id: string | null
+        }
+        Insert: {
+          appliance_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          current_node_id?: string | null
+          diagnosis_result?: string | null
+          id?: string
+          notes?: string | null
+          recommended_action?: string | null
+          session_data?: Json | null
+          started_at?: string | null
+          status?: string | null
+          technician_id?: string | null
+          updated_at?: string | null
+          workflow_id?: string | null
+        }
+        Update: {
+          appliance_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          current_node_id?: string | null
+          diagnosis_result?: string | null
+          id?: string
+          notes?: string | null
+          recommended_action?: string | null
+          session_data?: Json | null
+          started_at?: string | null
+          status?: string | null
+          technician_id?: string | null
+          updated_at?: string | null
+          workflow_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagnostic_sessions_appliance_id_fkey"
+            columns: ["appliance_id"]
+            isOneToOne: false
+            referencedRelation: "customer_appliances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diagnostic_sessions_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diagnostic_sessions_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "workflows"
             referencedColumns: ["id"]
           },
         ]
