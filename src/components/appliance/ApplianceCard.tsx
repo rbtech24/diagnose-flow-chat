@@ -90,14 +90,54 @@ export function ApplianceCard({
                 <FileText className="h-4 w-4 text-green-500" />
                 <span className="text-sm text-gray-700">{workflow.metadata.name}</span>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0"
-                onClick={() => onOpenWorkflowEditor(appliance.name, workflow.metadata.name)}
-              >
-                <ArrowUpRight className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const updatedWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]')
+                      .filter((w: SavedWorkflow) => 
+                        !(w.metadata.name === workflow.metadata.name && 
+                          w.metadata.folder === workflow.metadata.folder)
+                      );
+                    localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
+                    window.location.reload();
+                  }}
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => onOpenWorkflowEditor(appliance.name, workflow.metadata.name)}
+                >
+                  <ArrowUpRight className="h-4 w-4" />
+                </Button>
+                <Switch 
+                  checked={workflow.metadata.isActive}
+                  onCheckedChange={() => {
+                    const updatedWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]')
+                      .map((w: SavedWorkflow) => {
+                        if (w.metadata.name === workflow.metadata.name && 
+                            w.metadata.folder === workflow.metadata.folder) {
+                          return {
+                            ...w,
+                            metadata: {
+                              ...w.metadata,
+                              isActive: !w.metadata.isActive
+                            }
+                          };
+                        }
+                        return w;
+                      });
+                    localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
+                    window.location.reload();
+                  }}
+                />
+              </div>
             </div>
           ))}
         </div>
