@@ -13,6 +13,7 @@ export interface WorkflowMetadata {
   version?: string;
   tags?: string[];
   description?: string;
+  isActive?: boolean;
 }
 
 export interface SavedWorkflow {

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppliances } from '@/hooks/useAppliances';
@@ -116,6 +117,26 @@ export default function Workflows() {
       setWorkflowsState(updatedWorkflows);
       localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
     }
+  };
+
+  // Add the missing functions
+  const openWorkflowEditor = (folder: string, name?: string) => {
+    const path = name 
+      ? `/workflow-editor/${encodeURIComponent(folder)}/${encodeURIComponent(name)}`
+      : `/workflow-editor/${encodeURIComponent(folder)}`;
+    navigate(path);
+  };
+
+  const getSymptomCardColor = (index: number): string => {
+    const colors = [
+      'bg-blue-100',
+      'bg-green-100',
+      'bg-yellow-100',
+      'bg-purple-100',
+      'bg-pink-100',
+      'bg-indigo-100'
+    ];
+    return colors[index % colors.length];
   };
 
   return (
