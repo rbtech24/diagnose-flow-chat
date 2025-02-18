@@ -1,8 +1,9 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppliances } from '@/hooks/useAppliances';
 import { toast } from '@/hooks/use-toast';
-import { getAllWorkflows, getWorkflowsInFolder } from '@/utils/flow';
+import { getAllWorkflows, getWorkflowsInFolder, moveWorkflowToFolder } from '@/utils/flow';
 import { WorkflowHeader } from '@/components/workflow/WorkflowHeader';
 import { WorkflowGrid } from '@/components/workflow/WorkflowGrid';
 import { DeleteApplianceDialog } from '@/components/workflow/DeleteApplianceDialog';
@@ -25,8 +26,7 @@ export default function Workflows() {
     deleteAppliance,
     toggleWorkflow,
     moveAppliance,
-    moveSymptom,
-    moveWorkflowToFolder
+    moveSymptom
   } = useAppliances();
 
   // Get all workflows to build the folders list
@@ -194,6 +194,7 @@ export default function Workflows() {
         onDeleteWorkflow={handleDeleteWorkflow}
         onMoveWorkflow={handleMoveWorkflow}
         onToggleWorkflowActive={handleToggleWorkflowActive}
+        onMoveWorkflowToFolder={handleMoveWorkflowToFolder}
         getSymptomCardColor={getSymptomCardColor}
       />
 
