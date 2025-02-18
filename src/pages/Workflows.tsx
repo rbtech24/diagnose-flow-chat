@@ -54,9 +54,10 @@ export default function Workflows() {
   };
 
   const openWorkflowEditor = (folder: string, name?: string) => {
+    // Remove the encoding which was causing issues with the route
     const path = name 
-      ? `/workflow-editor/${encodeURIComponent(folder)}/${encodeURIComponent(name)}`
-      : `/workflow-editor/${encodeURIComponent(folder)}`;
+      ? `/workflow-editor?folder=${folder}&name=${name}`
+      : `/workflow-editor?folder=${folder}`;
     navigate(path);
   };
 
