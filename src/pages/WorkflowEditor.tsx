@@ -1,6 +1,6 @@
 
 import { useSearchParams } from 'react-router-dom';
-import { FlowEditor } from '@/components/FlowEditor';
+import FlowEditor from '@/components/FlowEditor';
 
 export default function WorkflowEditor() {
   const [searchParams] = useSearchParams();
