@@ -4,7 +4,11 @@ import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGrou
 import { Link } from 'react-router-dom';
 import { Settings, FileText } from 'lucide-react';
 
-export default function AdminLayout() {
+interface AdminLayoutProps {
+  children?: React.ReactNode;
+}
+
+export function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <div className="min-h-screen flex w-full">
       <Sidebar>
@@ -36,7 +40,7 @@ export default function AdminLayout() {
       </Sidebar>
       
       <main className="flex-1 overflow-auto">
-        <Outlet />
+        {children || <Outlet />}
       </main>
     </div>
   );
