@@ -54,11 +54,14 @@ export default function Workflows() {
   };
 
   const openWorkflowEditor = (folder: string, name?: string) => {
-    // Remove the encoding which was causing issues with the route
     const path = name 
-      ? `/workflow-editor?folder=${folder}&name=${name}`
-      : `/workflow-editor?folder=${folder}`;
+      ? `/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`
+      : `/workflow-editor?folder=${encodeURIComponent(folder)}`;
     navigate(path);
+  };
+
+  const handleAddIssue = (applianceName: string) => {
+    openWorkflowEditor(applianceName);
   };
 
   return (
@@ -85,6 +88,7 @@ export default function Workflows() {
         onMoveSymptom={moveSymptom}
         onMoveAppliance={moveAppliance}
         onOpenWorkflowEditor={openWorkflowEditor}
+        onAddIssue={handleAddIssue}
         onDeleteWorkflow={handleDeleteWorkflow}
         onMoveWorkflow={handleMoveWorkflow}
         onToggleWorkflowActive={handleToggleWorkflowActive}
