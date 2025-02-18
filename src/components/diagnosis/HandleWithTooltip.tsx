@@ -50,11 +50,23 @@ export function HandleWithTooltip({
           ...getHandleStyle(connected),
           backgroundColor: isIncoming ? '#e2e8f0' : '#f1f5f9',
           border: `2px solid ${isIncoming ? '#94a3b8' : '#64748b'}`,
+          transition: 'all 150ms ease-in-out',
           ...style
         }}
         onClick={() => connected.isConnected && handleDisconnect(id)}
       />
-      <div className={`absolute ${tooltipClasses[tooltipPosition]} opacity-0 group-hover:opacity-100 transition-opacity text-[10px] bg-gray-800 text-white px-1.5 py-0.5 rounded whitespace-nowrap`}>
+      <div 
+        className={`
+          absolute ${tooltipClasses[tooltipPosition]} 
+          opacity-0 scale-95
+          group-hover:opacity-100 group-hover:scale-100
+          transition-all duration-150 ease-in-out
+          text-[10px] bg-gray-800/90 text-white 
+          px-1.5 py-0.5 rounded-sm 
+          shadow-sm backdrop-blur-[2px]
+          whitespace-nowrap
+        `}
+      >
         {isIncoming ? 'Incoming' : 'Outgoing'}
       </div>
       {Icon && (
