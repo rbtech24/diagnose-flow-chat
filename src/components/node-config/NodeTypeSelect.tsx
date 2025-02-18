@@ -25,13 +25,10 @@ export function NodeTypeSelect({ value, onChange }: NodeTypeSelectProps) {
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="symptom">Symptom</SelectItem>
-          <SelectItem value="question">Question</SelectItem>
-          <SelectItem value="instruction">Instruction</SelectItem>
-          <SelectItem value="voltage-check">Voltage Check</SelectItem>
-          <SelectItem value="resistance-check">Resistance Check</SelectItem>
-          <SelectItem value="inspection">Visual Inspection</SelectItem>
-          <SelectItem value="result">Result</SelectItem>
+          <SelectItem value="question">Yes/No Question</SelectItem>
+          <SelectItem value="choice">Multiple Choice</SelectItem>
+          <SelectItem value="workflow">Link to Workflow</SelectItem>
+          <SelectItem value="result">Result/End</SelectItem>
         </SelectContent>
       </Select>
     </div>
