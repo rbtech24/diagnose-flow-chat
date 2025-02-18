@@ -13,21 +13,28 @@ export const getOrCreateCategory = async (name: string): Promise<Category | null
       .from('workflow_categories')
       .select('id, name')
       .eq('name', name)
-      .maybeSingle(); // Use maybeSingle instead of single
+      .maybeSingle();
       
     if (existingCategory) {
       return existingCategory;
     }
 
     // If category doesn't exist, get the user's company_id
-    const { data: userInfo, error: userError } = await supabase
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.error('No user found');
+      return null;
+    }
+
+    const { data: userInfo, error: techError } = await supabase
       .from('technicians')
       .select('company_id')
-      .eq('id', supabase.auth.user()?.id)
+      .eq('id', user.id)
       .single();
       
-    if (userError) {
-      console.error('Error getting user company:', userError);
+    if (techError) {
+      console.error('Error getting user company:', techError);
       return null;
     }
 

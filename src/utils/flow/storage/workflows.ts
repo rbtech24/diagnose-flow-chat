@@ -131,7 +131,7 @@ export const saveWorkflowToStorage = async (workflow: SavedWorkflow): Promise<bo
         name: workflow.metadata.name,
         category_id: category.id,
         description: '',
-        flow_data: flowData as unknown as Json,
+        flow_data: flowData as unknown as any,
         is_active: workflow.metadata.isActive ?? true,
         updated_at: new Date().toISOString()
       })
