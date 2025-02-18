@@ -137,25 +137,36 @@ export const saveWorkflowToStorage = async (workflow: SavedWorkflow): Promise<bo
     // First, check if the workflow already exists
     const { data: existingWorkflow } = await supabase
       .from('workflows')
-      .select('id')
+      .select('id, name')
       .eq('name', workflow.metadata.name)
       .maybeSingle();
+
+    // Prepare upsert data
+    const workflowData = {
+      id: existingWorkflow?.id, // Include the id if it exists
+      name: workflow.metadata.name,
+      category_id: category.id,
+      description: '',
+      flow_data: flowData,
+      is_active: workflow.metadata.isActive ?? true,
+      updated_at: new Date().toISOString()
+    };
+
+    // If it's a new workflow, also set created_at
+    if (!existingWorkflow) {
+      workflowData['created_at'] = new Date().toISOString();
+    }
 
     // Save workflow
     const { error } = await supabase
       .from('workflows')
-      .upsert({
-        id: existingWorkflow?.id, // Include the id if it exists
-        name: workflow.metadata.name,
-        category_id: category.id,
-        description: '',
-        flow_data: flowData as unknown as any,
-        is_active: workflow.metadata.isActive ?? true,
-        updated_at: new Date().toISOString()
-      })
+      .upsert(workflowData)
       .select();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error saving workflow:', error);
+      throw error;
+    }
     
     toast({
       title: "Success",
