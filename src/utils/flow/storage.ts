@@ -9,7 +9,6 @@ export const cleanupWorkflows = () => {
     const storedWorkflows = localStorage.getItem(STORAGE_KEY) || '[]';
     const workflows = JSON.parse(storedWorkflows);
     
-    // Only filter out invalid workflows, don't require folder initially
     const cleanedWorkflows = workflows.filter(workflow => 
       workflow && 
       workflow.nodes && 
@@ -21,11 +20,6 @@ export const cleanupWorkflows = () => {
     return cleanedWorkflows;
   } catch (error) {
     console.error('Error cleaning up workflows:', error);
-    toast({
-      title: "Error",
-      description: "Failed to load workflows. Local storage might be corrupted.",
-      variant: "destructive"
-    });
     return [];
   }
 };
@@ -72,6 +66,7 @@ export const getWorkflowsInFolder = (folder: string): SavedWorkflow[] => {
 
 export const saveWorkflowToStorage = (workflow: SavedWorkflow): boolean => {
   try {
+    // Initialize metadata if it doesn't exist
     if (!workflow.metadata) {
       workflow.metadata = {
         name: 'Untitled Workflow',
@@ -82,9 +77,7 @@ export const saveWorkflowToStorage = (workflow: SavedWorkflow): boolean => {
     }
 
     // Ensure folder is set
-    if (!workflow.metadata.folder) {
-      workflow.metadata.folder = 'Default';
-    }
+    workflow.metadata.folder = workflow.metadata.folder || 'Default';
 
     const workflows = getAllWorkflows();
     
@@ -98,38 +91,34 @@ export const saveWorkflowToStorage = (workflow: SavedWorkflow): boolean => {
     workflow.metadata.updatedAt = new Date().toISOString();
     if (existingIndex === -1) {
       workflow.metadata.createdAt = new Date().toISOString();
-    } else {
-      // Preserve the original creation date
-      workflow.metadata.createdAt = workflows[existingIndex].metadata.createdAt;
     }
 
     console.log('Saving workflow:', {
       name: workflow.metadata.name,
       folder: workflow.metadata.folder,
-      existingIndex
+      nodes: workflow.nodes.length
     });
 
     if (existingIndex >= 0) {
-      workflows[existingIndex] = workflow;
+      // Preserve creation date when updating
+      const createdAt = workflows[existingIndex].metadata.createdAt;
+      workflows[existingIndex] = {
+        ...workflow,
+        metadata: {
+          ...workflow.metadata,
+          createdAt
+        }
+      };
     } else {
       workflows.push(workflow);
     }
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(workflows));
     
-    toast({
-      title: "Success",
-      description: `Workflow saved to ${workflow.metadata.folder} folder`,
-    });
-    
+    console.log('Successfully saved workflow to storage');
     return true;
   } catch (error) {
     console.error('Error saving workflow to storage:', error);
-    toast({
-      title: "Error",
-      description: "Failed to save workflow. Please try again.",
-      variant: "destructive"
-    });
     return false;
   }
 };
