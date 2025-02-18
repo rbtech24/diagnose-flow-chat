@@ -4,7 +4,7 @@ import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Trash, GripVertical } from 'lucide-react';
 
 interface WorkflowGridProps {
   appliances: Appliance[];
@@ -17,6 +17,8 @@ interface WorkflowGridProps {
   onMoveAppliance: (fromIndex: number, toIndex: number) => void;
   onOpenWorkflowEditor: (applianceName: string, symptomName?: string) => void;
   onAddIssue: (applianceName: string) => void;
+  onDeleteWorkflow: (workflow: SavedWorkflow) => void;
+  onMoveWorkflow: (fromIndex: number, toIndex: number) => void;
   getSymptomCardColor: (index: number) => string;
 }
 
@@ -31,6 +33,8 @@ export function WorkflowGrid({
   onMoveAppliance,
   onOpenWorkflowEditor,
   onAddIssue,
+  onDeleteWorkflow,
+  onMoveWorkflow,
   getSymptomCardColor,
 }: WorkflowGridProps) {
   if (appliances.length === 0 && workflows.length === 0) {
@@ -66,20 +70,49 @@ export function WorkflowGrid({
         <Card 
           key={`workflow-${workflow.metadata.name}-${workflow.metadata.folder}`}
           className="p-4 shadow-sm border-gray-100 hover:shadow-md transition-shadow"
+          draggable={isReordering}
+          onDragStart={(e) => {
+            e.dataTransfer.setData('workflow-index', index.toString());
+          }}
+          onDragOver={(e) => {
+            e.preventDefault();
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            const fromIndex = parseInt(e.dataTransfer.getData('workflow-index'));
+            if (fromIndex !== index) {
+              onMoveWorkflow(fromIndex, index);
+            }
+          }}
         >
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-semibold text-[#14162F]">{workflow.metadata.name}</h2>
-              <p className="text-sm text-gray-500">Folder: {workflow.metadata.folder}</p>
+            <div className="flex items-center gap-2">
+              {isReordering && (
+                <GripVertical className="h-4 w-4 text-gray-400 cursor-move" />
+              )}
+              <div>
+                <h2 className="text-lg font-semibold text-[#14162F]">{workflow.metadata.name}</h2>
+                <p className="text-sm text-gray-500">Folder: {workflow.metadata.folder}</p>
+              </div>
             </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-[#8B5CF6] hover:text-[#7C3AED] hover:bg-[#8B5CF6]/10"
-              onClick={() => onOpenWorkflowEditor(workflow.metadata.folder || '', workflow.metadata.name)}
-            >
-              <ArrowUpRight className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                onClick={() => onDeleteWorkflow(workflow)}
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-[#8B5CF6] hover:text-[#7C3AED] hover:bg-[#8B5CF6]/10"
+                onClick={() => onOpenWorkflowEditor(workflow.metadata.folder || '', workflow.metadata.name)}
+              >
+                <ArrowUpRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
           <div className="text-sm text-gray-600">
             {workflow.nodes.length} steps

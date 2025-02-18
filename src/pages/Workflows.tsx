@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppliances } from '@/hooks/useAppliances';
@@ -8,6 +7,7 @@ import { WorkflowHeader } from '@/components/workflow/WorkflowHeader';
 import { WorkflowGrid } from '@/components/workflow/WorkflowGrid';
 import { DeleteApplianceDialog } from '@/components/workflow/DeleteApplianceDialog';
 import { EditApplianceDialog } from '@/components/appliance/EditApplianceDialog';
+import { SavedWorkflow } from '@/utils/flow/types';
 
 export default function Workflows() {
   const navigate = useNavigate();
@@ -99,6 +99,26 @@ export default function Workflows() {
     });
   };
 
+  const handleDeleteWorkflow = (workflow: SavedWorkflow) => {
+    const updatedWorkflows = allWorkflows.filter(w => 
+      !(w.metadata.name === workflow.metadata.name && w.metadata.folder === workflow.metadata.folder)
+    );
+    localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
+    toast({
+      title: "Workflow Deleted",
+      description: `${workflow.metadata.name} has been deleted.`
+    });
+    window.location.reload();
+  };
+
+  const handleMoveWorkflow = (fromIndex: number, toIndex: number) => {
+    const updatedWorkflows = [...workflows];
+    const [movedWorkflow] = updatedWorkflows.splice(fromIndex, 1);
+    updatedWorkflows.splice(toIndex, 0, movedWorkflow);
+    localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
+    window.location.reload();
+  };
+
   return (
     <div className="container mx-auto p-6">
       <WorkflowHeader
@@ -131,6 +151,8 @@ export default function Workflows() {
         onMoveAppliance={moveAppliance}
         onOpenWorkflowEditor={openWorkflowEditor}
         onAddIssue={(applianceName) => openWorkflowEditor(applianceName)}
+        onDeleteWorkflow={handleDeleteWorkflow}
+        onMoveWorkflow={handleMoveWorkflow}
         getSymptomCardColor={getSymptomCardColor}
       />
 
