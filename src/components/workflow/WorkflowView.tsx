@@ -50,18 +50,23 @@ export function WorkflowView({
     return colors[index % colors.length];
   };
 
+  // Filter out workflows that belong to any appliance
+  const orphanedWorkflows = workflows.filter(workflow => 
+    !filteredAppliances.some(appliance => appliance.name === workflow.metadata.folder)
+  );
+
   return (
     <>
       <div className="mb-4 text-sm text-gray-500">
         {selectedFolder ? 
-          `Showing ${workflows.length} workflows in ${selectedFolder}` : 
-          `Showing all ${workflows.length} workflows`
+          `Showing ${orphanedWorkflows.length} workflows in ${selectedFolder}` : 
+          `Showing all ${orphanedWorkflows.length} workflows`
         }
       </div>
 
       <WorkflowGrid
         appliances={filteredAppliances}
-        workflows={workflows}
+        workflows={orphanedWorkflows}
         isReordering={isReordering}
         onEdit={onEdit}
         onDelete={onDelete}
