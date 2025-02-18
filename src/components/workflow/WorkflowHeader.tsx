@@ -1,9 +1,8 @@
-
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { AddApplianceDialog } from '@/components/appliance/AddApplianceDialog';
 import {
   Select,
@@ -37,11 +36,6 @@ export function WorkflowHeader({
   return (
     <div className="flex items-center justify-between mb-6">
       <div className="flex items-center gap-4">
-        <Link to="/">
-          <Button variant="ghost" size="icon" className="hover:bg-gray-100">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
         <h1 className="text-2xl font-bold text-[#14162F]">Appliances</h1>
       </div>
       <div className="flex items-center gap-4">
@@ -74,12 +68,12 @@ export function WorkflowHeader({
           <Switch checked={isReordering} onCheckedChange={onReorderingChange} />
           <span className="text-sm font-medium">{isReordering ? 'ON' : 'OFF'}</span>
         </div>
-        <Link to="/workflow-editor">
-          <Button className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white gap-2">
+        <Button className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white gap-2" asChild>
+          <Link to="/workflow-editor?new=true">
             <Plus className="h-4 w-4" />
             New Workflow
-          </Button>
-        </Link>
+          </Link>
+        </Button>
         <AddApplianceDialog onSave={onAddAppliance} />
       </div>
     </div>
