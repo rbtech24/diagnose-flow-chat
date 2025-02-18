@@ -14,7 +14,12 @@ export const getAllWorkflows = async (): Promise<SavedWorkflow[]> => {
   try {
     const { data: workflows, error } = await supabase
       .from('workflows')
-      .select('*, workflow_categories(name)')
+      .select(`
+        *,
+        workflow_categories (
+          name
+        )
+      `)
       .eq('is_active', true)
       .order('created_at', { ascending: false });
     
@@ -54,7 +59,12 @@ export const getWorkflowsInFolder = async (folder: string): Promise<SavedWorkflo
     
     const { data: workflows, error } = await supabase
       .from('workflows')
-      .select('*, workflow_categories(name)')
+      .select(`
+        *,
+        workflow_categories (
+          name
+        )
+      `)
       .eq('category_id', category.id)
       .eq('is_active', true);
       
@@ -124,10 +134,18 @@ export const saveWorkflowToStorage = async (workflow: SavedWorkflow): Promise<bo
       nodeCounter: workflow.nodeCounter
     };
 
+    // First, check if the workflow already exists
+    const { data: existingWorkflow } = await supabase
+      .from('workflows')
+      .select('id')
+      .eq('name', workflow.metadata.name)
+      .maybeSingle();
+
     // Save workflow
     const { error } = await supabase
       .from('workflows')
       .upsert({
+        id: existingWorkflow?.id, // Include the id if it exists
         name: workflow.metadata.name,
         category_id: category.id,
         description: '',
