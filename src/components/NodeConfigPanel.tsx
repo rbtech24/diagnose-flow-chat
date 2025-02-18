@@ -4,7 +4,13 @@ import { NodeConfigForm } from './node-config/NodeConfigForm';
 import { Alert, AlertDescription } from './ui/alert';
 import { AlertCircle } from 'lucide-react';
 
-export default function NodeConfigPanel({ node, onUpdate }) {
+interface NodeConfigPanelProps {
+  node: any;
+  onUpdate: (nodeData: any) => void;
+  onClose: () => void;  // Added this prop
+}
+
+export default function NodeConfigPanel({ node, onUpdate, onClose }: NodeConfigPanelProps) {
   const {
     nodeType,
     label,
@@ -33,7 +39,16 @@ export default function NodeConfigPanel({ node, onUpdate }) {
 
   return (
     <div className="p-4 h-full overflow-y-auto">
-      <h2 className="text-lg font-semibold mb-4">Node Configuration</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold">Node Configuration</h2>
+        <button
+          onClick={onClose}
+          className="text-gray-500 hover:text-gray-700"
+          aria-label="Close panel"
+        >
+          ×
+        </button>
+      </div>
       
       {validationErrors.length > 0 && (
         <Alert variant="destructive" className="mb-4">
