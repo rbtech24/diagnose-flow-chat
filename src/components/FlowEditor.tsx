@@ -38,12 +38,20 @@ const nodeTypes = {
 };
 
 interface FlowEditorProps {
-  onNodeSelect: (node: any, updateNode: (nodeId: string, newData: any) => void) => void;
-  appliances: string[];
+  onNodeSelect?: (node: any, updateNode: (nodeId: string, newData: any) => void) => void;
+  appliances?: string[];
   currentWorkflow?: SavedWorkflow;
+  folder: string;
+  name: string;
 }
 
-function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEditorProps) {
+function FlowEditorContent({ 
+  onNodeSelect, 
+  appliances = [], 
+  currentWorkflow,
+  folder,
+  name 
+}: FlowEditorProps) {
   const {
     nodes,
     setNodes,

@@ -9,7 +9,12 @@ export default function WorkflowEditor() {
 
   return (
     <div className="h-screen">
-      <FlowEditor folder={folder || ''} name={name || ''} />
+      <FlowEditor 
+        folder={folder || ''} 
+        name={name || ''} 
+        appliances={[]} 
+        onNodeSelect={(node, updateNode) => {}} 
+      />
     </div>
   );
 }
