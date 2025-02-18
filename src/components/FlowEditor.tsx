@@ -83,9 +83,9 @@ function FlowEditorContent({
     setNodeCounter,
     history,
     setHistory,
-    currentWorkflow,
     copiedNodes,
-    setCopiedNodes
+    setCopiedNodes,
+    currentWorkflow
   );
 
   const fileInputRef = useRef<HTMLInputElement>(null);
