@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Workflows from "./pages/Workflows";
 import WorkflowEditor from "./pages/WorkflowEditor";
 import NotFound from "./pages/NotFound";
+import AdminLayout from "./components/layouts/AdminLayout";
 
 const queryClient = new QueryClient();
 
