@@ -60,7 +60,8 @@ export const handleSaveWorkflow = (
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         appliance,
-        symptom
+        symptom,
+        isActive: true // Set default state to active
       },
       nodes,
       edges,
@@ -76,7 +77,8 @@ export const handleSaveWorkflow = (
         ...newWorkflow,
         metadata: {
           ...newWorkflow.metadata,
-          createdAt: workflows[existingIndex].metadata.createdAt
+          createdAt: workflows[existingIndex].metadata.createdAt,
+          isActive: workflows[existingIndex].metadata.isActive // Preserve active state
         }
       };
       console.log('Updated existing workflow at index:', existingIndex);
@@ -86,6 +88,12 @@ export const handleSaveWorkflow = (
     }
 
     localStorage.setItem('diagnostic-workflows', JSON.stringify(workflows));
+    
+    toast({
+      title: "Workflow Saved",
+      description: `${name} has been saved to ${folder}.`
+    });
+    
     return newWorkflow;
   } catch (error) {
     console.error('Error saving workflow:', error);
