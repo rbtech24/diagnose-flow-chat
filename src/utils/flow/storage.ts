@@ -9,7 +9,7 @@ export const cleanupWorkflows = () => {
     const storedWorkflows = localStorage.getItem(STORAGE_KEY) || '[]';
     const workflows = JSON.parse(storedWorkflows);
     const cleanedWorkflows = workflows.filter(workflow => 
-      workflow && workflow.nodes && workflow.nodes.length > 0
+      workflow && workflow.nodes && workflow.nodes.length > 0 && workflow.metadata?.folder
     );
     localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanedWorkflows));
     return cleanedWorkflows;
@@ -30,7 +30,7 @@ export const getFolders = (): string[] => {
     const folderSet = new Set<string>();
     
     workflows.forEach(workflow => {
-      if (workflow.metadata?.folder && workflow.nodes.length > 0) {
+      if (workflow.metadata?.folder) {
         folderSet.add(workflow.metadata.folder);
       }
     });
@@ -54,9 +54,7 @@ export const getAllWorkflows = (): SavedWorkflow[] => {
 export const getWorkflowsInFolder = (folder: string): SavedWorkflow[] => {
   try {
     const workflows = getAllWorkflows();
-    console.log('Getting workflows for folder:', folder);
-    console.log('All workflows:', workflows);
-    const folderWorkflows = workflows.filter(w => w.metadata.folder === folder);
+    const folderWorkflows = workflows.filter(w => w.metadata?.folder === folder);
     console.log(`Found ${folderWorkflows.length} workflows in folder ${folder}`);
     return folderWorkflows;
   } catch (error) {
@@ -66,17 +64,39 @@ export const getWorkflowsInFolder = (folder: string): SavedWorkflow[] => {
 };
 
 export const saveWorkflowToStorage = (workflow: SavedWorkflow): boolean => {
+  if (!workflow.metadata?.folder || !workflow.metadata?.name) {
+    console.error('Workflow missing required metadata:', workflow);
+    return false;
+  }
+
   try {
     const workflows = getAllWorkflows();
+    console.log('Current workflows:', workflows);
+    console.log('Saving workflow:', workflow);
+    
     const existingIndex = workflows.findIndex(
       w => w.metadata.name === workflow.metadata.name && 
            w.metadata.folder === workflow.metadata.folder
     );
 
+    // Update metadata timestamps
+    workflow.metadata.updatedAt = new Date().toISOString();
+    if (existingIndex === -1) {
+      workflow.metadata.createdAt = new Date().toISOString();
+    }
+
     if (existingIndex >= 0) {
-      workflows[existingIndex] = workflow;
+      workflows[existingIndex] = {
+        ...workflow,
+        metadata: {
+          ...workflow.metadata,
+          createdAt: workflows[existingIndex].metadata.createdAt // Preserve original creation date
+        }
+      };
+      console.log('Updated existing workflow at index:', existingIndex);
     } else {
       workflows.push(workflow);
+      console.log('Added new workflow, total workflows:', workflows.length);
     }
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(workflows));
