@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -8,6 +9,7 @@ import { EditApplianceDialog } from '@/components/appliance/EditApplianceDialog'
 import { ApplianceCard } from '@/components/appliance/ApplianceCard';
 import { useAppliances } from '@/hooks/useAppliances';
 import { toast } from '@/hooks/use-toast';
+import { getAllWorkflows, getWorkflowsInFolder } from '@/utils/flow';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,7 +40,18 @@ export default function Workflows() {
     moveSymptom
   } = useAppliances();
 
-  const folders = [...new Set(appliances.map(a => a.name))];
+  // Get all workflows to build the folders list
+  const allWorkflows = getAllWorkflows();
+  const folders = [...new Set(allWorkflows.map(w => w.metadata?.folder || 'Default'))];
+  
+  // Get workflows for the selected folder or all workflows if no folder is selected
+  const workflows = selectedFolder 
+    ? getWorkflowsInFolder(selectedFolder)
+    : allWorkflows;
+
+  console.log('Current folders:', folders);
+  console.log('Selected folder:', selectedFolder);
+  console.log('Workflows in view:', workflows);
   
   const filteredAppliances = appliances
     .filter(appliance => 
@@ -129,7 +142,9 @@ export default function Workflows() {
             >
               <option value="">All Folders</option>
               {folders.map((folder) => (
-                <option key={folder} value={folder}>{folder}</option>
+                <option key={folder} value={folder}>
+                  {folder}
+                </option>
               ))}
             </select>
           </div>
@@ -140,6 +155,14 @@ export default function Workflows() {
           </div>
           <AddApplianceDialog onSave={handleAddAppliance} />
         </div>
+      </div>
+
+      {/* Display workflows count for debugging */}
+      <div className="mb-4 text-sm text-gray-500">
+        {selectedFolder ? 
+          `Showing ${workflows.length} workflows in ${selectedFolder}` : 
+          `Showing all ${workflows.length} workflows`
+        }
       </div>
 
       {filteredAppliances.length === 0 ? (
