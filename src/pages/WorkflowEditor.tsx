@@ -1,7 +1,7 @@
 
 import { useSearchParams } from 'react-router-dom';
 import FlowEditor from '@/components/FlowEditor';
-import { NodeConfigPanel } from '@/components/NodeConfigPanel';
+import NodeConfigPanel from '@/components/NodeConfigPanel';
 import { useState } from 'react';
 import { Node } from '@xyflow/react';
 
