@@ -97,14 +97,32 @@ export const moveWorkflowToFolder = async (
   targetAppliance: string
 ): Promise<boolean> => {
   try {
-    const category = await getOrCreateCategory(targetAppliance);
-    if (!category) return false;
+    // First get or create the category
+    const { data: category } = await supabase
+      .from('workflow_categories')
+      .select('id')
+      .eq('name', targetAppliance)
+      .maybeSingle();
+
+    let categoryId;
+    if (!category) {
+      const { data: newCategory, error: createError } = await supabase
+        .from('workflow_categories')
+        .insert({ name: targetAppliance })
+        .select('id')
+        .single();
+
+      if (createError) throw createError;
+      categoryId = newCategory.id;
+    } else {
+      categoryId = category.id;
+    }
     
     // Update workflow
     const { error } = await supabase
       .from('workflows')
       .update({ 
-        category_id: category.id,
+        category_id: categoryId,
         updated_at: new Date().toISOString()
       })
       .eq('name', workflow.metadata.name);
@@ -125,14 +143,26 @@ export const saveWorkflowToStorage = async (workflow: SavedWorkflow): Promise<bo
       return false;
     }
 
-    const category = await getOrCreateCategory(workflow.metadata.appliance);
-    if (!category) return false;
+    // First get or create the category
+    const { data: category } = await supabase
+      .from('workflow_categories')
+      .select('id')
+      .eq('name', workflow.metadata.appliance)
+      .maybeSingle();
 
-    const flowData = {
-      nodes: workflow.nodes,
-      edges: workflow.edges,
-      nodeCounter: workflow.nodeCounter
-    };
+    let categoryId;
+    if (!category) {
+      const { data: newCategory, error: createError } = await supabase
+        .from('workflow_categories')
+        .insert({ name: workflow.metadata.appliance })
+        .select('id')
+        .single();
+
+      if (createError) throw createError;
+      categoryId = newCategory.id;
+    } else {
+      categoryId = category.id;
+    }
 
     // First, check if the workflow already exists
     const { data: existingWorkflow } = await supabase
@@ -141,32 +171,26 @@ export const saveWorkflowToStorage = async (workflow: SavedWorkflow): Promise<bo
       .eq('name', workflow.metadata.name)
       .maybeSingle();
 
-    // Prepare upsert data
-    const workflowData: any = {
-      id: existingWorkflow?.id, // Include the id if it exists
-      name: workflow.metadata.name,
-      category_id: category.id,
-      description: '',
-      flow_data: JSON.parse(JSON.stringify(flowData)), // Convert to plain JSON
-      is_active: workflow.metadata.isActive ?? true,
-      updated_at: new Date().toISOString()
-    };
-
-    // If it's a new workflow, also set created_at
-    if (!existingWorkflow) {
-      workflowData.created_at = new Date().toISOString();
-    }
-
     // Save workflow
     const { error } = await supabase
       .from('workflows')
-      .upsert(workflowData)
+      .upsert({
+        id: existingWorkflow?.id,
+        name: workflow.metadata.name,
+        category_id: categoryId,
+        description: '',
+        flow_data: JSON.parse(JSON.stringify({
+          nodes: workflow.nodes,
+          edges: workflow.edges,
+          nodeCounter: workflow.nodeCounter
+        })),
+        is_active: workflow.metadata.isActive ?? true,
+        created_at: existingWorkflow ? undefined : new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
       .select();
 
-    if (error) {
-      console.error('Error saving workflow:', error);
-      throw error;
-    }
+    if (error) throw error;
     
     toast({
       title: "Success",
