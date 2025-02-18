@@ -8,9 +8,15 @@ export const cleanupWorkflows = () => {
   try {
     const storedWorkflows = localStorage.getItem(STORAGE_KEY) || '[]';
     const workflows = JSON.parse(storedWorkflows);
+    
+    // Only filter out invalid workflows, don't require folder initially
     const cleanedWorkflows = workflows.filter(workflow => 
-      workflow && workflow.nodes && workflow.nodes.length > 0 && workflow.metadata?.folder
+      workflow && 
+      workflow.nodes && 
+      Array.isArray(workflow.nodes) && 
+      workflow.nodes.length > 0
     );
+    
     localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanedWorkflows));
     return cleanedWorkflows;
   } catch (error) {
@@ -30,9 +36,9 @@ export const getFolders = (): string[] => {
     const folderSet = new Set<string>();
     
     workflows.forEach(workflow => {
-      if (workflow.metadata?.folder) {
-        folderSet.add(workflow.metadata.folder);
-      }
+      // Include workflows without folders in a "Default" folder
+      const folder = workflow.metadata?.folder || 'Default';
+      folderSet.add(folder);
     });
     
     return Array.from(folderSet).sort();
@@ -54,7 +60,12 @@ export const getAllWorkflows = (): SavedWorkflow[] => {
 export const getWorkflowsInFolder = (folder: string): SavedWorkflow[] => {
   try {
     const workflows = getAllWorkflows();
-    const folderWorkflows = workflows.filter(w => w.metadata?.folder === folder);
+    // Match workflows with the specified folder, or those without a folder if folder is "Default"
+    const folderWorkflows = workflows.filter(w => 
+      folder === 'Default' 
+        ? !w.metadata?.folder 
+        : w.metadata?.folder === folder
+    );
     console.log(`Found ${folderWorkflows.length} workflows in folder ${folder}`);
     return folderWorkflows;
   } catch (error) {
@@ -64,19 +75,24 @@ export const getWorkflowsInFolder = (folder: string): SavedWorkflow[] => {
 };
 
 export const saveWorkflowToStorage = (workflow: SavedWorkflow): boolean => {
-  if (!workflow.metadata?.folder || !workflow.metadata?.name) {
-    console.error('Workflow missing required metadata:', workflow);
-    return false;
-  }
-
   try {
+    // Ensure workflow has metadata
+    if (!workflow.metadata) {
+      workflow.metadata = {
+        name: 'Untitled Workflow',
+        folder: 'Default',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+    }
+
     const workflows = getAllWorkflows();
     console.log('Current workflows:', workflows);
     console.log('Saving workflow:', workflow);
     
-    const existingIndex = workflows.findIndex(
-      w => w.metadata.name === workflow.metadata.name && 
-           w.metadata.folder === workflow.metadata.folder
+    const existingIndex = workflows.findIndex(w => 
+      w.metadata?.name === workflow.metadata?.name && 
+      w.metadata?.folder === workflow.metadata?.folder
     );
 
     // Update metadata timestamps
@@ -103,6 +119,11 @@ export const saveWorkflowToStorage = (workflow: SavedWorkflow): boolean => {
     return true;
   } catch (error) {
     console.error('Error saving workflow to storage:', error);
+    toast({
+      title: "Error",
+      description: "Failed to save workflow. Please try again.",
+      variant: "destructive"
+    });
     return false;
   }
 };
