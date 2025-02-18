@@ -29,10 +29,10 @@ export function HandleWithTooltip({
 }: HandleWithTooltipProps) {
   const isIncoming = type === 'target';
   const tooltipClasses = {
-    top: '-top-6 left-1/2 -translate-x-1/2',
-    bottom: '-bottom-6 left-1/2 -translate-x-1/2',
-    left: '-left-20',
-    right: '-right-20'
+    top: '-top-4 left-1/2 -translate-x-1/2',
+    bottom: '-bottom-4 left-1/2 -translate-x-1/2',
+    left: '-left-12',
+    right: '-right-12'
   };
 
   const iconClasses = {
@@ -54,7 +54,7 @@ export function HandleWithTooltip({
         }}
         onClick={() => connected.isConnected && handleDisconnect(id)}
       />
-      <div className={`absolute ${tooltipClasses[tooltipPosition]} opacity-0 group-hover:opacity-100 transition-opacity text-xs bg-gray-800 text-white px-2 py-1 rounded`}>
+      <div className={`absolute ${tooltipClasses[tooltipPosition]} opacity-0 group-hover:opacity-100 transition-opacity text-[10px] bg-gray-800 text-white px-1.5 py-0.5 rounded whitespace-nowrap`}>
         {isIncoming ? 'Incoming' : 'Outgoing'}
       </div>
       {Icon && (
