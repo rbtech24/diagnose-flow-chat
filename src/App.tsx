@@ -1,6 +1,6 @@
 
 import React, { Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, BrowserRouter } from 'react-router-dom';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { LoadingScreen } from './components/LoadingScreen';
 import { Layout } from './components/Layout';
@@ -27,32 +27,34 @@ const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <ErrorBoundary>
-          <Suspense fallback={<LoadingScreen />}>
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Landing />} />
-                <Route path="/admin/login" element={<AdminLogin />} />
-                <Route path="/company/login" element={<CompanyLogin />} />
-                <Route path="/tech/login" element={<TechLogin />} />
-                <Route path="/setup" element={<SystemSetup />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/admin/*" element={<AdminDashboard />} />
-                <Route path="/company/*" element={<CompanyDashboard />} />
-                <Route path="/tech/*" element={<TechnicianDashboard />} />
-              </Routes>
-            </Layout>
-          </Suspense>
-        </ErrorBoundary>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <ErrorBoundary>
+            <Suspense fallback={<LoadingScreen />}>
+              <Layout>
+                <Routes>
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/admin/login" element={<AdminLogin />} />
+                  <Route path="/company/login" element={<CompanyLogin />} />
+                  <Route path="/tech/login" element={<TechLogin />} />
+                  <Route path="/setup" element={<SystemSetup />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/admin/*" element={<AdminDashboard />} />
+                  <Route path="/company/*" element={<CompanyDashboard />} />
+                  <Route path="/tech/*" element={<TechnicianDashboard />} />
+                </Routes>
+              </Layout>
+            </Suspense>
+          </ErrorBoundary>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   );
 }
 
