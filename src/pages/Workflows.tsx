@@ -122,6 +122,7 @@ export default function Workflows() {
 
       <WorkflowGrid
         appliances={filteredAppliances}
+        workflows={workflows}
         isReordering={isReordering}
         onEdit={(index, name) => setEditingAppliance({ index, name })}
         onDelete={(index) => setDeletingApplianceIndex(index)}
