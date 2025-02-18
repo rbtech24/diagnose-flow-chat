@@ -53,14 +53,14 @@ export function WorkflowHeader({
             className="w-64"
           />
           <Select
-            value={selectedFolder}
-            onValueChange={onFolderChange}
+            value={selectedFolder || "all"}
+            onValueChange={(value) => onFolderChange(value === "all" ? "" : value)}
           >
             <SelectTrigger className="w-[180px] bg-white">
               <SelectValue placeholder="All Folders" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Folders</SelectItem>
+              <SelectItem value="all">All Folders</SelectItem>
               {folders.map((folder) => (
                 <SelectItem key={folder} value={folder}>
                   {folder}
