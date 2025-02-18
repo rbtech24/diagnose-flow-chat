@@ -56,31 +56,22 @@ export function WorkflowView({
   );
 
   return (
-    <>
-      <div className="mb-4 text-sm text-gray-500">
-        {selectedFolder ? 
-          `Showing ${orphanedWorkflows.length} workflows in ${selectedFolder}` : 
-          `Showing all ${orphanedWorkflows.length} workflows`
-        }
-      </div>
-
-      <WorkflowGrid
-        appliances={filteredAppliances}
-        workflows={orphanedWorkflows}
-        isReordering={isReordering}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        onToggleWorkflow={onToggleWorkflow}
-        onMoveSymptom={onMoveSymptom}
-        onMoveAppliance={onMoveAppliance}
-        onOpenWorkflowEditor={onOpenWorkflowEditor}
-        onAddIssue={onAddIssue}
-        onDeleteWorkflow={onDeleteWorkflow}
-        onMoveWorkflow={onMoveWorkflow}
-        onToggleWorkflowActive={onToggleWorkflowActive}
-        onMoveWorkflowToFolder={onMoveWorkflowToFolder}
-        getSymptomCardColor={getSymptomCardColor}
-      />
-    </>
+    <WorkflowGrid
+      appliances={filteredAppliances}
+      workflows={orphanedWorkflows}
+      isReordering={isReordering}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      onToggleWorkflow={onToggleWorkflow}
+      onMoveSymptom={onMoveSymptom}
+      onMoveAppliance={onMoveAppliance}
+      onOpenWorkflowEditor={onOpenWorkflowEditor}
+      onAddIssue={onAddIssue}
+      onDeleteWorkflow={onDeleteWorkflow}
+      onMoveWorkflow={onMoveWorkflow}
+      onToggleWorkflowActive={onToggleWorkflowActive}
+      onMoveWorkflowToFolder={onMoveWorkflowToFolder}
+      getSymptomCardColor={getSymptomCardColor}
+    />
   );
 }
