@@ -2,8 +2,9 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Edit, Trash, ArrowUpRight, GripVertical, Plus } from 'lucide-react';
+import { Edit, Trash, ArrowUpRight, GripVertical, Plus, FileText } from 'lucide-react';
 import { Appliance } from '@/types/appliance';
+import { SavedWorkflow } from '@/utils/flow/types';
 
 interface ApplianceCardProps {
   appliance: Appliance;
@@ -32,6 +33,10 @@ export function ApplianceCard({
   onAddIssue,
   getSymptomCardColor
 }: ApplianceCardProps) {
+  // Load workflows for this appliance
+  const applianceWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]')
+    .filter((w: SavedWorkflow) => w.metadata.folder === appliance.name);
+
   return (
     <Card 
       className={`p-4 shadow-sm border-gray-100 hover:shadow-md transition-shadow ${isReordering ? 'cursor-move' : ''}`}
@@ -71,6 +76,32 @@ export function ApplianceCard({
           </Button>
         </div>
       </div>
+      
+      {/* Workflows section */}
+      {applianceWorkflows.length > 0 && (
+        <div className="mb-4 space-y-2">
+          <h3 className="text-sm font-medium text-gray-700 mb-2">Workflows</h3>
+          {applianceWorkflows.map((workflow: SavedWorkflow) => (
+            <div
+              key={workflow.metadata.name}
+              className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+            >
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-green-500" />
+                <span className="text-sm text-gray-700">{workflow.metadata.name}</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => onOpenWorkflowEditor(appliance.name, workflow.metadata.name)}
+              >
+                <ArrowUpRight className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
       
       <div className="space-y-2.5">
         {[...appliance.symptoms]
