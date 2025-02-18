@@ -142,19 +142,19 @@ export const saveWorkflowToStorage = async (workflow: SavedWorkflow): Promise<bo
       .maybeSingle();
 
     // Prepare upsert data
-    const workflowData = {
+    const workflowData: any = {
       id: existingWorkflow?.id, // Include the id if it exists
       name: workflow.metadata.name,
       category_id: category.id,
       description: '',
-      flow_data: flowData,
+      flow_data: JSON.parse(JSON.stringify(flowData)), // Convert to plain JSON
       is_active: workflow.metadata.isActive ?? true,
       updated_at: new Date().toISOString()
     };
 
     // If it's a new workflow, also set created_at
     if (!existingWorkflow) {
-      workflowData['created_at'] = new Date().toISOString();
+      workflowData.created_at = new Date().toISOString();
     }
 
     // Save workflow
