@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowUpRight, Trash, GripVertical, FileText } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { toast } from '@/hooks/use-toast';
 
 interface WorkflowGridProps {
   appliances: Appliance[];
@@ -50,55 +51,84 @@ export function WorkflowGrid({
     );
   }
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    const targetCard = (e.target as HTMLElement).closest('.appliance-card');
+    if (targetCard) {
+      targetCard.classList.add('border-purple-300', 'border-2');
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    const targetCard = (e.target as HTMLElement).closest('.appliance-card');
+    if (targetCard) {
+      targetCard.classList.remove('border-purple-300', 'border-2');
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, targetAppliance: string) => {
+    e.preventDefault();
+    const targetCard = (e.target as HTMLElement).closest('.appliance-card');
+    if (targetCard) {
+      targetCard.classList.remove('border-purple-300', 'border-2');
+    }
+
+    const workflowData = e.dataTransfer.getData('workflow-data');
+    if (workflowData) {
+      const workflow = JSON.parse(workflowData);
+      if (workflow.metadata.folder !== targetAppliance) {
+        onMoveWorkflowToFolder?.(workflow, targetAppliance);
+        toast({
+          title: "Workflow Moved",
+          description: `Workflow moved to ${targetAppliance}`
+        });
+      }
+    }
+  };
+
   return (
     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
       {appliances.map((appliance, index) => (
-        <ApplianceCard
+        <div
           key={`appliance-${appliance.name}`}
-          appliance={appliance}
-          index={index}
-          isReordering={isReordering}
-          onEdit={() => onEdit(index, appliance.name)}
-          onDelete={() => onDelete(index)}
-          onToggleWorkflow={(symptomIndex) => onToggleWorkflow(index, symptomIndex)}
-          onMoveSymptom={(fromIndex, toIndex) => onMoveSymptom(index, fromIndex, toIndex)}
-          onMoveAppliance={onMoveAppliance}
-          onOpenWorkflowEditor={(symptomName) => onOpenWorkflowEditor(appliance.name, symptomName)}
-          onAddIssue={() => onAddIssue(appliance.name)}
-          getSymptomCardColor={getSymptomCardColor}
-        />
+          className="appliance-card"
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, appliance.name)}
+        >
+          <ApplianceCard
+            appliance={appliance}
+            index={index}
+            isReordering={isReordering}
+            onEdit={() => onEdit(index, appliance.name)}
+            onDelete={() => onDelete(index)}
+            onToggleWorkflow={(symptomIndex) => onToggleWorkflow(index, symptomIndex)}
+            onMoveSymptom={(fromIndex, toIndex) => onMoveSymptom(index, fromIndex, toIndex)}
+            onMoveAppliance={onMoveAppliance}
+            onOpenWorkflowEditor={(symptomName) => onOpenWorkflowEditor(appliance.name, symptomName)}
+            onAddIssue={() => onAddIssue(appliance.name)}
+            getSymptomCardColor={getSymptomCardColor}
+          />
+        </div>
       ))}
 
       {workflows.map((workflow, index) => (
         <Card 
           key={`workflow-${workflow.metadata.name}-${workflow.metadata.folder}`}
           className="group relative p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200"
-          draggable={isReordering}
+          draggable={true}
           onDragStart={(e) => {
             e.dataTransfer.setData('workflow-index', index.toString());
             e.dataTransfer.setData('workflow-data', JSON.stringify(workflow));
+            const dragPreview = e.target as HTMLElement;
+            dragPreview.classList.add('opacity-50');
           }}
-          onDragOver={(e) => {
-            e.preventDefault();
-          }}
-          onDrop={(e) => {
-            e.preventDefault();
-            const fromIndex = parseInt(e.dataTransfer.getData('workflow-index'));
-            const draggedWorkflow = JSON.parse(e.dataTransfer.getData('workflow-data'));
-            
-            if (draggedWorkflow.metadata.folder !== workflow.metadata.folder) {
-              onMoveWorkflowToFolder?.(draggedWorkflow, workflow.metadata.folder);
-            } else if (fromIndex !== index) {
-              onMoveWorkflow(fromIndex, index);
-            }
+          onDragEnd={(e) => {
+            const dragPreview = e.target as HTMLElement;
+            dragPreview.classList.remove('opacity-50');
           }}
         >
-          {isReordering && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2">
-              <GripVertical className="h-5 w-5 text-gray-400 cursor-move" />
-            </div>
-          )}
-          
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-3">
               <div className="mt-1">
