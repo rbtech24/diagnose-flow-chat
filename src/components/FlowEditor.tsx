@@ -287,8 +287,16 @@ function FlowEditorContent({
         label: `Node ${nodeCounter}`,
         type: 'question',
         nodeId: `N${String(nodeCounter).padStart(3, '0')}`,
-        content: '',
-        options: [],
+        content: 'Enter your question or instruction here',
+        options: ['Yes', 'No'],
+        media: [],
+        technicalSpecs: {
+          range: { min: 0, max: 0 },
+          testPoints: '',
+          value: 0,
+          measurementPoints: '',
+          points: ''
+        }
       },
     };
 

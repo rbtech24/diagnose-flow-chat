@@ -60,7 +60,7 @@ function DiagnosisNode({ id, data }) {
         <h3 className="font-medium text-sm">{data.label}</h3>
         
         {data.content && (
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 whitespace-pre-wrap">
             {data.content}
           </p>
         )}
@@ -72,9 +72,9 @@ function DiagnosisNode({ id, data }) {
           technicalSpecs={data.technicalSpecs}
         />
 
-        {data.options && (
+        {data.options && data.options.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-2">
-            {data.options.map((option: string, index: number) => (
+            {data.options.map((option, index) => (
               <Badge 
                 key={index} 
                 variant="secondary" 
