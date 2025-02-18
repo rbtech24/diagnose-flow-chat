@@ -1,9 +1,10 @@
+
 import { Node, Edge } from '@xyflow/react';
 import { toast } from '@/hooks/use-toast';
 import { SavedWorkflow } from './types';
-import { getAllWorkflows } from './storage';
+import { getAllWorkflows, saveWorkflowToStorage } from './storage';
 
-export const handleQuickSave = (
+export const handleQuickSave = async (
   nodes: Node[],
   edges: Edge[],
   nodeCounter: number,
@@ -28,7 +29,7 @@ export const handleQuickSave = (
   );
 };
 
-export const handleSaveWorkflow = (
+export const handleSaveWorkflow = async (
   nodes: Node[], 
   edges: Edge[], 
   nodeCounter: number,
@@ -47,7 +48,7 @@ export const handleSaveWorkflow = (
   }
 
   try {
-    const workflows = getAllWorkflows();
+    const existingWorkflows = await getAllWorkflows();
     
     const newWorkflow: SavedWorkflow = {
       metadata: {
@@ -65,24 +66,24 @@ export const handleSaveWorkflow = (
     };
 
     // Find existing workflow by name and appliance
-    const existingIndex = workflows.findIndex(
+    const existingIndex = existingWorkflows.findIndex(
       w => w.metadata.name === name && w.metadata.appliance === appliance
     );
 
     if (existingIndex >= 0) {
-      workflows[existingIndex] = {
+      const updatedWorkflows = [...existingWorkflows];
+      updatedWorkflows[existingIndex] = {
         ...newWorkflow,
         metadata: {
           ...newWorkflow.metadata,
-          createdAt: workflows[existingIndex].metadata.createdAt,
-          isActive: workflows[existingIndex].metadata.isActive
+          createdAt: existingWorkflows[existingIndex].metadata.createdAt,
+          isActive: existingWorkflows[existingIndex].metadata.isActive
         }
       };
+      await saveWorkflowToStorage(updatedWorkflows[existingIndex]);
     } else {
-      workflows.push(newWorkflow);
+      await saveWorkflowToStorage(newWorkflow);
     }
-
-    localStorage.setItem('diagnostic-workflows', JSON.stringify(workflows));
     
     toast({
       title: "Workflow Saved",

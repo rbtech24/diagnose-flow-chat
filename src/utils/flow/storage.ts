@@ -60,7 +60,7 @@ export const getAllWorkflows = async (): Promise<SavedWorkflow[]> => {
         updatedAt: workflow.updated_at,
         isActive: workflow.is_active
       },
-      ...workflow.flow_data
+      ...(workflow.flow_data as Pick<SavedWorkflow, 'nodes' | 'edges' | 'nodeCounter'>)
     }));
   } catch (error) {
     console.error('Error getting all workflows:', error);
@@ -95,7 +95,7 @@ export const getWorkflowsInFolder = async (folder: string): Promise<SavedWorkflo
         updatedAt: workflow.updated_at,
         isActive: workflow.is_active
       },
-      ...workflow.flow_data
+      ...(workflow.flow_data as Pick<SavedWorkflow, 'nodes' | 'edges' | 'nodeCounter'>)
     }));
   } catch (error) {
     console.error('Error getting workflows in folder:', error);
@@ -169,24 +169,21 @@ export const saveWorkflowToStorage = async (workflow: SavedWorkflow): Promise<bo
       category = newCategory;
     }
 
-    // Prepare workflow data
-    const workflowData: WorkflowData = {
-      name: workflow.metadata.name,
-      category_id: category.id,
-      description: '',
-      flow_data: {
-        metadata: workflow.metadata,
-        nodes: workflow.nodes,
-        edges: workflow.edges,
-        nodeCounter: workflow.nodeCounter
-      },
-      is_active: workflow.metadata.isActive ?? true,
-    };
-
     // Save workflow
     const { error } = await supabase
       .from('workflows')
-      .upsert(workflowData)
+      .upsert({
+        name: workflow.metadata.name,
+        category_id: category.id,
+        description: '',
+        flow_data: {
+          nodes: workflow.nodes,
+          edges: workflow.edges,
+          nodeCounter: workflow.nodeCounter
+        },
+        is_active: workflow.metadata.isActive ?? true,
+        updated_at: new Date().toISOString()
+      })
       .select();
 
     if (error) throw error;
