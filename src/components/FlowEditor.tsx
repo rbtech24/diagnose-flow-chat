@@ -163,9 +163,9 @@ function FlowEditorContent({ onNodeSelect, appliances, currentWorkflow }: FlowEd
     }
   };
 
-  const handleSave = async (name: string, folder: string): Promise<void> => {
+  const handleSave = async (name: string, folder: string, appliance: string): Promise<void> => {
     try {
-      const workflow = await handleSaveWorkflow(nodes, edges, nodeCounter, name, folder);
+      const workflow = await handleSaveWorkflow(nodes, edges, nodeCounter, name, folder, appliance, '');
       if (workflow) {
         toast({
           title: "Workflow Saved",

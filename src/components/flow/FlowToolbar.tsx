@@ -10,7 +10,7 @@ import { Input } from '../ui/input';
 
 interface FlowToolbarProps {
   onAddNode: () => void;
-  onSave: (name: string, folder: string) => Promise<void>;
+  onSave: (name: string, folder: string, appliance: string) => Promise<void>;
   onImportClick: () => void;
   onCopySelected: () => void;
   onPaste: () => void;
@@ -30,7 +30,8 @@ export function FlowToolbar({
   const handleImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    handleSaveWorkflow(nodes, edges, nodeCounter, file.name, 'import');
+    // Pass empty string as symptom for imported workflows
+    handleSaveWorkflow(nodes, edges, nodeCounter, file.name, 'import', 'import', '');
   }, [nodes, edges, nodeCounter]);
 
   return (
@@ -85,7 +86,8 @@ export function FlowToolbar({
           size="icon"
           className="h-8 w-8"
           onClick={() => {
-            handleSaveWorkflow(nodes, edges, nodeCounter, 'Exported Workflow', 'export');
+            // Pass empty string as symptom for exported workflows
+            handleSaveWorkflow(nodes, edges, nodeCounter, 'Exported Workflow', 'export', 'export', '');
           }}
         >
           <Download className="w-4 h-4" />
