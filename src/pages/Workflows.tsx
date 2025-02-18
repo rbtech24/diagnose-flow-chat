@@ -16,6 +16,7 @@ export default function Workflows() {
   const [deletingApplianceIndex, setDeletingApplianceIndex] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFolder, setSelectedFolder] = useState<string>('');
+  const [workflowsState, setWorkflowsState] = useState(getAllWorkflows());
   
   const {
     appliances,
@@ -28,13 +29,12 @@ export default function Workflows() {
   } = useAppliances();
 
   // Get all workflows to build the folders list
-  const allWorkflows = getAllWorkflows();
-  const folders = [...new Set(allWorkflows.map(w => w.metadata?.folder || 'Default'))];
+  const folders = [...new Set(workflowsState.map(w => w.metadata?.folder || 'Default'))];
   
   // Get workflows for the selected folder or all workflows if no folder is selected
   const workflows = selectedFolder 
-    ? getWorkflowsInFolder(selectedFolder)
-    : allWorkflows;
+    ? workflowsState.filter(w => w.metadata?.folder === selectedFolder)
+    : workflowsState;
 
   console.log('Current folders:', folders);
   console.log('Selected folder:', selectedFolder);
@@ -49,18 +49,6 @@ export default function Workflows() {
         : true
       )
     );
-
-  const getSymptomCardColor = (index: number) => {
-    const colors = [
-      'bg-[#E5DEFF] hover:bg-[#DCD2FF]',
-      'bg-[#D3E4FD] hover:bg-[#C4DBFF]',
-      'bg-[#FDE1D3] hover:bg-[#FFD4C2]',
-      'bg-[#F2FCE2] hover:bg-[#E9F9D4]',
-      'bg-[#FEF7CD] hover:bg-[#FFF2B8]',
-      'bg-[#FFDEE2] hover:bg-[#FFD0D6]',
-    ];
-    return colors[index % colors.length];
-  };
 
   const handleAddAppliance = (name: string) => {
     addAppliance(name);
@@ -79,44 +67,55 @@ export default function Workflows() {
     });
   };
 
-  const handleToggleWorkflow = (applianceIndex: number, symptomIndex: number) => {
-    const symptom = toggleWorkflow(applianceIndex, symptomIndex);
-    toast({
-      title: symptom.isActive ? "Workflow Activated" : "Workflow Deactivated",
-      description: `${symptom.name} has been ${symptom.isActive ? 'activated' : 'deactivated'}.`
-    });
-  };
-
-  const openWorkflowEditor = (applianceName: string, symptomName?: string) => {
-    const params = new URLSearchParams();
-    if (applianceName) params.set('appliance', applianceName);
-    if (symptomName) params.set('symptom', symptomName);
-    if (!symptomName) params.set('new', 'true');
-    
-    navigate({
-      pathname: '/',
-      search: params.toString(),
-    });
-  };
-
   const handleDeleteWorkflow = (workflow: SavedWorkflow) => {
-    const updatedWorkflows = allWorkflows.filter(w => 
-      !(w.metadata.name === workflow.metadata.name && w.metadata.folder === workflow.metadata.folder)
+    const updatedWorkflows = workflowsState.filter(w => 
+      !(w.metadata.name === workflow.metadata.name && 
+        w.metadata.folder === workflow.metadata.folder)
     );
+    setWorkflowsState(updatedWorkflows);
     localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
     toast({
       title: "Workflow Deleted",
       description: `${workflow.metadata.name} has been deleted.`
     });
-    window.location.reload();
+  };
+
+  const handleToggleWorkflowActive = (workflow: SavedWorkflow) => {
+    const updatedWorkflows = workflowsState.map(w => {
+      if (w.metadata.name === workflow.metadata.name && 
+          w.metadata.folder === workflow.metadata.folder) {
+        return {
+          ...w,
+          metadata: {
+            ...w.metadata,
+            isActive: !w.metadata.isActive
+          }
+        };
+      }
+      return w;
+    });
+    setWorkflowsState(updatedWorkflows);
+    localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
+    toast({
+      title: workflow.metadata.isActive ? "Workflow Deactivated" : "Workflow Activated",
+      description: `${workflow.metadata.name} has been ${workflow.metadata.isActive ? 'deactivated' : 'activated'}.`
+    });
   };
 
   const handleMoveWorkflow = (fromIndex: number, toIndex: number) => {
     const updatedWorkflows = [...workflows];
     const [movedWorkflow] = updatedWorkflows.splice(fromIndex, 1);
     updatedWorkflows.splice(toIndex, 0, movedWorkflow);
-    localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
-    window.location.reload();
+    
+    // Update the full workflows state while maintaining the order in the current folder
+    if (selectedFolder) {
+      const newState = workflowsState.filter(w => w.metadata?.folder !== selectedFolder);
+      setWorkflowsState([...newState, ...updatedWorkflows]);
+      localStorage.setItem('diagnostic-workflows', JSON.stringify([...newState, ...updatedWorkflows]));
+    } else {
+      setWorkflowsState(updatedWorkflows);
+      localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
+    }
   };
 
   return (
@@ -132,7 +131,6 @@ export default function Workflows() {
         onAddAppliance={handleAddAppliance}
       />
 
-      {/* Display workflows count for debugging */}
       <div className="mb-4 text-sm text-gray-500">
         {selectedFolder ? 
           `Showing ${workflows.length} workflows in ${selectedFolder}` : 
@@ -146,13 +144,14 @@ export default function Workflows() {
         isReordering={isReordering}
         onEdit={(index, name) => setEditingAppliance({ index, name })}
         onDelete={(index) => setDeletingApplianceIndex(index)}
-        onToggleWorkflow={handleToggleWorkflow}
+        onToggleWorkflow={toggleWorkflow}
         onMoveSymptom={moveSymptom}
         onMoveAppliance={moveAppliance}
         onOpenWorkflowEditor={openWorkflowEditor}
         onAddIssue={(applianceName) => openWorkflowEditor(applianceName)}
         onDeleteWorkflow={handleDeleteWorkflow}
         onMoveWorkflow={handleMoveWorkflow}
+        onToggleWorkflowActive={handleToggleWorkflowActive}
         getSymptomCardColor={getSymptomCardColor}
       />
 

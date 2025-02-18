@@ -5,6 +5,7 @@ import { SavedWorkflow } from '@/utils/flow/types';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowUpRight, Trash, GripVertical } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 
 interface WorkflowGridProps {
   appliances: Appliance[];
@@ -19,6 +20,7 @@ interface WorkflowGridProps {
   onAddIssue: (applianceName: string) => void;
   onDeleteWorkflow: (workflow: SavedWorkflow) => void;
   onMoveWorkflow: (fromIndex: number, toIndex: number) => void;
+  onToggleWorkflowActive: (workflow: SavedWorkflow) => void;
   getSymptomCardColor: (index: number) => string;
 }
 
@@ -35,6 +37,7 @@ export function WorkflowGrid({
   onAddIssue,
   onDeleteWorkflow,
   onMoveWorkflow,
+  onToggleWorkflowActive,
   getSymptomCardColor,
 }: WorkflowGridProps) {
   if (appliances.length === 0 && workflows.length === 0) {
@@ -96,11 +99,20 @@ export function WorkflowGrid({
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Switch
+                checked={workflow.metadata.isActive}
+                onCheckedChange={() => onToggleWorkflowActive(workflow)}
+                className="mr-2"
+              />
               <Button 
                 variant="ghost" 
                 size="sm"
                 className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                onClick={() => onDeleteWorkflow(workflow)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onDeleteWorkflow(workflow);
+                }}
               >
                 <Trash className="h-4 w-4" />
               </Button>
