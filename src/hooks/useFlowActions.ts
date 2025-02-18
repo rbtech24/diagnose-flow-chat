@@ -15,9 +15,9 @@ export function useFlowActions(
   setNodeCounter: (nc: number | ((nc: number) => number)) => void,
   history: any,
   setHistory: (history: any) => void,
-  currentWorkflow?: SavedWorkflow,
   copiedNodes: Node[],
-  setCopiedNodes: (nodes: Node[]) => void
+  setCopiedNodes: (nodes: Node[]) => void,
+  currentWorkflow?: SavedWorkflow
 ) {
   const { getViewport } = useReactFlow();
 
