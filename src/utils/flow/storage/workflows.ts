@@ -4,6 +4,12 @@ import { SavedWorkflow } from '../types';
 import { supabase } from '@/integrations/supabase/client';
 import { getOrCreateCategory } from './categories';
 
+interface WorkflowData {
+  nodes: any[];
+  edges: any[];
+  nodeCounter: number;
+}
+
 export const getAllWorkflows = async (): Promise<SavedWorkflow[]> => {
   try {
     const { data: workflows, error } = await supabase
@@ -14,19 +20,22 @@ export const getAllWorkflows = async (): Promise<SavedWorkflow[]> => {
     
     if (error) throw error;
     
-    return workflows.map(workflow => ({
-      metadata: {
-        name: workflow.name,
-        folder: workflow.workflow_categories?.name || 'Default',
-        appliance: workflow.workflow_categories?.name || 'Default',
-        createdAt: workflow.created_at,
-        updatedAt: workflow.updated_at,
-        isActive: workflow.is_active
-      },
-      nodes: JSON.parse(workflow.flow_data).nodes,
-      edges: JSON.parse(workflow.flow_data).edges,
-      nodeCounter: JSON.parse(workflow.flow_data).nodeCounter
-    }));
+    return workflows.map(workflow => {
+      const flowData = workflow.flow_data as WorkflowData;
+      return {
+        metadata: {
+          name: workflow.name,
+          folder: workflow.workflow_categories?.name || 'Default',
+          appliance: workflow.workflow_categories?.name || 'Default',
+          createdAt: workflow.created_at,
+          updatedAt: workflow.updated_at,
+          isActive: workflow.is_active
+        },
+        nodes: flowData?.nodes || [],
+        edges: flowData?.edges || [],
+        nodeCounter: flowData?.nodeCounter || 0
+      };
+    });
   } catch (error) {
     console.error('Error getting all workflows:', error);
     return [];
@@ -51,19 +60,22 @@ export const getWorkflowsInFolder = async (folder: string): Promise<SavedWorkflo
       
     if (error) throw error;
     
-    return workflows.map(workflow => ({
-      metadata: {
-        name: workflow.name,
-        folder: workflow.workflow_categories?.name || 'Default',
-        appliance: workflow.workflow_categories?.name || 'Default',
-        createdAt: workflow.created_at,
-        updatedAt: workflow.updated_at,
-        isActive: workflow.is_active
-      },
-      nodes: JSON.parse(workflow.flow_data).nodes,
-      edges: JSON.parse(workflow.flow_data).edges,
-      nodeCounter: JSON.parse(workflow.flow_data).nodeCounter
-    }));
+    return workflows.map(workflow => {
+      const flowData = workflow.flow_data as WorkflowData;
+      return {
+        metadata: {
+          name: workflow.name,
+          folder: workflow.workflow_categories?.name || 'Default',
+          appliance: workflow.workflow_categories?.name || 'Default',
+          createdAt: workflow.created_at,
+          updatedAt: workflow.updated_at,
+          isActive: workflow.is_active
+        },
+        nodes: flowData?.nodes || [],
+        edges: flowData?.edges || [],
+        nodeCounter: flowData?.nodeCounter || 0
+      };
+    });
   } catch (error) {
     console.error('Error getting workflows in folder:', error);
     return [];
@@ -113,11 +125,11 @@ export const saveWorkflowToStorage = async (workflow: SavedWorkflow): Promise<bo
         name: workflow.metadata.name,
         category_id: category.id,
         description: '',
-        flow_data: JSON.stringify({
+        flow_data: {
           nodes: workflow.nodes,
           edges: workflow.edges,
           nodeCounter: workflow.nodeCounter
-        }),
+        },
         is_active: workflow.metadata.isActive ?? true,
         updated_at: new Date().toISOString()
       })
