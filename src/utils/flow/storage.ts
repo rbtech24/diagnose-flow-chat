@@ -13,7 +13,8 @@ export const cleanupWorkflows = () => {
       workflow && 
       workflow.nodes && 
       Array.isArray(workflow.nodes) && 
-      workflow.nodes.length > 0
+      workflow.nodes.length > 0 &&
+      workflow.metadata?.appliance // Ensure appliance exists
     );
     
     localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanedWorkflows));
@@ -30,28 +31,25 @@ export const getFolders = (): string[] => {
     const folderSet = new Set<string>();
     
     workflows.forEach(workflow => {
-      if (workflow.metadata?.folder) {
-        folderSet.add(workflow.metadata.folder);
+      if (workflow.metadata?.appliance) {
+        folderSet.add(workflow.metadata.appliance);
       }
     });
-    
-    // Add 'Default' folder if it doesn't exist
-    folderSet.add('Default');
     
     return Array.from(folderSet).sort();
   } catch (error) {
     console.error('Error getting folders:', error);
-    return ['Default'];
+    return [];
   }
 };
 
 export const getAllWorkflows = (): SavedWorkflow[] => {
   try {
     const workflows = cleanupWorkflows();
-    // Sort workflows by folder and then by name
+    // Sort workflows by appliance and then by name
     return workflows.sort((a, b) => {
-      const folderCompare = (a.metadata.folder || 'Default').localeCompare(b.metadata.folder || 'Default');
-      if (folderCompare !== 0) return folderCompare;
+      const applianceCompare = (a.metadata.appliance || '').localeCompare(b.metadata.appliance || '');
+      if (applianceCompare !== 0) return applianceCompare;
       return a.metadata.name.localeCompare(b.metadata.name);
     });
   } catch (error) {
@@ -63,7 +61,7 @@ export const getAllWorkflows = (): SavedWorkflow[] => {
 export const getWorkflowsInFolder = (folder: string): SavedWorkflow[] => {
   try {
     const workflows = getAllWorkflows();
-    return workflows.filter(w => w.metadata?.folder === folder);
+    return workflows.filter(w => w.metadata?.appliance === folder);
   } catch (error) {
     console.error('Error getting workflows in folder:', error);
     return [];
@@ -72,13 +70,13 @@ export const getWorkflowsInFolder = (folder: string): SavedWorkflow[] => {
 
 export const moveWorkflowToFolder = (
   workflow: SavedWorkflow,
-  targetFolder: string
+  targetAppliance: string
 ): boolean => {
   try {
     const workflows = getAllWorkflows();
     const workflowIndex = workflows.findIndex(
       w => w.metadata.name === workflow.metadata.name && 
-           w.metadata.folder === workflow.metadata.folder
+           w.metadata.appliance === workflow.metadata.appliance
     );
 
     if (workflowIndex === -1) {
@@ -86,12 +84,13 @@ export const moveWorkflowToFolder = (
       return false;
     }
 
-    // Update the workflow's folder
+    // Update the workflow's appliance and folder
     workflows[workflowIndex] = {
       ...workflow,
       metadata: {
         ...workflow.metadata,
-        folder: targetFolder,
+        appliance: targetAppliance,
+        folder: targetAppliance,
         updatedAt: new Date().toISOString()
       }
     };
@@ -106,56 +105,34 @@ export const moveWorkflowToFolder = (
 
 export const saveWorkflowToStorage = (workflow: SavedWorkflow): boolean => {
   try {
-    // Initialize metadata if it doesn't exist
-    if (!workflow.metadata) {
-      workflow.metadata = {
-        name: 'Untitled Workflow',
-        folder: 'Default',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+    if (!workflow.metadata?.appliance) {
+      console.error('No appliance specified for workflow');
+      return false;
     }
-
-    // Ensure folder is set
-    workflow.metadata.folder = workflow.metadata.folder || 'Default';
 
     const workflows = getAllWorkflows();
     
-    // Find existing workflow by name AND folder
+    // Use appliance as the folder
+    workflow.metadata.folder = workflow.metadata.appliance;
+    
+    // Find existing workflow by name and appliance
     const existingIndex = workflows.findIndex(w => 
-      w.metadata?.name === workflow.metadata?.name && 
-      w.metadata?.folder === workflow.metadata?.folder
+      w.metadata.name === workflow.metadata.name && 
+      w.metadata.appliance === workflow.metadata.appliance
     );
 
-    // Update timestamps
-    workflow.metadata.updatedAt = new Date().toISOString();
-    if (existingIndex === -1) {
-      workflow.metadata.createdAt = new Date().toISOString();
-    }
-
-    console.log('Saving workflow:', {
-      name: workflow.metadata.name,
-      folder: workflow.metadata.folder,
-      nodes: workflow.nodes.length
-    });
-
     if (existingIndex >= 0) {
-      // Preserve creation date when updating
-      const createdAt = workflows[existingIndex].metadata.createdAt;
-      workflows[existingIndex] = {
-        ...workflow,
-        metadata: {
-          ...workflow.metadata,
-          createdAt
-        }
-      };
+      // Preserve creation date and active state when updating
+      workflow.metadata.createdAt = workflows[existingIndex].metadata.createdAt;
+      workflow.metadata.isActive = workflows[existingIndex].metadata.isActive;
+      workflows[existingIndex] = workflow;
     } else {
+      workflow.metadata.createdAt = new Date().toISOString();
+      workflow.metadata.isActive = true;
       workflows.push(workflow);
     }
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(workflows));
-    
-    console.log('Successfully saved workflow to storage');
     return true;
   } catch (error) {
     console.error('Error saving workflow to storage:', error);

@@ -10,10 +10,10 @@ export const handleQuickSave = (
   nodeCounter: number,
   currentWorkflow: SavedWorkflow
 ) => {
-  if (!currentWorkflow?.metadata?.folder || !currentWorkflow?.metadata?.name) {
+  if (!currentWorkflow?.metadata?.appliance) {
     toast({
       title: "Error",
-      description: "No folder information available for quick save",
+      description: "No appliance selected for quick save",
       variant: "destructive"
     });
     return;
@@ -24,7 +24,7 @@ export const handleQuickSave = (
     edges,
     nodeCounter,
     currentWorkflow.metadata.name,
-    currentWorkflow.metadata.folder,
+    currentWorkflow.metadata.appliance, // Use appliance as the folder
     currentWorkflow.metadata.appliance,
     currentWorkflow.metadata.symptom
   );
@@ -39,12 +39,12 @@ export const handleSaveWorkflow = (
   appliance?: string,
   symptom?: string
 ) => {
-  console.log('Saving workflow:', { name, folder, nodeCount: nodes.length });
+  console.log('Saving workflow:', { name, folder, appliance, symptom, nodeCount: nodes.length });
   
-  if (!name || !folder) {
+  if (!name || !appliance) {
     toast({
       title: "Error",
-      description: "Workflow name and folder are required",
+      description: "Workflow name and appliance are required",
       variant: "destructive"
     });
     return;
@@ -56,20 +56,21 @@ export const handleSaveWorkflow = (
     const newWorkflow = {
       metadata: {
         name,
-        folder,
+        folder: appliance, // Use appliance as the folder
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         appliance,
         symptom,
-        isActive: true // Set default state to active
+        isActive: true
       },
       nodes,
       edges,
       nodeCounter
     };
 
+    // Find existing workflow by name and appliance
     const existingIndex = workflows.findIndex(
-      w => w.metadata.name === name && w.metadata.folder === folder
+      w => w.metadata.name === name && w.metadata.appliance === appliance
     );
 
     if (existingIndex >= 0) {
@@ -78,7 +79,7 @@ export const handleSaveWorkflow = (
         metadata: {
           ...newWorkflow.metadata,
           createdAt: workflows[existingIndex].metadata.createdAt,
-          isActive: workflows[existingIndex].metadata.isActive // Preserve active state
+          isActive: workflows[existingIndex].metadata.isActive
         }
       };
       console.log('Updated existing workflow at index:', existingIndex);
@@ -91,7 +92,7 @@ export const handleSaveWorkflow = (
     
     toast({
       title: "Workflow Saved",
-      description: `${name} has been saved to ${folder}.`
+      description: `${name} has been saved to ${appliance} workflows.`
     });
     
     return newWorkflow;
