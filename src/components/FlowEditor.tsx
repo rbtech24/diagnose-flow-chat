@@ -1,22 +1,11 @@
-import { useCallback, useRef, useEffect, useState } from 'react';
-import {
-  ReactFlow,
-  addEdge,
-  Connection,
-  useReactFlow,
-  Node,
-  ReactFlowProvider
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-import DiagnosisNode from './DiagnosisNode';
-import { FlowToolbar } from './flow/FlowToolbar';
+
+import { useRef, useEffect } from 'react';
+import { Node } from '@xyflow/react';
 import { LoadingOverlay } from './flow/LoadingOverlay';
-import { WorkflowActions } from './flow/WorkflowActions';
-import { QuickSaveButton } from './flow/QuickSaveButton';
-import { FlowBackground } from './flow/FlowBackground';
+import { FlowHeader } from './flow/FlowHeader';
+import { FlowWrapperWithProvider } from './flow/FlowWrapper';
 import { toast } from '@/hooks/use-toast';
 import {
-  defaultEdgeOptions,
   handleSaveWorkflow,
   handleImportWorkflow,
   SavedWorkflow,
@@ -27,10 +16,7 @@ import { createHistoryState, addToHistory } from '@/utils/workflowHistory';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useFlowState } from '@/hooks/useFlowState';
 import { useFlowActions } from '@/hooks/useFlowActions';
-
-const nodeTypes = {
-  diagnosis: DiagnosisNode,
-};
+import { useFlowConnect } from '@/hooks/useFlowConnect';
 
 interface FlowEditorProps {
   onNodeSelect?: (node: Node, updateNode: (nodeId: string, newData: any) => void) => void;
@@ -40,7 +26,7 @@ interface FlowEditorProps {
   name: string;
 }
 
-function FlowEditorContent({ 
+export default function FlowEditor({ 
   onNodeSelect, 
   appliances = [], 
   currentWorkflow,
@@ -69,7 +55,6 @@ function FlowEditorContent({
   );
 
   const {
-    handleConnect,
     handleCopySelected,
     handlePaste,
     handleQuickSaveClick,
@@ -86,6 +71,15 @@ function FlowEditorContent({
     copiedNodes,
     setCopiedNodes,
     currentWorkflow
+  );
+
+  const handleConnect = useFlowConnect(
+    nodes,
+    edges,
+    nodeCounter,
+    setEdges,
+    history,
+    setHistory
   );
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -186,13 +180,10 @@ function FlowEditorContent({
 
   return (
     <div className="w-full h-full relative">
-      <div className="absolute top-4 right-4 z-50 flex gap-2">
-        <QuickSaveButton 
-          currentWorkflow={currentWorkflow}
-          onQuickSave={handleQuickSaveClick}
-        />
-        <WorkflowActions />
-      </div>
+      <FlowHeader 
+        currentWorkflow={currentWorkflow}
+        onQuickSave={handleQuickSaveClick}
+      />
       
       {isLoading && <LoadingOverlay />}
       
@@ -204,38 +195,21 @@ function FlowEditorContent({
         onChange={handleFileImport}
       />
 
-      <ReactFlow
+      <FlowWrapperWithProvider
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={handleConnect}
         onNodeClick={handleNodeClick}
-        nodeTypes={nodeTypes}
-        defaultEdgeOptions={defaultEdgeOptions}
         snapToGrid={snapToGrid}
-        snapGrid={[15, 15]}
-        fitView
-        className="bg-gray-50"
-      >
-        <FlowBackground />
-        <FlowToolbar
-          onAddNode={handleAddNode}
-          onSave={handleSave}
-          onImportClick={handleImportClick}
-          onCopySelected={handleCopySelected}
-          onPaste={handlePaste}
-          appliances={appliances}
-        />
-      </ReactFlow>
+        onAddNode={handleAddNode}
+        onSave={handleSave}
+        onImportClick={handleImportClick}
+        onCopySelected={handleCopySelected}
+        onPaste={handlePaste}
+        appliances={appliances}
+      />
     </div>
-  );
-}
-
-export default function FlowEditor(props: FlowEditorProps) {
-  return (
-    <ReactFlowProvider>
-      <FlowEditorContent {...props} />
-    </ReactFlowProvider>
   );
 }
