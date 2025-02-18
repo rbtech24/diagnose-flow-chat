@@ -1,3 +1,4 @@
+
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -40,6 +41,26 @@ export function ApplianceCard({
   const handleOpenWorkflowEditor = (applianceName: string, workflowName?: string) => {
     const path = `/workflow-editor?folder=${encodeURIComponent(applianceName)}${workflowName ? `&name=${encodeURIComponent(workflowName)}` : ''}`;
     navigate(path);
+  };
+
+  const handleMoveWorkflow = (fromIndex: number, toIndex: number) => {
+    const workflows = [...applianceWorkflows];
+    const [movedWorkflow] = workflows.splice(fromIndex, 1);
+    workflows.splice(toIndex, 0, movedWorkflow);
+    
+    const allWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');
+    const updatedWorkflows = allWorkflows.map((w: SavedWorkflow) => {
+      if (w.metadata.folder === appliance.name) {
+        const matchingWorkflow = workflows.find((moved: SavedWorkflow) => 
+          moved.metadata.name === w.metadata.name
+        );
+        return matchingWorkflow || w;
+      }
+      return w;
+    });
+    
+    localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
+    window.location.reload();
   };
 
   return (
@@ -85,14 +106,31 @@ export function ApplianceCard({
       {applianceWorkflows.length > 0 && (
         <div className="mb-4 space-y-2">
           <h3 className="text-sm font-medium text-gray-700 mb-2">Workflows</h3>
-          {applianceWorkflows.map((workflow: SavedWorkflow) => (
+          {applianceWorkflows.map((workflow: SavedWorkflow, workflowIndex: number) => (
             <div
               key={workflow.metadata.name}
               className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+              draggable={isReordering}
+              onDragStart={(e) => {
+                e.dataTransfer.setData('workflow-index', workflowIndex.toString());
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                const fromIndex = parseInt(e.dataTransfer.getData('workflow-index'));
+                if (fromIndex !== workflowIndex) {
+                  handleMoveWorkflow(fromIndex, workflowIndex);
+                }
+              }}
             >
               <div className="flex items-center gap-2">
+                {isReordering && (
+                  <GripVertical className="h-4 w-4 text-gray-400 cursor-grab" />
+                )}
                 <FileText className="h-4 w-4 text-green-500" />
-                <span className="text-sm text-gray-700">{workflow.metadata.name}</span>
+                <span className="text-base font-semibold text-gray-700">{workflow.metadata.name}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Button
