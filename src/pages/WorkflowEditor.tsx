@@ -4,6 +4,7 @@ import FlowEditor from '@/components/FlowEditor';
 import NodeConfigPanel from '@/components/NodeConfigPanel';
 import { useState } from 'react';
 import { Node } from '@xyflow/react';
+import { ReactFlowProvider } from '@xyflow/react';
 
 export default function WorkflowEditor() {
   const [searchParams] = useSearchParams();
@@ -16,27 +17,29 @@ export default function WorkflowEditor() {
   };
 
   return (
-    <div className="h-screen flex">
-      <div className="flex-1">
-        <FlowEditor 
-          folder={folder || ''} 
-          name={name || ''} 
-          appliances={[]} 
-          onNodeSelect={handleNodeSelect}
-        />
-      </div>
-      {selectedNode && (
-        <div className="w-96 border-l border-gray-200 bg-white">
-          <NodeConfigPanel 
-            node={selectedNode}
-            onClose={() => setSelectedNode(null)}
-            onUpdate={(nodeData) => {
-              // Handle node update logic here
-              console.log('Updating node:', nodeData);
-            }}
+    <ReactFlowProvider>
+      <div className="h-screen flex">
+        <div className="flex-1">
+          <FlowEditor 
+            folder={folder || ''} 
+            name={name || ''} 
+            appliances={[]} 
+            onNodeSelect={handleNodeSelect}
           />
         </div>
-      )}
-    </div>
+        {selectedNode && (
+          <div className="w-96 border-l border-gray-200 bg-white">
+            <NodeConfigPanel 
+              node={selectedNode}
+              onClose={() => setSelectedNode(null)}
+              onUpdate={(nodeData) => {
+                // Handle node update logic here
+                console.log('Updating node:', nodeData);
+              }}
+            />
+          </div>
+        )}
+      </div>
+    </ReactFlowProvider>
   );
 }
