@@ -97,9 +97,9 @@ export function FlowToolbar({
       <div className="pointer-events-auto">
         <Link to="/workflows">
           <Button 
-            variant="secondary"
+            variant="default"
             size="sm"
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white"
           >
             <Link2 className="w-4 h-4" />
             Workflows
