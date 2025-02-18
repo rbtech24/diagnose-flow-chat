@@ -1,3 +1,4 @@
+
 import { ApplianceCard } from '@/components/appliance/ApplianceCard';
 import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
@@ -101,7 +102,7 @@ export function WorkflowGrid({
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-3">
               <div className="mt-1">
-                <FileText className="h-5 w-5 text-indigo-400" />
+                <FileText className="h-5 w-5 text-green-500" />
               </div>
               <div>
                 <h2 className="text-base font-semibold text-gray-900">
@@ -112,7 +113,7 @@ export function WorkflowGrid({
                 </p>
                 <div className="flex items-center gap-3 mt-2 text-sm text-gray-600">
                   <div className="flex items-center gap-1.5">
-                    <div className="h-2 w-2 rounded-full bg-indigo-400"></div>
+                    <div className="h-2 w-2 rounded-full bg-green-500"></div>
                     {workflow.nodes.length} steps
                   </div>
                   <div className={`${workflow.metadata.isActive ? 'text-gray-600' : 'text-gray-400'}`}>
@@ -139,7 +140,7 @@ export function WorkflowGrid({
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  className="h-8 w-8 p-0 text-indigo-500 hover:text-indigo-600 hover:bg-indigo-50"
+                  className="h-8 w-8 p-0 text-green-500 hover:text-green-600 hover:bg-green-50"
                   onClick={() => onOpenWorkflowEditor(workflow.metadata.folder || '', workflow.metadata.name)}
                 >
                   <ArrowUpRight className="h-4 w-4" />
@@ -148,7 +149,7 @@ export function WorkflowGrid({
               <Switch
                 checked={workflow.metadata.isActive}
                 onCheckedChange={() => onToggleWorkflowActive(workflow)}
-                className="data-[state=checked]:bg-indigo-500"
+                className="data-[state=checked]:bg-green-500"
               />
             </div>
           </div>
