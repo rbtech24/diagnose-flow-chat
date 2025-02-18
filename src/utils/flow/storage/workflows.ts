@@ -1,0 +1,117 @@
+
+import { toast } from '@/hooks/use-toast';
+import { SavedWorkflow } from '../types';
+import { supabase } from '@/integrations/supabase/client';
+import { getOrCreateCategory } from './categories';
+
+export const getAllWorkflows = async (): Promise<SavedWorkflow[]> => {
+  try {
+    const { data: workflows, error } = await supabase
+      .from('workflows')
+      .select('*, workflow_categories(name)')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    return workflows.map(workflow => ({
+      metadata: {
+        name: workflow.name,
+        folder: workflow.workflow_categories?.name || 'Default',
+        appliance: workflow.workflow_categories?.name || 'Default',
+        createdAt: workflow.created_at,
+        updatedAt: workflow.updated_at,
+        isActive: workflow.is_active
+      },
+      nodes: workflow.flow_data.nodes,
+      edges: workflow.flow_data.edges,
+      nodeCounter: workflow.flow_data.nodeCounter
+    }));
+  } catch (error) {
+    console.error('Error getting all workflows:', error);
+    return [];
+  }
+};
+
+export const getWorkflowsInFolder = async (folder: string): Promise<SavedWorkflow[]> => {
+  try {
+    const { data: category } = await supabase
+      .from('workflow_categories')
+      .select('id')
+      .eq('name', folder)
+      .single();
+      
+    if (!category) return [];
+    
+    const { data: workflows, error } = await supabase
+      .from('workflows')
+      .select('*, workflow_categories(name)')
+      .eq('category_id', category.id)
+      .eq('is_active', true);
+      
+    if (error) throw error;
+    
+    return workflows.map(workflow => ({
+      metadata: {
+        name: workflow.name,
+        folder: workflow.workflow_categories?.name || 'Default',
+        appliance: workflow.workflow_categories?.name || 'Default',
+        createdAt: workflow.created_at,
+        updatedAt: workflow.updated_at,
+        isActive: workflow.is_active
+      },
+      nodes: workflow.flow_data.nodes,
+      edges: workflow.flow_data.edges,
+      nodeCounter: workflow.flow_data.nodeCounter
+    }));
+  } catch (error) {
+    console.error('Error getting workflows in folder:', error);
+    return [];
+  }
+};
+
+export const saveWorkflowToStorage = async (workflow: SavedWorkflow): Promise<boolean> => {
+  try {
+    if (!workflow.metadata?.appliance) {
+      console.error('No appliance specified for workflow');
+      return false;
+    }
+
+    const category = await getOrCreateCategory(workflow.metadata.appliance);
+    if (!category) return false;
+
+    // Save workflow
+    const { error } = await supabase
+      .from('workflows')
+      .upsert({
+        name: workflow.metadata.name,
+        category_id: category.id,
+        description: '',
+        flow_data: JSON.stringify({
+          nodes: workflow.nodes,
+          edges: workflow.edges,
+          nodeCounter: workflow.nodeCounter
+        }),
+        is_active: workflow.metadata.isActive ?? true,
+        updated_at: new Date().toISOString()
+      })
+      .select();
+
+    if (error) throw error;
+    
+    toast({
+      title: "Success",
+      description: "Workflow saved successfully"
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error saving workflow to storage:', error);
+    toast({
+      title: "Error",
+      description: "Failed to save workflow",
+      variant: "destructive"
+    });
+    return false;
+  }
+};
