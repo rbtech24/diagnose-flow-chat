@@ -11,13 +11,13 @@ import { useLocation } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 
 interface SaveWorkflowDialogProps {
-  onSave: (name: string, folder: string) => Promise<void>;
+  onSave: (name: string, folder: string, appliance?: string) => Promise<void>;
 }
 
 export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [workflowName, setWorkflowName] = useState('');
-  const [selectedFolder, setSelectedFolder] = useState('Default');
+  const [selectedFolder, setSelectedFolder] = useState('');
   const [newFolder, setNewFolder] = useState('');
   const [folders, setFolders] = useState<string[]>([]);
   const { appliances } = useAppliances();
@@ -32,6 +32,9 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
         ? existingFolders 
         : [...new Set([...appliances.map(a => a.name), ...existingFolders])];
       setFolders(availableFolders);
+      if (availableFolders.length > 0) {
+        setSelectedFolder(availableFolders[0]);
+      }
     }
   }, [isOpen, isWorkflowsPage, appliances]);
 
@@ -46,18 +49,27 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
     }
 
     const targetFolder = newFolder || selectedFolder;
-    
+    if (!targetFolder) {
+      toast({
+        title: "Validation Error",
+        description: "Please select or create a folder",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       console.log('Saving workflow:', {
         name: workflowName,
-        folder: targetFolder
+        folder: targetFolder,
+        appliance: targetFolder // Pass the folder as the appliance
       });
       
-      await onSave(workflowName, targetFolder);
+      await onSave(workflowName, targetFolder, targetFolder);
       setIsOpen(false);
       setWorkflowName('');
       setNewFolder('');
-      setSelectedFolder('Default');
+      setSelectedFolder(folders[0] || '');
     } catch (error) {
       console.error('Error saving workflow:', error);
       toast({
@@ -80,7 +92,7 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
         <DialogHeader>
           <DialogTitle>Save Workflow</DialogTitle>
           <DialogDescription>
-            Save your workflow to an existing folder or create a new one.
+            Save your workflow to an appliance category.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 pt-4">
@@ -95,7 +107,7 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
           </div>
           
           <div className="space-y-2">
-            <Label>Save to Folder</Label>
+            <Label>Select Appliance</Label>
             <select
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
               value={selectedFolder}
@@ -113,22 +125,22 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="newFolder">Or Create New Folder</Label>
+            <Label htmlFor="newFolder">Or Create New Appliance Category</Label>
             <Input
               id="newFolder"
               value={newFolder}
               onChange={(e) => {
                 setNewFolder(e.target.value);
-                setSelectedFolder('Default');
+                setSelectedFolder('');
               }}
-              placeholder="Enter new folder name"
+              placeholder="Enter new appliance category"
             />
           </div>
 
           <Button 
             className="w-full" 
             onClick={handleSave}
-            disabled={!workflowName}
+            disabled={!workflowName || (!selectedFolder && !newFolder)}
           >
             Save
           </Button>
