@@ -1,6 +1,6 @@
 
 import { toast } from '@/hooks/use-toast';
-import { SavedWorkflow } from './types';
+import { SavedWorkflow, WorkflowData } from './types';
 import { supabase } from '@/integrations/supabase/client';
 
 export const cleanupWorkflows = async () => {
@@ -169,17 +169,24 @@ export const saveWorkflowToStorage = async (workflow: SavedWorkflow): Promise<bo
       category = newCategory;
     }
 
+    // Prepare workflow data
+    const workflowData: WorkflowData = {
+      name: workflow.metadata.name,
+      category_id: category.id,
+      description: '',
+      flow_data: {
+        metadata: workflow.metadata,
+        nodes: workflow.nodes,
+        edges: workflow.edges,
+        nodeCounter: workflow.nodeCounter
+      },
+      is_active: workflow.metadata.isActive ?? true,
+    };
+
     // Save workflow
     const { error } = await supabase
       .from('workflows')
-      .upsert({
-        name: workflow.metadata.name,
-        category_id: category.id,
-        description: '',
-        flow_data: workflow,
-        is_active: workflow.metadata.isActive ?? true,
-        updated_at: new Date().toISOString()
-      })
+      .upsert(workflowData)
       .select();
 
     if (error) throw error;

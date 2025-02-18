@@ -23,6 +23,20 @@ export interface SavedWorkflow {
   nodeCounter: number;
 }
 
+export interface WorkflowData {
+  name: string;
+  category_id: string;
+  description?: string;
+  flow_data: {
+    metadata: WorkflowMetadata;
+    nodes: Node[];
+    edges: Edge[];
+    nodeCounter: number;
+  };
+  is_active: boolean;
+  updated_at?: string;
+}
+
 export interface NodeUpdateFunction {
   (nodeId: string, newData: any): void;
 }

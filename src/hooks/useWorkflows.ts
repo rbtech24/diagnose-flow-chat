@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { SavedWorkflow } from '@/utils/flow/types';
 import { getAllWorkflows, moveWorkflowToFolder } from '@/utils/flow';
+import { supabase } from '@/integrations/supabase/client';
 
 export function useWorkflows() {
   const [workflowsState, setWorkflowsState] = useState<SavedWorkflow[]>([]);

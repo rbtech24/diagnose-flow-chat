@@ -27,14 +27,26 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
   
   useEffect(() => {
     if (isOpen) {
-      const existingFolders = getFolders();
-      const availableAppliances = isWorkflowsPage 
-        ? existingFolders 
-        : [...new Set([...appliancesList.map(a => a.name), ...existingFolders])];
-      setAppliances(availableAppliances);
-      if (availableAppliances.length > 0) {
-        setSelectedAppliance(availableAppliances[0]);
-      }
+      const loadFolders = async () => {
+        try {
+          const existingFolders = await getFolders();
+          const availableAppliances = isWorkflowsPage 
+            ? existingFolders 
+            : [...new Set([...appliancesList.map(a => a.name), ...existingFolders])];
+          setAppliances(availableAppliances);
+          if (availableAppliances.length > 0) {
+            setSelectedAppliance(availableAppliances[0]);
+          }
+        } catch (error) {
+          console.error('Error loading folders:', error);
+          toast({
+            title: "Error",
+            description: "Failed to load folders",
+            variant: "destructive"
+          });
+        }
+      };
+      loadFolders();
     }
   }, [isOpen, isWorkflowsPage, appliancesList]);
 
