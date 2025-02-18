@@ -1,10 +1,10 @@
-
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Edit, Trash, ArrowUpRight, GripVertical, Plus, FileText } from 'lucide-react';
 import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
+import { useNavigate } from 'react-router-dom';
 
 interface ApplianceCardProps {
   appliance: Appliance;
@@ -33,13 +33,13 @@ export function ApplianceCard({
   onAddIssue,
   getSymptomCardColor
 }: ApplianceCardProps) {
-  // Load workflows for this appliance
+  const navigate = useNavigate();
   const applianceWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]')
     .filter((w: SavedWorkflow) => w.metadata.folder === appliance.name);
 
   const handleOpenWorkflowEditor = (applianceName: string, workflowName?: string) => {
     const path = `/workflow-editor?folder=${encodeURIComponent(applianceName)}${workflowName ? `&name=${encodeURIComponent(workflowName)}` : ''}`;
-    window.location.href = path;
+    navigate(path);
   };
 
   return (
@@ -82,7 +82,6 @@ export function ApplianceCard({
         </div>
       </div>
       
-      {/* Workflows section */}
       {applianceWorkflows.length > 0 && (
         <div className="mb-4 space-y-2">
           <h3 className="text-sm font-medium text-gray-700 mb-2">Workflows</h3>
