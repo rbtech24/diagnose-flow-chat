@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Field, TechnicalSpecs } from '@/types/node-config';
 import { toast } from '@/hooks/use-toast';
@@ -21,6 +22,7 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
   });
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
+  // Reset state when node changes
   useEffect(() => {
     if (node) {
       setNodeType(node.data.type || 'question');
@@ -35,34 +37,15 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
         points: ''
       });
     }
-  }, [node]);
-
-  const validateNode = () => {
-    const errors: string[] = [];
-    
-    if (!label.trim()) {
-      errors.push('Label is required');
-    }
-    
-    if (fields.length === 0) {
-      errors.push('At least one field is required');
-    }
-    
-    if (showTechnicalFields) {
-      if (technicalSpecs.range.max <= technicalSpecs.range.min) {
-        errors.push('Maximum range must be greater than minimum range');
-      }
-    }
-    
-    setValidationErrors(errors);
-    return errors.length === 0;
-  };
+  }, [node?.id, node?.data]); // Add node.id and node.data as dependencies
 
   const initializeFields = (data: any) => {
     const initialFields: Field[] = [];
     
     if (data.content) {
-      const contentBlocks = data.content.split('\n\n').filter(Boolean);
+      const contentBlocks = Array.isArray(data.content) 
+        ? data.content 
+        : data.content.split('\n\n').filter(Boolean);
       contentBlocks.forEach((content: string, index: number) => {
         initialFields.push({
           id: `content-${index + 1}`,
@@ -96,6 +79,27 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
   const handleNodeTypeChange = (value: string) => {
     setNodeType(value);
     setShowTechnicalFields(['voltage-check', 'resistance-check', 'inspection'].includes(value));
+  };
+
+  const validateNode = () => {
+    const errors: string[] = [];
+    
+    if (!label.trim()) {
+      errors.push('Label is required');
+    }
+    
+    if (fields.length === 0) {
+      errors.push('At least one field is required');
+    }
+    
+    if (showTechnicalFields) {
+      if (technicalSpecs.range.max <= technicalSpecs.range.min) {
+        errors.push('Maximum range must be greater than minimum range');
+      }
+    }
+    
+    setValidationErrors(errors);
+    return errors.length === 0;
   };
 
   const handleApplyChanges = () => {
@@ -146,10 +150,6 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
     };
 
     onUpdate(node.id, updatedData);
-    toast({
-      title: "Changes Applied",
-      description: "Node configuration has been updated."
-    });
   };
 
   const handleReset = () => {

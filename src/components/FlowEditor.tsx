@@ -9,7 +9,7 @@ import {
   initialNodes,
   initialEdges,
 } from '@/utils/flow';
-import { createHistoryState } from '@/utils/workflowHistory';
+import { createHistoryState, addToHistory } from '@/utils/workflowHistory';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useFlowState } from '@/hooks/useFlowState';
 import { useFlowActions } from '@/hooks/useFlowActions';
