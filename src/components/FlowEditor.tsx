@@ -1,9 +1,6 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+
+import { useEffect, useState, useCallback } from 'react';
 import { Node } from '@xyflow/react';
-import { LoadingOverlay } from './flow/LoadingOverlay';
-import { FlowHeader } from './flow/FlowHeader';
-import { FlowCanvas } from './flow/FlowCanvas';
-import { FlowFileInput } from './flow/FlowFileInput';
 import { toast } from '@/hooks/use-toast';
 import {
   handleSaveWorkflow,
@@ -12,11 +9,13 @@ import {
   initialNodes,
   initialEdges,
 } from '@/utils/flow';
-import { createHistoryState, addToHistory } from '@/utils/workflowHistory';
+import { createHistoryState } from '@/utils/workflowHistory';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useFlowState } from '@/hooks/useFlowState';
 import { useFlowActions } from '@/hooks/useFlowActions';
 import { useFlowConnect } from '@/hooks/useFlowConnect';
+import { useNodeOperations } from '@/hooks/useNodeOperations';
+import { FlowEditorContent } from './flow/FlowEditorContent';
 
 interface FlowEditorProps {
   onNodeSelect?: (node: Node, updateNode: (nodeId: string, newData: any) => void) => void;
@@ -52,6 +51,14 @@ export default function FlowEditor({
 
   const [history, setHistory] = useState(() => 
     createHistoryState({ nodes, edges, nodeCounter })
+  );
+
+  const { handleNodeUpdate } = useNodeOperations(
+    nodes,
+    edges,
+    nodeCounter,
+    setNodes,
+    setHistory
   );
 
   const {
@@ -151,43 +158,12 @@ export default function FlowEditor({
     }
   };
 
-  const handleNodeUpdate = useCallback((nodeId: string, newData: any) => {
-    console.log('FlowEditor handleNodeUpdate called with:', { nodeId, newData, currentNodes: nodes });
-    
-    const nodeToUpdate = nodes.find(node => node.id === nodeId);
-    if (!nodeToUpdate) {
-      console.error('Node not found:', nodeId);
-      return;
+  const handleNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+    console.log('Node clicked:', node);
+    if (onNodeSelect) {
+      onNodeSelect(node, handleNodeUpdate);
     }
-
-    const updatedNode = {
-      ...nodeToUpdate,
-      data: {
-        ...nodeToUpdate.data,
-        ...newData
-      }
-    };
-
-    console.log('Updated node data:', updatedNode);
-
-    const updatedNodes = nodes.map(node => 
-      node.id === nodeId ? updatedNode : node
-    );
-
-    setNodes(updatedNodes);
-
-    const newState = { 
-      nodes: updatedNodes, 
-      edges, 
-      nodeCounter 
-    };
-    setHistory(prevHistory => addToHistory(prevHistory, newState));
-
-    toast({
-      title: "Node Updated",
-      description: "Changes have been applied successfully."
-    });
-  }, [nodes, edges, nodeCounter, setNodes, setHistory]);
+  }, [onNodeSelect, handleNodeUpdate]);
 
   const handleFileInputClick = () => {
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -196,39 +172,25 @@ export default function FlowEditor({
     }
   };
 
-  const handleNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
-    console.log('Node clicked:', node);
-    if (onNodeSelect) {
-      onNodeSelect(node, handleNodeUpdate);
-    }
-  }, [onNodeSelect, handleNodeUpdate]);
-
   return (
-    <div className="w-full h-full relative">
-      <FlowHeader 
-        currentWorkflow={currentWorkflow}
-        onQuickSave={handleQuickSaveClick}
-      />
-      
-      {isLoading && <LoadingOverlay />}
-      
-      <FlowFileInput onFileImport={handleFileImport} />
-
-      <FlowCanvas
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={handleConnect}
-        onNodeClick={handleNodeClick}
-        snapToGrid={snapToGrid}
-        onAddNode={handleAddNode}
-        onSave={handleSave}
-        onImportClick={handleFileInputClick}
-        onCopySelected={handleCopySelected}
-        onPaste={handlePaste}
-        appliances={appliances}
-      />
-    </div>
+    <FlowEditorContent
+      nodes={nodes}
+      edges={edges}
+      isLoading={isLoading}
+      snapToGrid={snapToGrid}
+      currentWorkflow={currentWorkflow}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      onConnect={handleConnect}
+      onNodeClick={handleNodeClick}
+      onQuickSave={handleQuickSaveClick}
+      onAddNode={handleAddNode}
+      onSave={handleSave}
+      onFileImport={handleFileImport}
+      onFileInputClick={handleFileInputClick}
+      onCopySelected={handleCopySelected}
+      onPaste={handlePaste}
+      appliances={appliances}
+    />
   );
 }
