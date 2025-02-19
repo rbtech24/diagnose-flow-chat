@@ -14,37 +14,38 @@ export function useNodeOperations(
   const handleNodeUpdate = useCallback((nodeId: string, newData: any) => {
     console.log('handleNodeUpdate called with:', { nodeId, newData });
     
-    setNodes(currentNodes => {
-      const updatedNodes = currentNodes.map(node => {
-        if (node.id === nodeId) {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              ...newData,
-              nodeId: node.data.nodeId // Preserve the original nodeId
-            }
-          };
-        }
-        return node;
-      });
-
-      // Add to history
-      const newState = { 
-        nodes: updatedNodes, 
-        edges, 
-        nodeCounter 
-      };
-      setHistory(prevHistory => addToHistory(prevHistory, newState));
-
-      toast({
-        title: "Node Updated",
-        description: "Changes have been applied successfully."
-      });
-
-      return updatedNodes;
+    // Create the updated nodes array directly instead of using a callback
+    const updatedNodes = nodes.map(node => {
+      if (node.id === nodeId) {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            ...newData,
+            nodeId: node.data.nodeId // Preserve the original nodeId
+          }
+        };
+      }
+      return node;
     });
-  }, [edges, nodeCounter, setNodes, setHistory]);
+
+    // Update nodes state
+    setNodes(updatedNodes);
+
+    // Add to history
+    const newState = { 
+      nodes: updatedNodes, 
+      edges, 
+      nodeCounter 
+    };
+    setHistory(prevHistory => addToHistory(prevHistory, newState));
+
+    toast({
+      title: "Node Updated",
+      description: "Changes have been applied successfully."
+    });
+
+  }, [nodes, edges, nodeCounter, setNodes, setHistory]);
 
   return { handleNodeUpdate };
 }
