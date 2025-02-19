@@ -19,8 +19,8 @@ export default function WorkflowEditor() {
     setUpdateNodeFn(() => updateNode);
   }, []);
 
-  const handleNodeUpdate = useCallback((nodeId: string, nodeData: any) => {
-    console.log('WorkflowEditor handleNodeUpdate:', nodeId, nodeData);
+  const handleNodeUpdate = useCallback((nodeData: any) => {
+    console.log('WorkflowEditor handleNodeUpdate:', nodeData);
     if (selectedNode && updateNodeFn) {
       updateNodeFn(selectedNode.id, nodeData);
     }
