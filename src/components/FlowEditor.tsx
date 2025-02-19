@@ -1,4 +1,3 @@
-
 import { useRef, useEffect, useState } from 'react';
 import { Node } from '@xyflow/react';
 import { LoadingOverlay } from './flow/LoadingOverlay';
@@ -167,6 +166,13 @@ export default function FlowEditor({
     }));
   };
 
+  const handleFileInputClick = () => {
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  };
+
   const handleNodeClick = (event: React.MouseEvent, node: Node) => {
     if (onNodeSelect) {
       onNodeSelect(node, handleNodeUpdate);
@@ -194,7 +200,7 @@ export default function FlowEditor({
         snapToGrid={snapToGrid}
         onAddNode={handleAddNode}
         onSave={handleSave}
-        onImportClick={() => document.querySelector('input[type="file"]')?.click()}
+        onImportClick={handleFileInputClick}
         onCopySelected={handleCopySelected}
         onPaste={handlePaste}
         appliances={appliances}
