@@ -3,7 +3,8 @@ import { useRef, useEffect, useState } from 'react';
 import { Node } from '@xyflow/react';
 import { LoadingOverlay } from './flow/LoadingOverlay';
 import { FlowHeader } from './flow/FlowHeader';
-import { FlowWrapperWithProvider } from './flow/FlowWrapper';
+import { FlowCanvas } from './flow/FlowCanvas';
+import { FlowFileInput } from './flow/FlowFileInput';
 import { toast } from '@/hooks/use-toast';
 import {
   handleSaveWorkflow,
@@ -82,8 +83,6 @@ export default function FlowEditor({
     setHistory
   );
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const isNew = searchParams.get('new') === 'true';
@@ -118,7 +117,7 @@ export default function FlowEditor({
     handlePaste();
   });
 
-  const handleSave = async (name: string, folder: string, appliance: string): Promise<void> => {
+  const handleSave = async (name: string, folder: string, appliance: string) => {
     try {
       const workflow = await handleSaveWorkflow(nodes, edges, nodeCounter, name, folder, appliance, '');
       if (workflow) {
@@ -136,10 +135,6 @@ export default function FlowEditor({
       });
       return Promise.reject(error);
     }
-  };
-
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
   };
 
   const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -187,15 +182,9 @@ export default function FlowEditor({
       
       {isLoading && <LoadingOverlay />}
       
-      <input 
-        type="file" 
-        ref={fileInputRef}
-        className="hidden"
-        accept=".json"
-        onChange={handleFileImport}
-      />
+      <FlowFileInput onFileImport={handleFileImport} />
 
-      <FlowWrapperWithProvider
+      <FlowCanvas
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
@@ -205,7 +194,7 @@ export default function FlowEditor({
         snapToGrid={snapToGrid}
         onAddNode={handleAddNode}
         onSave={handleSave}
-        onImportClick={handleImportClick}
+        onImportClick={() => document.querySelector('input[type="file"]')?.click()}
         onCopySelected={handleCopySelected}
         onPaste={handlePaste}
         appliances={appliances}
