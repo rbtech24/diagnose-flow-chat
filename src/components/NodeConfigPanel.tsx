@@ -7,7 +7,7 @@ import { AlertCircle } from 'lucide-react';
 interface NodeConfigPanelProps {
   node: any;
   onUpdate: (nodeData: any) => void;
-  onClose: () => void;  // Added this prop
+  onClose: () => void;
 }
 
 export default function NodeConfigPanel({ node, onUpdate, onClose }: NodeConfigPanelProps) {
@@ -27,7 +27,13 @@ export default function NodeConfigPanel({ node, onUpdate, onClose }: NodeConfigP
     handleReset,
     handleApplyChanges,
     validationErrors
-  } = useNodeConfig({ node, onUpdate });
+  } = useNodeConfig({ 
+    node, 
+    onUpdate: (data) => {
+      console.log('NodeConfigPanel onUpdate:', data);
+      onUpdate(data);
+    }
+  });
 
   if (!node) {
     return (
