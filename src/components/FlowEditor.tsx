@@ -152,39 +152,42 @@ export default function FlowEditor({
   };
 
   const handleNodeUpdate = useCallback((nodeId: string, newData: any) => {
-    console.log('FlowEditor handleNodeUpdate called with:', nodeId, newData);
+    console.log('FlowEditor handleNodeUpdate called with:', { nodeId, newData, currentNodes: nodes });
     
-    setNodes(prevNodes => {
-      const updatedNodes = prevNodes.map(node => {
-        if (node.id === nodeId) {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              ...newData,
-            },
-          };
-        }
-        return node;
-      });
-      
-      // Update history
-      const newState = { 
-        nodes: updatedNodes, 
-        edges, 
-        nodeCounter 
-      };
-      setHistory(prevHistory => addToHistory(prevHistory, newState));
-      
-      return updatedNodes;
-    });
+    const nodeToUpdate = nodes.find(node => node.id === nodeId);
+    if (!nodeToUpdate) {
+      console.error('Node not found:', nodeId);
+      return;
+    }
 
-    // Show success toast
+    const updatedNode = {
+      ...nodeToUpdate,
+      data: {
+        ...nodeToUpdate.data,
+        ...newData
+      }
+    };
+
+    console.log('Updated node data:', updatedNode);
+
+    const updatedNodes = nodes.map(node => 
+      node.id === nodeId ? updatedNode : node
+    );
+
+    setNodes(updatedNodes);
+
+    const newState = { 
+      nodes: updatedNodes, 
+      edges, 
+      nodeCounter 
+    };
+    setHistory(prevHistory => addToHistory(prevHistory, newState));
+
     toast({
       title: "Node Updated",
       description: "Changes have been applied successfully."
     });
-  }, [edges, nodeCounter, setHistory]);
+  }, [nodes, edges, nodeCounter, setNodes, setHistory]);
 
   const handleFileInputClick = () => {
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
