@@ -37,7 +37,7 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
         points: ''
       });
     }
-  }, [node?.id, node?.data]); // Add node.id and node.data as dependencies
+  }, [node?.id, node?.data]);
 
   const initializeFields = (data: any) => {
     const initialFields: Field[] = [];
@@ -114,6 +114,7 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
       return;
     }
 
+    // Prepare the data in the correct format
     let combinedContent = '';
     const combinedMedia: any[] = [];
     let combinedOptions: string[] = [];
@@ -149,6 +150,7 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
       technicalSpecs: showTechnicalFields ? technicalSpecs : undefined
     };
 
+    console.log('Applying changes with data:', updatedData);
     onUpdate(node.id, updatedData);
   };
 
