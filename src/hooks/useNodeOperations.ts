@@ -20,16 +20,17 @@ export function useNodeOperations(
       return;
     }
 
+    // Preserve the original nodeId and add new data
     const updatedNode = {
       ...nodeToUpdate,
       data: {
-        ...nodeToUpdate.data,
-        label: newData.label,
-        type: newData.type,
-        content: newData.content,
-        options: newData.options,
-        media: newData.media,
-        technicalSpecs: newData.technicalSpecs,
+        nodeId: nodeToUpdate.data.nodeId, // Preserve the original nodeId
+        label: newData.label || nodeToUpdate.data.label,
+        type: newData.type || nodeToUpdate.data.type,
+        content: newData.content || nodeToUpdate.data.content,
+        options: Array.isArray(newData.options) ? newData.options : nodeToUpdate.data.options,
+        media: Array.isArray(newData.media) ? newData.media : nodeToUpdate.data.media || [],
+        technicalSpecs: newData.technicalSpecs || nodeToUpdate.data.technicalSpecs,
       }
     };
 
