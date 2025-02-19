@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import { Node } from '@xyflow/react';
 import { LoadingOverlay } from './flow/LoadingOverlay';
 import { FlowHeader } from './flow/FlowHeader';
@@ -151,35 +151,40 @@ export default function FlowEditor({
     }
   };
 
-  const handleNodeUpdate = (nodeId: string, newData: any) => {
+  const handleNodeUpdate = useCallback((nodeId: string, newData: any) => {
     console.log('Updating node:', nodeId, newData);
-    setNodes(prevNodes => {
-      const updatedNodes = prevNodes.map((node) => {
-        if (node.id === nodeId) {
-          const updatedNode = {
-            ...node,
-            data: {
-              ...node.data,
-              ...newData,
-            },
-          };
-          console.log('Updated node:', updatedNode);
-          return updatedNode;
-        }
-        return node;
-      });
-      
-      setHistory(prevHistory => 
-        addToHistory(prevHistory, { 
-          nodes: updatedNodes, 
-          edges, 
-          nodeCounter 
-        })
-      );
-      
-      return updatedNodes;
+    
+    const updatedNodes = nodes.map((node) => {
+      if (node.id === nodeId) {
+        const updatedNode = {
+          ...node,
+          data: {
+            ...node.data,
+            ...newData,
+          },
+        };
+        console.log('Updated node:', updatedNode);
+        return updatedNode;
+      }
+      return node;
     });
-  };
+
+    setNodes(updatedNodes);
+    
+    // Update history after the node update
+    const newState = { 
+      nodes: updatedNodes, 
+      edges, 
+      nodeCounter 
+    };
+    setHistory(prevHistory => addToHistory(prevHistory, newState));
+    
+    // Show success toast
+    toast({
+      title: "Node Updated",
+      description: "Changes have been applied successfully."
+    });
+  }, [nodes, edges, nodeCounter, setNodes, setHistory]);
 
   const handleFileInputClick = () => {
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
