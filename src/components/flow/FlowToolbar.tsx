@@ -2,7 +2,7 @@
 import { Button } from '../ui/button';
 import { SaveWorkflowDialog } from './SaveWorkflowDialog';
 import { handleSaveWorkflow } from '@/utils/flow';
-import { Download, Upload, Plus, Copy, Clipboard, Search, Link2 } from 'lucide-react';
+import { Download, Upload, Plus, Copy, Clipboard, Search, Link2, Save } from 'lucide-react';
 import { useFlowState } from '@/hooks/useFlowState';
 import { useCallback } from 'react';
 import { Link } from 'react-router-dom';
@@ -15,6 +15,7 @@ interface FlowToolbarProps {
   onCopySelected: () => void;
   onPaste: () => void;
   appliances: string[];
+  onApplyNodeChanges?: () => void;
 }
 
 export function FlowToolbar({
@@ -23,14 +24,14 @@ export function FlowToolbar({
   onImportClick,
   onCopySelected,
   onPaste,
-  appliances
+  appliances,
+  onApplyNodeChanges
 }: FlowToolbarProps) {
   const { nodes, edges, nodeCounter } = useFlowState();
 
   const handleImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    // Pass empty string as symptom for imported workflows
     handleSaveWorkflow(nodes, edges, nodeCounter, file.name, 'import', 'import', '');
   }, [nodes, edges, nodeCounter]);
 
@@ -47,6 +48,20 @@ export function FlowToolbar({
           Add Step
         </Button>
       </div>
+
+      {onApplyNodeChanges && (
+        <div className="pointer-events-auto">
+          <Button 
+            variant="secondary"
+            size="sm"
+            className="flex items-center gap-2"
+            onClick={onApplyNodeChanges}
+          >
+            <Save className="w-4 h-4" />
+            Apply Changes
+          </Button>
+        </div>
+      )}
 
       <div className="pointer-events-auto">
         <SaveWorkflowDialog onSave={onSave} />
@@ -86,7 +101,6 @@ export function FlowToolbar({
           size="icon"
           className="h-8 w-8"
           onClick={() => {
-            // Pass empty string as symptom for exported workflows
             handleSaveWorkflow(nodes, edges, nodeCounter, 'Exported Workflow', 'export', 'export', '');
           }}
         >

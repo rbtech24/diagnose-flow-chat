@@ -24,6 +24,7 @@ interface FlowEditorContentProps {
   onCopySelected: () => void;
   onPaste: () => void;
   appliances: string[];
+  onApplyNodeChanges?: () => void;
 }
 
 export function FlowEditorContent({
@@ -44,6 +45,7 @@ export function FlowEditorContent({
   onCopySelected,
   onPaste,
   appliances,
+  onApplyNodeChanges,
 }: FlowEditorContentProps) {
   return (
     <div className="w-full h-full relative">
@@ -70,6 +72,7 @@ export function FlowEditorContent({
         onCopySelected={onCopySelected}
         onPaste={onPaste}
         appliances={appliances}
+        onApplyNodeChanges={onApplyNodeChanges}
       />
     </div>
   );
