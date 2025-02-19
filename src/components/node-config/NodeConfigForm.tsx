@@ -43,6 +43,31 @@ export function NodeConfigForm({
   onApply,
   hasValidationErrors
 }: NodeConfigFormProps) {
+  // Ensure fields is always an array
+  const safeFields = Array.isArray(fields) ? fields : [];
+  
+  // Helper function to safely get field content
+  const getFieldContent = () => {
+    return safeFields
+      .filter(f => f.type === 'content')
+      .map(f => f.content)
+      .filter(Boolean)
+      .join('\n\n');
+  };
+
+  // Helper function to safely get field media
+  const getFieldMedia = () => {
+    return safeFields
+      .filter(f => f.type === 'media')
+      .flatMap(f => f.media || []);
+  };
+
+  // Helper function to safely get field options 
+  const getFieldOptions = () => {
+    const optionsField = safeFields.find(f => f.type === 'options');
+    return optionsField?.options || [];
+  };
+
   return (
     <div className="space-y-6">
       <NodeTypeSelect 
@@ -60,7 +85,7 @@ export function NodeConfigForm({
       </div>
 
       <NodeFields 
-        fields={fields}
+        fields={safeFields}
         onFieldsChange={onFieldsChange}
         onAddField={onAddField}
         onRemoveField={onRemoveField}
@@ -79,9 +104,9 @@ export function NodeConfigForm({
           {JSON.stringify({
             type: nodeType,
             label,
-            content: fields.filter(f => f.type === 'content').map(f => f.content).join('\n\n'),
-            media: fields.filter(f => f.type === 'media').flatMap(f => f.media || []),
-            options: fields.find(f => f.type === 'options')?.options,
+            content: getFieldContent(),
+            media: getFieldMedia(),
+            options: getFieldOptions(),
             technicalSpecs: showTechnicalFields ? technicalSpecs : undefined
           }, null, 2)}
         </pre>
