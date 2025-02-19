@@ -16,6 +16,7 @@ interface FlowCanvasProps {
   onCopySelected: () => void;
   onPaste: () => void;
   appliances: string[];
+  onApplyNodeChanges?: () => void;
 }
 
 export function FlowCanvas({
@@ -32,6 +33,7 @@ export function FlowCanvas({
   onCopySelected,
   onPaste,
   appliances,
+  onApplyNodeChanges,
 }: FlowCanvasProps) {
   return (
     <FlowWrapperWithProvider
@@ -48,6 +50,7 @@ export function FlowCanvas({
       onCopySelected={onCopySelected}
       onPaste={onPaste}
       appliances={appliances}
+      onApplyNodeChanges={onApplyNodeChanges}
     />
   );
 }
