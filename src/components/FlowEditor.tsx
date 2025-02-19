@@ -1,3 +1,4 @@
+
 import { useRef, useEffect, useState } from 'react';
 import { Node } from '@xyflow/react';
 import { LoadingOverlay } from './flow/LoadingOverlay';
@@ -152,18 +153,25 @@ export default function FlowEditor({
   };
 
   const handleNodeUpdate = (nodeId: string, newData: any) => {
+    console.log('Updating node:', nodeId, newData);
     setNodes((nds) => nds.map((node) => {
       if (node.id === nodeId) {
-        return {
+        const updatedNode = {
           ...node,
           data: {
             ...node.data,
             ...newData,
           },
         };
+        console.log('Updated node:', updatedNode);
+        return updatedNode;
       }
       return node;
     }));
+    
+    // Add the updated state to history
+    const newState = { nodes, edges, nodeCounter };
+    setHistory(addToHistory(history, newState));
   };
 
   const handleFileInputClick = () => {
