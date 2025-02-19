@@ -2,7 +2,7 @@
 import { useSearchParams } from 'react-router-dom';
 import FlowEditor from '@/components/FlowEditor';
 import NodeConfigPanel from '@/components/NodeConfigPanel';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Node } from '@xyflow/react';
 import { ReactFlowProvider } from '@xyflow/react';
 
@@ -13,18 +13,18 @@ export default function WorkflowEditor() {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [updateNodeFn, setUpdateNodeFn] = useState<((nodeId: string, newData: any) => void) | null>(null);
 
-  const handleNodeSelect = (node: Node, updateNode: (nodeId: string, newData: any) => void) => {
-    console.log('Node selected:', node);
+  const handleNodeSelect = useCallback((node: Node, updateNode: (nodeId: string, newData: any) => void) => {
+    console.log('WorkflowEditor handleNodeSelect:', node);
     setSelectedNode(node);
-    setUpdateNodeFn(() => updateNode); // Store the update function
-  };
+    setUpdateNodeFn(() => updateNode);
+  }, []);
 
-  const handleNodeUpdate = (nodeData: any) => {
+  const handleNodeUpdate = useCallback((nodeData: any) => {
+    console.log('WorkflowEditor handleNodeUpdate:', nodeData);
     if (selectedNode && updateNodeFn) {
-      console.log('Updating node with data:', nodeData);
       updateNodeFn(selectedNode.id, nodeData);
     }
-  };
+  }, [selectedNode, updateNodeFn]);
 
   return (
     <ReactFlowProvider>

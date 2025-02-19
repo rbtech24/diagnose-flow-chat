@@ -152,39 +152,39 @@ export default function FlowEditor({
   };
 
   const handleNodeUpdate = useCallback((nodeId: string, newData: any) => {
-    console.log('Updating node:', nodeId, newData);
+    console.log('FlowEditor handleNodeUpdate called with:', nodeId, newData);
     
-    const updatedNodes = nodes.map((node) => {
-      if (node.id === nodeId) {
-        const updatedNode = {
-          ...node,
-          data: {
-            ...node.data,
-            ...newData,
-          },
-        };
-        console.log('Updated node:', updatedNode);
-        return updatedNode;
-      }
-      return node;
+    setNodes(prevNodes => {
+      const updatedNodes = prevNodes.map(node => {
+        if (node.id === nodeId) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              ...newData,
+            },
+          };
+        }
+        return node;
+      });
+      
+      // Update history
+      const newState = { 
+        nodes: updatedNodes, 
+        edges, 
+        nodeCounter 
+      };
+      setHistory(prevHistory => addToHistory(prevHistory, newState));
+      
+      return updatedNodes;
     });
 
-    setNodes(updatedNodes);
-    
-    // Update history after the node update
-    const newState = { 
-      nodes: updatedNodes, 
-      edges, 
-      nodeCounter 
-    };
-    setHistory(prevHistory => addToHistory(prevHistory, newState));
-    
     // Show success toast
     toast({
       title: "Node Updated",
       description: "Changes have been applied successfully."
     });
-  }, [nodes, edges, nodeCounter, setNodes, setHistory]);
+  }, [edges, nodeCounter, setHistory]);
 
   const handleFileInputClick = () => {
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -193,11 +193,12 @@ export default function FlowEditor({
     }
   };
 
-  const handleNodeClick = (event: React.MouseEvent, node: Node) => {
+  const handleNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+    console.log('Node clicked:', node);
     if (onNodeSelect) {
       onNodeSelect(node, handleNodeUpdate);
     }
-  };
+  }, [onNodeSelect, handleNodeUpdate]);
 
   return (
     <div className="w-full h-full relative">
