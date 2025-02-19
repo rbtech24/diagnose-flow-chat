@@ -11,9 +11,19 @@ export default function WorkflowEditor() {
   const folder = searchParams.get('folder');
   const name = searchParams.get('name');
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [updateNodeFn, setUpdateNodeFn] = useState<((nodeId: string, newData: any) => void) | null>(null);
 
   const handleNodeSelect = (node: Node, updateNode: (nodeId: string, newData: any) => void) => {
+    console.log('Node selected:', node);
     setSelectedNode(node);
+    setUpdateNodeFn(() => updateNode); // Store the update function
+  };
+
+  const handleNodeUpdate = (nodeData: any) => {
+    if (selectedNode && updateNodeFn) {
+      console.log('Updating node with data:', nodeData);
+      updateNodeFn(selectedNode.id, nodeData);
+    }
   };
 
   return (
@@ -32,10 +42,7 @@ export default function WorkflowEditor() {
             <NodeConfigPanel 
               node={selectedNode}
               onClose={() => setSelectedNode(null)}
-              onUpdate={(nodeData) => {
-                // Handle node update logic here
-                console.log('Updating node:', nodeData);
-              }}
+              onUpdate={handleNodeUpdate}
             />
           </div>
         )}
