@@ -24,7 +24,12 @@ export function useNodeOperations(
       ...nodeToUpdate,
       data: {
         ...nodeToUpdate.data,
-        ...newData
+        label: newData.label,
+        type: newData.type,
+        content: newData.content,
+        options: newData.options,
+        media: newData.media,
+        technicalSpecs: newData.technicalSpecs,
       }
     };
 
