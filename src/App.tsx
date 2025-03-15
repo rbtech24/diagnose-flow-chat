@@ -32,14 +32,12 @@ import CompanySubscription from "./pages/company/Subscription";
 import ManageTechnicians from "./pages/company/ManageTechnicians";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
+import Index from "./pages/Index";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <CompanyLayout />,
-    children: [
-      { index: true, element: <Dashboard /> }
-    ]
+    element: <Index />
   },
   {
     path: "/login",

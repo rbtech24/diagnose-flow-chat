@@ -115,7 +115,7 @@ export const mockFeatureRequests: FeatureRequest[] = [
           id: "company1",
           name: "Acme Corp",
           email: "info@acme.com",
-          role: "company", // Fixed: explicitly using a value from the union type
+          role: "company" as "company", // Fixed: explicitly casting to the union type
           avatarUrl: "/avatar-3.png",
         },
       },
@@ -128,7 +128,7 @@ export const mockFeatureRequests: FeatureRequest[] = [
           id: "company2",
           name: "TechFix Inc",
           email: "info@techfix.com",
-          role: "company", // Fixed: explicitly using a value from the union type
+          role: "company" as "company", // Fixed: explicitly casting to the union type
           avatarUrl: "/avatar-4.png",
         },
       },
@@ -157,7 +157,7 @@ export const mockFeatureRequests: FeatureRequest[] = [
           id: "tech2",
           name: "Sarah Johnson",
           email: "sarah@example.com",
-          role: "tech", // Fixed: explicitly using a value from the union type
+          role: "tech" as "tech", // Fixed: explicitly casting to the union type
           avatarUrl: "/avatar-2.png",
         },
       },
@@ -182,7 +182,7 @@ export const mockFeatureRequests: FeatureRequest[] = [
       id: "company2",
       name: "TechFix Inc",
       email: "info@techfix.com",
-      role: "company", // Fixed: explicitly using a value from the union type
+      role: "company" as "company", // Fixed: explicitly casting to the union type
       avatarUrl: "/avatar-4.png",
     },
     votes: [],
