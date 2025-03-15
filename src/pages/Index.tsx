@@ -12,7 +12,7 @@ export default function Index() {
             <img 
               src="/lovable-uploads/894f58ab-c3aa-45ba-9ea3-e3a2d9ddf247.png" 
               alt="Repair Auto Pilot" 
-              className="h-16"
+              className="h-48"
             />
           </div>
           <nav className="hidden md:flex items-center gap-6">
@@ -270,7 +270,7 @@ export default function Index() {
                 <img 
                   src="/lovable-uploads/894f58ab-c3aa-45ba-9ea3-e3a2d9ddf247.png" 
                   alt="Repair Auto Pilot" 
-                  className="h-16"
+                  className="h-48"
                 />
               </div>
               <p className="text-sm text-gray-600 mb-4">

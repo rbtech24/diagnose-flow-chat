@@ -12,7 +12,7 @@ export function TechLayout() {
           <img 
             src="/lovable-uploads/894f58ab-c3aa-45ba-9ea3-e3a2d9ddf247.png" 
             alt="Repair Auto Pilot" 
-            className="h-12"
+            className="h-36"
           />
         </div>
         <Outlet />
