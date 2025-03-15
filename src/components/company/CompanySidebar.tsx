@@ -13,8 +13,8 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { 
-  LayoutDashboard, Users, Workflow, Calendar, 
-  FileText, Settings, LogOut, MapPin 
+  LayoutDashboard, Users, Lightbulb, HelpCircle, 
+  UserCircle, LogOut, CreditCard, Building2 
 } from "lucide-react";
 
 export function CompanySidebar() {
@@ -43,67 +43,86 @@ export function CompanySidebar() {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton 
-                  active={location.pathname === "/workflows"} 
+                  active={location.pathname === "/company/community"} 
                   asChild
                 >
-                  <Link to="/workflows">
-                    <Workflow className="mr-2 h-4 w-4" />
-                    <span>Workflows</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/company/technicians"} 
-                  asChild
-                >
-                  <Link to="/company/technicians">
+                  <Link to="/company/community">
                     <Users className="mr-2 h-4 w-4" />
-                    <span>Technicians</span>
+                    <span>Community</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton 
-                  active={location.pathname === "/company/jobs"} 
+                  active={location.pathname === "/company/feature-requests"} 
                   asChild
                 >
-                  <Link to="/company/jobs">
-                    <FileText className="mr-2 h-4 w-4" />
-                    <span>Jobs</span>
+                  <Link to="/company/feature-requests">
+                    <Lightbulb className="mr-2 h-4 w-4" />
+                    <span>Feature Requests</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        
+        <SidebarGroup>
+          <SidebarGroupLabel>Company</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  active={location.pathname === "/company/support"} 
+                  asChild
+                >
+                  <Link to="/company/support">
+                    <HelpCircle className="mr-2 h-4 w-4" />
+                    <span>Support</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton 
-                  active={location.pathname === "/company/schedule"} 
+                  active={location.pathname === "/company/techs"} 
                   asChild
                 >
-                  <Link to="/company/schedule">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    <span>Schedule</span>
+                  <Link to="/company/techs">
+                    <Users className="mr-2 h-4 w-4" />
+                    <span>Manage Techs</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton 
-                  active={location.pathname === "/company/map"} 
+                  active={location.pathname === "/company/company-profile"} 
                   asChild
                 >
-                  <Link to="/company/map">
-                    <MapPin className="mr-2 h-4 w-4" />
-                    <span>Map View</span>
+                  <Link to="/company/company-profile">
+                    <Building2 className="mr-2 h-4 w-4" />
+                    <span>Company Profile</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton 
-                  active={location.pathname === "/company/settings"} 
+                  active={location.pathname === "/company/billing"} 
                   asChild
                 >
-                  <Link to="/company/settings">
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
+                  <Link to="/company/billing">
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    <span>Billing & Plans</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  active={location.pathname === "/company/profile"} 
+                  asChild
+                >
+                  <Link to="/company/profile">
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -117,7 +136,7 @@ export function CompanySidebar() {
             <SidebarMenuButton asChild>
               <Link to="/">
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Sign Out</span>
+                <span>Logout</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

@@ -13,8 +13,8 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { 
-  LayoutDashboard, Workflow, Calendar, FileText, 
-  Wrench, Settings, LogOut, HelpCircle, MessageSquare
+  LayoutDashboard, Users, HelpCircle, MessageSquare,
+  Settings, LogOut, Lightbulb, UserCircle
 } from "lucide-react";
 
 export function TechSidebar() {
@@ -43,45 +43,23 @@ export function TechSidebar() {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton 
-                  active={location.pathname === "/tech/workflows"} 
+                  active={location.pathname === "/tech/community"} 
                   asChild
                 >
-                  <Link to="/tech/workflows">
-                    <Workflow className="mr-2 h-4 w-4" />
-                    <span>Diagnostics</span>
+                  <Link to="/tech/community">
+                    <Users className="mr-2 h-4 w-4" />
+                    <span>Community</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton 
-                  active={location.pathname === "/tech/appointments"} 
+                  active={location.pathname === "/tech/feature-requests"} 
                   asChild
                 >
-                  <Link to="/tech/appointments">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    <span>Appointments</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/tech/reports"} 
-                  asChild
-                >
-                  <Link to="/tech/reports">
-                    <FileText className="mr-2 h-4 w-4" />
-                    <span>Reports</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/tech/tools"} 
-                  asChild
-                >
-                  <Link to="/tech/tools">
-                    <Wrench className="mr-2 h-4 w-4" />
-                    <span>Tools</span>
+                  <Link to="/tech/feature-requests">
+                    <Lightbulb className="mr-2 h-4 w-4" />
+                    <span>Feature Requests</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -90,39 +68,28 @@ export function TechSidebar() {
         </SidebarGroup>
         
         <SidebarGroup>
-          <SidebarGroupLabel>Support</SidebarGroupLabel>
+          <SidebarGroupLabel>Account</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton 
-                  active={location.pathname === "/tech/help"} 
+                  active={location.pathname === "/tech/support"} 
                   asChild
                 >
-                  <Link to="/tech/help">
+                  <Link to="/tech/support">
                     <HelpCircle className="mr-2 h-4 w-4" />
-                    <span>Help Center</span>
+                    <span>Support</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton 
-                  active={location.pathname === "/tech/chat"} 
+                  active={location.pathname === "/tech/profile"} 
                   asChild
                 >
-                  <Link to="/tech/chat">
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    <span>Chat Support</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/tech/settings"} 
-                  asChild
-                >
-                  <Link to="/tech/settings">
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
+                  <Link to="/tech/profile">
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -136,7 +103,7 @@ export function TechSidebar() {
             <SidebarMenuButton asChild>
               <Link to="/">
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Sign Out</span>
+                <span>Logout</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
