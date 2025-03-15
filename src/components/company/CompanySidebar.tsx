@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/sidebar";
 import { 
   LayoutDashboard, Users, Lightbulb, HelpCircle, 
-  UserCircle, LogOut, CreditCard, Building2 
+  UserCircle, LogOut, CreditCard, Building2, MessageSquare
 } from "lucide-react";
 
 export function CompanySidebar() {
@@ -76,12 +76,12 @@ export function CompanySidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton 
-                  active={location.pathname === "/company/support"} 
-                  className={location.pathname === "/company/support" ? "bg-green-800 text-white" : "hover:bg-slate-800"}
+                  active={location.pathname.startsWith("/company/support")} 
+                  className={location.pathname.startsWith("/company/support") ? "bg-green-800 text-white" : "hover:bg-slate-800"}
                   asChild
                 >
                   <Link to="/company/support">
-                    <HelpCircle className="mr-2 h-4 w-4 text-green-400" />
+                    <MessageSquare className="mr-2 h-4 w-4 text-green-400" />
                     <span>Support</span>
                   </Link>
                 </SidebarMenuButton>

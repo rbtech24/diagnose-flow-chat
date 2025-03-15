@@ -8,7 +8,7 @@ interface ProfileLayoutProps {
   email: string;
   avatarUrl?: string;
   role: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   tabs?: Array<{ id: string; label: string; content: React.ReactNode }>;
 }
 
