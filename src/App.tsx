@@ -60,6 +60,7 @@ const router = createBrowserRouter([
     path: "/company",
     element: <CompanyLayout />,
     children: [
+      { index: true, element: <Dashboard /> },
       { path: "dashboard", element: <Dashboard /> },
       { path: "support", element: <Support /> },
       { path: "support/:ticketId", element: <Support /> },
@@ -76,6 +77,7 @@ const router = createBrowserRouter([
     path: "/tech",
     element: <TechLayout />,
     children: [
+      { index: true, element: <TechDashboard /> },
       { path: "dashboard", element: <TechDashboard /> },
       { path: "support", element: <TechSupport /> },
       { path: "support/:ticketId", element: <TechSupport /> },
@@ -90,6 +92,7 @@ const router = createBrowserRouter([
     path: "/admin",
     element: <AdminLayout />,
     children: [
+      { index: true, element: <AdminDashboard /> },
       { path: "dashboard", element: <AdminDashboard /> },
       { path: "support", element: <AdminSupport /> },
       { path: "support/:ticketId", element: <AdminSupportTicketDetail /> },

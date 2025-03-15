@@ -55,7 +55,6 @@ export default function CompanyProfile() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   
-  // Mock company data - would typically come from API/context
   const [companyData, setCompanyData] = useState({
     name: "Acme Repair Services",
     email: "info@acmerepair.com",
@@ -96,7 +95,6 @@ export default function CompanyProfile() {
   function handleCompanySubmit(values: CompanyFormValues) {
     setIsSubmitting(true);
     
-    // Simulate API call
     setTimeout(() => {
       setCompanyData({
         ...companyData,

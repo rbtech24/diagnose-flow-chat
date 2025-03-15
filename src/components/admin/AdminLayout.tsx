@@ -5,7 +5,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 
 export function AdminLayout() {
   return (
-    <div className="flex h-screen w-full">
+    <div className="flex h-screen w-full overflow-hidden">
       <SidebarProvider>
         <AdminSidebar />
         <div className="flex-1 overflow-auto">

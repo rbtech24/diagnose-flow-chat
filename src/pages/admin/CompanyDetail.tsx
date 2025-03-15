@@ -69,9 +69,11 @@ export default function CompanyDetail() {
           <CardContent>
             <div className="text-3xl font-bold mb-2">5</div>
             <p className="text-sm text-muted-foreground">All technicians active</p>
-            <Button className="w-full mt-4" variant="outline">
-              <Link to={`/admin/companies/${id}/technicians`} className="text-black w-full">View Technicians</Link>
-            </Button>
+            <Link to={`/admin/companies/${id}/technicians`}>
+              <Button className="w-full mt-4" variant="outline">
+                View Technicians
+              </Button>
+            </Link>
           </CardContent>
         </Card>
 
@@ -88,9 +90,11 @@ export default function CompanyDetail() {
               <Calendar className="h-4 w-4" />
               Renews on May 1, 2023
             </div>
-            <Button className="w-full mt-4" variant="outline">
-              <Link to={`/admin/companies/${id}/subscription`} className="text-black w-full">Manage Subscription</Link>
-            </Button>
+            <Link to={`/admin/companies/${id}/subscription`}>
+              <Button className="w-full mt-4" variant="outline">
+                Manage Subscription
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>

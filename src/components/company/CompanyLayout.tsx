@@ -5,7 +5,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 
 export function CompanyLayout() {
   return (
-    <div className="flex h-screen w-full">
+    <div className="flex h-screen w-full overflow-hidden">
       <SidebarProvider>
         <CompanySidebar />
         <div className="flex-1 overflow-auto">
