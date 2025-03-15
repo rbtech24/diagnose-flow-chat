@@ -13,6 +13,14 @@ export interface FeatureRequestVote {
   user: User;
 }
 
+export interface FeatureRequestComment {
+  id: string;
+  featureRequestId: string;
+  content: string;
+  createdAt: Date;
+  createdBy: User;
+}
+
 export interface FeatureRequest {
   id: string;
   title: string;
@@ -25,12 +33,4 @@ export interface FeatureRequest {
   votes: FeatureRequestVote[];
   score: number;
   comments: FeatureRequestComment[];
-}
-
-export interface FeatureRequestComment {
-  id: string;
-  featureRequestId: string;
-  content: string;
-  createdAt: Date;
-  createdBy: User;
 }
