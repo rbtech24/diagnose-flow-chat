@@ -27,7 +27,9 @@ import TechFeatureRequests from "./pages/tech/FeatureRequests";
 import TechFeatureRequestDetailPage from "./pages/tech/FeatureRequestDetail";
 import AdminSubscriptionPlans from "./pages/admin/SubscriptionPlans";
 import AdminLicenses from "./pages/admin/Licenses";
+import APIIntegrations from "./pages/admin/APIIntegrations";
 import CompanySubscription from "./pages/company/Subscription";
+import ManageTechnicians from "./pages/company/ManageTechnicians";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 
@@ -60,6 +62,7 @@ const router = createBrowserRouter([
       { path: "feature-requests", element: <CompanyFeatureRequests /> },
       { path: "feature-requests/:id", element: <CompanyFeatureRequestDetailPage /> },
       { path: "subscription", element: <CompanySubscription /> },
+      { path: "technicians", element: <ManageTechnicians /> },
     ]
   },
   {
@@ -87,6 +90,7 @@ const router = createBrowserRouter([
       { path: "feature-requests/:id", element: <AdminFeatureRequestDetailPage /> },
       { path: "subscription-plans", element: <AdminSubscriptionPlans /> },
       { path: "licenses", element: <AdminLicenses /> },
+      { path: "api-integrations", element: <APIIntegrations /> },
     ]
   }
 ]);

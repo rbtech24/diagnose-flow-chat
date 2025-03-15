@@ -1,224 +1,134 @@
 
-import { Link, useLocation } from "react-router-dom";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-} from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { useLocation, Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { 
-  LayoutDashboard, Users, Building2, Workflow, Settings, LogOut,
-  History, Lightbulb, HelpCircle, Shield, Key, FileText, UserCircle, 
-  MessageSquare, CreditCard, Package
+  Home, Users, LifeBuoy, Settings, LogOut, 
+  FileText, Package, CreditCard, Network
 } from "lucide-react";
 
 export function AdminSidebar() {
   const location = useLocation();
-  
+  const isActive = (path: string) => location.pathname === path;
+
   return (
-    <Sidebar className="bg-slate-900 text-white border-r border-slate-800">
-      <SidebarHeader className="border-b border-slate-800">
-        <div className="font-bold text-lg bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">Admin Portal</div>
-      </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-slate-400">Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/admin"} 
-                  className={location.pathname === "/admin" ? "bg-indigo-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/admin">
-                    <LayoutDashboard className="mr-2 h-4 w-4 text-indigo-400" />
-                    <span>Dashboard</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/workflows"} 
-                  className={location.pathname === "/workflows" ? "bg-indigo-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/workflows">
-                    <Workflow className="mr-2 h-4 w-4 text-indigo-400" />
-                    <span>Workflows</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/admin/repair-history"} 
-                  className={location.pathname === "/admin/repair-history" ? "bg-indigo-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/admin/repair-history">
-                    <History className="mr-2 h-4 w-4 text-indigo-400" />
-                    <span>Repair History</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/admin/community"} 
-                  className={location.pathname === "/admin/community" ? "bg-indigo-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/admin/community">
-                    <Users className="mr-2 h-4 w-4 text-indigo-400" />
-                    <span>Community</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/admin/feature-requests"} 
-                  className={location.pathname === "/admin/feature-requests" ? "bg-indigo-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/admin/feature-requests">
-                    <Lightbulb className="mr-2 h-4 w-4 text-indigo-400" />
-                    <span>Feature Requests</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-slate-400">Management</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/admin/subscription-plans"} 
-                  className={location.pathname === "/admin/subscription-plans" ? "bg-indigo-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/admin/subscription-plans">
-                    <Package className="mr-2 h-4 w-4 text-indigo-400" />
-                    <span>Subscription Plans</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/admin/licenses"} 
-                  className={location.pathname === "/admin/licenses" ? "bg-indigo-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/admin/licenses">
-                    <CreditCard className="mr-2 h-4 w-4 text-indigo-400" />
-                    <span>Licenses</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname.startsWith("/admin/support")} 
-                  className={location.pathname.startsWith("/admin/support") ? "bg-indigo-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/admin/support">
-                    <MessageSquare className="mr-2 h-4 w-4 text-indigo-400" />
-                    <span>Support Tickets</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/admin/companies"} 
-                  className={location.pathname === "/admin/companies" ? "bg-indigo-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/admin/companies">
-                    <Building2 className="mr-2 h-4 w-4 text-indigo-400" />
-                    <span>Companies</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/admin/users"} 
-                  className={location.pathname === "/admin/users" ? "bg-indigo-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/admin/users">
-                    <Users className="mr-2 h-4 w-4 text-indigo-400" />
-                    <span>Users</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-slate-400">System</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/admin/security"} 
-                  className={location.pathname === "/admin/security" ? "bg-indigo-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/admin/security">
-                    <Shield className="mr-2 h-4 w-4 text-indigo-400" />
-                    <span>Security</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/admin/api-settings"} 
-                  className={location.pathname === "/admin/api-settings" ? "bg-indigo-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/admin/api-settings">
-                    <Key className="mr-2 h-4 w-4 text-indigo-400" />
-                    <span>API Settings</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/admin/profile"} 
-                  className={location.pathname === "/admin/profile" ? "bg-indigo-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/admin/profile">
-                    <UserCircle className="mr-2 h-4 w-4 text-indigo-400" />
-                    <span>Profile</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-      <SidebarFooter className="border-t border-slate-800">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton className="text-slate-400 hover:bg-slate-800" asChild>
-              <Link to="/">
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Logout</span>
+    <div className="pb-12 min-h-screen">
+      <div className="space-y-4 py-4">
+        <div className="px-4 py-2">
+          <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">
+            Admin Dashboard
+          </h2>
+          <div className="space-y-1">
+            <Button
+              variant={isActive("/admin/dashboard") ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              asChild
+            >
+              <Link to="/admin/dashboard">
+                <Home className="mr-2 h-4 w-4" />
+                Dashboard
               </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
-    </Sidebar>
+            </Button>
+          </div>
+        </div>
+        <Separator />
+        <div className="px-4 py-2">
+          <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">
+            Subscription Management
+          </h2>
+          <div className="space-y-1">
+            <Button
+              variant={isActive("/admin/subscription-plans") ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              asChild
+            >
+              <Link to="/admin/subscription-plans">
+                <Package className="mr-2 h-4 w-4" />
+                Subscription Plans
+              </Link>
+            </Button>
+            <Button
+              variant={isActive("/admin/licenses") ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              asChild
+            >
+              <Link to="/admin/licenses">
+                <CreditCard className="mr-2 h-4 w-4" />
+                Licenses
+              </Link>
+            </Button>
+          </div>
+        </div>
+        <Separator />
+        <div className="px-4 py-2">
+          <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">
+            System
+          </h2>
+          <div className="space-y-1">
+            <Button
+              variant={isActive("/admin/api-integrations") ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              asChild
+            >
+              <Link to="/admin/api-integrations">
+                <Network className="mr-2 h-4 w-4" />
+                API Integrations
+              </Link>
+            </Button>
+            <Button
+              variant={isActive("/admin/feature-requests") ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              asChild
+            >
+              <Link to="/admin/feature-requests">
+                <FileText className="mr-2 h-4 w-4" />
+                Feature Requests
+              </Link>
+            </Button>
+          </div>
+        </div>
+        <Separator />
+        <div className="px-4 py-2">
+          <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">
+            Support
+          </h2>
+          <div className="space-y-1">
+            <Button
+              variant={isActive("/admin/support") ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              asChild
+            >
+              <Link to="/admin/support">
+                <LifeBuoy className="mr-2 h-4 w-4" />
+                Support Tickets
+              </Link>
+            </Button>
+          </div>
+        </div>
+        <Separator />
+        <div className="px-4 py-2">
+          <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">
+            Settings
+          </h2>
+          <div className="space-y-1">
+            <Button
+              variant={isActive("/admin/profile") ? "secondary" : "ghost"}
+              className="w-full justify-start"
+              asChild
+            >
+              <Link to="/admin/profile">
+                <Settings className="mr-2 h-4 w-4" />
+                Settings
+              </Link>
+            </Button>
+            <Button variant="ghost" className="w-full justify-start">
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
