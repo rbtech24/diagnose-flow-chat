@@ -10,7 +10,7 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
-  SidebarMenuButton,
+  SidebarMenuButton
 } from "@/components/ui/sidebar";
 import { 
   LayoutDashboard, Users, HelpCircle, MessageSquare,
@@ -34,36 +34,30 @@ export function TechSidebar() {
                 <SidebarMenuButton 
                   active={location.pathname === "/tech"} 
                   className={location.pathname === "/tech" ? "bg-blue-800 text-white" : "hover:bg-slate-800"}
-                  asChild
+                  href="/tech"
                 >
-                  <Link to="/tech">
-                    <LayoutDashboard className="mr-2 h-4 w-4 text-blue-400" />
-                    <span>Dashboard</span>
-                  </Link>
+                  <LayoutDashboard className="mr-2 h-4 w-4 text-blue-400" />
+                  <span>Dashboard</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   active={location.pathname === "/tech/community"} 
                   className={location.pathname === "/tech/community" ? "bg-blue-800 text-white" : "hover:bg-slate-800"}
-                  asChild
+                  href="/tech/community"
                 >
-                  <Link to="/tech/community">
-                    <Users className="mr-2 h-4 w-4 text-blue-400" />
-                    <span>Community</span>
-                  </Link>
+                  <Users className="mr-2 h-4 w-4 text-blue-400" />
+                  <span>Community</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   active={location.pathname === "/tech/feature-requests"} 
                   className={location.pathname === "/tech/feature-requests" ? "bg-blue-800 text-white" : "hover:bg-slate-800"}
-                  asChild
+                  href="/tech/feature-requests"
                 >
-                  <Link to="/tech/feature-requests">
-                    <Lightbulb className="mr-2 h-4 w-4 text-blue-400" />
-                    <span>Feature Requests</span>
-                  </Link>
+                  <Lightbulb className="mr-2 h-4 w-4 text-blue-400" />
+                  <span>Feature Requests</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -78,24 +72,20 @@ export function TechSidebar() {
                 <SidebarMenuButton 
                   active={location.pathname === "/tech/support"} 
                   className={location.pathname === "/tech/support" ? "bg-blue-800 text-white" : "hover:bg-slate-800"}
-                  asChild
+                  href="/tech/support"
                 >
-                  <Link to="/tech/support">
-                    <HelpCircle className="mr-2 h-4 w-4 text-blue-400" />
-                    <span>Support</span>
-                  </Link>
+                  <HelpCircle className="mr-2 h-4 w-4 text-blue-400" />
+                  <span>Support</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   active={location.pathname === "/tech/profile"} 
                   className={location.pathname === "/tech/profile" ? "bg-blue-800 text-white" : "hover:bg-slate-800"}
-                  asChild
+                  href="/tech/profile"
                 >
-                  <Link to="/tech/profile">
-                    <UserCircle className="mr-2 h-4 w-4 text-blue-400" />
-                    <span>Profile</span>
-                  </Link>
+                  <UserCircle className="mr-2 h-4 w-4 text-blue-400" />
+                  <span>Profile</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -105,11 +95,12 @@ export function TechSidebar() {
       <SidebarFooter className="border-t border-slate-800">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton className="text-slate-400 hover:bg-slate-800" asChild>
-              <Link to="/">
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Logout</span>
-              </Link>
+            <SidebarMenuButton 
+              className="text-slate-400 hover:bg-slate-800" 
+              href="/"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Logout</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

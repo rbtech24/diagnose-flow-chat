@@ -129,17 +129,15 @@ export function SidebarNav({ children, className, ...props }: SidebarNavProps) {
   );
 }
 
-interface SidebarNavItemProps extends React.HTMLAttributes<HTMLAnchorElement> {
+interface SidebarNavItemProps extends React.HTMLAttributes<HTMLDivElement> {
   icon?: React.ReactNode;
   active?: boolean;
-  href?: string;
   children?: React.ReactNode;
 }
 
 export function SidebarNavItem({
   icon,
   active,
-  href,
   children,
   className,
   ...props
@@ -147,8 +145,7 @@ export function SidebarNavItem({
   const { expanded } = useSidebar();
 
   return (
-    <a
-      href={href}
+    <div
       className={cn(
         "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
         active ? "bg-gray-100 text-gray-900 font-medium" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
@@ -159,7 +156,7 @@ export function SidebarNavItem({
     >
       {icon && <div className="w-5 h-5">{icon}</div>}
       {expanded && <div>{children}</div>}
-    </a>
+    </div>
   );
 }
 
@@ -240,31 +237,39 @@ export const SidebarGroupLabel = ({ children, className }: SidebarGroupLabelProp
 );
 
 export const SidebarMenu = SidebarNav;
-export const SidebarMenuItem = SidebarNavItem;
+export const SidebarMenuItem = ({ children, className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={cn("", className)} {...props}>{children}</div>
+);
 
 // Update this component to accept active prop
-interface SidebarMenuButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface SidebarMenuButtonProps extends React.HTMLAttributes<HTMLAnchorElement> {
   children: React.ReactNode;
-  asChild?: boolean;
   active?: boolean;
   className?: string;
+  href?: string;
 }
 
 export const SidebarMenuButton = ({ 
   children, 
-  asChild, 
-  active, 
+  active,
+  href,
   className,
   ...props 
-}: SidebarMenuButtonProps) => (
-  <button 
-    type="button" 
-    className={cn(
-      active ? "bg-gray-100 text-gray-900 font-medium" : "",
-      className
-    )} 
-    {...props}
-  >
-    {children}
-  </button>
-);
+}: SidebarMenuButtonProps) => {
+  const { expanded } = useSidebar();
+  
+  return (
+    <a 
+      href={href}
+      className={cn(
+        "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+        active ? "bg-gray-100 text-gray-900 font-medium" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+        !expanded && "justify-center",
+        className
+      )} 
+      {...props}
+    >
+      {children}
+    </a>
+  );
+};
