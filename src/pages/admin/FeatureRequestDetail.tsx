@@ -153,6 +153,9 @@ export default function AdminFeatureRequestDetailPage() {
         featureRequest={featureRequest}
         onAddComment={handleAddComment}
         onVote={handleVote}
+        isAdmin={true}
+        onUpdateStatus={handleUpdateStatus}
+        onUpdatePriority={handleUpdatePriority}
       />
     </div>
   );
