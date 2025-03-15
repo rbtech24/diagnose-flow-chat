@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/sidebar";
 import { 
   LayoutDashboard, Workflow, Calendar, FileText, 
-  Tools, Settings, LogOut, HelpCircle, MessageSquare
+  Wrench, Settings, LogOut, HelpCircle, MessageSquare
 } from "lucide-react";
 
 export function TechSidebar() {
@@ -80,7 +80,7 @@ export function TechSidebar() {
                   asChild
                 >
                   <Link to="/tech/tools">
-                    <Tools className="mr-2 h-4 w-4" />
+                    <Wrench className="mr-2 h-4 w-4" />
                     <span>Tools</span>
                   </Link>
                 </SidebarMenuButton>

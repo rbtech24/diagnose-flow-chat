@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
-  Clock, CheckCircle, MapPin, Tools, 
+  Clock, CheckCircle, MapPin, Wrench, 
   Calendar, FileText, Workflow, Settings 
 } from "lucide-react";
 
@@ -103,7 +103,7 @@ export default function TechnicianDashboard() {
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
                 <Link to="/tech/tools">
-                  <Tools className="mr-2 h-4 w-4" />
+                  <Wrench className="mr-2 h-4 w-4" />
                   Tool Inventory
                 </Link>
               </Button>
