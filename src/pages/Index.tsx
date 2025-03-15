@@ -85,14 +85,14 @@ export default function Index() {
                       <div className="h-3 w-3 rounded-full bg-red-400"></div>
                       <div className="h-3 w-3 rounded-full bg-yellow-400"></div>
                       <div className="h-3 w-3 rounded-full bg-green-400"></div>
-                      <div className="ml-2 text-sm font-medium text-gray-600">Refrigerator Diagnosis</div>
+                      <div className="ml-2 text-sm font-medium text-gray-600">Appliance Repair</div>
                     </div>
                   </div>
                   <div className="p-4">
                     <img 
-                      src="https://i.imgur.com/CRTcBGR.png" 
-                      alt="Diagnostic Workflow" 
-                      className="rounded border shadow-sm"
+                      src="/lovable-uploads/eecdb784-4fd9-47a5-9588-f4299e2dbd04.png" 
+                      alt="Technician repairing appliance" 
+                      className="rounded border shadow-sm w-full"
                     />
                   </div>
                 </div>
