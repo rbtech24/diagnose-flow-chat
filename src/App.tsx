@@ -1,4 +1,3 @@
-
 import {
   createBrowserRouter,
   RouterProvider,
@@ -33,6 +32,9 @@ import ManageTechnicians from "./pages/company/ManageTechnicians";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import Index from "./pages/Index";
+import AdminUsers from "./pages/admin/Users";
+import AdminCompanies from "./pages/admin/Companies";
+import AdminWorkflows from "./pages/admin/Workflows";
 
 const router = createBrowserRouter([
   {
@@ -89,10 +91,9 @@ const router = createBrowserRouter([
       { path: "subscription-plans", element: <AdminSubscriptionPlans /> },
       { path: "licenses", element: <AdminLicenses /> },
       { path: "api-integrations", element: <APIIntegrations /> },
-      // Add new routes for users, companies, and workflows
-      { path: "users", element: <AdminDashboard /> }, // TODO: Create dedicated Users page
-      { path: "companies", element: <AdminDashboard /> }, // TODO: Create dedicated Companies page
-      { path: "workflows", element: <AdminDashboard /> }, // TODO: Create dedicated Workflows page
+      { path: "users", element: <AdminUsers /> },
+      { path: "companies", element: <AdminCompanies /> },
+      { path: "workflows", element: <AdminWorkflows /> },
     ]
   }
 ]);
