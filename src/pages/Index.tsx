@@ -333,6 +333,11 @@ export default function Index() {
           
           <div className="border-t mt-12 pt-8 text-center">
             <p className="text-sm text-gray-500">© 2023 Repair Auto Pilot. All rights reserved.</p>
+            <div className="flex justify-center gap-4 mt-4">
+              <Link to="/terms-of-use" className="text-sm text-gray-500 hover:text-blue-600">Terms of Use</Link>
+              <span className="text-gray-400">|</span>
+              <Link to="/privacy-policy" className="text-sm text-gray-500 hover:text-blue-600">Privacy Policy</Link>
+            </div>
           </div>
         </div>
       </footer>
