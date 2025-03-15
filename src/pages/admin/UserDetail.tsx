@@ -1,22 +1,55 @@
 
 import { useParams, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Users, Calendar, Mail, Phone } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AdminPasswordResetForm } from "@/components/admin/AdminPasswordResetForm";
+import { sendPasswordResetEmail } from "@/utils/auth";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function UserDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   // In a real app, you would fetch user data from an API based on the ID
   const userData = {
+    id: id || "0",
     name: id === "1" ? "John Doe" : id === "2" ? "Sarah Smith" : "Mike Johnson",
     email: id === "1" ? "john@example.com" : id === "2" ? "sarah@acmerepairs.com" : "mike@acmerepairs.com",
     role: id === "1" ? "admin" : id === "2" ? "company" : "tech",
     phone: "(555) 123-4567",
     companyName: id === "1" ? "System Admin" : "Acme Repairs",
     joinDate: "January 15, 2023"
+  };
+
+  const handleSendPasswordResetEmail = async () => {
+    try {
+      const { error } = await sendPasswordResetEmail(userData.email);
+      
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Password reset email sent",
+          description: `A password reset email has been sent to ${userData.email}.`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -102,7 +135,12 @@ export default function UserDetail() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-3">
-              <Button variant="outline">Reset Password</Button>
+              <Button variant="outline" onClick={() => setIsResetDialogOpen(true)}>
+                Reset Password Directly
+              </Button>
+              <Button variant="outline" onClick={handleSendPasswordResetEmail}>
+                Send Password Reset Email
+              </Button>
               <Button variant="outline">Edit Profile</Button>
               {userData.role === "tech" && (
                 <Button variant="outline">Assign to Company</Button>
@@ -112,6 +150,19 @@ export default function UserDetail() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reset User Password</DialogTitle>
+          </DialogHeader>
+          <AdminPasswordResetForm 
+            userId={userData.id} 
+            onSuccess={() => setIsResetDialogOpen(false)}
+            onCancel={() => setIsResetDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

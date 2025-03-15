@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { updateUserPassword } from "@/utils/auth";
 
 const passwordFormSchema = z
   .object({
@@ -50,23 +51,40 @@ export function PasswordForm({ onSubmit }: PasswordFormProps) {
     },
   });
 
-  function handleSubmit(values: PasswordFormValues) {
+  async function handleSubmit(values: PasswordFormValues) {
     setIsSubmitting(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      if (onSubmit) {
-        onSubmit(values);
+    try {
+      // In a real app, we'd verify the current password first
+      const { error } = await updateUserPassword(values.newPassword);
+      
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to update password.",
+          variant: "destructive",
+        });
+      } else {
+        if (onSubmit) {
+          onSubmit(values);
+        }
+        
+        toast({
+          title: "Password updated",
+          description: "Your password has been updated successfully.",
+        });
+        
+        form.reset();
       }
-      
+    } catch (error) {
       toast({
-        title: "Password updated",
-        description: "Your password has been updated successfully.",
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
       });
-      
-      form.reset();
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   }
 
   return (
