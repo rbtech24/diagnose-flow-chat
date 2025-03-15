@@ -8,7 +8,7 @@ export function TechLayout() {
     <div className="flex h-screen w-full">
       <TechSidebar />
       <div className="flex-1 overflow-auto">
-        <div className="p-4 border-b flex items-center">
+        <div className="p-8 border-b flex items-center h-48 justify-start">
           <img 
             src="/lovable-uploads/5e12430c-6872-485e-b07a-02b835f8e3d4.png" 
             alt="Repair Auto Pilot" 
