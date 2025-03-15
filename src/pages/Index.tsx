@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -219,9 +220,9 @@ export default function Index() {
                   </div>
                   <p className="mb-4 text-gray-600 italic">"Since implementing Repair Auto Pilot, our first-time fix rate has increased by 32%. Our technicians love the guided workflows."</p>
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">PS</div>
+                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">P</div>
                     <div>
-                      <div className="font-medium">Paul Smith</div>
+                      <div className="font-medium">Paul</div>
                       <div className="text-sm text-gray-500">Service Manager, Service Wranglers</div>
                     </div>
                   </div>
@@ -235,9 +236,9 @@ export default function Index() {
                   </div>
                   <p className="mb-4 text-gray-600 italic">"The diagnostic workflows have been a game-changer for our new technicians. Training time reduced by 40% with the step-by-step guides."</p>
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">NJ</div>
+                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">N</div>
                     <div>
-                      <div className="font-medium">Nick Johnson</div>
+                      <div className="font-medium">Nick</div>
                       <div className="text-sm text-gray-500">Owner, West Metro Appliance</div>
                     </div>
                   </div>
@@ -251,9 +252,9 @@ export default function Index() {
                   </div>
                   <p className="mb-4 text-gray-600 italic">"Customer satisfaction is up 28% since we started using Repair Auto Pilot. The professional diagnostic reports really impress our clients."</p>
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">RB</div>
+                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">R</div>
                     <div>
-                      <div className="font-medium">Robert Brown</div>
+                      <div className="font-medium">Robert</div>
                       <div className="text-sm text-gray-500">CEO, Einstein Appliance Repair</div>
                     </div>
                   </div>
