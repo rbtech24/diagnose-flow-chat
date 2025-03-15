@@ -100,6 +100,14 @@ export default function SignUp() {
             Back to home
           </Link>
           
+          <div className="flex justify-center mb-6">
+            <img 
+              src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
+              alt="Repair Auto Pilot" 
+              className="h-24"
+            />
+          </div>
+          
           <h1 className="text-3xl md:text-4xl font-bold mb-4">Join Repair Auto Pilot</h1>
           <p className="text-xl mb-8 text-gray-700">
             {accountType === "tech" 
@@ -161,6 +169,13 @@ export default function SignUp() {
       {/* Right side - Sign up form */}
       <div className="w-full md:w-1/2 p-8 flex flex-col justify-center bg-white">
         <div className="max-w-md mx-auto w-full">
+          <div className="flex justify-center mb-6">
+            <img 
+              src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
+              alt="Repair Auto Pilot" 
+              className="h-24"
+            />
+          </div>
           <Card className="shadow-md border-0">
             <CardHeader>
               <CardTitle className="text-2xl">Create Your Account</CardTitle>
