@@ -25,6 +25,7 @@ interface FlowWrapperProps {
   onCopySelected: () => void;
   onPaste: () => void;
   appliances: string[];
+  onApplyNodeChanges?: () => void;
 }
 
 export function FlowWrapper({
@@ -41,6 +42,7 @@ export function FlowWrapper({
   onCopySelected,
   onPaste,
   appliances,
+  onApplyNodeChanges,
 }: FlowWrapperProps) {
   return (
     <ReactFlow
@@ -65,6 +67,7 @@ export function FlowWrapper({
         onCopySelected={onCopySelected}
         onPaste={onPaste}
         appliances={appliances}
+        onApplyNodeChanges={onApplyNodeChanges}
       />
     </ReactFlow>
   );
