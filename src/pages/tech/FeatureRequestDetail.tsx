@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
-import { FeatureRequest } from "@/types/feature-request";
+import { FeatureRequest, FeatureRequestVote } from "@/types/feature-request";
 import { mockFeatureRequests } from "@/data/mockFeatureRequests";
 import { currentUser } from "@/data/mockTickets";
 import { ArrowLeft } from "lucide-react";
@@ -26,7 +26,7 @@ export default function TechFeatureRequestDetailPage() {
   const handleVote = (requestId: string) => {
     if (!featureRequest) return;
     
-    const newVote = {
+    const newVote: FeatureRequestVote = {
       id: `vote-${Date.now()}`,
       userId: currentUser.id,
       featureRequestId: requestId,

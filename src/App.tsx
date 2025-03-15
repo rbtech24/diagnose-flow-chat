@@ -29,91 +29,91 @@ import TechFeatureRequestDetailPage from "./pages/tech/FeatureRequestDetail";
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <CompanyLayout><Dashboard /></CompanyLayout>,
+    element: <CompanyLayout children={<Dashboard />} />,
   },
   {
     path: "/company/dashboard",
-    element: <CompanyLayout><Dashboard /></CompanyLayout>,
+    element: <CompanyLayout children={<Dashboard />} />,
   },
   {
     path: "/company/support",
-    element: <CompanyLayout><Support /></CompanyLayout>,
+    element: <CompanyLayout children={<Support />} />,
   },
   {
     path: "/company/support/:ticketId",
-    element: <CompanyLayout><Support /></CompanyLayout>,
+    element: <CompanyLayout children={<Support />} />,
   },
   {
     path: "/company/profile",
-    element: <CompanyLayout><CompanyProfile /></CompanyLayout>,
+    element: <CompanyLayout children={<CompanyProfile />} />,
   },
   {
     path: "/company/community",
-    element: <CompanyLayout><Community /></CompanyLayout>,
+    element: <CompanyLayout children={<Community />} />,
   },
   {
     path: "/company/community/:postId",
-    element: <CompanyLayout><CommunityPostDetail /></CompanyLayout>,
+    element: <CompanyLayout children={<CommunityPostDetail />} />,
   },
   {
     path: "/tech/dashboard",
-    element: <TechLayout><TechDashboard /></TechLayout>,
+    element: <TechLayout children={<TechDashboard />} />,
   },
   {
     path: "/tech/support",
-    element: <TechLayout><TechSupport /></TechLayout>,
+    element: <TechLayout children={<TechSupport />} />,
   },
   {
     path: "/tech/support/:ticketId",
-    element: <TechLayout><TechSupport /></TechLayout>,
+    element: <TechLayout children={<TechSupport />} />,
   },
   {
     path: "/tech/profile",
-    element: <TechLayout><TechProfile /></TechLayout>,
+    element: <TechLayout children={<TechProfile />} />,
   },
   {
     path: "/tech/community",
-    element: <TechLayout><TechCommunity /></TechLayout>,
+    element: <TechLayout children={<TechCommunity />} />,
   },
   {
     path: "/tech/community/:postId",
-    element: <TechLayout><TechCommunityPostDetail /></TechLayout>,
+    element: <TechLayout children={<TechCommunityPostDetail />} />,
   },
   {
     path: "/admin/dashboard",
-    element: <AdminLayout><AdminDashboard /></AdminLayout>,
+    element: <AdminLayout children={<AdminDashboard />} />,
   },
   {
     path: "/admin/support",
-    element: <AdminLayout><AdminSupport /></AdminLayout>,
+    element: <AdminLayout children={<AdminSupport />} />,
   },
   {
     path: "/admin/profile",
-    element: <AdminLayout><AdminProfile /></AdminLayout>,
+    element: <AdminLayout children={<AdminProfile />} />,
   },
   {
     path: "/admin/feature-requests",
-    element: <AdminLayout><AdminFeatureRequests /></AdminLayout>,
+    element: <AdminLayout children={<AdminFeatureRequests />} />,
   },
   {
     path: "/admin/feature-requests/:id",
-    element: <AdminLayout><AdminFeatureRequestDetailPage /></AdminLayout>,
+    element: <AdminLayout children={<AdminFeatureRequestDetailPage />} />,
   },
   {
     path: "/company/feature-requests",
-    element: <CompanyLayout><CompanyFeatureRequests /></CompanyLayout>,
+    element: <CompanyLayout children={<CompanyFeatureRequests />} />,
   },
   {
     path: "/company/feature-requests/:id",
-    element: <CompanyLayout><CompanyFeatureRequestDetailPage /></CompanyLayout>,
+    element: <CompanyLayout children={<CompanyFeatureRequestDetailPage />} />,
   },
   {
     path: "/tech/feature-requests",
-    element: <TechLayout><TechFeatureRequests /></TechLayout>,
+    element: <TechLayout children={<TechFeatureRequests />} />,
   },
   {
     path: "/tech/feature-requests/:id",
-    element: <TechLayout><TechFeatureRequestDetailPage /></TechLayout>,
+    element: <TechLayout children={<TechFeatureRequestDetailPage />} />,
   },
 ]);
 
