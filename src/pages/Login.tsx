@@ -49,7 +49,13 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold">Repair Auto Pilot</CardTitle>
+          <div className="flex justify-center mb-3">
+            <img 
+              src="public/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
+              alt="Repair Auto Pilot" 
+              className="h-32"
+            />
+          </div>
           <CardDescription>
             Sign in to your account to continue
           </CardDescription>

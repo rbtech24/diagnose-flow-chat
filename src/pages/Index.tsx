@@ -1,8 +1,7 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, CheckCircle, Wrench, Building2, Workflow, Zap, BarChart, ShieldCheck, Gauge, Clock } from "lucide-react";
+import { ArrowRight, CheckCircle, Wrench, Building2, Workflow, BarChart, ShieldCheck, Gauge, Clock } from "lucide-react";
 
 export default function Index() {
   return (
@@ -10,8 +9,11 @@ export default function Index() {
       <header className="sticky top-0 z-10 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <Zap className="h-6 w-6 text-blue-600" />
-            <h1 className="text-xl font-bold">Repair Auto Pilot</h1>
+            <img 
+              src="public/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
+              alt="Repair Auto Pilot" 
+              className="h-10"
+            />
           </div>
           <nav className="hidden md:flex items-center gap-6">
             <a href="#features" className="text-sm font-medium hover:text-blue-600">Features</a>
@@ -265,8 +267,11 @@ export default function Index() {
           <div className="grid gap-8 md:grid-cols-4">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Zap className="h-5 w-5 text-blue-600" />
-                <span className="font-bold">Repair Auto Pilot</span>
+                <img 
+                  src="public/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
+                  alt="Repair Auto Pilot" 
+                  className="h-10"
+                />
               </div>
               <p className="text-sm text-gray-600 mb-4">
                 The ultimate appliance repair diagnostic solution for modern service businesses.
