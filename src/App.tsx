@@ -29,92 +29,50 @@ import TechFeatureRequestDetailPage from "./pages/tech/FeatureRequestDetail";
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <CompanyLayout children={<Dashboard />} />,
+    element: <CompanyLayout />,
+    children: [
+      { index: true, element: <Dashboard /> }
+    ]
   },
   {
-    path: "/company/dashboard",
-    element: <CompanyLayout children={<Dashboard />} />,
+    path: "/company",
+    element: <CompanyLayout />,
+    children: [
+      { path: "dashboard", element: <Dashboard /> },
+      { path: "support", element: <Support /> },
+      { path: "support/:ticketId", element: <Support /> },
+      { path: "profile", element: <CompanyProfile /> },
+      { path: "community", element: <Community /> },
+      { path: "community/:postId", element: <CommunityPostDetail /> },
+      { path: "feature-requests", element: <CompanyFeatureRequests /> },
+      { path: "feature-requests/:id", element: <CompanyFeatureRequestDetailPage /> },
+    ]
   },
   {
-    path: "/company/support",
-    element: <CompanyLayout children={<Support />} />,
+    path: "/tech",
+    element: <TechLayout />,
+    children: [
+      { path: "dashboard", element: <TechDashboard /> },
+      { path: "support", element: <TechSupport /> },
+      { path: "support/:ticketId", element: <TechSupport /> },
+      { path: "profile", element: <TechProfile /> },
+      { path: "community", element: <TechCommunity /> },
+      { path: "community/:postId", element: <TechCommunityPostDetail /> },
+      { path: "feature-requests", element: <TechFeatureRequests /> },
+      { path: "feature-requests/:id", element: <TechFeatureRequestDetailPage /> },
+    ]
   },
   {
-    path: "/company/support/:ticketId",
-    element: <CompanyLayout children={<Support />} />,
-  },
-  {
-    path: "/company/profile",
-    element: <CompanyLayout children={<CompanyProfile />} />,
-  },
-  {
-    path: "/company/community",
-    element: <CompanyLayout children={<Community />} />,
-  },
-  {
-    path: "/company/community/:postId",
-    element: <CompanyLayout children={<CommunityPostDetail />} />,
-  },
-  {
-    path: "/tech/dashboard",
-    element: <TechLayout children={<TechDashboard />} />,
-  },
-  {
-    path: "/tech/support",
-    element: <TechLayout children={<TechSupport />} />,
-  },
-  {
-    path: "/tech/support/:ticketId",
-    element: <TechLayout children={<TechSupport />} />,
-  },
-  {
-    path: "/tech/profile",
-    element: <TechLayout children={<TechProfile />} />,
-  },
-  {
-    path: "/tech/community",
-    element: <TechLayout children={<TechCommunity />} />,
-  },
-  {
-    path: "/tech/community/:postId",
-    element: <TechLayout children={<TechCommunityPostDetail />} />,
-  },
-  {
-    path: "/admin/dashboard",
-    element: <AdminLayout children={<AdminDashboard />} />,
-  },
-  {
-    path: "/admin/support",
-    element: <AdminLayout children={<AdminSupport />} />,
-  },
-  {
-    path: "/admin/profile",
-    element: <AdminLayout children={<AdminProfile />} />,
-  },
-  {
-    path: "/admin/feature-requests",
-    element: <AdminLayout children={<AdminFeatureRequests />} />,
-  },
-  {
-    path: "/admin/feature-requests/:id",
-    element: <AdminLayout children={<AdminFeatureRequestDetailPage />} />,
-  },
-  {
-    path: "/company/feature-requests",
-    element: <CompanyLayout children={<CompanyFeatureRequests />} />,
-  },
-  {
-    path: "/company/feature-requests/:id",
-    element: <CompanyLayout children={<CompanyFeatureRequestDetailPage />} />,
-  },
-  {
-    path: "/tech/feature-requests",
-    element: <TechLayout children={<TechFeatureRequests />} />,
-  },
-  {
-    path: "/tech/feature-requests/:id",
-    element: <TechLayout children={<TechFeatureRequestDetailPage />} />,
-  },
+    path: "/admin",
+    element: <AdminLayout />,
+    children: [
+      { path: "dashboard", element: <AdminDashboard /> },
+      { path: "support", element: <AdminSupport /> },
+      { path: "profile", element: <AdminProfile /> },
+      { path: "feature-requests", element: <AdminFeatureRequests /> },
+      { path: "feature-requests/:id", element: <AdminFeatureRequestDetailPage /> },
+    ]
+  }
 ]);
 
 function App() {

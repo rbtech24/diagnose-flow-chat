@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -9,7 +8,7 @@ import { Plus, Search, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FeatureRequestCard } from "@/components/feature-request/FeatureRequestCard";
 import { NewFeatureRequestForm } from "@/components/feature-request/NewFeatureRequestForm";
-import { FeatureRequest, FeatureRequestPriority } from "@/types/feature-request";
+import { FeatureRequest, FeatureRequestPriority, FeatureRequestVote } from "@/types/feature-request";
 import { mockFeatureRequests } from "@/data/mockFeatureRequests";
 import { currentUser } from "@/data/mockTickets";
 
@@ -24,7 +23,7 @@ export default function TechFeatureRequests() {
   const handleVote = (id: string) => {
     const updatedRequests = featureRequests.map((request) => {
       if (request.id === id) {
-        const newVote = {
+        const newVote: FeatureRequestVote = {
           id: `vote-${Date.now()}`,
           userId: currentUser.id,
           featureRequestId: id,

@@ -68,8 +68,6 @@ export default function AdminFeatureRequestDetailPage() {
     });
   };
   
-  // Admin doesn't need voting functionality but we provide an empty function
-  // to satisfy the component prop requirements
   const handleVote = (requestId: string) => {
     // Admin doesn't vote, this is just to satisfy the prop requirement
   };

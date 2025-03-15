@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -9,7 +8,7 @@ import { Plus, Search, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FeatureRequestCard } from "@/components/feature-request/FeatureRequestCard";
 import { NewFeatureRequestForm } from "@/components/feature-request/NewFeatureRequestForm";
-import { FeatureRequest, FeatureRequestPriority } from "@/types/feature-request";
+import { FeatureRequest, FeatureRequestPriority, FeatureRequestVote } from "@/types/feature-request";
 import { mockFeatureRequests } from "@/data/mockFeatureRequests";
 import { currentUser } from "@/data/mockTickets";
 
@@ -24,7 +23,7 @@ export default function CompanyFeatureRequests() {
   const handleVote = (id: string) => {
     const updatedRequests = featureRequests.map((request) => {
       if (request.id === id) {
-        const newVote = {
+        const newVote: FeatureRequestVote = {
           id: `vote-${Date.now()}`,
           userId: currentUser.id,
           featureRequestId: id,
@@ -161,16 +160,16 @@ export default function CompanyFeatureRequests() {
       <Tabs defaultValue="pending" className="space-y-4">
         <TabsList>
           <TabsTrigger value="pending">
-            Pending <span className="ml-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs text-yellow-600">{pendingRequests.length}</span>
+            Pending <span className="ml-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs text-yellow-600">{filteredRequests.filter(request => request.status === "pending").length}</span>
           </TabsTrigger>
           <TabsTrigger value="approved">
-            Approved <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-600">{approvedRequests.length}</span>
+            Approved <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-600">{filteredRequests.filter(request => ["approved", "in-progress"].includes(request.status)).length}</span>
           </TabsTrigger>
           <TabsTrigger value="completed">
-            Completed <span className="ml-1 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-600">{completedRequests.length}</span>
+            Completed <span className="ml-1 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-600">{filteredRequests.filter(request => request.status === "completed").length}</span>
           </TabsTrigger>
           <TabsTrigger value="rejected">
-            Rejected <span className="ml-1 rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-600">{rejectedRequests.length}</span>
+            Rejected <span className="ml-1 rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-600">{filteredRequests.filter(request => request.status === "rejected").length}</span>
           </TabsTrigger>
         </TabsList>
 
