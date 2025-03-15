@@ -241,12 +241,13 @@ export const SidebarMenuItem = ({ children, className, ...props }: React.HTMLAtt
   <div className={cn("", className)} {...props}>{children}</div>
 );
 
-// Update this component to accept active prop
+// Update this component to accept active prop and asChild prop
 interface SidebarMenuButtonProps extends React.HTMLAttributes<HTMLAnchorElement> {
   children: React.ReactNode;
   active?: boolean;
   className?: string;
   href?: string;
+  asChild?: boolean; // Added asChild property to fix TypeScript errors
 }
 
 export const SidebarMenuButton = ({ 
@@ -254,10 +255,29 @@ export const SidebarMenuButton = ({
   active,
   href,
   className,
+  asChild, // Handle asChild prop
   ...props 
 }: SidebarMenuButtonProps) => {
   const { expanded } = useSidebar();
   
+  // If asChild is true, we render the children directly
+  if (asChild) {
+    // Pass expanded state and classNames to children
+    const childProps = {
+      className: cn(
+        "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+        active ? "bg-gray-100 text-gray-900 font-medium" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+        !expanded && "justify-center",
+        className
+      ),
+      ...props
+    };
+    
+    // Return the child as is but with props
+    return React.cloneElement(React.Children.only(children as React.ReactElement), childProps);
+  }
+  
+  // Default rendering as an anchor
   return (
     <a 
       href={href}

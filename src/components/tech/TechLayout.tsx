@@ -1,5 +1,5 @@
 
-import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
+import { Sidebar } from "@/components/ui/sidebar";
 import { TechSidebar } from "./TechSidebar";
 import { Outlet } from "react-router-dom";
 
