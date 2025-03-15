@@ -8,7 +8,7 @@ export default function Index() {
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <header className="sticky top-0 z-10 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-        <div className="container mx-auto flex h-24 items-center justify-between px-4">
+        <div className="container mx-auto flex h-36 items-center justify-between px-4">
           <div className="flex items-center">
             <img 
               src="/lovable-uploads/5e12430c-6872-485e-b07a-02b835f8e3d4.png" 
