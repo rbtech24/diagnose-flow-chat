@@ -1,210 +1,221 @@
 
-import * as React from "react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import React, { createContext, useContext, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-type SidebarContextValue = {
-  expanded: boolean
-  setExpanded: React.Dispatch<React.SetStateAction<boolean>>
-}
+type SidebarContextType = {
+  expanded: boolean;
+  setExpanded: React.Dispatch<React.SetStateAction<boolean>>;
+  expand: () => void;
+  collapse: () => void;
+  toggle: () => void;
+};
 
-const SidebarContext = React.createContext<SidebarContextValue | undefined>(
-  undefined
-)
+const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 export function useSidebar() {
-  const context = React.useContext(SidebarContext)
+  const context = useContext(SidebarContext);
   if (!context) {
-    throw new Error("useSidebar must be used within a SidebarProvider")
+    throw new Error("useSidebar must be used within a SidebarProvider");
   }
-  return context
+  return context;
 }
 
-interface SidebarProviderProps {
-  children: React.ReactNode
-  defaultExpanded?: boolean
+interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
+  defaultExpanded?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
+  children?: React.ReactNode;
 }
 
-export function SidebarProvider({
-  children,
+export function Sidebar({
   defaultExpanded = true,
-}: SidebarProviderProps) {
-  const [expanded, setExpanded] = React.useState(defaultExpanded)
+  onExpandedChange,
+  children,
+  className,
+  ...props
+}: SidebarProps) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
+
+  const expand = () => {
+    setExpanded(true);
+    onExpandedChange?.(true);
+  };
+
+  const collapse = () => {
+    setExpanded(false);
+    onExpandedChange?.(false);
+  };
+
+  const toggle = () => {
+    setExpanded((prev) => {
+      const next = !prev;
+      onExpandedChange?.(next);
+      return next;
+    });
+  };
 
   return (
-    <SidebarContext.Provider value={{ expanded, setExpanded }}>
-      <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] h-screen w-full">
+    <SidebarContext.Provider
+      value={{ expanded, setExpanded, expand, collapse, toggle }}
+    >
+      <div
+        className={cn(
+          "h-full flex flex-col bg-white border-r transition-all duration-300 ease-in-out shadow-sm",
+          expanded ? "w-64" : "w-[70px]",
+          className
+        )}
+        {...props}
+      >
         {children}
       </div>
     </SidebarContext.Provider>
-  )
+  );
 }
 
-export function SidebarTrigger() {
-  const { expanded, setExpanded } = useSidebar()
-  
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      className="h-8 w-8 absolute top-4 left-4 md:hidden z-50"
-      onClick={() => setExpanded(!expanded)}
-    >
-      <ChevronRight className="h-4 w-4" />
-    </Button>
-  )
+interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
+  children?: React.ReactNode;
 }
 
-interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-export function Sidebar({ className, ...props }: SidebarProps) {
-  const { expanded } = useSidebar()
-  
+export function SidebarHeader({ children, className, ...props }: SidebarHeaderProps) {
   return (
     <div
-      data-expanded={expanded}
       className={cn(
-        "flex flex-col h-screen bg-card border-r fixed md:relative z-40 top-0 left-0 transition-all duration-300",
-        expanded ? "w-64" : "w-0 md:w-16",
+        "h-14 flex items-center px-4 border-b",
         className
       )}
       {...props}
-    />
-  )
-}
-
-interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-export function SidebarHeader({ className, ...props }: SidebarHeaderProps) {
-  const { expanded, setExpanded } = useSidebar()
-  
-  return (
-    <div
-      className={cn("p-4 h-14 flex items-center justify-between", className)}
-      {...props}
     >
-      {expanded && <div className="transition-opacity duration-300">{props.children}</div>}
-      <Button
-        variant="ghost"
-        size="icon"
-        className={cn(
-          "h-8 w-8 hidden md:flex transition-transform",
-          !expanded && "mx-auto"
-        )}
-        onClick={() => setExpanded(!expanded)}
-      >
-        {expanded ? (
-          <ChevronLeft className="h-4 w-4" />
-        ) : (
-          <ChevronRight className="h-4 w-4" />
-        )}
-      </Button>
+      {children}
     </div>
-  )
+  );
 }
 
-interface SidebarContentProps extends React.HTMLAttributes<HTMLDivElement> {}
+interface SidebarMainProps extends React.HTMLAttributes<HTMLDivElement> {
+  children?: React.ReactNode;
+}
 
-export function SidebarContent({ className, ...props }: SidebarContentProps) {
-  const { expanded } = useSidebar()
+export function SidebarMain({ children, className, ...props }: SidebarMainProps) {
   return (
-    <div className={cn("flex-1 overflow-auto p-3", expanded ? "" : "px-2", className)} {...props} />
-  )
+    <div className={cn("flex-1 overflow-auto", className)} {...props}>
+      {children}
+    </div>
+  );
 }
 
-interface SidebarFooterProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-export function SidebarFooter({ className, ...props }: SidebarFooterProps) {
-  return <div className={cn("p-4 mt-auto", className)} {...props} />
+interface SidebarFooterProps extends React.HTMLAttributes<HTMLDivElement> {
+  children?: React.ReactNode;
 }
 
-interface SidebarGroupProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-export function SidebarGroup({ className, ...props }: SidebarGroupProps) {
-  return (
-    <div className={cn("pb-4", className)} {...props} />
-  )
-}
-
-interface SidebarGroupLabelProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-export function SidebarGroupLabel({ className, ...props }: SidebarGroupLabelProps) {
-  const { expanded } = useSidebar()
-  
-  if (!expanded) {
-    return null
-  }
-  
+export function SidebarFooter({ children, className, ...props }: SidebarFooterProps) {
   return (
     <div
-      className={cn("text-xs font-medium text-muted-foreground px-2 py-1", className)}
-      {...props}
-    />
-  )
-}
-
-interface SidebarGroupContentProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-export function SidebarGroupContent({ className, ...props }: SidebarGroupContentProps) {
-  return <div className={cn("space-y-1", className)} {...props} />
-}
-
-interface SidebarMenuProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-export function SidebarMenu({ className, ...props }: SidebarMenuProps) {
-  return <div className={cn("", className)} {...props} />
-}
-
-interface SidebarMenuItemProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-export function SidebarMenuItem({ className, ...props }: SidebarMenuItemProps) {
-  return <div className={cn("", className)} {...props} />
-}
-
-interface SidebarMenuButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
-  active?: boolean
-  asChild?: boolean
-}
-
-export function SidebarMenuButton({
-  className,
-  active,
-  asChild = false,
-  ...props
-}: SidebarMenuButtonProps) {
-  const { expanded } = useSidebar()
-  const Component = asChild ? Button : "button"
-  
-  return (
-    <Component
-      className={cn(
-        "group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200",
-        active && "bg-muted text-foreground",
-        expanded ? "justify-start" : "justify-center",
-        className
-      )}
-      type={asChild ? undefined : "button"}
-      variant={asChild ? undefined : "ghost"}
+      className={cn("h-14 flex items-center px-4 border-t", className)}
       {...props}
     >
-      {React.Children.map(props.children, (child) => {
-        if (React.isValidElement(child)) {
-          if (!expanded && child.type === "span") {
-            return null
-          }
-          if (!expanded && React.isValidElement(child) && typeof child.type === 'function' && 
-              child.type.displayName && 
-              child.type.displayName.includes('LucideIcon')) {
-            return React.cloneElement(child, { 
-              ...child.props, 
-              className: cn(child.props.className, "mr-0") 
-            });
-          }
-          return child
-        }
-        return child
-      })}
-    </Component>
-  )
+      {children}
+    </div>
+  );
 }
+
+interface SidebarNavProps extends React.HTMLAttributes<HTMLDivElement> {
+  children?: React.ReactNode;
+}
+
+export function SidebarNav({ children, className, ...props }: SidebarNavProps) {
+  return (
+    <div className={cn("flex flex-col gap-1 px-2 py-2", className)} {...props}>
+      {children}
+    </div>
+  );
+}
+
+interface SidebarNavItemProps extends React.HTMLAttributes<HTMLAnchorElement> {
+  icon?: React.ReactNode;
+  active?: boolean;
+  href?: string;
+  children?: React.ReactNode;
+}
+
+export function SidebarNavItem({
+  icon,
+  active,
+  href,
+  children,
+  className,
+  ...props
+}: SidebarNavItemProps) {
+  const { expanded } = useSidebar();
+
+  return (
+    <a
+      href={href}
+      className={cn(
+        "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+        active ? "bg-gray-100 text-gray-900 font-medium" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+        !expanded && "justify-center",
+        className
+      )}
+      {...props}
+    >
+      {icon && <div className="w-5 h-5">{icon}</div>}
+      {expanded && <div>{children}</div>}
+    </a>
+  );
+}
+
+interface SidebarNavGroupProps extends React.HTMLAttributes<HTMLDivElement> {
+  label?: string;
+  children?: React.ReactNode;
+}
+
+export function SidebarNavGroup({
+  label,
+  children,
+  className,
+  ...props
+}: SidebarNavGroupProps) {
+  const { expanded } = useSidebar();
+
+  return (
+    <div className={cn("flex flex-col gap-1", className)} {...props}>
+      {label && expanded && (
+        <div className="px-3 py-1 text-xs font-medium text-gray-500 uppercase">
+          {label}
+        </div>
+      )}
+      {children}
+    </div>
+  );
+}
+
+interface SidebarToggleProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  children?: React.ReactNode;
+}
+
+export function SidebarToggle({ children, className, ...props }: SidebarToggleProps) {
+  const { expanded, toggle } = useSidebar();
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      className={cn(
+        "flex items-center justify-center w-8 h-8 rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+        className
+      )}
+      {...props}
+    >
+      {children || (expanded ? <ChevronLeft size={18} /> : <ChevronRight size={18} />)}
+    </button>
+  );
+}
+
+// Fix for TypeScript errors - Properly set displayName for function components
+Sidebar.displayName = "Sidebar";
+SidebarHeader.displayName = "SidebarHeader";
+SidebarMain.displayName = "SidebarMain";
+SidebarFooter.displayName = "SidebarFooter";
+SidebarNav.displayName = "SidebarNav";
+SidebarNavItem.displayName = "SidebarNavItem";
+SidebarNavGroup.displayName = "SidebarNavGroup";
+SidebarToggle.displayName = "SidebarToggle";

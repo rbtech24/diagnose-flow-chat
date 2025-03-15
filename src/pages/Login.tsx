@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -111,9 +111,9 @@ export default function Login() {
         <CardFooter className="flex flex-col space-y-4">
           <div className="text-center text-sm text-gray-500">
             Don't have an account?{" "}
-            <a href="#" className="text-blue-600 hover:text-blue-800">
-              Contact your administrator
-            </a>
+            <Link to="/signup" className="text-blue-600 hover:text-blue-800">
+              Sign up now
+            </Link>
           </div>
         </CardFooter>
       </Card>

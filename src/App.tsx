@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 // Pages
 import Index from "./pages/Index";
 import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
 import Workflows from "./pages/Workflows";
 import WorkflowEditor from "./pages/WorkflowEditor";
 import NotFound from "./pages/NotFound";
@@ -36,8 +37,9 @@ const App = () => (
           {/* Index route */}
           <Route path="/" element={<Index />} />
           
-          {/* Login route */}
+          {/* Auth routes */}
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
           
           {/* Workflow routes */}
           <Route path="/workflows" element={<Workflows />} />
