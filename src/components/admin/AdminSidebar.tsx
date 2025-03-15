@@ -23,18 +23,18 @@ export function AdminSidebar() {
 
   return (
     <Sidebar defaultExpanded={true}>
-      <SidebarHeader className="flex items-center justify-between">
+      <SidebarHeader className="flex items-center justify-between py-3">
         <div className="flex items-center gap-2 px-4">
-          <span className="text-lg font-semibold">Admin</span>
+          <span className="text-lg font-bold">Admin</span>
         </div>
         <SidebarToggle />
       </SidebarHeader>
       
       <SidebarMain>
         <SidebarNav>
-          <SidebarNavGroup label="Dashboard">
+          <SidebarNavGroup label="DASHBOARD">
             <SidebarNavItem 
-              icon={<Home />} 
+              icon={<Home className="w-5 h-5" />} 
               active={isActive("/admin/dashboard")}
               className="cursor-pointer"
             >
@@ -42,9 +42,9 @@ export function AdminSidebar() {
             </SidebarNavItem>
           </SidebarNavGroup>
 
-          <SidebarNavGroup label="Management">
+          <SidebarNavGroup label="MANAGEMENT">
             <SidebarNavItem 
-              icon={<Building2 />} 
+              icon={<Building2 className="w-5 h-5" />} 
               active={isActive("/admin/companies")}
               className="cursor-pointer"
             >
@@ -52,7 +52,7 @@ export function AdminSidebar() {
             </SidebarNavItem>
             
             <SidebarNavItem 
-              icon={<Users />} 
+              icon={<Users className="w-5 h-5" />} 
               active={isActive("/admin/users")}
               className="cursor-pointer"
             >
@@ -60,7 +60,7 @@ export function AdminSidebar() {
             </SidebarNavItem>
             
             <SidebarNavItem 
-              icon={<Workflow />} 
+              icon={<Workflow className="w-5 h-5" />} 
               active={isActive("/admin/workflows")}
               className="cursor-pointer"
             >
@@ -68,9 +68,9 @@ export function AdminSidebar() {
             </SidebarNavItem>
           </SidebarNavGroup>
 
-          <SidebarNavGroup label="Subscription">
+          <SidebarNavGroup label="SUBSCRIPTION">
             <SidebarNavItem 
-              icon={<Package />} 
+              icon={<Package className="w-5 h-5" />} 
               active={isActive("/admin/subscription-plans")}
               className="cursor-pointer"
             >
@@ -78,7 +78,7 @@ export function AdminSidebar() {
             </SidebarNavItem>
             
             <SidebarNavItem 
-              icon={<CreditCard />} 
+              icon={<CreditCard className="w-5 h-5" />} 
               active={isActive("/admin/licenses")}
               className="cursor-pointer"
             >
@@ -86,9 +86,9 @@ export function AdminSidebar() {
             </SidebarNavItem>
           </SidebarNavGroup>
 
-          <SidebarNavGroup label="System">
+          <SidebarNavGroup label="SYSTEM">
             <SidebarNavItem 
-              icon={<Network />} 
+              icon={<Network className="w-5 h-5" />} 
               active={isActive("/admin/api-integrations")}
               className="cursor-pointer"
             >
@@ -96,7 +96,7 @@ export function AdminSidebar() {
             </SidebarNavItem>
             
             <SidebarNavItem 
-              icon={<FileText />} 
+              icon={<FileText className="w-5 h-5" />} 
               active={isActive("/admin/feature-requests")}
               className="cursor-pointer"
             >
@@ -104,9 +104,9 @@ export function AdminSidebar() {
             </SidebarNavItem>
           </SidebarNavGroup>
 
-          <SidebarNavGroup label="Support">
+          <SidebarNavGroup label="SUPPORT">
             <SidebarNavItem 
-              icon={<LifeBuoy />} 
+              icon={<LifeBuoy className="w-5 h-5" />} 
               active={isActive("/admin/support")}
               className="cursor-pointer"
             >
@@ -116,12 +116,12 @@ export function AdminSidebar() {
         </SidebarNav>
       </SidebarMain>
       
-      <SidebarFooter className="border-t">
+      <SidebarFooter className="border-t mt-auto">
         <div className="flex w-full items-center justify-between p-4">
-          <div className="flex items-center gap-2">
+          <Link to="/admin/profile" className="flex items-center gap-2 text-sm font-medium">
             <Settings size={20} className="text-muted-foreground" />
-            <Link to="/admin/profile" className="text-sm font-medium">Settings</Link>
-          </div>
+            <span>Settings</span>
+          </Link>
           <Link to="/login" className="flex items-center text-sm gap-1 text-muted-foreground hover:text-foreground transition-colors">
             <LogOut size={18} />
             <span>Logout</span>
