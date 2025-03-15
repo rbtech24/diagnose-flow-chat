@@ -4,9 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Plus, Search, Workflow } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function AdminWorkflows() {
+  const navigate = useNavigate();
+
+  const handleCreateWorkflow = () => {
+    navigate('/workflow-editor');
+  };
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
@@ -19,7 +25,7 @@ export default function AdminWorkflows() {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Search workflows..." className="pl-8 w-[250px]" />
           </div>
-          <Button>
+          <Button onClick={handleCreateWorkflow}>
             <Plus className="h-4 w-4 mr-2" />
             Create Workflow
           </Button>
@@ -36,11 +42,11 @@ export default function AdminWorkflows() {
             <div className="space-y-4">
               {/* Sample workflows - would be populated from API in a real app */}
               {[
-                { name: "Refrigerator Not Cooling", appliance: "Refrigerator", status: "published" },
-                { name: "Dishwasher Leaking Water", appliance: "Dishwasher", status: "draft" },
-                { name: "Oven Not Heating", appliance: "Oven", status: "published" },
-              ].map((workflow, i) => (
-                <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
+                { id: "1", name: "Refrigerator Not Cooling", appliance: "Refrigerator", status: "published" },
+                { id: "2", name: "Dishwasher Leaking Water", appliance: "Dishwasher", status: "draft" },
+                { id: "3", name: "Oven Not Heating", appliance: "Oven", status: "published" },
+              ].map((workflow) => (
+                <div key={workflow.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                       <Workflow className="h-5 w-5 text-primary" />
@@ -54,10 +60,10 @@ export default function AdminWorkflows() {
                     <Badge variant={workflow.status === "published" ? "secondary" : "outline"}>
                       {workflow.status}
                     </Badge>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link to={`/workflow-editor?folder=${workflow.appliance}&name=${workflow.name}`}>
-                        Edit Workflow
-                      </Link>
+                    <Button variant="outline" size="sm" onClick={() => 
+                      navigate(`/workflow-editor?folder=${workflow.appliance}&name=${workflow.name}`)
+                    }>
+                      Edit Workflow
                     </Button>
                   </div>
                 </div>

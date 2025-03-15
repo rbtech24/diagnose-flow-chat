@@ -34,6 +34,7 @@ import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import Index from "./pages/Index";
 import AdminUsers from "./pages/admin/Users";
+import UserDetail from "./pages/admin/UserDetail";
 import AdminCompanies from "./pages/admin/Companies";
 import AdminWorkflows from "./pages/admin/Workflows";
 import CompanyDetail from "./pages/admin/CompanyDetail";
@@ -99,6 +100,7 @@ const router = createBrowserRouter([
       { path: "licenses", element: <AdminLicenses /> },
       { path: "api-integrations", element: <APIIntegrations /> },
       { path: "users", element: <AdminUsers /> },
+      { path: "users/:id", element: <UserDetail /> },
       { path: "companies", element: <AdminCompanies /> },
       { path: "companies/:id", element: <CompanyDetail /> },
       { path: "workflows", element: <AdminWorkflows /> },

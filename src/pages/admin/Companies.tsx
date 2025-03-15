@@ -3,9 +3,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Building2, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function AdminCompanies() {
+  const navigate = useNavigate();
+
+  const handleAddCompany = () => {
+    // Navigate to the add company form or open a modal
+    navigate("/admin/companies/new");
+  };
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
@@ -18,7 +25,7 @@ export default function AdminCompanies() {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Search companies..." className="pl-8 w-[250px]" />
           </div>
-          <Button>
+          <Button onClick={handleAddCompany}>
             <Plus className="h-4 w-4 mr-2" />
             Add Company
           </Button>
@@ -34,19 +41,23 @@ export default function AdminCompanies() {
           <CardContent>
             <div className="space-y-4">
               {/* Sample companies - would be populated from API in a real app */}
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
+              {[
+                { id: "1", name: "Acme Repairs 1", technicians: 5, plan: "Premium" },
+                { id: "2", name: "Acme Repairs 2", technicians: 3, plan: "Basic" },
+                { id: "3", name: "Acme Repairs 3", technicians: 8, plan: "Enterprise" },
+              ].map((company) => (
+                <div key={company.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                       <Building2 className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-medium">Acme Repairs {i}</h3>
-                      <p className="text-sm text-muted-foreground">5 technicians • Premium plan</p>
+                      <h3 className="font-medium">{company.name}</h3>
+                      <p className="text-sm text-muted-foreground">{company.technicians} technicians • {company.plan} plan</p>
                     </div>
                   </div>
                   <Button variant="outline" size="sm" asChild>
-                    <Link to={`/admin/companies/${i}`}>View Details</Link>
+                    <Link to={`/admin/companies/${company.id}`}>View Details</Link>
                   </Button>
                 </div>
               ))}
