@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/components/ui/use-toast";
 import { ArrowLeft, Building2, Wrench, Users, UserPlus } from "lucide-react";
 
-// Define form validation schemas
 const techAccountSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
@@ -46,7 +44,6 @@ export default function SignUp() {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Tech account form
   const techForm = useForm<TechFormValues>({
     resolver: zodResolver(techAccountSchema),
     defaultValues: {
@@ -57,7 +54,6 @@ export default function SignUp() {
     }
   });
   
-  // Company account form
   const companyForm = useForm<CompanyFormValues>({
     resolver: zodResolver(companyAccountSchema),
     defaultValues: {
@@ -92,7 +88,6 @@ export default function SignUp() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-b from-blue-50 to-white">
-      {/* Left side - Value proposition */}
       <div className="w-full md:w-1/2 p-8 flex flex-col justify-center">
         <div className="max-w-md mx-auto">
           <Link to="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-8">
@@ -108,7 +103,6 @@ export default function SignUp() {
             />
           </div>
           
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Join Repair Auto Pilot</h1>
           <p className="text-xl mb-8 text-gray-700">
             {accountType === "tech" 
               ? "Get immediate access to powerful diagnostic workflows for appliance repair professionals." 
@@ -166,16 +160,9 @@ export default function SignUp() {
         </div>
       </div>
       
-      {/* Right side - Sign up form */}
       <div className="w-full md:w-1/2 p-8 flex flex-col justify-center bg-white">
         <div className="max-w-md mx-auto w-full">
-          <div className="flex justify-center mb-6">
-            <img 
-              src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
-              alt="Repair Auto Pilot" 
-              className="h-24"
-            />
-          </div>
+          <h1 className="text-3xl md:text-4xl font-bold mb-6 text-center">Join Repair Auto Pilot</h1>
           <Card className="shadow-md border-0">
             <CardHeader>
               <CardTitle className="text-2xl">Create Your Account</CardTitle>
@@ -201,7 +188,6 @@ export default function SignUp() {
                   </TabsTrigger>
                 </TabsList>
                 
-                {/* Technician signup form */}
                 <TabsContent value="tech">
                   <Form {...techForm}>
                     <form onSubmit={techForm.handleSubmit(onTechSubmit)} className="space-y-4">
@@ -268,7 +254,6 @@ export default function SignUp() {
                   </Form>
                 </TabsContent>
                 
-                {/* Company signup form */}
                 <TabsContent value="company">
                   <Form {...companyForm}>
                     <form onSubmit={companyForm.handleSubmit(onCompanySubmit)} className="space-y-4">
