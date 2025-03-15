@@ -4,17 +4,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { 
   Users, Wrench, Clock, AlertTriangle, Search,
-  PlusCircle, ArrowUp, ArrowDown, MessagesSquare
+  PlusCircle, ArrowUp, ArrowDown, MessagesSquare,
+  Play, Activity
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useWorkflows } from "@/hooks/useWorkflows";
 
 export default function CompanyDashboard() {
+  // Get current date
+  const today = new Date();
+  const dateOptions = { 
+    weekday: 'long' as const, 
+    year: 'numeric' as const, 
+    month: 'long' as const, 
+    day: 'numeric' as const 
+  };
+  const formattedDate = today.toLocaleDateString('en-US', dateOptions);
+  
+  // Get workflows for diagnosis
+  const { workflows, isLoading } = useWorkflows();
+  
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold">ABC Appliance Repair</h1>
-          <p className="text-gray-500">Company Dashboard</p>
+          <p className="text-gray-500">{formattedDate}</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="relative w-64">
@@ -29,42 +44,34 @@ export default function CompanyDashboard() {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <Card>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-4 mb-8">
+        <Card className="md:col-span-3">
           <CardHeader>
-            <CardTitle>Company Dashboard</CardTitle>
-            <CardDescription>Manage your team and start new jobs</CardDescription>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Welcome Back</CardTitle>
+                <CardDescription>{formattedDate}</CardDescription>
+              </div>
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+                <Play className="mr-2 h-4 w-4" />
+                Start Diagnosis
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col space-y-4">
-              <div className="flex space-x-4">
-                <Button className="flex-1" asChild>
-                  <Link to="/company/techs">Manage Team</Link>
-                </Button>
-                <Button className="flex-1" variant="default">Start a Diagnosis</Button>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-blue-500" />
+                <div>
+                  <p className="text-sm font-medium">Avg Response Time</p>
+                  <p className="text-2xl font-bold">1.8 hrs</p>
+                </div>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="border rounded-lg p-3">
-                  <p className="text-sm text-muted-foreground">Active Jobs</p>
-                  <p className="text-xl font-bold">12</p>
-                </div>
-                <div className="border rounded-lg p-3">
-                  <p className="text-sm text-muted-foreground">Team Members</p>
-                  <p className="text-xl font-bold">8</p>
-                </div>
-                <div className="border rounded-lg p-3">
-                  <p className="text-sm text-muted-foreground">Monthly Revenue</p>
-                  <div className="flex items-center">
-                    <p className="text-xl font-bold">$12.5k</p>
-                    <span className="ml-2 text-xs text-green-600 flex items-center">
-                      <ArrowUp className="h-3 w-3" /> 
-                      12%
-                    </span>
-                  </div>
-                </div>
-                <div className="border rounded-lg p-3">
-                  <p className="text-sm text-muted-foreground">Response Time</p>
-                  <p className="text-xl font-bold">1.4 hrs</p>
+              <div className="flex items-center gap-2">
+                <Activity className="h-4 w-4 text-green-500" />
+                <div>
+                  <p className="text-sm font-medium">Team Performance</p>
+                  <p className="text-2xl font-bold">94%</p>
                 </div>
               </div>
             </div>
@@ -72,47 +79,175 @@ export default function CompanyDashboard() {
         </Card>
         
         <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle>Team Members</CardTitle>
-                <CardDescription>Manage your technicians</CardDescription>
-              </div>
-              <Button size="sm">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Technician
-              </Button>
-            </div>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Workflows</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <div className="bg-muted rounded-full p-3 mb-4">
-                <Users className="h-6 w-6 text-muted-foreground" />
+            <div className="flex flex-col items-center justify-center h-full py-4">
+              <div className="bg-blue-100 text-blue-600 p-4 rounded-full mb-2">
+                <Wrench className="h-6 w-6" />
               </div>
-              <h3 className="font-medium mb-2">No team members found</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Add your first technician to get started
-              </p>
+              <p className="text-sm text-center mb-1">{isLoading ? "Loading..." : `${workflows.length} available workflows`}</p>
+              <Button variant="outline" size="sm" className="mt-2" asChild>
+                <Link to="/workflows">Manage Workflows</Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
       </div>
       
-      <div className="mb-8">
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-4">
-              <div className="rounded-full bg-red-100 p-2">
-                <AlertTriangle className="h-4 w-4 text-red-600" />
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Active Jobs</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center">
+              <Wrench className="h-4 w-4 text-blue-500 mr-2" />
+              <span className="text-2xl font-bold">12</span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Team Members</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center">
+              <Users className="h-4 w-4 text-green-500 mr-2" />
+              <span className="text-2xl font-bold">8</span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center">
+              <ArrowUp className="h-4 w-4 text-emerald-500 mr-2" />
+              <span className="text-2xl font-bold">$12.5k</span>
+              <span className="ml-2 text-xs text-emerald-500">+12%</span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Response Time</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center">
+              <Clock className="h-4 w-4 text-amber-500 mr-2" />
+              <span className="text-2xl font-bold">1.4 hrs</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="md:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Team Members</CardTitle>
+              <CardDescription>Manage your technicians</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-between mb-4">
+                <div className="flex items-center">
+                  <div className="relative mr-2">
+                    <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/300?img=1" alt="Technician" />
+                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500"></span>
+                  </div>
+                  <div>
+                    <p className="font-medium">John Smith</p>
+                    <p className="text-xs text-gray-500">Active • 3 jobs</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm">View</Button>
               </div>
-              <div>
-                <h3 className="font-medium text-red-900">Failed to load technicians</h3>
-                <p className="text-sm text-red-700">
-                  There was an error loading your technician data. Please try again later or contact support.
-                </p>
+              
+              <div className="flex justify-between mb-4">
+                <div className="flex items-center">
+                  <div className="relative mr-2">
+                    <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/300?img=2" alt="Technician" />
+                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500"></span>
+                  </div>
+                  <div>
+                    <p className="font-medium">Sarah Johnson</p>
+                    <p className="text-xs text-gray-500">Active • 2 jobs</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm">View</Button>
               </div>
-              <Button variant="outline" size="sm" className="ml-auto self-start bg-white">
-                Retry
+              
+              <div className="flex justify-between">
+                <div className="flex items-center">
+                  <div className="relative mr-2">
+                    <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/300?img=3" alt="Technician" />
+                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-gray-300"></span>
+                  </div>
+                  <div>
+                    <p className="font-medium">Mike Williams</p>
+                    <p className="text-xs text-gray-500">Offline • 0 jobs</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm">View</Button>
+              </div>
+              
+              <div className="mt-6">
+                <Button className="w-full" asChild>
+                  <Link to="/company/technicians">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Manage Technicians
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+            <CardDescription>Latest updates</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-start gap-4">
+                <div className="mt-1 rounded-full bg-blue-100 p-1">
+                  <Wrench className="h-3 w-3 text-blue-600" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">New job created</p>
+                  <p className="text-xs text-gray-500">10 minutes ago</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-4">
+                <div className="mt-1 rounded-full bg-green-100 p-1">
+                  <Users className="h-3 w-3 text-green-600" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Tech assigned to job #1234</p>
+                  <p className="text-xs text-gray-500">1 hour ago</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-4">
+                <div className="mt-1 rounded-full bg-amber-100 p-1">
+                  <AlertTriangle className="h-3 w-3 text-amber-600" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Job #1230 needs attention</p>
+                  <p className="text-xs text-gray-500">3 hours ago</p>
+                </div>
+              </div>
+              
+              <Button variant="ghost" size="sm" className="w-full mt-4">
+                View All Activity
               </Button>
             </div>
           </CardContent>
