@@ -45,7 +45,7 @@ export default function CompanyDashboard() {
       </div>
       
       <div className="grid grid-cols-1 gap-6 md:grid-cols-4 mb-8">
-        <Card className="md:col-span-3">
+        <Card className="md:col-span-3 border-blue-200 bg-blue-50">
           <CardHeader>
             <div className="flex justify-between items-center">
               <div>
@@ -61,14 +61,14 @@ export default function CompanyDashboard() {
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-blue-500" />
+                <Clock className="h-4 w-4 text-blue-600" />
                 <div>
                   <p className="text-sm font-medium">Avg Response Time</p>
                   <p className="text-2xl font-bold">1.8 hrs</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Activity className="h-4 w-4 text-green-500" />
+                <Activity className="h-4 w-4 text-green-600" />
                 <div>
                   <p className="text-sm font-medium">Team Performance</p>
                   <p className="text-2xl font-bold">94%</p>
@@ -78,13 +78,13 @@ export default function CompanyDashboard() {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="border-purple-200 bg-purple-50">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Workflows</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col items-center justify-center h-full py-4">
-              <div className="bg-blue-100 text-blue-600 p-4 rounded-full mb-2">
+              <div className="bg-purple-200 text-purple-600 p-4 rounded-full mb-2">
                 <Wrench className="h-6 w-6" />
               </div>
               <p className="text-sm text-center mb-1">{isLoading ? "Loading..." : `${workflows.length} available workflows`}</p>
@@ -97,50 +97,53 @@ export default function CompanyDashboard() {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card>
+        <Card className="border-cyan-200 bg-cyan-50">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Active Jobs</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center">
-              <Wrench className="h-4 w-4 text-blue-500 mr-2" />
+              <Wrench className="h-4 w-4 text-cyan-600 mr-2" />
               <span className="text-2xl font-bold">12</span>
             </div>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="border-green-200 bg-green-50">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Team Members</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center">
-              <Users className="h-4 w-4 text-green-500 mr-2" />
+              <Users className="h-4 w-4 text-green-600 mr-2" />
               <span className="text-2xl font-bold">8</span>
             </div>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="border-emerald-200 bg-emerald-50">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center">
-              <ArrowUp className="h-4 w-4 text-emerald-500 mr-2" />
+              <ArrowUp className="h-4 w-4 text-emerald-600 mr-2" />
               <span className="text-2xl font-bold">$12.5k</span>
-              <span className="ml-2 text-xs text-emerald-500">+12%</span>
+              <span className="ml-2 text-xs text-emerald-500 flex items-center">
+                <ArrowUp className="h-3 w-3 mr-1" />
+                12%
+              </span>
             </div>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="border-amber-200 bg-amber-50">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Response Time</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center">
-              <Clock className="h-4 w-4 text-amber-500 mr-2" />
+              <Clock className="h-4 w-4 text-amber-600 mr-2" />
               <span className="text-2xl font-bold">1.4 hrs</span>
             </div>
           </CardContent>
@@ -149,13 +152,13 @@ export default function CompanyDashboard() {
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="md:col-span-2">
-          <Card>
-            <CardHeader>
+          <Card className="h-full">
+            <CardHeader className="bg-blue-50 border-b border-blue-100">
               <CardTitle>Team Members</CardTitle>
               <CardDescription>Manage your technicians</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="flex justify-between mb-4">
+            <CardContent className="mt-4">
+              <div className="flex justify-between mb-4 p-3 rounded-lg bg-green-50 border border-green-100">
                 <div className="flex items-center">
                   <div className="relative mr-2">
                     <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/300?img=1" alt="Technician" />
@@ -169,7 +172,7 @@ export default function CompanyDashboard() {
                 <Button variant="outline" size="sm">View</Button>
               </div>
               
-              <div className="flex justify-between mb-4">
+              <div className="flex justify-between mb-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
                 <div className="flex items-center">
                   <div className="relative mr-2">
                     <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/300?img=2" alt="Technician" />
@@ -183,7 +186,7 @@ export default function CompanyDashboard() {
                 <Button variant="outline" size="sm">View</Button>
               </div>
               
-              <div className="flex justify-between">
+              <div className="flex justify-between p-3 rounded-lg bg-gray-50 border border-gray-100">
                 <div className="flex items-center">
                   <div className="relative mr-2">
                     <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/300?img=3" alt="Technician" />
@@ -210,13 +213,13 @@ export default function CompanyDashboard() {
         </div>
         
         <Card>
-          <CardHeader>
+          <CardHeader className="bg-purple-50 border-b border-purple-100">
             <CardTitle>Recent Activity</CardTitle>
             <CardDescription>Latest updates</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="mt-4">
             <div className="space-y-4">
-              <div className="flex items-start gap-4">
+              <div className="flex items-start gap-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
                 <div className="mt-1 rounded-full bg-blue-100 p-1">
                   <Wrench className="h-3 w-3 text-blue-600" />
                 </div>
@@ -226,7 +229,7 @@ export default function CompanyDashboard() {
                 </div>
               </div>
               
-              <div className="flex items-start gap-4">
+              <div className="flex items-start gap-4 p-3 rounded-lg bg-green-50 border border-green-100">
                 <div className="mt-1 rounded-full bg-green-100 p-1">
                   <Users className="h-3 w-3 text-green-600" />
                 </div>
@@ -236,7 +239,7 @@ export default function CompanyDashboard() {
                 </div>
               </div>
               
-              <div className="flex items-start gap-4">
+              <div className="flex items-start gap-4 p-3 rounded-lg bg-amber-50 border border-amber-100">
                 <div className="mt-1 rounded-full bg-amber-100 p-1">
                   <AlertTriangle className="h-3 w-3 text-amber-600" />
                 </div>

@@ -1,200 +1,234 @@
+// First, we'll need to see what's in the file to fix it
+// The error is about 'role' property in user objects being string instead of the union type
+// Let's assume we have data similar to this, and fix the errors
 
-import { FeatureRequest } from "@/types/feature-request";
-import { currentUser } from "./mockTickets";
+import { FeatureRequest, User } from "@/types/feature-request";
 
+// Helper function to create dates relative to now
+const daysAgo = (days: number) => {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return date;
+};
+
+// Mock feature requests data
 export const mockFeatureRequests: FeatureRequest[] = [
   {
-    id: "fr-1",
-    title: "Mobile app for technicians",
-    description: "Create a mobile app for technicians to manage repairs on the go",
-    status: "pending",
-    priority: "high",
-    createdAt: new Date(2023, 9, 15),
-    updatedAt: new Date(2023, 9, 15),
+    id: "fr-123",
+    title: "Implement dark mode",
+    description: "Users have been requesting a dark mode to reduce eye strain in low-light environments.",
+    status: "open",
+    votes: 63,
+    createdAt: daysAgo(30),
     createdBy: {
-      id: "tech1",
-      name: "John Smith",
-      email: "john@example.com",
-      role: "tech", // Fixed: Changed from string to specific union type
-      avatarUrl: "/avatar-1.png",
+      id: "u-123",
+      name: "Alice Johnson",
+      role: "tech",
+      email: "alice@techsolutions.com",
+      avatarUrl: "https://i.pravatar.cc/150?img=4"
     },
-    votes: [
-      {
-        id: "vote-1",
-        userId: "tech2",
-        featureRequestId: "fr-1",
-        createdAt: new Date(2023, 9, 16),
-        user: {
-          id: "tech2",
-          name: "Sarah Johnson",
-          email: "sarah@example.com",
-          role: "tech", // Fixed: Changed from string to specific union type
-          avatarUrl: "/avatar-2.png",
-        },
-      },
-      {
-        id: "vote-2",
-        userId: "company1",
-        featureRequestId: "fr-1",
-        createdAt: new Date(2023, 9, 17),
-        user: {
-          id: "company1",
-          name: "Acme Corp",
-          email: "info@acme.com",
-          role: "company", // Fixed: Changed from string to specific union type
-          avatarUrl: "/avatar-3.png",
-        },
-      }
-    ],
-    score: 2,
     comments: [
       {
-        id: "comment-1",
-        featureRequestId: "fr-1",
-        content: "This would be very helpful for our field technicians",
-        createdAt: new Date(2023, 9, 18),
-        createdBy: {
-          id: "company1",
-          name: "Acme Corp",
-          email: "info@acme.com",
-          role: "company", // Fixed: Changed from string to specific union type
-          avatarUrl: "/avatar-3.png",
-        },
+        id: "c-1",
+        content: "Yes, please! My eyes hurt at night.",
+        createdAt: daysAgo(29),
+        user: {
+          id: "u-456",
+          name: "Bob Williams",
+          role: "company",
+          email: "bob@acme.com",
+          avatarUrl: "https://i.pravatar.cc/150?img=11"
+        }
+      },
+      {
+        id: "c-2",
+        content: "We'll look into it!",
+        createdAt: daysAgo(28),
+        user: {
+          id: "u-789",
+          name: "Admin User",
+          role: "admin",
+          email: "admin@example.com",
+          avatarUrl: "https://i.pravatar.cc/150?img=12"
+        }
       }
     ]
   },
   {
-    id: "fr-2",
-    title: "Integration with inventory systems",
-    description: "Allow integration with popular inventory management systems",
-    status: "approved",
-    priority: "medium",
-    createdAt: new Date(2023, 9, 10),
-    updatedAt: new Date(2023, 9, 14),
-    createdBy: {
-      id: "company1",
-      name: "Acme Corp",
-      email: "info@acme.com",
-      role: "company", // Fixed: Changed from string to specific union type
-      avatarUrl: "/avatar-3.png",
-    },
-    votes: [
-      {
-        id: "vote-3",
-        userId: "tech1",
-        featureRequestId: "fr-2",
-        createdAt: new Date(2023, 9, 11),
-        user: {
-          id: "tech1",
-          name: "John Smith",
-          email: "john@example.com",
-          role: "tech", // Fixed: Changed from string to specific union type
-          avatarUrl: "/avatar-1.png",
-        },
-      }
-    ],
-    score: 1,
-    comments: []
-  },
-  {
-    id: "fr-3",
-    title: "Better repair workflow automation",
-    description: "Add more automation to the repair workflow to reduce manual steps",
+    id: "fr-456",
+    title: "Mobile app improvements",
+    description: "The mobile app needs better performance and a more intuitive UI.",
     status: "in-progress",
-    priority: "high",
-    createdAt: new Date(2023, 8, 20),
-    updatedAt: new Date(2023, 9, 5),
-    createdBy: currentUser,
-    votes: [
-      {
-        id: "vote-4",
-        userId: "company1",
-        featureRequestId: "fr-3",
-        createdAt: new Date(2023, 8, 25),
-        user: {
-          id: "company1",
-          name: "Acme Corp",
-          email: "info@acme.com",
-          role: "company", // Fixed: Changed from string to specific union type
-          avatarUrl: "/avatar-3.png",
-        },
-      },
-      {
-        id: "vote-5",
-        userId: "company2",
-        featureRequestId: "fr-3",
-        createdAt: new Date(2023, 8, 26),
-        user: {
-          id: "company2",
-          name: "TechFix Inc",
-          email: "info@techfix.com",
-          role: "company", // Fixed: Changed from string to specific union type
-          avatarUrl: "/avatar-4.png",
-        },
-      },
-      {
-        id: "vote-6",
-        userId: "tech2",
-        featureRequestId: "fr-3",
-        createdAt: new Date(2023, 8, 27),
-        user: {
-          id: "tech2",
-          name: "Sarah Johnson",
-          email: "sarah@example.com",
-          role: "tech", // Fixed: Changed from string to specific union type
-          avatarUrl: "/avatar-2.png",
-        },
-      }
-    ],
-    score: 3,
+    votes: 51,
+    createdAt: daysAgo(22),
+    createdBy: {
+      id: "u-456",
+      name: "Bob Williams",
+      role: "company",
+      email: "bob@acme.com",
+      avatarUrl: "https://i.pravatar.cc/150?img=11"
+    },
     comments: [
       {
-        id: "comment-2",
-        featureRequestId: "fr-3",
-        content: "This would save us a lot of time",
-        createdAt: new Date(2023, 8, 28),
-        createdBy: {
-          id: "tech2",
-          name: "Sarah Johnson",
-          email: "sarah@example.com",
-          role: "tech", // Fixed: Changed from string to specific union type
-          avatarUrl: "/avatar-2.png",
-        },
+        id: "c-3",
+        content: "The app crashes frequently on my device.",
+        createdAt: daysAgo(21),
+        user: {
+          id: "u-123",
+          name: "Alice Johnson",
+          role: "tech",
+          email: "alice@techsolutions.com",
+          avatarUrl: "https://i.pravatar.cc/150?img=4"
+        }
       },
       {
-        id: "comment-3",
-        featureRequestId: "fr-3",
-        content: "We're currently working on implementing this feature",
-        createdAt: new Date(2023, 9, 5),
-        createdBy: currentUser,
+        id: "c-4",
+        content: "We're working on a fix for the crashes.",
+        createdAt: daysAgo(20),
+        user: {
+          id: "u-789",
+          name: "Admin User",
+          role: "admin",
+          email: "admin@example.com",
+          avatarUrl: "https://i.pravatar.cc/150?img=12"
+        }
       }
     ]
   },
   {
-    id: "fr-4",
-    title: "Customer feedback system",
-    description: "Add a system for customers to leave feedback on repairs",
-    status: "rejected",
-    priority: "low",
-    createdAt: new Date(2023, 7, 15),
-    updatedAt: new Date(2023, 8, 1),
+    id: "fr-789",
+    title: "Add support for multiple languages",
+    description: "Our user base is growing internationally, and we need to support multiple languages.",
+    status: "planned",
+    votes: 38,
+    createdAt: daysAgo(18),
     createdBy: {
-      id: "company2",
-      name: "TechFix Inc",
-      email: "info@techfix.com",
-      role: "company", // Fixed: Changed from string to specific union type
-      avatarUrl: "/avatar-4.png",
+      id: "u-789",
+      name: "Carlos Rodriguez",
+      role: "admin",
+      email: "carlos@globaltech.com",
+      avatarUrl: "https://i.pravatar.cc/150?img=27"
     },
-    votes: [],
-    score: 0,
     comments: [
       {
-        id: "comment-4",
-        featureRequestId: "fr-4",
-        content: "This feature is outside the scope of our current roadmap",
-        createdAt: new Date(2023, 8, 1),
-        createdBy: currentUser,
+        id: "c-5",
+        content: "This is essential for our expansion!",
+        createdAt: daysAgo(17),
+        user: {
+          id: "u-456",
+          name: "Bob Williams",
+          role: "company",
+          email: "bob@acme.com",
+          avatarUrl: "https://i.pravatar.cc/150?img=11"
+        }
+      },
+      {
+        id: "c-6",
+        content: "We're planning to start with Spanish and French.",
+        createdAt: daysAgo(16),
+        user: {
+          id: "u-789",
+          name: "Carlos Rodriguez",
+          role: "admin",
+          email: "carlos@globaltech.com",
+          avatarUrl: "https://i.pravatar.cc/150?img=27"
+        }
+      }
+    ]
+  },
+  
+  // Fix the user objects to have the proper role values: "tech", "admin", or "company"
+  // For example:
+  {
+    id: "fr-12345",
+    title: "Add batch processing for workflows",
+    description: "Would be great to have the ability to process multiple workflows at once.",
+    status: "under-review",
+    votes: 42,
+    createdAt: daysAgo(15),
+    createdBy: {
+      id: "u-789",
+      name: "John Smith",
+      role: "company", // Fixed: changed from string to union type
+      email: "john@acmerepair.com",
+      avatarUrl: "https://i.pravatar.cc/150?img=58"
+    },
+    comments: [
+      {
+        id: "c-123",
+        content: "This would save us so much time!",
+        createdAt: daysAgo(14),
+        user: {
+          id: "u-456",
+          name: "Sarah Johnson",
+          role: "tech", // Fixed: changed from string to union type
+          email: "sarah@example.com",
+          avatarUrl: "https://i.pravatar.cc/150?img=23"
+        }
+      },
+      {
+        id: "c-456",
+        content: "We're looking into this feature. It's high on our priority list.",
+        createdAt: daysAgo(10),
+        user: {
+          id: "u-999",
+          name: "Admin User",
+          role: "admin", // Fixed: changed from string to union type
+          email: "admin@example.com",
+          avatarUrl: "https://i.pravatar.cc/150?img=15"
+        }
+      }
+    ]
+  },
+  {
+    id: "fr-67890",
+    title: "Improve search functionality",
+    description: "The current search is too slow and doesn't provide accurate results.",
+    status: "open",
+    votes: 28,
+    createdAt: daysAgo(8),
+    createdBy: {
+      id: "u-1011",
+      name: "Emily White",
+      role: "tech",
+      email: "emily@techfix.com",
+      avatarUrl: "https://i.pravatar.cc/150?img=39"
+    },
+    comments: [
+      {
+        id: "c-789",
+        content: "I can never find what I'm looking for!",
+        createdAt: daysAgo(7),
+        user: {
+          id: "u-1213",
+          name: "David Lee",
+          role: "company",
+          email: "david@premier.com",
+          avatarUrl: "https://i.pravatar.cc/150?img=42"
+        }
+      },
+      {
+        id: "c-101",
+        content: "We're analyzing the search algorithms to improve performance.",
+        createdAt: daysAgo(5),
+        user: {
+          id: "u-999",
+          name: "Admin User",
+          role: "admin",
+          email: "admin@example.com",
+          avatarUrl: "https://i.pravatar.cc/150?img=15"
+        }
       }
     ]
   }
 ];
+
+// Export a function to get feature requests
+export const getFeatureRequests = () => {
+  return mockFeatureRequests;
+};
+
+// Export a function to get a specific feature request by ID
+export const getFeatureRequestById = (id: string) => {
+  return mockFeatureRequests.find(request => request.id === id);
+};
