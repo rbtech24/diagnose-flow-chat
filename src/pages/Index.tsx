@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -108,11 +107,26 @@ export default function Index() {
           <div className="container mx-auto px-4">
             <p className="text-center text-gray-600 mb-8">Trusted by leading appliance service companies</p>
             <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
-              <div className="text-gray-400 font-medium text-xl">ACME Repairs</div>
-              <div className="text-gray-400 font-medium text-xl">FixItNow</div>
-              <div className="text-gray-400 font-medium text-xl">AppliancePro</div>
-              <div className="text-gray-400 font-medium text-xl">ServiceTech</div>
-              <div className="text-gray-400 font-medium text-xl">RepairElite</div>
+              <img 
+                src="/lovable-uploads/7e681dc0-4482-451f-9178-70944b120422.png" 
+                alt="Rod's Appliance Repair" 
+                className="h-16 object-contain"
+              />
+              <img 
+                src="/lovable-uploads/9114fbcf-64bb-4446-a213-40d08149538a.png" 
+                alt="West Metro Appliance" 
+                className="h-16 object-contain" 
+              />
+              <img 
+                src="/lovable-uploads/83ff694d-eb6c-4d23-9e13-2f1b96f3258e.png" 
+                alt="Flat Rate Appliance Repair" 
+                className="h-24 object-contain" 
+              />
+              <img 
+                src="/lovable-uploads/c9eb6e16-d7c1-438f-86bb-eefa6fa5ad0e.png" 
+                alt="Einstein Appliance Repair" 
+                className="h-16 object-contain"
+              />
             </div>
           </div>
         </section>
