@@ -210,12 +210,30 @@ export function SidebarToggle({ children, className, ...props }: SidebarTogglePr
   );
 }
 
-// Fix for TypeScript errors - Properly set displayName for function components
-Sidebar.displayName = "Sidebar";
-SidebarHeader.displayName = "SidebarHeader";
-SidebarMain.displayName = "SidebarMain";
-SidebarFooter.displayName = "SidebarFooter";
-SidebarNav.displayName = "SidebarNav";
-SidebarNavItem.displayName = "SidebarNavItem";
-SidebarNavGroup.displayName = "SidebarNavGroup";
-SidebarToggle.displayName = "SidebarToggle";
+// Fix for TypeScript errors - Using type assertion to safely set displayName
+// Instead of directly setting displayName which causes TypeScript errors
+const components = [
+  Sidebar, SidebarHeader, SidebarMain, SidebarFooter, 
+  SidebarNav, SidebarNavItem, SidebarNavGroup, SidebarToggle
+];
+
+// Set displayName using type assertion to avoid TypeScript errors
+components.forEach((Component) => {
+  const functionName = Component.name;
+  // Using type assertion to tell TypeScript this is safe
+  (Component as any).displayName = functionName;
+});
+
+// Add SidebarProvider alias for compatibility with existing code
+export const SidebarProvider = Sidebar;
+export const SidebarContent = SidebarMain;
+export const SidebarGroup = SidebarNavGroup;
+export const SidebarGroupContent = SidebarNav;
+export const SidebarGroupLabel = ({ children }: { children: React.ReactNode }) => (
+  <div className="px-3 py-1 text-xs font-medium text-gray-500 uppercase">{children}</div>
+);
+export const SidebarMenu = SidebarNav;
+export const SidebarMenuItem = SidebarNavItem;
+export const SidebarMenuButton = ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.ReactNode, asChild?: boolean }) => (
+  <button type="button" {...props}>{children}</button>
+);
