@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FlowChart, Plus, Search } from "lucide-react";
+import { Plus, Search, Workflow } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
@@ -42,7 +42,7 @@ export default function AdminWorkflows() {
                 <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                      <FlowChart className="h-5 w-5 text-primary" />
+                      <Workflow className="h-5 w-5 text-primary" />
                     </div>
                     <div>
                       <h3 className="font-medium">{workflow.name}</h3>
@@ -50,7 +50,7 @@ export default function AdminWorkflows() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Badge variant={workflow.status === "published" ? "success" : "secondary"}>
+                    <Badge variant={workflow.status === "published" ? "secondary" : "outline"}>
                       {workflow.status}
                     </Badge>
                     <Button variant="outline" size="sm">

@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { 
   Home, Users, LifeBuoy, Settings, LogOut, 
   FileText, Package, CreditCard, Network,
-  Building2, Wrench
+  Building2, Workflow
 } from "lucide-react";
 
 import {
@@ -60,7 +60,7 @@ export function AdminSidebar() {
             </SidebarNavItem>
             
             <SidebarNavItem 
-              icon={<Wrench />} 
+              icon={<Workflow />} 
               active={isActive("/admin/workflows")}
               className="cursor-pointer"
             >
@@ -122,10 +122,10 @@ export function AdminSidebar() {
             <Settings size={20} className="text-muted-foreground" />
             <Link to="/admin/profile" className="text-sm font-medium">Settings</Link>
           </div>
-          <button className="flex items-center text-sm gap-1 text-muted-foreground hover:text-foreground transition-colors">
+          <Link to="/login" className="flex items-center text-sm gap-1 text-muted-foreground hover:text-foreground transition-colors">
             <LogOut size={18} />
             <span>Logout</span>
-          </button>
+          </Link>
         </div>
       </SidebarFooter>
     </Sidebar>

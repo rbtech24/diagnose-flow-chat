@@ -1,7 +1,7 @@
 
 import { Link, useLocation } from "react-router-dom";
 import {
-  Home, Users, MessageSquare, FileText, LifeBuoy, Settings, LogOut, CreditCard, UserCog
+  Home, MessageSquare, FileText, LifeBuoy, Settings, LogOut, CreditCard, UserCog
 } from "lucide-react";
 
 import {
@@ -92,10 +92,10 @@ export function CompanySidebar() {
             <Settings size={20} className="text-muted-foreground" />
             <Link to="/company/profile" className="text-sm font-medium">Settings</Link>
           </div>
-          <button className="flex items-center text-sm gap-1 text-muted-foreground hover:text-foreground transition-colors">
+          <Link to="/login" className="flex items-center text-sm gap-1 text-muted-foreground hover:text-foreground transition-colors">
             <LogOut size={18} />
             <span>Logout</span>
-          </button>
+          </Link>
         </div>
       </SidebarFooter>
     </Sidebar>

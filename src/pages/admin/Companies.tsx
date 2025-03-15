@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Building2, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Link } from "react-router-dom";
 
 export default function AdminCompanies() {
   return (
@@ -44,8 +45,8 @@ export default function AdminCompanies() {
                       <p className="text-sm text-muted-foreground">5 technicians • Premium plan</p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm">
-                    View Details
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to={`/admin/companies/${i}`}>View Details</Link>
                   </Button>
                 </div>
               ))}
