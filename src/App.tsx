@@ -19,14 +19,17 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 // Admin
 import { AdminLayout } from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
+import AdminProfile from "./pages/admin/Profile";
 
 // Company
 import { CompanyLayout } from "./components/company/CompanyLayout";
 import CompanyDashboard from "./pages/company/Dashboard";
+import CompanyProfile from "./pages/company/CompanyProfile";
 
 // Technician
 import { TechLayout } from "./components/tech/TechLayout";
 import TechnicianDashboard from "./pages/tech/Dashboard";
+import TechProfile from "./pages/tech/Profile";
 
 const queryClient = new QueryClient();
 
@@ -56,18 +59,22 @@ const App = () => (
           {/* Admin routes */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
+            <Route path="profile" element={<AdminProfile />} />
             {/* Add more admin routes as needed */}
           </Route>
           
           {/* Company routes */}
           <Route path="/company" element={<CompanyLayout />}>
             <Route index element={<CompanyDashboard />} />
+            <Route path="profile" element={<TechProfile />} />
+            <Route path="company-profile" element={<CompanyProfile />} />
             {/* Add more company routes as needed */}
           </Route>
           
           {/* Technician routes */}
           <Route path="/tech" element={<TechLayout />}>
             <Route index element={<TechnicianDashboard />} />
+            <Route path="profile" element={<TechProfile />} />
             {/* Add more technician routes as needed */}
           </Route>
           
