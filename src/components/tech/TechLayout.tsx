@@ -10,7 +10,7 @@ export function TechLayout() {
       <div className="flex-1 overflow-auto">
         <div className="p-4 border-b flex items-center">
           <img 
-            src="/lovable-uploads/894f58ab-c3aa-45ba-9ea3-e3a2d9ddf247.png" 
+            src="/lovable-uploads/5e12430c-6872-485e-b07a-02b835f8e3d4.png" 
             alt="Repair Auto Pilot" 
             className="h-36"
           />

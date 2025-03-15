@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,7 +11,7 @@ export default function Index() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
             <img 
-              src="/lovable-uploads/894f58ab-c3aa-45ba-9ea3-e3a2d9ddf247.png" 
+              src="/lovable-uploads/5e12430c-6872-485e-b07a-02b835f8e3d4.png" 
               alt="Repair Auto Pilot" 
               className="h-48"
             />
@@ -268,7 +269,7 @@ export default function Index() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <img 
-                  src="/lovable-uploads/894f58ab-c3aa-45ba-9ea3-e3a2d9ddf247.png" 
+                  src="/lovable-uploads/5e12430c-6872-485e-b07a-02b835f8e3d4.png" 
                   alt="Repair Auto Pilot" 
                   className="h-48"
                 />

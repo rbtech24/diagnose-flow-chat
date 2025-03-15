@@ -6,7 +6,7 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/lovable-uploads/894f58ab-c3aa-45ba-9ea3-e3a2d9ddf247.png',
+  '/lovable-uploads/5e12430c-6872-485e-b07a-02b835f8e3d4.png',
   '/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png'
 ];
 
