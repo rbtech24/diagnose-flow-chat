@@ -1,25 +1,28 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { SubscriptionPlanCard } from "@/components/subscription/SubscriptionPlanCard";
 import { SubscriptionPlanForm } from "@/components/subscription/SubscriptionPlanForm";
 import { SubscriptionPlan } from "@/types/subscription";
-import { mockSubscriptionPlans } from "@/data/mockSubscriptions";
 import { Plus, Package } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function AdminSubscriptionPlans() {
-  const [plans, setPlans] = useState<SubscriptionPlan[]>(mockSubscriptionPlans);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
-  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleCreatePlan = (plan: SubscriptionPlan) => {
     setPlans([...plans, plan]);
     setIsDialogOpen(false);
     setEditingPlan(null);
+    toast({
+      title: "Plan created",
+      description: `${plan.name} plan has been created successfully.`,
+    });
   };
 
   const handleEditPlan = (plan: SubscriptionPlan) => {
@@ -34,6 +37,10 @@ export default function AdminSubscriptionPlans() {
     setPlans(updatedPlans);
     setIsDialogOpen(false);
     setEditingPlan(null);
+    toast({
+      title: "Plan updated",
+      description: `${updatedPlan.name} plan has been updated successfully.`,
+    });
   };
 
   const handleTogglePlanStatus = (planId: string) => {
@@ -41,6 +48,14 @@ export default function AdminSubscriptionPlans() {
       plan.id === planId ? { ...plan, isActive: !plan.isActive, updatedAt: new Date() } : plan
     );
     setPlans(updatedPlans);
+    
+    const plan = updatedPlans.find(p => p.id === planId);
+    if (plan) {
+      toast({
+        title: plan.isActive ? "Plan activated" : "Plan deactivated",
+        description: `${plan.name} plan has been ${plan.isActive ? "activated" : "deactivated"}.`,
+      });
+    }
   };
 
   return (
