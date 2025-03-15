@@ -1,0 +1,133 @@
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { License } from "@/types/subscription";
+import { mockSubscriptionPlans } from "@/data/mockSubscriptions";
+
+interface NewLicenseFormProps {
+  onSubmit: (license: License) => void;
+  onCancel: () => void;
+}
+
+export function NewLicenseForm({
+  onSubmit,
+  onCancel
+}: NewLicenseFormProps) {
+  const [companyName, setCompanyName] = useState("");
+  const [companyId, setCompanyId] = useState("");
+  const [planId, setPlanId] = useState("");
+  const [activeTechnicians, setActiveTechnicians] = useState("1");
+  const [trialPeriod, setTrialPeriod] = useState(
+    planId ? mockSubscriptionPlans.find(p => p.id === planId)?.trialPeriod.toString() || "14" : "14"
+  );
+
+  const handlePlanChange = (value: string) => {
+    setPlanId(value);
+    const plan = mockSubscriptionPlans.find(p => p.id === value);
+    if (plan) {
+      setTrialPeriod(plan.trialPeriod.toString());
+    }
+  };
+
+  const handleSubmit = () => {
+    const selectedPlan = mockSubscriptionPlans.find(p => p.id === planId);
+    
+    if (!selectedPlan) return;
+    
+    const trialEndDate = new Date();
+    trialEndDate.setDate(trialEndDate.getDate() + parseInt(trialPeriod));
+    
+    const newLicense: License = {
+      id: `license-${Date.now()}`,
+      companyId: companyId || `company-${Date.now()}`,
+      companyName,
+      planId,
+      planName: selectedPlan.name,
+      status: 'trial',
+      activeTechnicians: parseInt(activeTechnicians),
+      startDate: new Date(),
+      trialEndsAt: trialEndDate,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    onSubmit(newLicense);
+  };
+
+  return (
+    <div className="space-y-4 py-2 pb-4">
+      <div className="space-y-2">
+        <Label htmlFor="companyName">Company Name</Label>
+        <Input
+          id="companyName"
+          value={companyName}
+          onChange={e => setCompanyName(e.target.value)}
+          placeholder="Enter company name"
+          required
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="companyId">Company ID (optional)</Label>
+        <Input
+          id="companyId"
+          value={companyId}
+          onChange={e => setCompanyId(e.target.value)}
+          placeholder="Leave blank to generate automatically"
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="plan">Subscription Plan</Label>
+        <Select value={planId} onValueChange={handlePlanChange} required>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a plan" />
+          </SelectTrigger>
+          <SelectContent>
+            {mockSubscriptionPlans.filter(p => p.isActive).map(plan => (
+              <SelectItem key={plan.id} value={plan.id}>
+                {plan.name} (${plan.monthlyPrice}/month)
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="technicians">Number of Technicians</Label>
+        <Input
+          id="technicians"
+          type="number"
+          min="1"
+          value={activeTechnicians}
+          onChange={e => setActiveTechnicians(e.target.value)}
+          required
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="trialPeriod">Trial Period (days)</Label>
+        <Input
+          id="trialPeriod"
+          type="number"
+          min="0"
+          value={trialPeriod}
+          onChange={e => setTrialPeriod(e.target.value)}
+          required
+        />
+      </div>
+      
+      <div className="flex justify-end space-x-2 pt-4">
+        <Button variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button onClick={handleSubmit} disabled={!companyName || !planId}>
+          Create License
+        </Button>
+      </div>
+    </div>
+  );
+}

@@ -6,4 +6,7 @@ export interface User {
   role: 'admin' | 'company' | 'tech';
   avatarUrl?: string;
   companyId?: string;
+  trialEndsAt?: Date;
+  subscriptionStatus?: 'trial' | 'active' | 'expired' | 'canceled';
+  planId?: string;
 }

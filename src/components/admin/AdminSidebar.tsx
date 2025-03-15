@@ -15,7 +15,7 @@ import {
 import { 
   LayoutDashboard, Users, Building2, Workflow, Settings, LogOut,
   History, Lightbulb, HelpCircle, Shield, Key, FileText, UserCircle, 
-  MessageSquare
+  MessageSquare, CreditCard, Package
 } from "lucide-react";
 
 export function AdminSidebar() {
@@ -101,6 +101,30 @@ export function AdminSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton 
+                  active={location.pathname === "/admin/subscription-plans"} 
+                  className={location.pathname === "/admin/subscription-plans" ? "bg-indigo-800 text-white" : "hover:bg-slate-800"}
+                  asChild
+                >
+                  <Link to="/admin/subscription-plans">
+                    <Package className="mr-2 h-4 w-4 text-indigo-400" />
+                    <span>Subscription Plans</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  active={location.pathname === "/admin/licenses"} 
+                  className={location.pathname === "/admin/licenses" ? "bg-indigo-800 text-white" : "hover:bg-slate-800"}
+                  asChild
+                >
+                  <Link to="/admin/licenses">
+                    <CreditCard className="mr-2 h-4 w-4 text-indigo-400" />
+                    <span>Licenses</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
                   active={location.pathname.startsWith("/admin/support")} 
                   className={location.pathname.startsWith("/admin/support") ? "bg-indigo-800 text-white" : "hover:bg-slate-800"}
                   asChild
@@ -135,18 +159,6 @@ export function AdminSidebar() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/admin/plans"} 
-                  className={location.pathname === "/admin/plans" ? "bg-indigo-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/admin/plans">
-                    <FileText className="mr-2 h-4 w-4 text-indigo-400" />
-                    <span>Plans</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -176,18 +188,6 @@ export function AdminSidebar() {
                   <Link to="/admin/api-settings">
                     <Key className="mr-2 h-4 w-4 text-indigo-400" />
                     <span>API Settings</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/admin/licenses"} 
-                  className={location.pathname === "/admin/licenses" ? "bg-indigo-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/admin/licenses">
-                    <FileText className="mr-2 h-4 w-4 text-indigo-400" />
-                    <span>Licenses</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

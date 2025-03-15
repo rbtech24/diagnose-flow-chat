@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Building2, Wrench, Users, UserPlus } from "lucide-react";
+import { ArrowLeft, Building2, Wrench, Users, UserPlus, CheckCircle2 } from "lucide-react";
 
 const techAccountSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -70,7 +71,7 @@ export default function SignUp() {
     console.log("Tech signup data:", data);
     toast({
       title: "Account created",
-      description: "Your technician account has been created successfully.",
+      description: "Your technician account has been created with a 14-day trial period.",
       variant: "default",
     });
     navigate("/login");
@@ -80,7 +81,7 @@ export default function SignUp() {
     console.log("Company signup data:", data);
     toast({
       title: "Account created",
-      description: "Your company account has been created successfully.",
+      description: "Your company account has been created with a 14-day trial period.",
       variant: "default",
     });
     navigate("/login");
@@ -108,6 +109,27 @@ export default function SignUp() {
               ? "Get immediate access to powerful diagnostic workflows for appliance repair professionals." 
               : "Empower your repair company with a centralized system for all your technicians."}
           </p>
+          
+          <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-8">
+            <h2 className="text-lg font-semibold text-blue-800 mb-2 flex items-center">
+              <CheckCircle2 className="h-5 w-5 text-blue-600 mr-2" />
+              Start with a 14-day free trial
+            </h2>
+            <ul className="space-y-2">
+              <li className="flex items-center text-blue-700">
+                <CheckCircle2 className="h-4 w-4 text-blue-500 mr-2 flex-shrink-0" />
+                <span>Full access to all features</span>
+              </li>
+              <li className="flex items-center text-blue-700">
+                <CheckCircle2 className="h-4 w-4 text-blue-500 mr-2 flex-shrink-0" />
+                <span>No credit card required</span>
+              </li>
+              <li className="flex items-center text-blue-700">
+                <CheckCircle2 className="h-4 w-4 text-blue-500 mr-2 flex-shrink-0" />
+                <span>Choose a subscription plan later</span>
+              </li>
+            </ul>
+          </div>
           
           <div className="space-y-4 mb-8">
             <div className="flex items-start">

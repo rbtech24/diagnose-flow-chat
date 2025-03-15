@@ -25,6 +25,11 @@ import CompanyFeatureRequests from "./pages/company/FeatureRequests";
 import CompanyFeatureRequestDetailPage from "./pages/company/FeatureRequestDetail";
 import TechFeatureRequests from "./pages/tech/FeatureRequests";
 import TechFeatureRequestDetailPage from "./pages/tech/FeatureRequestDetail";
+import AdminSubscriptionPlans from "./pages/admin/SubscriptionPlans";
+import AdminLicenses from "./pages/admin/Licenses";
+import CompanySubscription from "./pages/company/Subscription";
+import SignUp from "./pages/SignUp";
+import Login from "./pages/Login";
 
 const router = createBrowserRouter([
   {
@@ -33,6 +38,14 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Dashboard /> }
     ]
+  },
+  {
+    path: "/login",
+    element: <Login />
+  },
+  {
+    path: "/signup",
+    element: <SignUp />
   },
   {
     path: "/company",
@@ -46,6 +59,7 @@ const router = createBrowserRouter([
       { path: "community/:postId", element: <CommunityPostDetail /> },
       { path: "feature-requests", element: <CompanyFeatureRequests /> },
       { path: "feature-requests/:id", element: <CompanyFeatureRequestDetailPage /> },
+      { path: "subscription", element: <CompanySubscription /> },
     ]
   },
   {
@@ -71,6 +85,8 @@ const router = createBrowserRouter([
       { path: "profile", element: <AdminProfile /> },
       { path: "feature-requests", element: <AdminFeatureRequests /> },
       { path: "feature-requests/:id", element: <AdminFeatureRequestDetailPage /> },
+      { path: "subscription-plans", element: <AdminSubscriptionPlans /> },
+      { path: "licenses", element: <AdminLicenses /> },
     ]
   }
 ]);
