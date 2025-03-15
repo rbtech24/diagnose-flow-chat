@@ -12,6 +12,7 @@ export default function AdminSupportTicketDetail() {
   const [ticket, setTicket] = useState<SupportTicket | null>(null);
 
   useEffect(() => {
+    // Load ticket data from mockTickets
     const foundTicket = mockTickets.find(t => t.id === ticketId);
     if (foundTicket) {
       setTicket(foundTicket);
