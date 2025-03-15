@@ -51,7 +51,7 @@ export default function Login() {
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-3">
             <img 
-              src="public/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
+              src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
               alt="Repair Auto Pilot" 
               className="h-32"
             />
