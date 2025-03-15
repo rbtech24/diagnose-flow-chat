@@ -65,8 +65,8 @@ export function Sidebar({ className, ...props }: SidebarProps) {
     <div
       data-expanded={expanded}
       className={cn(
-        "flex flex-col h-screen bg-card border-r fixed md:relative z-40 top-0 left-0 transition-all",
-        expanded ? "w-64" : "w-0 md:w-16 overflow-hidden",
+        "flex flex-col h-screen bg-card border-r fixed md:relative z-40 top-0 left-0 transition-all duration-300",
+        expanded ? "w-64" : "w-0 md:w-16",
         className
       )}
       {...props}
@@ -84,11 +84,14 @@ export function SidebarHeader({ className, ...props }: SidebarHeaderProps) {
       className={cn("p-4 h-14 flex items-center justify-between", className)}
       {...props}
     >
-      {expanded && <div>{props.children}</div>}
+      {expanded && <div className="transition-opacity duration-300">{props.children}</div>}
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 hidden md:flex"
+        className={cn(
+          "h-8 w-8 hidden md:flex transition-transform",
+          !expanded && "mx-auto"
+        )}
         onClick={() => setExpanded(!expanded)}
       >
         {expanded ? (
@@ -104,8 +107,9 @@ export function SidebarHeader({ className, ...props }: SidebarHeaderProps) {
 interface SidebarContentProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export function SidebarContent({ className, ...props }: SidebarContentProps) {
+  const { expanded } = useSidebar()
   return (
-    <div className={cn("flex-1 overflow-auto p-3", className)} {...props} />
+    <div className={cn("flex-1 overflow-auto p-3", expanded ? "" : "px-2", className)} {...props} />
   )
 }
 
@@ -175,7 +179,7 @@ export function SidebarMenuButton({
   return (
     <Component
       className={cn(
-        "group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium hover:bg-muted text-muted-foreground hover:text-foreground",
+        "group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200",
         active && "bg-muted text-foreground",
         expanded ? "justify-start" : "justify-center",
         className
@@ -188,6 +192,14 @@ export function SidebarMenuButton({
         if (React.isValidElement(child)) {
           if (!expanded && child.type === "span") {
             return null
+          }
+          if (!expanded && React.isValidElement(child) && typeof child.type === 'function' && 
+              child.type.displayName && 
+              child.type.displayName.includes('LucideIcon')) {
+            return React.cloneElement(child, { 
+              ...child.props, 
+              className: cn(child.props.className, "mr-0") 
+            });
           }
           return child
         }

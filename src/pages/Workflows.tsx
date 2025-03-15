@@ -7,6 +7,8 @@ import { toast } from '@/hooks/use-toast';
 import { WorkflowHeader } from '@/components/workflow/WorkflowHeader';
 import { WorkflowView } from '@/components/workflow/WorkflowView';
 import { ApplianceManager } from '@/components/workflow/ApplianceManager';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 export default function Workflows() {
   const navigate = useNavigate();
@@ -64,8 +66,24 @@ export default function Workflows() {
     openWorkflowEditor(applianceName);
   };
 
+  const handleBackToAdmin = () => {
+    navigate('/admin');
+  };
+
   return (
     <div className="container mx-auto p-6">
+      <div className="flex items-center justify-between mb-4">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="flex items-center text-slate-600 hover:text-slate-900"
+          onClick={handleBackToAdmin}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Admin Dashboard
+        </Button>
+      </div>
+
       <WorkflowHeader
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
