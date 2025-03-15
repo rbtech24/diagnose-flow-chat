@@ -111,8 +111,8 @@ export default function AdminFeatureRequestDetailPage() {
           <div>
             <span className="text-sm text-gray-500 mr-2">Status:</span>
             <Select
-              value={featureRequest.status}
-              onValueChange={(value) => handleUpdateStatus(featureRequest.id, value as FeatureRequestStatus)}
+              value={featureRequest?.status}
+              onValueChange={(value) => handleUpdateStatus(featureRequest?.id || "", value as FeatureRequestStatus)}
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select status" />
@@ -130,8 +130,8 @@ export default function AdminFeatureRequestDetailPage() {
           <div>
             <span className="text-sm text-gray-500 mr-2">Priority:</span>
             <Select
-              value={featureRequest.priority}
-              onValueChange={(value) => handleUpdatePriority(featureRequest.id, value)}
+              value={featureRequest?.priority}
+              onValueChange={(value) => handleUpdatePriority(featureRequest?.id || "", value)}
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select priority" />
@@ -149,14 +149,16 @@ export default function AdminFeatureRequestDetailPage() {
       
       <Separator className="my-4" />
       
-      <FeatureRequestDetail
-        featureRequest={featureRequest}
-        onAddComment={handleAddComment}
-        onVote={handleVote}
-        isAdmin={true}
-        onUpdateStatus={handleUpdateStatus}
-        onUpdatePriority={handleUpdatePriority}
-      />
+      {featureRequest && (
+        <FeatureRequestDetail
+          featureRequest={featureRequest}
+          onAddComment={handleAddComment}
+          onVote={handleVote}
+          isAdmin={true}
+          onUpdateStatus={handleUpdateStatus}
+          onUpdatePriority={handleUpdatePriority}
+        />
+      )}
     </div>
   );
 }

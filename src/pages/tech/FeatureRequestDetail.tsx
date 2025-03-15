@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -106,11 +105,13 @@ export default function TechFeatureRequestDetailPage() {
         </Button>
       </div>
       
-      <FeatureRequestDetail
-        featureRequest={featureRequest}
-        onAddComment={handleAddComment}
-        onVote={handleVote}
-      />
+      {featureRequest && (
+        <FeatureRequestDetail
+          featureRequest={featureRequest}
+          onAddComment={handleAddComment}
+          onVote={handleVote}
+        />
+      )}
     </div>
   );
 }
