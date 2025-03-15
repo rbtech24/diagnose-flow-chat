@@ -8,12 +8,8 @@ export function TechLayout() {
     <div className="flex h-screen w-full">
       <TechSidebar />
       <div className="flex-1 overflow-auto">
-        <div className="p-8 border-b flex items-center h-48 justify-start">
-          <img 
-            src="/lovable-uploads/5e12430c-6872-485e-b07a-02b835f8e3d4.png" 
-            alt="Repair Auto Pilot" 
-            className="h-36"
-          />
+        <div className="p-8 border-b flex items-center h-16 justify-start">
+          {/* Logo has been removed */}
         </div>
         <Outlet />
       </div>
