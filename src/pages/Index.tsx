@@ -7,12 +7,12 @@ export default function Index() {
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <header className="sticky top-0 z-10 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-        <div className="container mx-auto flex h-36 items-center justify-between px-4">
+        <div className="container mx-auto flex h-24 items-center justify-between px-4">
           <div className="flex items-center">
             <img 
               src="/lovable-uploads/0fb2afe9-44dd-487d-b13a-f6a2c630c477.png" 
               alt="Repair Auto Pilot" 
-              className="h-48"
+              className="h-24"
             />
           </div>
           <nav className="hidden md:flex items-center gap-6">
@@ -39,7 +39,6 @@ export default function Index() {
       </header>
       
       <main className="flex-1">
-        {/* Hero Section */}
         <section className="relative bg-gradient-to-b from-blue-50 to-white py-20 overflow-hidden">
           <div className="container mx-auto px-4 relative z-10">
             <div className="grid gap-12 md:grid-cols-2 items-center">
@@ -102,7 +101,6 @@ export default function Index() {
           </div>
         </section>
         
-        {/* Clients Section */}
         <section className="py-12 border-y bg-gray-50">
           <div className="container mx-auto px-4">
             <p className="text-center text-gray-600 mb-8">Trusted by leading appliance service companies</p>
@@ -131,7 +129,6 @@ export default function Index() {
           </div>
         </section>
         
-        {/* Features Section */}
         <section id="features" className="py-20">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
@@ -203,7 +200,6 @@ export default function Index() {
           </div>
         </section>
         
-        {/* Testimonials Section */}
         <section id="testimonials" className="py-20 bg-gray-50">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
@@ -263,7 +259,6 @@ export default function Index() {
           </div>
         </section>
         
-        {/* CTA Section */}
         <section className="py-20 bg-blue-600 text-white">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Repair Service?</h2>
@@ -285,7 +280,7 @@ export default function Index() {
                 <img 
                   src="/lovable-uploads/0fb2afe9-44dd-487d-b13a-f6a2c630c477.png" 
                   alt="Repair Auto Pilot" 
-                  className="h-48"
+                  className="h-24"
                 />
               </div>
               <p className="text-sm text-gray-600 mb-4">

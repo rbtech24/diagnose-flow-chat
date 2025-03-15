@@ -12,7 +12,7 @@ export default function TermsOfUse() {
             <img 
               src="/lovable-uploads/0fb2afe9-44dd-487d-b13a-f6a2c630c477.png" 
               alt="Repair Auto Pilot" 
-              className="h-20"
+              className="h-10"
             />
           </div>
           <Button asChild variant="outline">
