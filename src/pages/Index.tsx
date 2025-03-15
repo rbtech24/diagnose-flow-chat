@@ -10,9 +10,9 @@ export default function Index() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
             <img 
-              src="public/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
+              src="/lovable-uploads/894f58ab-c3aa-45ba-9ea3-e3a2d9ddf247.png" 
               alt="Repair Auto Pilot" 
-              className="h-10"
+              className="h-16"
             />
           </div>
           <nav className="hidden md:flex items-center gap-6">
@@ -268,9 +268,9 @@ export default function Index() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <img 
-                  src="public/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
+                  src="/lovable-uploads/894f58ab-c3aa-45ba-9ea3-e3a2d9ddf247.png" 
                   alt="Repair Auto Pilot" 
-                  className="h-10"
+                  className="h-16"
                 />
               </div>
               <p className="text-sm text-gray-600 mb-4">
