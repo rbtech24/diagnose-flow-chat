@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -8,7 +9,7 @@ import { Plus, Search, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FeatureRequestCard } from "@/components/feature-request/FeatureRequestCard";
 import { NewFeatureRequestForm } from "@/components/feature-request/NewFeatureRequestForm";
-import { FeatureRequest } from "@/types/feature-request";
+import { FeatureRequest, FeatureRequestPriority } from "@/types/feature-request";
 import { mockFeatureRequests } from "@/data/mockFeatureRequests";
 import { currentUser } from "@/data/mockTickets";
 
@@ -59,7 +60,7 @@ export default function TechFeatureRequests() {
         title: values.title,
         description: values.description,
         status: "pending",
-        priority: values.priority,
+        priority: values.priority as FeatureRequestPriority,
         createdAt: new Date(),
         updatedAt: new Date(),
         createdBy: {

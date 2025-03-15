@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
-import { FeatureRequest, FeatureRequestStatus } from "@/types/feature-request";
+import { FeatureRequest, FeatureRequestStatus, FeatureRequestPriority } from "@/types/feature-request";
 import { mockFeatureRequests } from "@/data/mockFeatureRequests";
 import { currentUser } from "@/data/mockTickets";
 import { ArrowLeft } from "lucide-react";
@@ -40,7 +40,7 @@ export default function AdminFeatureRequestDetailPage() {
     
     setFeatureRequest({
       ...featureRequest,
-      priority: priority as any,
+      priority: priority as FeatureRequestPriority,
       updatedAt: new Date(),
     });
   };
@@ -66,6 +66,12 @@ export default function AdminFeatureRequestDetailPage() {
       ...featureRequest,
       comments: [...featureRequest.comments, newComment],
     });
+  };
+  
+  // Admin doesn't need voting functionality but we provide an empty function
+  // to satisfy the component prop requirements
+  const handleVote = (requestId: string) => {
+    // Admin doesn't vote, this is just to satisfy the prop requirement
   };
 
   if (loading) {
@@ -148,6 +154,7 @@ export default function AdminFeatureRequestDetailPage() {
       <FeatureRequestDetail
         featureRequest={featureRequest}
         onAddComment={handleAddComment}
+        onVote={handleVote}
       />
     </div>
   );
