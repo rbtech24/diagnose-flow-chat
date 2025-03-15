@@ -42,12 +42,3 @@ export interface Attachment {
   uploadedAt: Date;
   uploadedBy: string;
 }
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'company' | 'tech';
-  avatarUrl?: string;
-  companyId?: string;
-}

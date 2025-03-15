@@ -1,5 +1,4 @@
 
-// Now let's fix the SupportTicket component
 import React, { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Send, PaperclipIcon } from "lucide-react";
@@ -23,7 +22,8 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
-export type SupportTicketStatus = "open" | "in-progress" | "resolved";
+export type SupportTicketStatus = "open" | "in-progress" | "resolved" | "closed";
+export type TicketPriority = "low" | "medium" | "high" | "urgent";
 
 export interface User {
   id: string;
@@ -46,7 +46,7 @@ export interface SupportTicket {
   title: string;
   description: string;
   status: SupportTicketStatus;
-  priority: "low" | "medium" | "high";
+  priority: TicketPriority;
   createdAt: Date;
   updatedAt: Date;
   createdBy: User;
@@ -92,6 +92,8 @@ export function SupportTicketComponent({
         return "bg-blue-100 text-blue-800 border-blue-200";
       case "resolved":
         return "bg-green-100 text-green-800 border-green-200";
+      case "closed":
+        return "bg-gray-100 text-gray-800 border-gray-200";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
@@ -105,6 +107,8 @@ export function SupportTicketComponent({
         return "bg-yellow-100 text-yellow-800 border-yellow-200";
       case "high":
         return "bg-red-100 text-red-800 border-red-200";
+      case "urgent":
+        return "bg-purple-100 text-purple-800 border-purple-200";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
@@ -141,6 +145,7 @@ export function SupportTicketComponent({
                   <SelectItem value="open">Open</SelectItem>
                   <SelectItem value="in-progress">In Progress</SelectItem>
                   <SelectItem value="resolved">Resolved</SelectItem>
+                  <SelectItem value="closed">Closed</SelectItem>
                 </SelectContent>
               </Select>
             ) : (

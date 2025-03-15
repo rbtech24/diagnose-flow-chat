@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { SupportTicketComponent, SupportTicket, TicketStatus } from "@/components/support/SupportTicket";
+import { SupportTicketComponent, SupportTicket, SupportTicketStatus } from "@/components/support/SupportTicket";
 import { mockTickets, currentUser } from "@/data/mockTickets";
 import { ArrowLeft } from "lucide-react";
 
@@ -18,7 +18,7 @@ export default function AdminSupportTicketDetail() {
     }
   }, [ticketId]);
 
-  const handleUpdateStatus = (ticketId: string, status: TicketStatus) => {
+  const handleUpdateStatus = (ticketId: string, status: SupportTicketStatus) => {
     if (ticket) {
       setTicket({
         ...ticket,
@@ -81,7 +81,6 @@ export default function AdminSupportTicketDetail() {
         ticket={ticket}
         onAddMessage={handleAddMessage}
         onUpdateStatus={handleUpdateStatus}
-        canUpdateStatus={true}
         isDetailView={true}
       />
     </div>

@@ -1,5 +1,5 @@
 
-import { SupportTicket, TicketStatus, TicketPriority, TicketMessage } from "@/components/support/SupportTicket";
+import { SupportTicket, SupportTicketStatus, TicketPriority, Message, User } from "@/components/support/SupportTicket";
 
 // Mock user data
 const mockUsers = {
@@ -7,18 +7,21 @@ const mockUsers = {
     id: "admin1",
     name: "Admin User",
     role: "Administrator",
+    email: "admin@example.com",
     avatarUrl: "https://i.pravatar.cc/150?u=admin1"
   },
   company1: {
     id: "company1",
     name: "John Smith",
     role: "Company Owner",
+    email: "john@company.com",
     avatarUrl: "https://i.pravatar.cc/150?u=company1"
   },
   tech1: {
     id: "tech1",
     name: "Mike Johnson",
     role: "Technician",
+    email: "mike@tech.com",
     avatarUrl: "https://i.pravatar.cc/150?u=tech1"
   }
 };
@@ -28,9 +31,9 @@ const createMockMessage = (
   id: string,
   ticketId: string,
   content: string,
-  sender: typeof mockUsers.admin1,
+  sender: User,
   daysAgo: number
-): TicketMessage => {
+): Message => {
   const date = new Date();
   date.setDate(date.getDate() - daysAgo);
   
@@ -48,12 +51,12 @@ const createMockTicket = (
   id: string,
   title: string,
   description: string,
-  status: TicketStatus,
+  status: SupportTicketStatus,
   priority: TicketPriority,
-  createdBy: typeof mockUsers.company1,
-  assignedTo: typeof mockUsers.admin1 | undefined,
+  createdBy: User,
+  assignedTo: User | undefined,
   daysAgo: number,
-  messages: TicketMessage[] = []
+  messages: Message[] = []
 ): SupportTicket => {
   const createdDate = new Date();
   createdDate.setDate(createdDate.getDate() - daysAgo);

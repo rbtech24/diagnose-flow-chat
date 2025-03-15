@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SupportTicketComponent, SupportTicket, TicketStatus } from "@/components/support/SupportTicket";
+import { SupportTicketComponent, SupportTicket, SupportTicketStatus } from "@/components/support/SupportTicket";
 import { Button } from "@/components/ui/button";
 import { Search, Filter, RotateCw } from "lucide-react";
 import { mockTickets, currentUser } from "@/data/mockTickets";
@@ -15,7 +15,7 @@ export default function AdminSupport() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const navigate = useNavigate();
 
-  const handleUpdateStatus = (ticketId: string, status: TicketStatus) => {
+  const handleUpdateStatus = (ticketId: string, status: SupportTicketStatus) => {
     setTickets(
       tickets.map((ticket) => 
         ticket.id === ticketId 

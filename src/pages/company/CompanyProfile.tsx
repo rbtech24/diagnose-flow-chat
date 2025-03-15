@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -68,7 +67,6 @@ export default function CompanyProfile() {
     city: "Repairville",
     state: "CA",
     zipCode: "90210",
-    phone: "555-987-6543",
     website: "https://acmerepair.com",
     description: "We specialize in all types of home and office appliance repairs with over 15 years of experience.",
     techCount: 12,
