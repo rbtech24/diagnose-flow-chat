@@ -139,7 +139,6 @@ export default function AdminSupport() {
                   ticket={ticket}
                   onAddMessage={handleAddMessage}
                   onUpdateStatus={handleUpdateStatus}
-                  canUpdateStatus={true}
                 />
               </div>
             ))
@@ -158,7 +157,6 @@ export default function AdminSupport() {
                   ticket={ticket}
                   onAddMessage={handleAddMessage}
                   onUpdateStatus={handleUpdateStatus}
-                  canUpdateStatus={true}
                 />
               </div>
             ))
@@ -177,7 +175,6 @@ export default function AdminSupport() {
                   ticket={ticket}
                   onAddMessage={handleAddMessage}
                   onUpdateStatus={handleUpdateStatus}
-                  canUpdateStatus={true}
                 />
               </div>
             ))
@@ -196,7 +193,6 @@ export default function AdminSupport() {
                   ticket={ticket}
                   onAddMessage={handleAddMessage}
                   onUpdateStatus={handleUpdateStatus}
-                  canUpdateStatus={true}
                 />
               </div>
             ))

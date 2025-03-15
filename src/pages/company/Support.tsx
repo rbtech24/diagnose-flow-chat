@@ -1,8 +1,7 @@
-
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SupportTicketComponent, SupportTicket, TicketStatus } from "@/components/support/SupportTicket";
+import { SupportTicketComponent, SupportTicket, SupportTicketStatus } from "@/components/support/SupportTicket";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, Filter, RotateCw } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
