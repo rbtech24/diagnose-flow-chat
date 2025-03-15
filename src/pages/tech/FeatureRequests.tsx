@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -32,7 +33,7 @@ export default function TechFeatureRequests() {
             id: currentUser.id,
             name: currentUser.name,
             email: currentUser.email,
-            role: currentUser.role,
+            role: currentUser.role, // Using the validated role from currentUser
             avatarUrl: currentUser.avatarUrl,
           },
         };
@@ -66,7 +67,7 @@ export default function TechFeatureRequests() {
           id: currentUser.id,
           name: currentUser.name,
           email: currentUser.email,
-          role: currentUser.role,
+          role: currentUser.role, // Using the validated role from currentUser
           avatarUrl: currentUser.avatarUrl,
         },
         votes: [],

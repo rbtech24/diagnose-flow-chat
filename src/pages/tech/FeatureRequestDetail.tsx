@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,7 @@ export default function TechFeatureRequestDetailPage() {
         id: currentUser.id,
         name: currentUser.name,
         email: currentUser.email,
-        role: currentUser.role,
+        role: currentUser.role, // Using the validated role from currentUser
         avatarUrl: currentUser.avatarUrl,
       },
     };
@@ -58,7 +59,7 @@ export default function TechFeatureRequestDetailPage() {
         id: currentUser.id,
         name: currentUser.name,
         email: currentUser.email,
-        role: currentUser.role,
+        role: currentUser.role, // Using the validated role from currentUser
         avatarUrl: currentUser.avatarUrl,
       },
     };
