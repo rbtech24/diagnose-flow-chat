@@ -1,3 +1,4 @@
+
 import {
   createBrowserRouter,
   RouterProvider,
@@ -6,11 +7,11 @@ import Dashboard from "./pages/company/Dashboard";
 import TechDashboard from "./pages/tech/Dashboard";
 import Support from "./pages/company/Support";
 import TechSupport from "./pages/tech/Support";
-import Profile from "./pages/company/Profile";
+import CompanyProfile from "./pages/company/CompanyProfile";
 import TechProfile from "./pages/tech/Profile";
-import CompanyLayout from "./layouts/CompanyLayout";
-import TechLayout from "./layouts/TechLayout";
-import AdminLayout from "./layouts/AdminLayout";
+import CompanyLayout from "./components/company/CompanyLayout";
+import TechLayout from "./components/tech/TechLayout";
+import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminSupport from "./pages/admin/Support";
 import AdminProfile from "./pages/admin/Profile";
@@ -44,7 +45,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/company/profile",
-    element: <CompanyLayout><Profile /></CompanyLayout>,
+    element: <CompanyLayout><CompanyProfile /></CompanyLayout>,
   },
   {
     path: "/company/community",

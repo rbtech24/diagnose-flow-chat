@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -22,26 +21,32 @@ export default function TechFeatureRequests() {
   const navigate = useNavigate();
 
   const handleVote = (id: string) => {
-    setFeatureRequests(
-      featureRequests.map((request) =>
-        request.id === id
-          ? {
-              ...request,
-              score: request.score + 1,
-              votes: [
-                ...request.votes,
-                {
-                  id: `vote-${Date.now()}`,
-                  userId: currentUser.id,
-                  featureRequestId: id,
-                  createdAt: new Date(),
-                  user: currentUser,
-                },
-              ],
-            }
-          : request
-      )
-    );
+    const updatedRequests = featureRequests.map((request) => {
+      if (request.id === id) {
+        const newVote = {
+          id: `vote-${Date.now()}`,
+          userId: currentUser.id,
+          featureRequestId: id,
+          createdAt: new Date(),
+          user: {
+            id: currentUser.id,
+            name: currentUser.name,
+            email: currentUser.email,
+            role: currentUser.role,
+            avatarUrl: currentUser.avatarUrl,
+          },
+        };
+        
+        return {
+          ...request,
+          score: request.score + 1,
+          votes: [...request.votes, newVote],
+        };
+      }
+      return request;
+    });
+    
+    setFeatureRequests(updatedRequests);
   };
 
   const handleAddFeatureRequest = (values: any) => {
@@ -57,7 +62,13 @@ export default function TechFeatureRequests() {
         priority: values.priority,
         createdAt: new Date(),
         updatedAt: new Date(),
-        createdBy: currentUser,
+        createdBy: {
+          id: currentUser.id,
+          name: currentUser.name,
+          email: currentUser.email,
+          role: currentUser.role,
+          avatarUrl: currentUser.avatarUrl,
+        },
         votes: [],
         score: 0,
         comments: [],

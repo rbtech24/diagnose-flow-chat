@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -22,26 +21,32 @@ export default function CompanyFeatureRequests() {
   const navigate = useNavigate();
 
   const handleVote = (id: string) => {
-    setFeatureRequests(
-      featureRequests.map((request) =>
-        request.id === id
-          ? {
-              ...request,
-              score: request.score + 1,
-              votes: [
-                ...request.votes,
-                {
-                  id: `vote-${Date.now()}`,
-                  userId: currentUser.id,
-                  featureRequestId: id,
-                  createdAt: new Date(),
-                  user: currentUser,
-                },
-              ],
-            }
-          : request
-      )
-    );
+    const updatedRequests = featureRequests.map((request) => {
+      if (request.id === id) {
+        const newVote = {
+          id: `vote-${Date.now()}`,
+          userId: currentUser.id,
+          featureRequestId: id,
+          createdAt: new Date(),
+          user: {
+            id: currentUser.id,
+            name: currentUser.name,
+            email: currentUser.email,
+            role: currentUser.role,
+            avatarUrl: currentUser.avatarUrl,
+          },
+        };
+        
+        return {
+          ...request,
+          score: request.score + 1,
+          votes: [...request.votes, newVote],
+        };
+      }
+      return request;
+    });
+    
+    setFeatureRequests(updatedRequests);
   };
 
   const handleAddFeatureRequest = (values: any) => {
@@ -57,7 +62,13 @@ export default function CompanyFeatureRequests() {
         priority: values.priority,
         createdAt: new Date(),
         updatedAt: new Date(),
-        createdBy: currentUser,
+        createdBy: {
+          id: currentUser.id,
+          name: currentUser.name,
+          email: currentUser.email,
+          role: currentUser.role,
+          avatarUrl: currentUser.avatarUrl,
+        },
         votes: [],
         score: 0,
         comments: [],
@@ -82,13 +93,13 @@ export default function CompanyFeatureRequests() {
     return matchesSearch && matchesStatus;
   });
 
-  const myRequests = filteredRequests.filter((request) => request.createdBy.id === currentUser.id);
   const pendingRequests = filteredRequests.filter((request) => request.status === "pending");
   const approvedRequests = filteredRequests.filter((request) => 
     ["approved", "in-progress"].includes(request.status)
   );
   const completedRequests = filteredRequests.filter((request) => request.status === "completed");
-  
+  const rejectedRequests = filteredRequests.filter((request) => request.status === "rejected");
+
   const viewRequestDetails = (id: string) => {
     navigate(`/company/feature-requests/${id}`);
   };
@@ -146,52 +157,21 @@ export default function CompanyFeatureRequests() {
         </div>
       </div>
 
-      <Tabs defaultValue="my-requests" className="space-y-4">
+      <Tabs defaultValue="pending" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="my-requests">
-            My Requests <span className="ml-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs text-purple-600">{myRequests.length}</span>
-          </TabsTrigger>
           <TabsTrigger value="pending">
             Pending <span className="ml-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs text-yellow-600">{pendingRequests.length}</span>
           </TabsTrigger>
           <TabsTrigger value="approved">
-            In Development <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-600">{approvedRequests.length}</span>
+            Approved <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-600">{approvedRequests.length}</span>
           </TabsTrigger>
           <TabsTrigger value="completed">
             Completed <span className="ml-1 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-600">{completedRequests.length}</span>
           </TabsTrigger>
+          <TabsTrigger value="rejected">
+            Rejected <span className="ml-1 rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-600">{rejectedRequests.length}</span>
+          </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="my-requests" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {myRequests.length > 0 ? (
-            myRequests.map((request) => (
-              <FeatureRequestCard
-                key={request.id}
-                featureRequest={request}
-                onVote={handleVote}
-                onViewDetails={viewRequestDetails}
-              />
-            ))
-          ) : (
-            <div className="col-span-full p-8 text-center border rounded-lg">
-              <p className="text-gray-500">You haven't submitted any feature requests yet</p>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button className="mt-4">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Submit Your First Feature Request
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[550px]">
-                  <NewFeatureRequestForm
-                    onSubmit={handleAddFeatureRequest}
-                    isSubmitting={isSubmitting}
-                  />
-                </DialogContent>
-              </Dialog>
-            </div>
-          )}
-        </TabsContent>
 
         <TabsContent value="pending" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {pendingRequests.length > 0 ? (
@@ -206,6 +186,20 @@ export default function CompanyFeatureRequests() {
           ) : (
             <div className="col-span-full p-8 text-center border rounded-lg">
               <p className="text-gray-500">No pending feature requests</p>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="mt-4">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Submit a Feature Request
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[550px]">
+                  <NewFeatureRequestForm
+                    onSubmit={handleAddFeatureRequest}
+                    isSubmitting={isSubmitting}
+                  />
+                </DialogContent>
+              </Dialog>
             </div>
           )}
         </TabsContent>
@@ -222,7 +216,7 @@ export default function CompanyFeatureRequests() {
             ))
           ) : (
             <div className="col-span-full p-8 text-center border rounded-lg">
-              <p className="text-gray-500">No feature requests in development</p>
+              <p className="text-gray-500">No approved feature requests</p>
             </div>
           )}
         </TabsContent>
@@ -240,6 +234,23 @@ export default function CompanyFeatureRequests() {
           ) : (
             <div className="col-span-full p-8 text-center border rounded-lg">
               <p className="text-gray-500">No completed feature requests</p>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="rejected" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {rejectedRequests.length > 0 ? (
+            rejectedRequests.map((request) => (
+              <FeatureRequestCard
+                key={request.id}
+                featureRequest={request}
+                onVote={handleVote}
+                onViewDetails={viewRequestDetails}
+              />
+            ))
+          ) : (
+            <div className="col-span-full p-8 text-center border rounded-lg">
+              <p className="text-gray-500">No rejected feature requests</p>
             </div>
           )}
         </TabsContent>

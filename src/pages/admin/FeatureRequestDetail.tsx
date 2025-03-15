@@ -2,12 +2,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
 import { FeatureRequest, FeatureRequestStatus } from "@/types/feature-request";
 import { mockFeatureRequests } from "@/data/mockFeatureRequests";
 import { currentUser } from "@/data/mockTickets";
 import { ArrowLeft } from "lucide-react";
-import { toast } from "sonner";
+import { Separator } from "@/components/ui/separator";
 
 export default function AdminFeatureRequestDetailPage() {
   const [featureRequest, setFeatureRequest] = useState<FeatureRequest | null>(null);
@@ -32,8 +33,6 @@ export default function AdminFeatureRequestDetailPage() {
       status,
       updatedAt: new Date(),
     });
-    
-    toast.success(`Feature request status updated to ${status}`);
   };
 
   const handleUpdatePriority = (requestId: string, priority: string) => {
@@ -44,25 +43,28 @@ export default function AdminFeatureRequestDetailPage() {
       priority: priority as any,
       updatedAt: new Date(),
     });
-    
-    toast.success(`Feature request priority updated to ${priority}`);
   };
 
   const handleAddComment = (requestId: string, content: string) => {
     if (!featureRequest) return;
     
+    const newComment = {
+      id: `comment-${Date.now()}`,
+      featureRequestId: requestId,
+      content,
+      createdAt: new Date(),
+      createdBy: {
+        id: currentUser.id,
+        name: currentUser.name,
+        email: currentUser.email,
+        role: currentUser.role,
+        avatarUrl: currentUser.avatarUrl,
+      },
+    };
+    
     setFeatureRequest({
       ...featureRequest,
-      comments: [
-        ...featureRequest.comments,
-        {
-          id: `comment-${Date.now()}`,
-          featureRequestId: requestId,
-          content,
-          createdAt: new Date(),
-          createdBy: currentUser,
-        },
-      ],
+      comments: [...featureRequest.comments, newComment],
     });
   };
 
@@ -95,20 +97,57 @@ export default function AdminFeatureRequestDetailPage() {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="mb-6">
+      <div className="mb-6 flex justify-between items-center">
         <Button variant="ghost" onClick={() => navigate("/admin/feature-requests")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Feature Requests
         </Button>
+        
+        <div className="flex items-center gap-4">
+          <div>
+            <span className="text-sm text-gray-500 mr-2">Status:</span>
+            <Select
+              value={featureRequest.status}
+              onValueChange={(value) => handleUpdateStatus(featureRequest.id, value as FeatureRequestStatus)}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="in-progress">In Progress</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <span className="text-sm text-gray-500 mr-2">Priority:</span>
+            <Select
+              value={featureRequest.priority}
+              onValueChange={(value) => handleUpdatePriority(featureRequest.id, value)}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select priority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="critical">Critical</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
+      
+      <Separator className="my-4" />
       
       <FeatureRequestDetail
         featureRequest={featureRequest}
         onAddComment={handleAddComment}
-        onVote={() => {}}
-        onUpdateStatus={handleUpdateStatus}
-        onUpdatePriority={handleUpdatePriority}
-        isAdmin={true}
       />
     </div>
   );

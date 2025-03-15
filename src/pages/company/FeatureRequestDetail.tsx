@@ -26,37 +26,47 @@ export default function CompanyFeatureRequestDetailPage() {
   const handleVote = (requestId: string) => {
     if (!featureRequest) return;
     
+    const newVote = {
+      id: `vote-${Date.now()}`,
+      userId: currentUser.id,
+      featureRequestId: requestId,
+      createdAt: new Date(),
+      user: {
+        id: currentUser.id,
+        name: currentUser.name,
+        email: currentUser.email,
+        role: currentUser.role,
+        avatarUrl: currentUser.avatarUrl,
+      },
+    };
+    
     setFeatureRequest({
       ...featureRequest,
       score: featureRequest.score + 1,
-      votes: [
-        ...featureRequest.votes,
-        {
-          id: `vote-${Date.now()}`,
-          userId: currentUser.id,
-          featureRequestId: requestId,
-          createdAt: new Date(),
-          user: currentUser,
-        },
-      ],
+      votes: [...featureRequest.votes, newVote],
     });
   };
 
   const handleAddComment = (requestId: string, content: string) => {
     if (!featureRequest) return;
     
+    const newComment = {
+      id: `comment-${Date.now()}`,
+      featureRequestId: requestId,
+      content,
+      createdAt: new Date(),
+      createdBy: {
+        id: currentUser.id,
+        name: currentUser.name,
+        email: currentUser.email,
+        role: currentUser.role,
+        avatarUrl: currentUser.avatarUrl,
+      },
+    };
+    
     setFeatureRequest({
       ...featureRequest,
-      comments: [
-        ...featureRequest.comments,
-        {
-          id: `comment-${Date.now()}`,
-          featureRequestId: requestId,
-          content,
-          createdAt: new Date(),
-          createdBy: currentUser,
-        },
-      ],
+      comments: [...featureRequest.comments, newComment],
     });
   };
 
