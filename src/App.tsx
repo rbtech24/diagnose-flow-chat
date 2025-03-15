@@ -89,6 +89,10 @@ const router = createBrowserRouter([
       { path: "subscription-plans", element: <AdminSubscriptionPlans /> },
       { path: "licenses", element: <AdminLicenses /> },
       { path: "api-integrations", element: <APIIntegrations /> },
+      // Add new routes for users, companies, and workflows
+      { path: "users", element: <AdminDashboard /> }, // TODO: Create dedicated Users page
+      { path: "companies", element: <AdminDashboard /> }, // TODO: Create dedicated Companies page
+      { path: "workflows", element: <AdminDashboard /> }, // TODO: Create dedicated Workflows page
     ]
   }
 ]);
