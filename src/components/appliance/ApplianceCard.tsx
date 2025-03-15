@@ -6,7 +6,7 @@ import { Edit, Trash, ArrowUpRight, GripVertical, Plus, FileText } from 'lucide-
 import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface ApplianceCardProps {
   appliance: Appliance;
@@ -36,10 +36,37 @@ export function ApplianceCard({
   getSymptomCardColor
 }: ApplianceCardProps) {
   const navigate = useNavigate();
-  const [workflows, setWorkflows] = useState(() => 
-    JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]')
-      .filter((w: SavedWorkflow) => w.metadata.folder === appliance.name)
-  );
+  const [workflows, setWorkflows] = useState<SavedWorkflow[]>([]);
+
+  useEffect(() => {
+    // Load workflows from localStorage whenever the component renders or appliance name changes
+    const loadWorkflows = () => {
+      try {
+        const allWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');
+        const applianceWorkflows = allWorkflows.filter(
+          (w: SavedWorkflow) => w.metadata.folder === appliance.name || w.metadata.appliance === appliance.name
+        );
+        setWorkflows(applianceWorkflows);
+      } catch (error) {
+        console.error('Error loading workflows for appliance:', error);
+        setWorkflows([]);
+      }
+    };
+    
+    loadWorkflows();
+    
+    // Set up event listener for storage changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'diagnostic-workflows') {
+        loadWorkflows();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [appliance.name]);
 
   const handleOpenWorkflowEditor = (applianceName: string, workflowName?: string) => {
     const path = `/workflow-editor?folder=${encodeURIComponent(applianceName)}${workflowName ? `&name=${encodeURIComponent(workflowName)}` : ''}`;
@@ -83,7 +110,7 @@ export function ApplianceCard({
     const allWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');
     const newAllWorkflows = allWorkflows.map((w: SavedWorkflow) => {
       if (w.metadata.name === workflow.metadata.name && 
-          w.metadata.folder === workflow.metadata.folder) {
+          (w.metadata.folder === workflow.metadata.folder || w.metadata.appliance === workflow.metadata.appliance)) {
         return {
           ...w,
           metadata: {
@@ -107,7 +134,7 @@ export function ApplianceCard({
     const allWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');
     const newAllWorkflows = allWorkflows.filter((w: SavedWorkflow) => 
       !(w.metadata.name === workflow.metadata.name && 
-        w.metadata.folder === workflow.metadata.folder)
+        (w.metadata.folder === workflow.metadata.folder || w.metadata.appliance === workflow.metadata.appliance))
     );
 
     localStorage.setItem('diagnostic-workflows', JSON.stringify(newAllWorkflows));

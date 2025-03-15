@@ -48,7 +48,7 @@ export const handleSaveWorkflow = async (
   }
 
   try {
-    const existingWorkflows = await getAllWorkflows();
+    const existingWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');
     
     const newWorkflow: SavedWorkflow = {
       metadata: {
@@ -67,12 +67,16 @@ export const handleSaveWorkflow = async (
 
     // Find existing workflow by name and appliance
     const existingIndex = existingWorkflows.findIndex(
-      w => w.metadata.name === name && w.metadata.appliance === appliance
+      (w: SavedWorkflow) => 
+      w.metadata.name === name && 
+      (w.metadata.folder === folder || w.metadata.appliance === appliance)
     );
 
+    let workflowToSave: SavedWorkflow;
+    
     if (existingIndex >= 0) {
       const updatedWorkflows = [...existingWorkflows];
-      updatedWorkflows[existingIndex] = {
+      workflowToSave = {
         ...newWorkflow,
         metadata: {
           ...newWorkflow.metadata,
@@ -80,17 +84,29 @@ export const handleSaveWorkflow = async (
           isActive: existingWorkflows[existingIndex].metadata.isActive
         }
       };
-      await saveWorkflowToStorage(updatedWorkflows[existingIndex]);
+      updatedWorkflows[existingIndex] = workflowToSave;
+      localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
     } else {
-      await saveWorkflowToStorage(newWorkflow);
+      workflowToSave = newWorkflow;
+      existingWorkflows.push(workflowToSave);
+      localStorage.setItem('diagnostic-workflows', JSON.stringify(existingWorkflows));
     }
+    
+    // Try to save to Supabase as well (this could fail but we already saved to localStorage)
+    await saveWorkflowToStorage(workflowToSave);
+    
+    // Dispatch a storage event to notify other components
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'diagnostic-workflows',
+      newValue: localStorage.getItem('diagnostic-workflows')
+    }));
     
     toast({
       title: "Workflow Saved",
       description: `${name} has been saved to ${appliance} workflows.`
     });
     
-    return newWorkflow;
+    return workflowToSave;
   } catch (error) {
     console.error('Error saving workflow:', error);
     toast({
