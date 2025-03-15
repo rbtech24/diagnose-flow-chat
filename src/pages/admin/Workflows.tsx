@@ -60,9 +60,11 @@ export default function AdminWorkflows() {
                     <Badge variant={workflow.status === "published" ? "secondary" : "outline"}>
                       {workflow.status}
                     </Badge>
-                    <Button variant="outline" size="sm" onClick={() => 
-                      navigate(`/workflow-editor?folder=${workflow.appliance}&name=${workflow.name}`)
-                    }>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => navigate(`/workflow-editor?folder=${workflow.appliance}&name=${workflow.name}`)}
+                    >
                       Edit Workflow
                     </Button>
                   </div>

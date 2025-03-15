@@ -52,9 +52,11 @@ export default function CompanyDashboard() {
                 <CardTitle>Welcome Back</CardTitle>
                 <CardDescription>{formattedDate}</CardDescription>
               </div>
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-                <Play className="mr-2 h-4 w-4" />
-                Start Diagnosis
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700" asChild>
+                <Link to="/workflows">
+                  <Play className="mr-2 h-4 w-4" />
+                  Start Diagnosis
+                </Link>
               </Button>
             </div>
           </CardHeader>
@@ -169,7 +171,9 @@ export default function CompanyDashboard() {
                     <p className="text-xs text-gray-500">Active • 3 jobs</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm">View</Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/company/technicians">View</Link>
+                </Button>
               </div>
               
               <div className="flex justify-between mb-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
@@ -183,7 +187,9 @@ export default function CompanyDashboard() {
                     <p className="text-xs text-gray-500">Active • 2 jobs</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm">View</Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/company/technicians">View</Link>
+                </Button>
               </div>
               
               <div className="flex justify-between p-3 rounded-lg bg-gray-50 border border-gray-100">
@@ -197,7 +203,9 @@ export default function CompanyDashboard() {
                     <p className="text-xs text-gray-500">Offline • 0 jobs</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm">View</Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/company/technicians">View</Link>
+                </Button>
               </div>
               
               <div className="mt-6">

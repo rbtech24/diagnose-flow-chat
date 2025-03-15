@@ -34,25 +34,22 @@ export function CompanySidebar() {
             <SidebarNavItem 
               icon={<Home />} 
               active={isActive("/company/dashboard")}
-              className="cursor-pointer"
             >
-              <Link to="/company/dashboard">Dashboard</Link>
+              <Link to="/company/dashboard" className="w-full h-full flex items-center">Dashboard</Link>
             </SidebarNavItem>
             
             <SidebarNavItem 
               icon={<UserCog />} 
               active={isActive("/company/technicians")}
-              className="cursor-pointer"
             >
-              <Link to="/company/technicians">Manage Technicians</Link>
+              <Link to="/company/technicians" className="w-full h-full flex items-center">Manage Technicians</Link>
             </SidebarNavItem>
             
             <SidebarNavItem 
               icon={<CreditCard />} 
               active={isActive("/company/subscription")}
-              className="cursor-pointer"
             >
-              <Link to="/company/subscription">Subscription</Link>
+              <Link to="/company/subscription" className="w-full h-full flex items-center">Subscription</Link>
             </SidebarNavItem>
           </SidebarNavGroup>
 
@@ -60,17 +57,15 @@ export function CompanySidebar() {
             <SidebarNavItem 
               icon={<MessageSquare />} 
               active={isActive("/company/community")}
-              className="cursor-pointer"
             >
-              <Link to="/company/community">Forums</Link>
+              <Link to="/company/community" className="w-full h-full flex items-center">Forums</Link>
             </SidebarNavItem>
             
             <SidebarNavItem 
               icon={<FileText />} 
               active={isActive("/company/feature-requests")}
-              className="cursor-pointer"
             >
-              <Link to="/company/feature-requests">Feature Requests</Link>
+              <Link to="/company/feature-requests" className="w-full h-full flex items-center">Feature Requests</Link>
             </SidebarNavItem>
           </SidebarNavGroup>
 
@@ -78,9 +73,8 @@ export function CompanySidebar() {
             <SidebarNavItem 
               icon={<LifeBuoy />} 
               active={isActive("/company/support")}
-              className="cursor-pointer"
             >
-              <Link to="/company/support">Support Tickets</Link>
+              <Link to="/company/support" className="w-full h-full flex items-center">Support Tickets</Link>
             </SidebarNavItem>
           </SidebarNavGroup>
         </SidebarNav>

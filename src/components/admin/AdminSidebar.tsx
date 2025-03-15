@@ -36,9 +36,8 @@ export function AdminSidebar() {
             <SidebarNavItem 
               icon={<Home className="w-5 h-5" />} 
               active={isActive("/admin/dashboard")}
-              className="cursor-pointer"
             >
-              <Link to="/admin/dashboard">Dashboard</Link>
+              <Link to="/admin/dashboard" className="w-full h-full flex items-center">Dashboard</Link>
             </SidebarNavItem>
           </SidebarNavGroup>
 
@@ -46,25 +45,22 @@ export function AdminSidebar() {
             <SidebarNavItem 
               icon={<Building2 className="w-5 h-5" />} 
               active={isActive("/admin/companies")}
-              className="cursor-pointer"
             >
-              <Link to="/admin/companies">Companies</Link>
+              <Link to="/admin/companies" className="w-full h-full flex items-center">Companies</Link>
             </SidebarNavItem>
             
             <SidebarNavItem 
               icon={<Users className="w-5 h-5" />} 
               active={isActive("/admin/users")}
-              className="cursor-pointer"
             >
-              <Link to="/admin/users">Users</Link>
+              <Link to="/admin/users" className="w-full h-full flex items-center">Users</Link>
             </SidebarNavItem>
             
             <SidebarNavItem 
               icon={<Workflow className="w-5 h-5" />} 
               active={isActive("/admin/workflows")}
-              className="cursor-pointer"
             >
-              <Link to="/admin/workflows">Workflows</Link>
+              <Link to="/admin/workflows" className="w-full h-full flex items-center">Workflows</Link>
             </SidebarNavItem>
           </SidebarNavGroup>
 
@@ -72,17 +68,15 @@ export function AdminSidebar() {
             <SidebarNavItem 
               icon={<Package className="w-5 h-5" />} 
               active={isActive("/admin/subscription-plans")}
-              className="cursor-pointer"
             >
-              <Link to="/admin/subscription-plans">Subscription Plans</Link>
+              <Link to="/admin/subscription-plans" className="w-full h-full flex items-center">Subscription Plans</Link>
             </SidebarNavItem>
             
             <SidebarNavItem 
               icon={<CreditCard className="w-5 h-5" />} 
               active={isActive("/admin/licenses")}
-              className="cursor-pointer"
             >
-              <Link to="/admin/licenses">Licenses</Link>
+              <Link to="/admin/licenses" className="w-full h-full flex items-center">Licenses</Link>
             </SidebarNavItem>
           </SidebarNavGroup>
 
@@ -90,17 +84,15 @@ export function AdminSidebar() {
             <SidebarNavItem 
               icon={<Network className="w-5 h-5" />} 
               active={isActive("/admin/api-integrations")}
-              className="cursor-pointer"
             >
-              <Link to="/admin/api-integrations">API Integrations</Link>
+              <Link to="/admin/api-integrations" className="w-full h-full flex items-center">API Integrations</Link>
             </SidebarNavItem>
             
             <SidebarNavItem 
               icon={<FileText className="w-5 h-5" />} 
               active={isActive("/admin/feature-requests")}
-              className="cursor-pointer"
             >
-              <Link to="/admin/feature-requests">Feature Requests</Link>
+              <Link to="/admin/feature-requests" className="w-full h-full flex items-center">Feature Requests</Link>
             </SidebarNavItem>
           </SidebarNavGroup>
 
@@ -108,9 +100,8 @@ export function AdminSidebar() {
             <SidebarNavItem 
               icon={<LifeBuoy className="w-5 h-5" />} 
               active={isActive("/admin/support")}
-              className="cursor-pointer"
             >
-              <Link to="/admin/support">Support Tickets</Link>
+              <Link to="/admin/support" className="w-full h-full flex items-center">Support Tickets</Link>
             </SidebarNavItem>
           </SidebarNavGroup>
         </SidebarNav>

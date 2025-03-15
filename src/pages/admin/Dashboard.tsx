@@ -53,9 +53,11 @@ export default function AdminDashboard() {
                 <CardTitle>Welcome Back</CardTitle>
                 <CardDescription>{formattedDate}</CardDescription>
               </div>
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-                <Play className="mr-2 h-4 w-4" />
-                Manage Workflows
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700" asChild>
+                <Link to="/admin/workflows">
+                  <Play className="mr-2 h-4 w-4" />
+                  Manage Workflows
+                </Link>
               </Button>
             </div>
           </CardHeader>
@@ -178,7 +180,9 @@ export default function AdminDashboard() {
                     <p className="text-xs text-gray-500">Active • 12 technicians</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm">View</Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/admin/companies/1">View</Link>
+                </Button>
               </div>
               
               <div className="flex justify-between mb-4 p-3 rounded-lg bg-purple-50 border border-purple-100">
@@ -192,7 +196,9 @@ export default function AdminDashboard() {
                     <p className="text-xs text-gray-500">Active • 8 technicians</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm">View</Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/admin/companies/2">View</Link>
+                </Button>
               </div>
               
               <div className="flex justify-between p-3 rounded-lg bg-gray-50 border border-gray-100">
@@ -206,7 +212,9 @@ export default function AdminDashboard() {
                     <p className="text-xs text-gray-500">Inactive • 0 technicians</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm">View</Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/admin/companies/3">View</Link>
+                </Button>
               </div>
               
               <div className="mt-6">
