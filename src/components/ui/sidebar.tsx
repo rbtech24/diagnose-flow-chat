@@ -229,11 +229,42 @@ export const SidebarProvider = Sidebar;
 export const SidebarContent = SidebarMain;
 export const SidebarGroup = SidebarNavGroup;
 export const SidebarGroupContent = SidebarNav;
-export const SidebarGroupLabel = ({ children }: { children: React.ReactNode }) => (
-  <div className="px-3 py-1 text-xs font-medium text-gray-500 uppercase">{children}</div>
+
+// Update this component to accept className prop
+interface SidebarGroupLabelProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+  className?: string;
+}
+export const SidebarGroupLabel = ({ children, className }: SidebarGroupLabelProps) => (
+  <div className={cn("px-3 py-1 text-xs font-medium text-gray-500 uppercase", className)}>{children}</div>
 );
+
 export const SidebarMenu = SidebarNav;
 export const SidebarMenuItem = SidebarNavItem;
-export const SidebarMenuButton = ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.ReactNode, asChild?: boolean }) => (
-  <button type="button" {...props}>{children}</button>
+
+// Update this component to accept active prop
+interface SidebarMenuButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  children: React.ReactNode;
+  asChild?: boolean;
+  active?: boolean;
+  className?: string;
+}
+
+export const SidebarMenuButton = ({ 
+  children, 
+  asChild, 
+  active, 
+  className,
+  ...props 
+}: SidebarMenuButtonProps) => (
+  <button 
+    type="button" 
+    className={cn(
+      active ? "bg-gray-100 text-gray-900 font-medium" : "",
+      className
+    )} 
+    {...props}
+  >
+    {children}
+  </button>
 );
