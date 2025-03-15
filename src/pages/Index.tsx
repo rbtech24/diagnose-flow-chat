@@ -13,7 +13,7 @@ export default function Index() {
             <img 
               src="/lovable-uploads/5e12430c-6872-485e-b07a-02b835f8e3d4.png" 
               alt="Repair Auto Pilot" 
-              className="h-20"
+              className="h-48"
             />
           </div>
           <nav className="hidden md:flex items-center gap-6">
