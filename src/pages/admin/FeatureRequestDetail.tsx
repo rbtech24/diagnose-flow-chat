@@ -57,7 +57,7 @@ export default function AdminFeatureRequestDetailPage() {
         id: currentUser.id,
         name: currentUser.name,
         email: currentUser.email,
-        role: currentUser.role,
+        role: currentUser.role as "admin" | "company" | "tech", // Type assertion to match User role
         avatarUrl: currentUser.avatarUrl,
       },
     };

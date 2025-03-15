@@ -33,7 +33,7 @@ export default function TechFeatureRequests() {
             id: currentUser.id,
             name: currentUser.name,
             email: currentUser.email,
-            role: currentUser.role, // Using the validated role from currentUser
+            role: currentUser.role as "admin" | "company" | "tech", // Explicitly cast to union type
             avatarUrl: currentUser.avatarUrl,
           },
         };
@@ -67,7 +67,7 @@ export default function TechFeatureRequests() {
           id: currentUser.id,
           name: currentUser.name,
           email: currentUser.email,
-          role: currentUser.role, // Using the validated role from currentUser
+          role: currentUser.role as "admin" | "company" | "tech", // Explicitly cast to union type
           avatarUrl: currentUser.avatarUrl,
         },
         votes: [],
