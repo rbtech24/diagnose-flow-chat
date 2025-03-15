@@ -1,123 +1,103 @@
 
-import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
-import { useLocation, Link } from "react-router-dom";
-import { cn } from "@/lib/utils";
-import { Home, Users, MessageSquare, HeartPulse, LifeBuoy, Settings, LogOut, FileText, CreditCard, UserCog } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import {
+  Home, Users, MessageSquare, FileText, LifeBuoy, Settings, LogOut, CreditCard, UserCog
+} from "lucide-react";
+
+import {
+  Sidebar,
+  SidebarHeader,
+  SidebarMain,
+  SidebarNav,
+  SidebarNavItem,
+  SidebarFooter,
+  SidebarToggle,
+  SidebarNavGroup
+} from "@/components/ui/sidebar";
 
 export function CompanySidebar() {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="pb-12 min-h-screen">
-      <div className="space-y-4 py-4">
-        <div className="px-4 py-2">
-          <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">
-            Company Dashboard
-          </h2>
-          <div className="space-y-1">
-            <Button
-              variant={isActive("/company/dashboard") ? "secondary" : "ghost"}
-              className="w-full justify-start"
-              asChild
-            >
-              <Link to="/company/dashboard">
-                <Home className="mr-2 h-4 w-4" />
-                Dashboard
-              </Link>
-            </Button>
-            <Button
-              variant={isActive("/company/technicians") ? "secondary" : "ghost"}
-              className="w-full justify-start"
-              asChild
-            >
-              <Link to="/company/technicians">
-                <UserCog className="mr-2 h-4 w-4" />
-                Manage Technicians
-              </Link>
-            </Button>
-            <Button
-              variant={isActive("/company/subscription") ? "secondary" : "ghost"}
-              className="w-full justify-start"
-              asChild
-            >
-              <Link to="/company/subscription">
-                <CreditCard className="mr-2 h-4 w-4" />
-                Subscription
-              </Link>
-            </Button>
-          </div>
+    <Sidebar defaultExpanded={true}>
+      <SidebarHeader className="flex items-center justify-between">
+        <div className="flex items-center gap-2 px-4">
+          <span className="text-lg font-semibold">Company</span>
         </div>
-        <Separator />
-        <div className="px-4 py-2">
-          <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">
-            Community
-          </h2>
-          <div className="space-y-1">
-            <Button
-              variant={isActive("/company/community") ? "secondary" : "ghost"}
-              className="w-full justify-start"
-              asChild
+        <SidebarToggle />
+      </SidebarHeader>
+      
+      <SidebarMain>
+        <SidebarNav>
+          <SidebarNavGroup label="Dashboard">
+            <SidebarNavItem 
+              icon={<Home />} 
+              active={isActive("/company/dashboard")}
+              className="cursor-pointer"
             >
-              <Link to="/company/community">
-                <MessageSquare className="mr-2 h-4 w-4" />
-                Forums
-              </Link>
-            </Button>
-            <Button
-              variant={isActive("/company/feature-requests") ? "secondary" : "ghost"}
-              className="w-full justify-start"
-              asChild
+              <Link to="/company/dashboard">Dashboard</Link>
+            </SidebarNavItem>
+            
+            <SidebarNavItem 
+              icon={<UserCog />} 
+              active={isActive("/company/technicians")}
+              className="cursor-pointer"
             >
-              <Link to="/company/feature-requests">
-                <FileText className="mr-2 h-4 w-4" />
-                Feature Requests
-              </Link>
-            </Button>
+              <Link to="/company/technicians">Manage Technicians</Link>
+            </SidebarNavItem>
+            
+            <SidebarNavItem 
+              icon={<CreditCard />} 
+              active={isActive("/company/subscription")}
+              className="cursor-pointer"
+            >
+              <Link to="/company/subscription">Subscription</Link>
+            </SidebarNavItem>
+          </SidebarNavGroup>
+
+          <SidebarNavGroup label="Community">
+            <SidebarNavItem 
+              icon={<MessageSquare />} 
+              active={isActive("/company/community")}
+              className="cursor-pointer"
+            >
+              <Link to="/company/community">Forums</Link>
+            </SidebarNavItem>
+            
+            <SidebarNavItem 
+              icon={<FileText />} 
+              active={isActive("/company/feature-requests")}
+              className="cursor-pointer"
+            >
+              <Link to="/company/feature-requests">Feature Requests</Link>
+            </SidebarNavItem>
+          </SidebarNavGroup>
+
+          <SidebarNavGroup label="Support">
+            <SidebarNavItem 
+              icon={<LifeBuoy />} 
+              active={isActive("/company/support")}
+              className="cursor-pointer"
+            >
+              <Link to="/company/support">Support Tickets</Link>
+            </SidebarNavItem>
+          </SidebarNavGroup>
+        </SidebarNav>
+      </SidebarMain>
+      
+      <SidebarFooter className="border-t">
+        <div className="flex w-full items-center justify-between p-4">
+          <div className="flex items-center gap-2">
+            <Settings size={20} className="text-muted-foreground" />
+            <Link to="/company/profile" className="text-sm font-medium">Settings</Link>
           </div>
+          <button className="flex items-center text-sm gap-1 text-muted-foreground hover:text-foreground transition-colors">
+            <LogOut size={18} />
+            <span>Logout</span>
+          </button>
         </div>
-        <Separator />
-        <div className="px-4 py-2">
-          <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">
-            Support
-          </h2>
-          <div className="space-y-1">
-            <Button
-              variant={isActive("/company/support") ? "secondary" : "ghost"}
-              className="w-full justify-start"
-              asChild
-            >
-              <Link to="/company/support">
-                <LifeBuoy className="mr-2 h-4 w-4" />
-                Support Tickets
-              </Link>
-            </Button>
-          </div>
-        </div>
-        <Separator />
-        <div className="px-4 py-2">
-          <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">
-            Settings
-          </h2>
-          <div className="space-y-1">
-            <Button
-              variant={isActive("/company/profile") ? "secondary" : "ghost"}
-              className="w-full justify-start"
-              asChild
-            >
-              <Link to="/company/profile">
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </Link>
-            </Button>
-            <Button variant="ghost" className="w-full justify-start">
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
+      </SidebarFooter>
+    </Sidebar>
   );
 }
