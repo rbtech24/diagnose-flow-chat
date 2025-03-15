@@ -53,8 +53,8 @@ export default function AdminDashboard() {
                 <CardTitle>Welcome Back</CardTitle>
                 <CardDescription>{formattedDate}</CardDescription>
               </div>
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700" asChild>
-                <Link to="/admin/workflows">
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+                <Link to="/admin/workflows" className="flex items-center text-white">
                   <Play className="mr-2 h-4 w-4" />
                   Manage Workflows
                 </Link>
@@ -91,8 +91,8 @@ export default function AdminDashboard() {
                 <Wrench className="h-6 w-6" />
               </div>
               <p className="text-sm text-center mb-1">{isLoading ? "Loading..." : `${workflows.length} active workflows`}</p>
-              <Button variant="outline" size="sm" className="mt-2" asChild>
-                <Link to="/admin/workflows">Manage Workflows</Link>
+              <Button variant="outline" size="sm" className="mt-2">
+                <Link to="/admin/workflows" className="text-black">Manage Workflows</Link>
               </Button>
             </div>
           </CardContent>
@@ -180,8 +180,8 @@ export default function AdminDashboard() {
                     <p className="text-xs text-gray-500">Active • 12 technicians</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/admin/companies/1">View</Link>
+                <Button variant="outline" size="sm">
+                  <Link to="/admin/companies/1" className="text-black">View</Link>
                 </Button>
               </div>
               
@@ -196,8 +196,8 @@ export default function AdminDashboard() {
                     <p className="text-xs text-gray-500">Active • 8 technicians</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/admin/companies/2">View</Link>
+                <Button variant="outline" size="sm">
+                  <Link to="/admin/companies/2" className="text-black">View</Link>
                 </Button>
               </div>
               
@@ -212,14 +212,14 @@ export default function AdminDashboard() {
                     <p className="text-xs text-gray-500">Inactive • 0 technicians</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/admin/companies/3">View</Link>
+                <Button variant="outline" size="sm">
+                  <Link to="/admin/companies/3" className="text-black">View</Link>
                 </Button>
               </div>
               
               <div className="mt-6">
-                <Button className="w-full" asChild>
-                  <Link to="/admin/companies">
+                <Button className="w-full">
+                  <Link to="/admin/companies" className="text-white w-full">
                     View All Companies
                   </Link>
                 </Button>
@@ -266,7 +266,7 @@ export default function AdminDashboard() {
               </div>
               
               <Button variant="ghost" size="sm" className="w-full mt-4">
-                View All Activity
+                <Link to="/admin/activity" className="text-black w-full">View All Activity</Link>
               </Button>
             </div>
           </CardContent>
@@ -280,8 +280,8 @@ export default function AdminDashboard() {
               <CardTitle>Support Tickets</CardTitle>
               <CardDescription>Recent issues reported by users</CardDescription>
             </div>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/admin/support">View All</Link>
+            <Button variant="outline" size="sm">
+              <Link to="/admin/support" className="text-black">View All</Link>
             </Button>
           </CardHeader>
           <CardContent className="mt-4">
@@ -323,8 +323,8 @@ export default function AdminDashboard() {
               <CardTitle>Community Activity</CardTitle>
               <CardDescription>Recent forum discussions</CardDescription>
             </div>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/admin/community">View All</Link>
+            <Button variant="outline" size="sm">
+              <Link to="/admin/community" className="text-black">View All</Link>
             </Button>
           </CardHeader>
           <CardContent className="mt-4">

@@ -52,8 +52,8 @@ export default function CompanyDashboard() {
                 <CardTitle>Welcome Back</CardTitle>
                 <CardDescription>{formattedDate}</CardDescription>
               </div>
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700" asChild>
-                <Link to="/workflows">
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+                <Link to="/workflows" className="flex items-center text-white">
                   <Play className="mr-2 h-4 w-4" />
                   Start Diagnosis
                 </Link>
@@ -90,8 +90,8 @@ export default function CompanyDashboard() {
                 <Wrench className="h-6 w-6" />
               </div>
               <p className="text-sm text-center mb-1">{isLoading ? "Loading..." : `${workflows.length} available workflows`}</p>
-              <Button variant="outline" size="sm" className="mt-2" asChild>
-                <Link to="/workflows">Manage Workflows</Link>
+              <Button variant="outline" size="sm" className="mt-2">
+                <Link to="/workflows" className="text-black">Manage Workflows</Link>
               </Button>
             </div>
           </CardContent>
@@ -171,8 +171,8 @@ export default function CompanyDashboard() {
                     <p className="text-xs text-gray-500">Active • 3 jobs</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/company/technicians">View</Link>
+                <Button variant="outline" size="sm">
+                  <Link to="/company/technicians" className="text-black">View</Link>
                 </Button>
               </div>
               
@@ -187,8 +187,8 @@ export default function CompanyDashboard() {
                     <p className="text-xs text-gray-500">Active • 2 jobs</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/company/technicians">View</Link>
+                <Button variant="outline" size="sm">
+                  <Link to="/company/technicians" className="text-black">View</Link>
                 </Button>
               </div>
               
@@ -203,14 +203,14 @@ export default function CompanyDashboard() {
                     <p className="text-xs text-gray-500">Offline • 0 jobs</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/company/technicians">View</Link>
+                <Button variant="outline" size="sm">
+                  <Link to="/company/technicians" className="text-black">View</Link>
                 </Button>
               </div>
               
               <div className="mt-6">
-                <Button className="w-full" asChild>
-                  <Link to="/company/technicians">
+                <Button className="w-full">
+                  <Link to="/company/technicians" className="text-white w-full flex justify-center items-center">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Manage Technicians
                   </Link>
@@ -258,7 +258,7 @@ export default function CompanyDashboard() {
               </div>
               
               <Button variant="ghost" size="sm" className="w-full mt-4">
-                View All Activity
+                <Link to="/company/activity" className="text-black w-full">View All Activity</Link>
               </Button>
             </div>
           </CardContent>

@@ -56,8 +56,8 @@ export default function AdminCompanies() {
                       <p className="text-sm text-muted-foreground">{company.technicians} technicians • {company.plan} plan</p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link to={`/admin/companies/${company.id}`}>View Details</Link>
+                  <Button variant="outline" size="sm">
+                    <Link to={`/admin/companies/${company.id}`} className="text-black">View Details</Link>
                   </Button>
                 </div>
               ))}

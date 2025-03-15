@@ -82,10 +82,10 @@ export function CompanySidebar() {
       
       <SidebarFooter className="border-t">
         <div className="flex w-full items-center justify-between p-4">
-          <div className="flex items-center gap-2">
+          <Link to="/company/profile" className="flex items-center gap-2 text-sm font-medium">
             <Settings size={20} className="text-muted-foreground" />
-            <Link to="/company/profile" className="text-sm font-medium">Settings</Link>
-          </div>
+            <span>Settings</span>
+          </Link>
           <Link to="/login" className="flex items-center text-sm gap-1 text-muted-foreground hover:text-foreground transition-colors">
             <LogOut size={18} />
             <span>Logout</span>
