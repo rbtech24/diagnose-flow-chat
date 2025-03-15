@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Search, Workflow } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
 
 export default function AdminWorkflows() {
   return (
@@ -53,8 +54,10 @@ export default function AdminWorkflows() {
                     <Badge variant={workflow.status === "published" ? "secondary" : "outline"}>
                       {workflow.status}
                     </Badge>
-                    <Button variant="outline" size="sm">
-                      Edit Workflow
+                    <Button variant="outline" size="sm" asChild>
+                      <Link to={`/workflow-editor?folder=${workflow.appliance}&name=${workflow.name}`}>
+                        Edit Workflow
+                      </Link>
                     </Button>
                   </div>
                 </div>

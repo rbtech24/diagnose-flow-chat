@@ -1,3 +1,4 @@
+
 import {
   createBrowserRouter,
   RouterProvider,
@@ -35,6 +36,11 @@ import Index from "./pages/Index";
 import AdminUsers from "./pages/admin/Users";
 import AdminCompanies from "./pages/admin/Companies";
 import AdminWorkflows from "./pages/admin/Workflows";
+import CompanyDetail from "./pages/admin/CompanyDetail";
+import NotFound from "./pages/NotFound";
+import WorkflowEditor from "./pages/WorkflowEditor";
+import Workflows from "./pages/Workflows";
+import AdminSupportTicketDetail from "./pages/admin/SupportTicketDetail";
 
 const router = createBrowserRouter([
   {
@@ -85,6 +91,7 @@ const router = createBrowserRouter([
     children: [
       { path: "dashboard", element: <AdminDashboard /> },
       { path: "support", element: <AdminSupport /> },
+      { path: "support/:ticketId", element: <AdminSupportTicketDetail /> },
       { path: "profile", element: <AdminProfile /> },
       { path: "feature-requests", element: <AdminFeatureRequests /> },
       { path: "feature-requests/:id", element: <AdminFeatureRequestDetailPage /> },
@@ -93,8 +100,21 @@ const router = createBrowserRouter([
       { path: "api-integrations", element: <APIIntegrations /> },
       { path: "users", element: <AdminUsers /> },
       { path: "companies", element: <AdminCompanies /> },
+      { path: "companies/:id", element: <CompanyDetail /> },
       { path: "workflows", element: <AdminWorkflows /> },
     ]
+  },
+  {
+    path: "/workflow-editor",
+    element: <WorkflowEditor />
+  },
+  {
+    path: "/workflows",
+    element: <Workflows />
+  },
+  {
+    path: "*",
+    element: <NotFound />
   }
 ]);
 
