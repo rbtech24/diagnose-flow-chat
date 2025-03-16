@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -98,8 +97,8 @@ export default function TechnicianDashboard() {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-4 mb-8">
-        <Card className="md:col-span-3">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-1 mb-8">
+        <Card className="md:col-span-1">
           <CardHeader>
             <div className="flex justify-between items-center">
               <div>
@@ -127,21 +126,6 @@ export default function TechnicianDashboard() {
                   <p className="text-2xl font-bold">94%</p>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">AI Assistant</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center justify-center h-full py-4">
-              <div className="bg-blue-100 text-blue-600 p-4 rounded-full mb-2">
-                <MessagesSquare className="h-6 w-6" />
-              </div>
-              <p className="text-sm text-center">Ask me anything about your diagnostics</p>
-              <Button variant="outline" size="sm" className="mt-4">Open Assistant</Button>
             </div>
           </CardContent>
         </Card>
