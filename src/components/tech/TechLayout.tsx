@@ -17,7 +17,6 @@ export function TechLayout() {
       <div className="flex-1 overflow-auto">
         <div className="p-4 border-b flex items-center justify-between">
           <div className="relative w-64">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Search..." className="pl-8" />
           </div>
           <Button 
