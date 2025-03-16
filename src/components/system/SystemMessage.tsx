@@ -1,15 +1,19 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle, InfoIcon, BellRing } from "lucide-react";
+import { AlertTriangle, InfoIcon, BellRing, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-type MessageType = "warning" | "info" | "maintenance";
+type MessageType = "warning" | "info" | "maintenance" | "success";
 
 interface SystemMessageProps {
   type: MessageType;
   title: string;
   message: string;
   visible?: boolean;
+  dismissible?: boolean;
+  onDismiss?: () => void;
+  id?: string;
 }
 
 const getMessageStyles = (type: MessageType) => {
@@ -30,6 +34,14 @@ const getMessageStyles = (type: MessageType) => {
         titleColor: "text-red-900",
         textColor: "text-red-700"
       };
+    case "success":
+      return {
+        bg: "bg-green-50",
+        border: "border-green-200",
+        icon: <BellRing className="h-4 w-4 text-green-600" />,
+        titleColor: "text-green-900",
+        textColor: "text-green-700"
+      };
     case "info":
     default:
       return {
@@ -42,13 +54,30 @@ const getMessageStyles = (type: MessageType) => {
   }
 };
 
-export function SystemMessage({ type, title, message, visible = true }: SystemMessageProps) {
-  if (!visible) return null;
+export function SystemMessage({ 
+  type, 
+  title, 
+  message, 
+  visible = true, 
+  dismissible = false,
+  onDismiss,
+  id
+}: SystemMessageProps) {
+  const [isDismissed, setIsDismissed] = useState(false);
+  
+  if (!visible || isDismissed) return null;
   
   const styles = getMessageStyles(type);
   
+  const handleDismiss = () => {
+    setIsDismissed(true);
+    if (onDismiss) {
+      onDismiss();
+    }
+  };
+  
   return (
-    <Alert className={`mb-6 ${styles.bg} ${styles.border}`}>
+    <Alert className={`mb-6 ${styles.bg} ${styles.border} relative`} data-message-id={id}>
       <div className="flex items-start gap-4">
         <div className={`rounded-full ${styles.bg.replace('bg-', 'bg-')} p-2`}>
           {styles.icon}
@@ -60,6 +89,18 @@ export function SystemMessage({ type, title, message, visible = true }: SystemMe
           </AlertDescription>
         </div>
       </div>
+      
+      {dismissible && (
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="absolute top-2 right-2 h-6 w-6 rounded-full" 
+          onClick={handleDismiss}
+        >
+          <X className="h-3 w-3" />
+          <span className="sr-only">Dismiss</span>
+        </Button>
+      )}
     </Alert>
   );
 }

@@ -4,7 +4,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Search, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useUserMessages } from "@/context/SystemMessageContext";
+import { useUserMessages, useSystemMessages } from "@/context/SystemMessageContext";
 import { SystemMessage } from "@/components/system/SystemMessage";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
@@ -13,6 +13,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 export function TechLayout() {
   const navigate = useNavigate();
   const userMessages = useUserMessages("tech");
+  const { removeMessage } = useSystemMessages();
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -65,9 +66,12 @@ export function TechLayout() {
           {userMessages.map(msg => (
             <SystemMessage
               key={msg.id}
+              id={msg.id}
               type={msg.type}
               title={msg.title}
               message={msg.message}
+              dismissible={msg.dismissible}
+              onDismiss={() => removeMessage(msg.id)}
             />
           ))}
           <Outlet />
