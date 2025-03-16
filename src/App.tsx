@@ -119,6 +119,7 @@ const router = createBrowserRouter([
       { path: "companies", element: <AdminCompanies /> },
       { path: "companies/:id", element: <CompanyDetail /> },
       { path: "workflows", element: <AdminWorkflows /> },
+      { path: "workflow-editor", element: <WorkflowEditor /> },
     ]
   },
   {
