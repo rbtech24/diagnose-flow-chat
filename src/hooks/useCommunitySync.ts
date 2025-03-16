@@ -6,6 +6,13 @@ import { showSyncNotification } from '@/components/system/SyncStatusIndicator';
 
 type SyncStatus = 'idle' | 'syncing' | 'success' | 'error';
 
+// Define interface for ServiceWorkerRegistration with sync capability
+interface SyncRegistration extends ServiceWorkerRegistration {
+  sync: {
+    register(tag: string): Promise<void>;
+  }
+}
+
 export function useCommunitySync() {
   const { isOffline } = useOfflineStatus();
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
@@ -74,7 +81,7 @@ export function useCommunitySync() {
       // If service worker is available and supports background sync
       if ('serviceWorker' in navigator && 'SyncManager' in window) {
         const registration = await navigator.serviceWorker.ready;
-        await registration.sync.register('sync-community-updates');
+        await (registration as SyncRegistration).sync.register('sync-community-updates');
         setProcessedChanges(0);
       } else {
         // Manual sync fallback
