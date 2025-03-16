@@ -10,21 +10,22 @@ export default function Index() {
         <div className="container mx-auto flex h-24 items-center justify-between px-4">
           <div className="flex items-center">
             <img 
-              src="/lovable-uploads/a942106a-6512-4888-a5c2-dcf6c5d18b64.png" 
+              src="/lovable-uploads/0fb2afe9-44dd-487d-b13a-f6a2c630c477.png" 
               alt="Repair Auto Pilot" 
-              className="h-16"
+              className="h-24"
             />
           </div>
           <nav className="hidden md:flex items-center gap-6">
             <a href="#features" className="text-sm font-medium hover:text-blue-600">Features</a>
             <a href="#testimonials" className="text-sm font-medium hover:text-blue-600">Testimonials</a>
+            <a href="#pricing" className="text-sm font-medium hover:text-blue-600">Pricing</a>
             <Button asChild variant="outline">
               <Link to="/login">
                 Login
               </Link>
             </Button>
             <Button asChild className="bg-blue-600 hover:bg-blue-700">
-              <Link to="/signup">
+              <Link to="/login">
                 Get Started
               </Link>
             </Button>
@@ -46,11 +47,11 @@ export default function Index() {
                   Appliance Diagnostics on <span className="text-blue-600">Auto Pilot</span>
                 </h1>
                 <p className="text-lg text-gray-600 max-w-xl">
-                  Streamline your repair operations with our AI-powered diagnostic workflows. Boost first-time fix rates and keep your technicians at peak efficiency.
+                  Streamline your repair operations with our diagnostic workflows. Boost first-time fix rates and keep your technicians at peak efficiency.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
-                    <Link to="/signup">
+                    <Link to="/login">
                       Start Free Trial <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
@@ -181,8 +182,8 @@ export default function Index() {
                   <div className="bg-red-100 text-red-600 h-12 w-12 rounded-lg flex items-center justify-center mb-4">
                     <Building2 className="h-6 w-6" />
                   </div>
-                  <h3 className="text-xl font-bold mb-2">Role-Based Access</h3>
-                  <p className="text-gray-600">Dedicated interfaces for company managers and technicians, with appropriate permissions for each role.</p>
+                  <h3 className="text-xl font-bold mb-2">Multi-Level Access</h3>
+                  <p className="text-gray-600">Different roles for technicians, company admins, and system administrators.</p>
                 </CardContent>
               </Card>
               
@@ -263,7 +264,7 @@ export default function Index() {
             <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Repair Service?</h2>
             <p className="max-w-2xl mx-auto mb-8">Join the hundreds of appliance repair companies already using Repair Auto Pilot to streamline their operations.</p>
             <Button asChild size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
-              <Link to="/signup">
+              <Link to="/login">
                 Start Your Free Trial
               </Link>
             </Button>
@@ -310,30 +311,31 @@ export default function Index() {
             <div>
               <h3 className="font-medium mb-4">Product</h3>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li><a href="#features" className="hover:text-blue-600">Features</a></li>
-                <li><Link to="/case-studies" className="hover:text-blue-600">Case Studies</Link></li>
-                <li><a href="#testimonials" className="hover:text-blue-600">Reviews</a></li>
-                <li><Link to="/updates" className="hover:text-blue-600">Updates</Link></li>
+                <li><a href="#" className="hover:text-blue-600">Features</a></li>
+                <li><a href="#" className="hover:text-blue-600">Pricing</a></li>
+                <li><a href="#" className="hover:text-blue-600">Case Studies</a></li>
+                <li><a href="#" className="hover:text-blue-600">Reviews</a></li>
+                <li><a href="#" className="hover:text-blue-600">Updates</a></li>
               </ul>
             </div>
             
             <div>
               <h3 className="font-medium mb-4">Company</h3>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li><Link to="/about" className="hover:text-blue-600">About</Link></li>
-                <li><Link to="/careers" className="hover:text-blue-600">Careers</Link></li>
-                <li><Link to="/contact" className="hover:text-blue-600">Contact</Link></li>
-                <li><Link to="/partners" className="hover:text-blue-600">Partners</Link></li>
+                <li><a href="#" className="hover:text-blue-600">About</a></li>
+                <li><a href="#" className="hover:text-blue-600">Careers</a></li>
+                <li><a href="#" className="hover:text-blue-600">Contact</a></li>
+                <li><a href="#" className="hover:text-blue-600">Partners</a></li>
               </ul>
             </div>
             
             <div>
               <h3 className="font-medium mb-4">Support</h3>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li><Link to="/help-center" className="hover:text-blue-600">Help Center</Link></li>
-                <li><Link to="/community-forum" className="hover:text-blue-600">Community</Link></li>
-                <li><Link to="/status" className="hover:text-blue-600">Status</Link></li>
-                <li><Link to="/get-started" className="hover:text-blue-600">Get Started</Link></li>
+                <li><a href="#" className="hover:text-blue-600">Help Center</a></li>
+                <li><a href="#" className="hover:text-blue-600">Community</a></li>
+                <li><a href="#" className="hover:text-blue-600">Status</a></li>
+                <li><a href="#" className="hover:text-blue-600">Get Started</a></li>
               </ul>
             </div>
           </div>
