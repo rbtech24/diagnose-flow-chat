@@ -1,5 +1,5 @@
 
-export type KnowledgeArticleType = 'guide' | 'manual' | 'faq' | 'link' | 'troubleshooting';
+export type KnowledgeArticleType = 'guide' | 'manual' | 'faq' | 'link' | 'troubleshooting' | 'tech-sheet' | 'service-manual' | 'wire-diagram';
 
 export interface KnowledgeArticle {
   id: string;
@@ -16,6 +16,9 @@ export interface KnowledgeArticle {
   views: number;
   helpfulVotes: number;
   notHelpfulVotes: number;
+  requestedBy?: string; // Track who requested the document
+  fulfilledBy?: string; // Track who provided the document
+  fromCommunityPost?: string; // ID of the community post if from a request
   attachments?: {
     id: string;
     name: string;

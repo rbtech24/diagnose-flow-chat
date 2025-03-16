@@ -2,24 +2,36 @@
 import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
-import { MessageSquare, Eye, ThumbsUp, CheckCircle, FileText, Workflow } from 'lucide-react';
+import { 
+  MessageSquare, 
+  Eye, 
+  ThumbsUp, 
+  CheckCircle, 
+  FileText, 
+  Workflow, 
+  FileSpreadsheet, 
+  File,
+  ArrowUpToLine 
+} from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CommunityPost } from '@/types/community';
+import { Button } from '@/components/ui/button';
 
 export interface CommunityPostCardProps {
   post: CommunityPost;
   basePath: string;
+  onFulfillRequest?: (postId: string) => void;
 }
 
-export function CommunityPostCard({ post, basePath }: CommunityPostCardProps) {
+export function CommunityPostCard({ post, basePath, onFulfillRequest }: CommunityPostCardProps) {
   const typeIcon = () => {
     switch (post.type) {
       case 'question':
         return <MessageSquare className="h-4 w-4 text-blue-500" />;
       case 'tech-sheet-request':
-        return <FileText className="h-4 w-4 text-amber-500" />;
+        return <FileSpreadsheet className="h-4 w-4 text-amber-500" />;
       case 'wire-diagram-request':
         return <Workflow className="h-4 w-4 text-green-500" />;
       default:
@@ -32,9 +44,9 @@ export function CommunityPostCard({ post, basePath }: CommunityPostCardProps) {
       case 'question':
         return 'Question';
       case 'tech-sheet-request':
-        return 'Tech Sheet';
+        return 'Tech Sheet Request';
       case 'wire-diagram-request':
-        return 'Wire Diagram';
+        return 'Wire Diagram Request';
       default:
         return 'Discussion';
     }
@@ -47,6 +59,9 @@ export function CommunityPostCard({ post, basePath }: CommunityPostCardProps) {
       .join('')
       .toUpperCase();
   };
+
+  const isDocumentRequest = post.type === 'tech-sheet-request' || post.type === 'wire-diagram-request';
+  const canFulfill = isDocumentRequest && !post.isFulfilled && onFulfillRequest;
 
   return (
     <Card className="mb-4 hover:shadow-md transition-shadow">
@@ -95,12 +110,28 @@ export function CommunityPostCard({ post, basePath }: CommunityPostCardProps) {
                 <ThumbsUp className="h-4 w-4" />
                 {post.upvotes}
               </span>
-              {post.isSolved && (
+              
+              {isDocumentRequest && post.isFulfilled ? (
+                <span className="flex items-center gap-1 text-emerald-600 ml-auto">
+                  <CheckCircle className="h-4 w-4" />
+                  Document Added to Knowledge Base
+                </span>
+              ) : post.isSolved ? (
                 <span className="flex items-center gap-1 text-green-600">
                   <CheckCircle className="h-4 w-4" />
                   Solved
                 </span>
-              )}
+              ) : canFulfill ? (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="ml-auto flex items-center gap-1 text-xs" 
+                  onClick={() => onFulfillRequest?.(post.id)}
+                >
+                  <ArrowUpToLine className="h-3.5 w-3.5" />
+                  Upload Document
+                </Button>
+              ) : null}
             </div>
           </div>
         </div>

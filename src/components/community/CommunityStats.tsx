@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MessageSquare, FileText, Workflow, Users } from 'lucide-react';
+import { MessageSquare, FileText, Workflow, Users, FileSpreadsheet, CheckCircle } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { CommunityPost } from '@/types/community';
 
@@ -29,12 +29,17 @@ function StatCard({ icon, label, value, color }: StatCardProps) {
 
 export interface CommunityStatsProps {
   posts: CommunityPost[];
+  showDocumentStats?: boolean;
 }
 
-export function CommunityStats({ posts }: CommunityStatsProps) {
+export function CommunityStats({ posts, showDocumentStats = true }: CommunityStatsProps) {
   const questionCount = posts.filter(post => post.type === 'question').length;
   const techSheetRequestCount = posts.filter(post => post.type === 'tech-sheet-request').length;
   const wireDiagramRequestCount = posts.filter(post => post.type === 'wire-diagram-request').length;
+  const fulfilledRequestCount = posts.filter(post => 
+    (post.type === 'tech-sheet-request' || post.type === 'wire-diagram-request') && 
+    post.isFulfilled
+  ).length;
   const activeMemberCount = new Set(posts.map(post => post.authorId)).size;
 
   return (
@@ -45,24 +50,35 @@ export function CommunityStats({ posts }: CommunityStatsProps) {
         value={questionCount}
         color="bg-blue-100"
       />
-      <StatCard
-        icon={<FileText className="h-5 w-5 text-amber-600" />}
-        label="Tech Sheet Requests"
-        value={techSheetRequestCount}
-        color="bg-amber-100"
-      />
-      <StatCard
-        icon={<Workflow className="h-5 w-5 text-green-600" />}
-        label="Wire Diagram Requests"
-        value={wireDiagramRequestCount}
-        color="bg-green-100"
-      />
-      <StatCard
-        icon={<Users className="h-5 w-5 text-purple-600" />}
-        label="Active Members"
-        value={activeMemberCount}
-        color="bg-purple-100"
-      />
+      {showDocumentStats ? (
+        <>
+          <StatCard
+            icon={<FileSpreadsheet className="h-5 w-5 text-amber-600" />}
+            label="Tech Sheet Requests"
+            value={techSheetRequestCount}
+            color="bg-amber-100"
+          />
+          <StatCard
+            icon={<Workflow className="h-5 w-5 text-green-600" />}
+            label="Wire Diagram Requests"
+            value={wireDiagramRequestCount}
+            color="bg-green-100"
+          />
+          <StatCard
+            icon={<CheckCircle className="h-5 w-5 text-emerald-600" />}
+            label="Fulfilled Requests"
+            value={fulfilledRequestCount}
+            color="bg-emerald-100"
+          />
+        </>
+      ) : (
+        <StatCard
+          icon={<Users className="h-5 w-5 text-purple-600" />}
+          label="Active Members"
+          value={activeMemberCount}
+          color="bg-purple-100"
+        />
+      )}
     </div>
   );
 }

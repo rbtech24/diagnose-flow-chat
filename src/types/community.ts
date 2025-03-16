@@ -1,7 +1,21 @@
 
-import { User } from "./user";
+import { User } from './user';
 
-export type CommunityPostType = 'question' | 'tech-sheet-request' | 'wire-diagram-request' | 'discussion';
+export type CommunityPostType = 'question' | 'discussion' | 'tech-sheet-request' | 'wire-diagram-request';
+
+export interface CommunityPostComment {
+  id: string;
+  authorId: string;
+  author: {
+    id: string;
+    name: string;
+    avatarUrl?: string;
+  };
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+  isAnswer?: boolean;
+}
 
 export interface CommunityPost {
   id: string;
@@ -9,36 +23,27 @@ export interface CommunityPost {
   content: string;
   type: CommunityPostType;
   authorId: string;
-  author: User;
-  attachments: Attachment[];
+  author: {
+    id: string;
+    name: string;
+    email: string;
+    role: 'admin' | 'company' | 'tech';
+    avatarUrl?: string;
+  };
+  attachments: {
+    id: string;
+    filename: string;
+    url: string;
+    contentType: string;
+    size: number;
+  }[];
   createdAt: Date;
   updatedAt: Date;
+  tags: string[];
   upvotes: number;
   views: number;
   isSolved?: boolean;
-  tags: string[];
-  comments: CommunityComment[];
-}
-
-export interface CommunityComment {
-  id: string;
-  postId: string;
-  content: string;
-  authorId: string;
-  author: User;
-  attachments: Attachment[];
-  createdAt: Date;
-  updatedAt: Date;
-  upvotes: number;
-  isAnswer?: boolean;
-}
-
-export interface Attachment {
-  id: string;
-  fileName: string;
-  fileUrl: string;
-  fileType: string;
-  fileSize: number;
-  uploadedAt: Date;
-  uploadedBy: string;
+  isFulfilled?: boolean;
+  knowledgeBaseArticleId?: string; // Link to KB article if this request was fulfilled
+  comments: CommunityPostComment[];
 }
