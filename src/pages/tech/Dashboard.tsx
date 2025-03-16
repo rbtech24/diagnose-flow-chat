@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,8 +10,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { useUserMessages, useSystemMessages } from "@/context/SystemMessageContext";
+import { SystemMessage } from "@/components/system/SystemMessage";
 
 export default function TechnicianDashboard() {
+  // Get system messages for the tech user
+  const userMessages = useUserMessages("tech");
+  const { removeMessage } = useSystemMessages();
+  
   // Get current date
   const today = new Date();
   const dateOptions = { 
@@ -195,22 +200,19 @@ export default function TechnicianDashboard() {
         </CardContent>
       </Card>
       
+      {/* Display system messages from context instead of hardcoding */}
       <div className="mb-8">
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-4">
-              <div className="rounded-full bg-red-100 p-2">
-                <AlertTriangle className="h-4 w-4 text-red-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-red-900">System Alert</h3>
-                <p className="text-sm text-red-700">
-                  Scheduled maintenance tonight from 2AM - 4AM. Some diagnostic workflows may be unavailable.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {userMessages.map(msg => (
+          <SystemMessage
+            key={msg.id}
+            id={msg.id}
+            type={msg.type}
+            title={msg.title}
+            message={msg.message}
+            dismissible={msg.dismissible}
+            onDismiss={() => removeMessage(msg.id)}
+          />
+        ))}
       </div>
       
       <div className="grid grid-cols-1 gap-6">
