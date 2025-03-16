@@ -1,8 +1,7 @@
 
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ExternalLink, CheckCircle } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { ArrowLeft, CheckCircle } from "lucide-react";
 
 export default function Partners() {
   return (
@@ -17,7 +16,7 @@ export default function Partners() {
             />
           </div>
           <Button asChild variant="outline">
-            <Link to="/">
+            <Link to="/" onClick={() => window.scrollTo(0, 0)}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Home
             </Link>
@@ -93,73 +92,13 @@ export default function Partners() {
             </div>
           </div>
           
-          <h2 className="text-2xl font-semibold mt-16 mb-8">Featured Partners</h2>
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="h-16 mb-4 flex items-center">
-                  <img 
-                    src="/lovable-uploads/7e681dc0-4482-451f-9178-70944b120422.png"
-                    alt="Rod's Appliance Repair"
-                    className="h-12 object-contain"
-                  />
-                </div>
-                <h3 className="font-semibold">Rod's Appliance</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Leading service management software for appliance repair companies.
-                </p>
-                <a href="#" className="text-blue-600 hover:text-blue-800 text-sm flex items-center">
-                  Learn more <ExternalLink className="ml-1 h-3 w-3" />
-                </a>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-6">
-                <div className="h-16 mb-4 flex items-center">
-                  <img 
-                    src="/lovable-uploads/9114fbcf-64bb-4446-a213-40d08149538a.png"
-                    alt="West Metro Appliance"
-                    className="h-12 object-contain"
-                  />
-                </div>
-                <h3 className="font-semibold">West Metro Appliance</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Cloud-based inventory management for repair businesses.
-                </p>
-                <a href="#" className="text-blue-600 hover:text-blue-800 text-sm flex items-center">
-                  Learn more <ExternalLink className="ml-1 h-3 w-3" />
-                </a>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-6">
-                <div className="h-16 mb-4 flex items-center">
-                  <img 
-                    src="/lovable-uploads/83ff694d-eb6c-4d23-9e13-2f1b96f3258e.png"
-                    alt="Flat Rate Appliance Repair"
-                    className="h-12 object-contain"
-                  />
-                </div>
-                <h3 className="font-semibold">Flat Rate Appliance</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Customer relationship management designed for service businesses.
-                </p>
-                <a href="#" className="text-blue-600 hover:text-blue-800 text-sm flex items-center">
-                  Learn more <ExternalLink className="ml-1 h-3 w-3" />
-                </a>
-              </CardContent>
-            </Card>
-          </div>
-          
           <div className="bg-gray-50 rounded-lg p-8 my-12 text-center">
             <h2 className="text-2xl font-semibold mb-4">Ready to Partner With Us?</h2>
             <p className="mb-6">
               Contact our partnerships team to discuss how we can work together.
             </p>
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <Link to="/contact">
+            <Button asChild className="bg-blue-600 hover:bg-blue-700">
+              <Link to="/contact" onClick={() => window.scrollTo(0, 0)}>
                 Contact Partnership Team
               </Link>
             </Button>
@@ -171,9 +110,9 @@ export default function Partners() {
         <div className="container mx-auto px-4 text-center">
           <p className="text-sm text-gray-500">© 2023 Repair Auto Pilot. All rights reserved.</p>
           <div className="flex justify-center gap-4 mt-4">
-            <Link to="/terms-of-use" className="text-sm text-gray-500 hover:text-blue-600">Terms of Use</Link>
+            <Link to="/terms-of-use" onClick={() => window.scrollTo(0, 0)} className="text-sm text-gray-500 hover:text-blue-600">Terms of Use</Link>
             <span className="text-gray-400">|</span>
-            <Link to="/privacy-policy" className="text-sm text-gray-500 hover:text-blue-600">Privacy Policy</Link>
+            <Link to="/privacy-policy" onClick={() => window.scrollTo(0, 0)} className="text-sm text-gray-500 hover:text-blue-600">Privacy Policy</Link>
           </div>
         </div>
       </footer>
