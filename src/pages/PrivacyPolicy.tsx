@@ -16,7 +16,7 @@ export default function PrivacyPolicy() {
             />
           </div>
           <Button asChild variant="outline">
-            <Link to="/">
+            <Link to="/" onClick={() => window.scrollTo(0, 0)}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Home
             </Link>

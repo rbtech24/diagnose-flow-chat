@@ -17,7 +17,7 @@ export default function Status() {
             />
           </div>
           <Button asChild variant="outline">
-            <Link to="/">
+            <Link to="/" onClick={() => window.scrollTo(0, 0)}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Home
             </Link>
@@ -158,9 +158,9 @@ export default function Status() {
         <div className="container mx-auto px-4 text-center">
           <p className="text-sm text-gray-500">© 2023 Repair Auto Pilot. All rights reserved.</p>
           <div className="flex justify-center gap-4 mt-4">
-            <Link to="/terms-of-use" className="text-sm text-gray-500 hover:text-blue-600">Terms of Use</Link>
+            <Link to="/terms-of-use" onClick={() => window.scrollTo(0, 0)} className="text-sm text-gray-500 hover:text-blue-600">Terms of Use</Link>
             <span className="text-gray-400">|</span>
-            <Link to="/privacy-policy" className="text-sm text-gray-500 hover:text-blue-600">Privacy Policy</Link>
+            <Link to="/privacy-policy" onClick={() => window.scrollTo(0, 0)} className="text-sm text-gray-500 hover:text-blue-600">Privacy Policy</Link>
           </div>
         </div>
       </footer>
