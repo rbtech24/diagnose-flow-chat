@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Wrench, Building2, History, Award, BarChart } from "lucide-react";
+import { Wrench, Building2, History, Award, BarChart, Phone } from "lucide-react";
 
 export default function TechProfile() {
   // Mock technician data - would typically come from API/context
@@ -55,6 +55,35 @@ export default function TechProfile() {
         <Button variant="outline" size="sm" className="mt-2">
           Update Skills
         </Button>
+      </CardContent>
+    </Card>
+  );
+
+  const contactCard = (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Phone className="h-5 w-5 text-blue-500" />
+          Contact Information
+        </CardTitle>
+        <CardDescription>
+          Your contact details.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Phone className="h-4 w-4 text-blue-500" />
+            <p>{techData.phone}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+              <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+            </svg>
+            <p>{techData.email}</p>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
@@ -140,6 +169,11 @@ export default function TechProfile() {
           {companyCard}
         </div>
       )
+    },
+    {
+      id: "contact",
+      label: "Contact",
+      content: contactCard
     },
     {
       id: "stats",

@@ -15,7 +15,7 @@ const companyFormSchema = z.object({
   name: z.string().min(2, "Company name must be at least 2 characters"),
   contactName: z.string().min(2, "Contact name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
-  phone: z.string().optional(),
+  phone: z.string().min(10, "Phone number must be at least 10 characters").optional(),
   address: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
@@ -146,7 +146,7 @@ export default function CompanyNew() {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone (Optional)</FormLabel>
+                    <FormLabel>Phone</FormLabel>
                     <FormControl>
                       <Input placeholder="(555) 123-4567" {...field} />
                     </FormControl>

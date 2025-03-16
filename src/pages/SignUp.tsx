@@ -16,6 +16,7 @@ import { ArrowLeft, Building2, Wrench, Users, UserPlus, CheckCircle2 } from "luc
 const techAccountSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
+  phone: z.string().min(10, "Phone number must be at least 10 characters"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string()
 }).refine(data => data.password === data.confirmPassword, {
@@ -27,6 +28,7 @@ const companyAccountSchema = z.object({
   companyName: z.string().min(2, "Company name must be at least 2 characters"),
   contactName: z.string().min(2, "Contact name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
+  phone: z.string().min(10, "Phone number must be at least 10 characters"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string(),
   numTechs: z.string().refine(val => !isNaN(Number(val)) && Number(val) > 0, {
@@ -50,6 +52,7 @@ export default function SignUp() {
     defaultValues: {
       name: "",
       email: "",
+      phone: "",
       password: "",
       confirmPassword: "",
     }
@@ -61,6 +64,7 @@ export default function SignUp() {
       companyName: "",
       contactName: "",
       email: "",
+      phone: "",
       password: "",
       confirmPassword: "",
       numTechs: "1",
@@ -243,6 +247,20 @@ export default function SignUp() {
                       
                       <FormField
                         control={techForm.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Phone Number</FormLabel>
+                            <FormControl>
+                              <Input type="tel" placeholder="(555) 123-4567" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={techForm.control}
                         name="password"
                         render={({ field }) => (
                           <FormItem>
@@ -315,6 +333,20 @@ export default function SignUp() {
                             <FormLabel>Email</FormLabel>
                             <FormControl>
                               <Input type="email" placeholder="you@company.com" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={companyForm.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Phone Number</FormLabel>
+                            <FormControl>
+                              <Input type="tel" placeholder="(555) 123-4567" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
