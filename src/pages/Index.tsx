@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -332,7 +331,6 @@ export default function Index() {
               <ul className="space-y-2 text-sm text-gray-600">
                 <li><Link to="/about" onClick={scrollToTop} className="hover:text-blue-600">About</Link></li>
                 <li><Link to="/careers" onClick={scrollToTop} className="hover:text-blue-600">Careers</Link></li>
-                <li><Link to="/contact" onClick={scrollToTop} className="hover:text-blue-600">Contact</Link></li>
                 <li><Link to="/partners" onClick={scrollToTop} className="hover:text-blue-600">Partners</Link></li>
               </ul>
             </div>
