@@ -9,6 +9,13 @@ interface DiagnosticStepsProps {
   workflow: SavedWorkflow;
 }
 
+interface NodeData {
+  title?: string;
+  content?: string;
+  technicalContent?: string;
+  options?: string[];
+}
+
 export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const nodes = workflow.nodes.sort((a, b) => a.position.y - b.position.y);
@@ -42,7 +49,7 @@ export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
   }
 
   const currentNode = nodes[currentStep];
-  const data = currentNode?.data || {};
+  const data = currentNode?.data as NodeData;
 
   return (
     <Card className="w-full mb-6">
