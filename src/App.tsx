@@ -1,4 +1,3 @@
-
 import {
   createBrowserRouter,
   RouterProvider,
@@ -61,6 +60,8 @@ import Updates from "./pages/Updates";
 import CRMIntegration from "./pages/admin/CRMIntegration";
 import SystemMessagesPage from "./pages/admin/SystemMessages";
 import { SystemMessageProvider } from "./context/SystemMessageContext";
+import AdminAccounts from "./pages/admin/AdminAccounts";
+import ApiKeys from "./pages/admin/ApiKeys";
 
 const router = createBrowserRouter([
   {
@@ -186,6 +187,8 @@ const router = createBrowserRouter([
       { path: "companies/:id", element: <CompanyDetail /> },
       { path: "workflows", element: <AdminWorkflows /> },
       { path: "workflow-editor", element: <WorkflowEditor /> },
+      { path: "/admin/admin-accounts", element: <AdminAccounts /> },
+      { path: "/admin/api-keys", element: <ApiKeys /> },
     ]
   },
   {

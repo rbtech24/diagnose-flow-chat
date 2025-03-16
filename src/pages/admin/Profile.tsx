@@ -7,6 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ShieldAlert, ShieldCheck, Key } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function AdminProfile() {
   // Mock admin data - would typically come from API/context
@@ -59,6 +60,13 @@ export default function AdminProfile() {
             <AlertDescription>
               This is an administrative account with system-wide permissions.
               Currently {adminData.adminCount} of {adminData.maxAdmins} admin accounts are in use.
+              <div className="mt-2">
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/admin/admin-accounts">
+                    Manage Admin Accounts
+                  </Link>
+                </Button>
+              </div>
             </AlertDescription>
           </Alert>
         </div>
@@ -99,8 +107,13 @@ export default function AdminProfile() {
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
               Administrator accounts can generate API keys for integrating with external systems.
+              Manage your existing keys or create new ones from the API Keys page.
             </p>
-            <Button>Generate New API Key</Button>
+            <Button asChild>
+              <Link to="/admin/api-keys">
+                Manage API Keys
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       )

@@ -10,6 +10,17 @@ export interface User {
   trialEndsAt?: Date;
   subscriptionStatus?: 'trial' | 'active' | 'expired' | 'canceled';
   planId?: string;
+  isMainAdmin?: boolean;
+  apiKeys?: ApiKey[];
+}
+
+export interface ApiKey {
+  id: string;
+  name: string;
+  key: string;
+  createdAt: Date;
+  lastUsed?: Date;
+  scopes?: string[];
 }
 
 export interface TechnicianInvite {
