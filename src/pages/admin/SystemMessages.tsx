@@ -8,7 +8,7 @@ import { useSystemMessages } from "@/context/SystemMessageContext";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
-import { BellRing, Info, AlertTriangle, X } from "lucide-react";
+import { BellRing, Info, AlertTriangle, X, Trash } from "lucide-react";
 import { SystemMessage } from "@/components/system/SystemMessage";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
@@ -66,6 +66,11 @@ export default function SystemMessagesPage() {
     });
   };
 
+  const handleDeleteMessage = (id: string) => {
+    removeMessage(id);
+    toast.success("Message deleted successfully");
+  };
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
@@ -89,15 +94,13 @@ export default function SystemMessagesPage() {
                   {messages.map(msg => (
                     <div key={msg.id} className="relative border rounded-lg p-4">
                       <Button 
-                        variant="ghost" 
+                        variant="destructive" 
                         size="icon" 
-                        className="absolute top-2 right-2"
-                        onClick={() => {
-                          removeMessage(msg.id);
-                          toast.success("Message removed");
-                        }}
+                        className="absolute top-2 right-2 h-8 w-8"
+                        onClick={() => handleDeleteMessage(msg.id)}
+                        aria-label="Delete message"
                       >
-                        <X className="h-4 w-4" />
+                        <Trash className="h-4 w-4" />
                       </Button>
                       
                       <SystemMessage
