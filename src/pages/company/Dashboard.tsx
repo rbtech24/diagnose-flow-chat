@@ -3,11 +3,10 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
-  Users, Wrench, Clock, AlertTriangle, Search,
+  Users, Wrench, Clock, AlertTriangle,
   PlusCircle, ArrowUp, MessagesSquare,
   Play, Activity, Stethoscope
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { useWorkflows } from "@/hooks/useWorkflows";
 
 export default function CompanyDashboard() {
@@ -30,17 +29,6 @@ export default function CompanyDashboard() {
         <div>
           <h1 className="text-3xl font-bold">ABC Appliance Repair</h1>
           <p className="text-gray-500">{formattedDate}</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="relative w-64">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search..." className="pl-8" />
-          </div>
-          <Button size="icon" variant="ghost" className="rounded-full">
-            <span className="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full">
-              <img className="aspect-square h-full w-full" src="https://i.pravatar.cc/300" alt="Profile" />
-            </span>
-          </Button>
         </div>
       </div>
       

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -89,11 +90,6 @@ export default function TechnicianDashboard() {
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Search..." className="pl-8" />
           </div>
-          <Button size="icon" variant="ghost" className="rounded-full">
-            <span className="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full">
-              <img className="aspect-square h-full w-full" src="https://i.pravatar.cc/300" alt="Profile" />
-            </span>
-          </Button>
         </div>
       </div>
       
