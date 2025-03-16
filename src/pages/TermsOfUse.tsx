@@ -10,7 +10,7 @@ export default function TermsOfUse() {
         <div className="container mx-auto flex h-24 items-center justify-between px-4">
           <div className="flex items-center">
             <img 
-              src="/lovable-uploads/0fb2afe9-44dd-487d-b13a-f6a2c630c477.png" 
+              src="/lovable-uploads/a942106a-6512-4888-a5c2-dcf6c5d18b64.png" 
               alt="Repair Auto Pilot" 
               className="h-10"
             />
