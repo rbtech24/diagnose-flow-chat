@@ -3,6 +3,88 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, UserWithPassword } from "@/types/user";
 import { useUserManagementStore } from "@/store/userManagementStore";
 
+// Session tracking keys
+const SESSION_ID_KEY = 'session_id';
+const LAST_ACTIVITY_KEY = 'last_activity';
+const SESSION_TIMEOUT_MS = 4 * 60 * 60 * 1000; // 4 hours in milliseconds
+
+/**
+ * Generate a unique session ID
+ */
+export function generateSessionId(): string {
+  return Date.now().toString() + '-' + Math.random().toString(36).substring(2, 15);
+}
+
+/**
+ * Update the last activity timestamp
+ */
+export function updateLastActivity(): void {
+  localStorage.setItem(LAST_ACTIVITY_KEY, Date.now().toString());
+}
+
+/**
+ * Check if the session has timed out
+ */
+export function hasSessionTimedOut(): boolean {
+  const lastActivity = localStorage.getItem(LAST_ACTIVITY_KEY);
+  
+  if (!lastActivity) {
+    return true;
+  }
+  
+  const lastActivityTime = parseInt(lastActivity, 10);
+  const currentTime = Date.now();
+  
+  return (currentTime - lastActivityTime) > SESSION_TIMEOUT_MS;
+}
+
+/**
+ * Register a new session and broadcast to other tabs
+ * @returns The new session ID
+ */
+export function registerSession(): string {
+  const sessionId = generateSessionId();
+  localStorage.setItem(SESSION_ID_KEY, sessionId);
+  
+  // Broadcast the login event to other tabs
+  const broadcastChannel = new BroadcastChannel('auth_channel');
+  broadcastChannel.postMessage({ 
+    type: 'new_login', 
+    sessionId,
+    timestamp: Date.now()
+  });
+  broadcastChannel.close();
+  
+  return sessionId;
+}
+
+/**
+ * Check if current license is valid
+ * @param user The current user
+ * @returns Boolean indicating if license is valid
+ */
+export function verifyLicense(user: User | null): boolean {
+  if (!user) return false;
+  
+  // For company and tech users, check subscription status
+  if (user.role === 'company' || user.role === 'tech') {
+    // If status is not active or trial, license is invalid
+    if (user.subscriptionStatus !== 'active' && user.subscriptionStatus !== 'trial') {
+      return false;
+    }
+    
+    // If trial has ended, license is invalid
+    if (user.subscriptionStatus === 'trial' && user.trialEndsAt) {
+      const trialEndDate = new Date(user.trialEndsAt);
+      if (trialEndDate < new Date()) {
+        return false;
+      }
+    }
+  }
+  
+  return true;
+}
+
 /**
  * Sends a password reset email to the user
  * @param email User's email address
@@ -125,6 +207,8 @@ export async function signOut() {
   // For our mock implementation, we'll simulate success
   // Clear local storage in our auth context
   localStorage.removeItem("currentUser");
+  localStorage.removeItem(SESSION_ID_KEY);
+  localStorage.removeItem(LAST_ACTIVITY_KEY);
   
   return {
     error: null
