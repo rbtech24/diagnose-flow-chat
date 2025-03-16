@@ -1,7 +1,7 @@
 
 import { User } from './user';
 
-export type CommunityPostType = 'question' | 'discussion' | 'tech-sheet-request' | 'wire-diagram-request';
+export type CommunityPostType = 'question' | 'discussion' | 'tech-sheet-request' | 'wire-diagram-request' | 'technical-alert-request' | 'misc-document-request';
 
 export interface Attachment {
   id: string;

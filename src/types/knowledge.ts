@@ -1,5 +1,5 @@
 
-export type KnowledgeArticleType = 'guide' | 'manual' | 'faq' | 'link' | 'troubleshooting' | 'tech-sheet' | 'service-manual' | 'wire-diagram';
+export type KnowledgeArticleType = 'guide' | 'manual' | 'faq' | 'link' | 'troubleshooting' | 'tech-sheet' | 'service-manual' | 'wire-diagram' | 'technical-alert' | 'misc-document';
 
 export interface KnowledgeArticle {
   id: string;

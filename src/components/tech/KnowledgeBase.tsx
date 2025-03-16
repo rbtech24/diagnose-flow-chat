@@ -15,7 +15,9 @@ import {
   Settings,
   File,
   FileSpreadsheet,
-  Workflow
+  Workflow,
+  AlertTriangle,
+  FileQuestion
 } from "lucide-react";
 import { KnowledgeArticleType } from "@/types/knowledge";
 
@@ -84,6 +86,20 @@ const mockKnowledgeArticles: KnowledgeArticle[] = [
     category: "Laundry",
     type: "service-manual",
     excerpt: "Comprehensive service guide for Maytag MHW5630HW washing machine including disassembly instructions."
+  },
+  {
+    id: "kb-009",
+    title: "Safety Alert: Samsung Refrigerator Ice Maker Recall",
+    category: "Refrigeration",
+    type: "technical-alert",
+    excerpt: "Important safety information regarding Samsung ice maker recall affecting models produced between 2016-2018."
+  },
+  {
+    id: "kb-010",
+    title: "Warranty Processing Guidelines",
+    category: "Administrative",
+    type: "misc-document",
+    excerpt: "Documentation outlining proper procedures for processing warranty claims across all major manufacturers."
   }
 ];
 
@@ -122,6 +138,10 @@ export function KnowledgeBase() {
         return <File className="h-5 w-5 text-indigo-500" />;
       case "wire-diagram":
         return <Workflow className="h-5 w-5 text-rose-500" />;
+      case "technical-alert":
+        return <AlertTriangle className="h-5 w-5 text-red-500" />;
+      case "misc-document":
+        return <FileQuestion className="h-5 w-5 text-gray-500" />;
     }
   };
 
@@ -133,13 +153,17 @@ export function KnowledgeBase() {
         return "Service Manual";
       case "wire-diagram":
         return "Wire Diagram";
+      case "technical-alert":
+        return "Technical Alert";
+      case "misc-document":
+        return "Misc Document";
       default:
         return type.charAt(0).toUpperCase() + type.slice(1);
     }
   };
 
   const isDocumentType = (type: KnowledgeArticleType) => {
-    return ["tech-sheet", "service-manual", "wire-diagram"].includes(type);
+    return ["tech-sheet", "service-manual", "wire-diagram", "technical-alert", "misc-document"].includes(type);
   };
 
   return (
@@ -198,6 +222,24 @@ export function KnowledgeBase() {
           >
             <Workflow className="h-3.5 w-3.5" />
             Wire Diagrams
+          </Button>
+          <Button 
+            variant={typeFilter === "technical-alert" ? "default" : "outline"} 
+            size="sm"
+            onClick={() => setTypeFilter("technical-alert")}
+            className="flex items-center gap-1"
+          >
+            <AlertTriangle className="h-3.5 w-3.5" />
+            Technical Alerts
+          </Button>
+          <Button 
+            variant={typeFilter === "misc-document" ? "default" : "outline"} 
+            size="sm"
+            onClick={() => setTypeFilter("misc-document")}
+            className="flex items-center gap-1"
+          >
+            <FileQuestion className="h-3.5 w-3.5" />
+            Misc Documents
           </Button>
         </div>
         
