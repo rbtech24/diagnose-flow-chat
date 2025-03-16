@@ -21,6 +21,7 @@ export default function AdminWorkflows() {
   );
 
   const handleCreateWorkflow = () => {
+    // Direct navigation to workflow editor with the new=true parameter
     navigate('/workflow-editor?new=true');
   };
 

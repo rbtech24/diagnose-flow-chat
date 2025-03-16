@@ -14,7 +14,7 @@ export function AdminSidebar() {
       <div className="flex flex-col h-full">
         <div className="p-4">
           <Link to="/admin">
-            <h2 className="text-xl font-bold">HVAC Admin</h2>
+            <h2 className="text-xl font-bold">R.A.P. Admin</h2>
           </Link>
         </div>
         <nav className="flex-1 p-4 space-y-1">
