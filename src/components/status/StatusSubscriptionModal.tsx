@@ -55,17 +55,17 @@ export function StatusSubscriptionModal({ open, onOpenChange }: StatusSubscripti
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Subscribe to Status Updates</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="w-[95%] max-w-md mx-auto p-4 sm:p-6">
+        <DialogHeader className="text-center sm:text-left">
+          <DialogTitle className="text-lg sm:text-xl">Subscribe to Status Updates</DialogTitle>
+          <DialogDescription className="text-sm">
             Get notified when there are system outages or maintenance events.
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleSubscribe} className="space-y-4 py-4">
+        <form onSubmit={handleSubscribe} className="space-y-4 py-2 sm:py-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email address</Label>
+            <Label htmlFor="email" className="text-sm font-medium">Email address</Label>
             <div className="flex items-center space-x-2">
               <Mail className="h-4 w-4 text-muted-foreground" />
               <Input
@@ -74,16 +74,16 @@ export function StatusSubscriptionModal({ open, onOpenChange }: StatusSubscripti
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="flex-1"
+                className="flex-1 text-sm sm:text-base"
                 required
               />
             </div>
           </div>
           
-          <DialogFooter className="pt-4">
+          <DialogFooter className="pt-2 sm:pt-4">
             <Button
               type="submit"
-              className="w-full"
+              className="w-full text-sm sm:text-base"
               disabled={isLoading}
             >
               {isLoading ? "Subscribing..." : "Subscribe"}
