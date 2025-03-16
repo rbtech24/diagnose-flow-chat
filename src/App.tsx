@@ -1,3 +1,4 @@
+
 import {
   createBrowserRouter,
   RouterProvider,
@@ -65,6 +66,7 @@ import AdminAccounts from "./pages/admin/AdminAccounts";
 import ApiKeys from "./pages/admin/ApiKeys";
 import TechTools from "./pages/tech/TechTools";
 import TechSupportTicketDetail from "./pages/tech/SupportTicketDetail";
+import TechKnowledgePage from "./pages/tech/KnowledgePage";
 
 const router = createBrowserRouter([
   {
@@ -164,7 +166,8 @@ const router = createBrowserRouter([
       { path: "feature-requests/:requestId", element: <TechFeatureRequestDetailPage /> },
       { path: "support", element: <TechSupport /> },
       { path: "support/:ticketId", element: <TechSupportTicketDetail /> },
-      { path: "tools", element: <TechTools /> }
+      { path: "tools", element: <TechTools /> },
+      { path: "knowledge", element: <TechKnowledgePage /> }
     ],
   },
   {

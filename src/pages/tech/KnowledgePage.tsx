@@ -1,0 +1,16 @@
+
+import { KnowledgeBase } from "@/components/tech/KnowledgeBase";
+
+export default function TechKnowledgePage() {
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl sm:text-3xl font-bold">Knowledge Base</h1>
+      </div>
+      
+      <div className="h-[calc(100vh-220px)] min-h-[500px]">
+        <KnowledgeBase />
+      </div>
+    </div>
+  );
+}
