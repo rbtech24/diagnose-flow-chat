@@ -28,6 +28,7 @@ interface OfflineAwareCommunityForumProps {
     tags: string[];
     attachments: File[];
   }) => void;
+  showDocumentTypes?: boolean;
 }
 
 export function OfflineAwareCommunityForum({
@@ -35,6 +36,7 @@ export function OfflineAwareCommunityForum({
   basePath,
   userRole = 'tech',
   onCreatePost,
+  showDocumentTypes = false,
 }: OfflineAwareCommunityForumProps) {
   const [posts, setPosts] = useState<CommunityPost[]>(initialPosts);
   const [searchTerm, setSearchTerm] = useState('');
@@ -126,7 +128,7 @@ export function OfflineAwareCommunityForum({
           </div>
           
           <div className="space-y-4">
-            <CommunityStats posts={posts} showDocumentStats={true} />
+            <CommunityStats posts={posts} showDocumentStats={showDocumentTypes} />
             <CommunityFilters
               tags={allTags}
               selectedTags={selectedTags}
@@ -137,6 +139,9 @@ export function OfflineAwareCommunityForum({
                   setSelectedTags([...selectedTags, tag]);
                 }
               }}
+              showDocumentFilters={showDocumentTypes}
+              activeTab={selectedType}
+              onTabChange={(value) => setSelectedType(value as CommunityPostType | 'all')}
             />
             
             <Button 
@@ -260,7 +265,7 @@ export function OfflineAwareCommunityForum({
         {/* Desktop sidebar - hide on mobile */}
         {!isMobile && (
           <div className="hidden lg:block space-y-6">
-            <CommunityStats posts={posts} />
+            <CommunityStats posts={posts} showDocumentStats={showDocumentTypes} />
             <CommunityFilters
               tags={allTags}
               selectedTags={selectedTags}
@@ -271,6 +276,9 @@ export function OfflineAwareCommunityForum({
                   setSelectedTags([...selectedTags, tag]);
                 }
               }}
+              showDocumentFilters={showDocumentTypes}
+              activeTab={selectedType}
+              onTabChange={(value) => setSelectedType(value as CommunityPostType | 'all')}
             />
           </div>
         )}
@@ -281,6 +289,7 @@ export function OfflineAwareCommunityForum({
         onOpenChange={setShowAddNewPost}
         onSubmit={handleCreatePost}
         userRole={userRole}
+        showDocumentTypes={showDocumentTypes}
       />
       
       {/* Mobile filters drawer */}

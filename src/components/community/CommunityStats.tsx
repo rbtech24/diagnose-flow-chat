@@ -15,13 +15,13 @@ interface StatCardProps {
 function StatCard({ icon, label, value, color }: StatCardProps) {
   return (
     <Card>
-      <CardContent className="flex items-center p-4 sm:p-6">
+      <CardContent className="flex items-center p-4">
         <div className={`p-2 rounded-full ${color} mr-4`}>
           {icon}
         </div>
         <div>
-          <p className="text-sm font-medium text-muted-foreground">{label}</p>
-          <h3 className="text-2xl font-bold">{value}</h3>
+          <p className="text-xs font-medium text-muted-foreground">{label}</p>
+          <h3 className="text-xl font-bold">{value}</h3>
         </div>
       </CardContent>
     </Card>
@@ -42,75 +42,42 @@ export function CommunityStats({ posts, showDocumentStats = true }: CommunitySta
     (post.type === 'tech-sheet-request' || post.type === 'wire-diagram-request') && 
     post.isFulfilled
   ).length;
-  const activeMemberCount = new Set(posts.map(post => post.authorId)).size;
-
-  // For mobile, show a simplified version with fewer stats
-  if (isMobile) {
-    return (
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <StatCard
-          icon={<MessageSquare className="h-4 w-4 text-blue-600" />}
-          label="Questions"
-          value={questionCount}
-          color="bg-blue-100"
-        />
-        {showDocumentStats ? (
-          <StatCard
-            icon={<CheckCircle className="h-4 w-4 text-emerald-600" />}
-            label="Fulfilled"
-            value={fulfilledRequestCount}
-            color="bg-emerald-100"
-          />
-        ) : (
-          <StatCard
-            icon={<Users className="h-4 w-4 text-purple-600" />}
-            label="Members"
-            value={activeMemberCount}
-            color="bg-purple-100"
-          />
-        )}
-      </div>
-    );
-  }
-
-  // Desktop layout with more stats
+  
   return (
-    <div className="grid grid-cols-2 gap-3 mb-4">
-      <StatCard
-        icon={<MessageSquare className="h-5 w-5 text-blue-600" />}
-        label="Questions"
-        value={questionCount}
-        color="bg-blue-100"
-      />
-      {showDocumentStats ? (
-        <>
-          <StatCard
-            icon={<FileSpreadsheet className="h-5 w-5 text-amber-600" />}
-            label="Tech Sheet Requests"
-            value={techSheetRequestCount}
-            color="bg-amber-100"
-          />
-          <StatCard
-            icon={<Workflow className="h-5 w-5 text-green-600" />}
-            label="Wire Diagram Requests"
-            value={wireDiagramRequestCount}
-            color="bg-green-100"
-          />
-          <StatCard
-            icon={<CheckCircle className="h-5 w-5 text-emerald-600" />}
-            label="Fulfilled Requests"
-            value={fulfilledRequestCount}
-            color="bg-emerald-100"
-          />
-        </>
-      ) : (
-        <StatCard
-          icon={<Users className="h-5 w-5 text-purple-600" />}
-          label="Active Members"
-          value={activeMemberCount}
-          color="bg-purple-100"
-        />
-      )}
-    </div>
+    <Card className="bg-card shadow-sm">
+      <CardContent className="p-4">
+        <h3 className="text-base font-medium mb-3">Post Statistics</h3>
+        
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col items-center justify-center bg-blue-50 rounded-lg p-3">
+            <MessageSquare className="h-8 w-8 text-blue-500 mb-1" />
+            <span className="text-2xl font-bold">{questionCount}</span>
+            <span className="text-xs text-muted-foreground">Questions</span>
+          </div>
+          
+          {showDocumentStats && (
+            <>
+              <div className="flex flex-col items-center justify-center bg-amber-50 rounded-lg p-3">
+                <FileSpreadsheet className="h-8 w-8 text-amber-500 mb-1" />
+                <span className="text-2xl font-bold">{techSheetRequestCount}</span>
+                <span className="text-xs text-muted-foreground">Tech Sheet Requests</span>
+              </div>
+              
+              <div className="flex flex-col items-center justify-center bg-green-50 rounded-lg p-3">
+                <Workflow className="h-8 w-8 text-green-500 mb-1" />
+                <span className="text-2xl font-bold">{wireDiagramRequestCount}</span>
+                <span className="text-xs text-muted-foreground">Wire Diagram Requests</span>
+              </div>
+              
+              <div className="flex flex-col items-center justify-center bg-emerald-50 rounded-lg p-3">
+                <CheckCircle className="h-8 w-8 text-emerald-500 mb-1" />
+                <span className="text-2xl font-bold">{fulfilledRequestCount}</span>
+                <span className="text-xs text-muted-foreground">Fulfilled Requests</span>
+              </div>
+            </>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

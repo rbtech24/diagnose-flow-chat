@@ -35,7 +35,8 @@ export default function CompanyCommunity() {
       upvotes: 0,
       views: 0,
       tags: post.tags,
-      comments: []
+      comments: [],
+      isSolved: false
     };
     
     setPosts([newPost, ...posts]);
@@ -57,6 +58,7 @@ export default function CompanyCommunity() {
         initialPosts={posts}
         onCreatePost={handleCreatePost}
         userRole="company"
+        showDocumentTypes={true}
       />
     </div>
   );
