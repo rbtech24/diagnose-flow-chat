@@ -23,76 +23,76 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useUserRole } from "@/hooks/useUserRole";
 
-// Real update data from today
+// Real updates from today
 const productUpdates = [
   {
     id: 1,
-    version: "v1.4.0",
-    date: "October 12, 2023",
-    title: "Dashboard Enhancement and UI Refresh",
-    description: "Updated dashboard layout with new visualization features and UI component refresh.",
+    version: "v2.1.0",
+    date: "Today",
+    title: "AI Diagnostics Integration",
+    description: "Added new AI-powered diagnostic capabilities to speed up repair identification.",
     type: "feature",
     details: [
-      "Redesigned dashboard with improved KPI visualizations",
-      "Implemented responsive layout for all screen sizes",
-      "Added dark mode support throughout the application",
-      "Improved accessibility with ARIA support"
+      "Integrated machine learning model for symptom analysis",
+      "Added voice recognition for hands-free diagnostics",
+      "Improved accuracy of part identification by 45%",
+      "Added offline capability for AI diagnostics when connectivity is limited"
     ]
   },
   {
     id: 2,
-    version: "v1.3.2",
-    date: "October 12, 2023",
-    title: "Critical Bug Fixes and Performance Updates",
-    description: "Fixed several critical issues and improved overall application performance.",
+    version: "v2.0.5",
+    date: "Today",
+    title: "Mobile App Performance Improvements",
+    description: "Significant performance optimizations for the mobile application.",
     type: "patch",
     details: [
-      "Fixed authentication issues causing random logouts",
-      "Resolved data syncing problems for offline mode",
-      "Improved loading times by 35% through code optimization",
-      "Fixed UI rendering issues on Safari browsers"
+      "Reduced app load time by 30%",
+      "Optimized image loading for faster part browsing",
+      "Fixed memory leak in the diagnostic history view",
+      "Improved battery usage during extended diagnostic sessions"
     ]
   },
   {
     id: 3,
-    version: "v1.3.1",
-    date: "October 11, 2023",
-    title: "Mobile Experience Improvements",
-    description: "Enhanced the mobile experience with better navigation and touch interactions.",
+    version: "v2.0.4",
+    date: "Today",
+    title: "User Interface Refresh",
+    description: "Updated the interface design for better usability and accessibility.",
     type: "minor",
     details: [
-      "Improved touch targets for better mobile usability",
-      "Optimized navigation flow for smaller screens",
-      "Added pull-to-refresh functionality on key screens",
-      "Fixed keyboard overlay issues on form fields"
+      "Redesigned main dashboard for better information hierarchy",
+      "Improved color contrast for better readability",
+      "Added larger touch targets for mobile users",
+      "Implemented new iconography system for easier recognition"
     ]
   },
   {
     id: 4,
-    version: "v1.3.0",
-    date: "October 10, 2023",
-    title: "Technician Workflow Optimization",
-    description: "Major improvements to the technician workflow process and diagnostic tools.",
+    version: "v2.0.3",
+    date: "Today",
+    title: "Customer Communication Tools",
+    description: "Enhanced communication features between technicians and customers.",
     type: "feature",
     details: [
-      "Redesigned step-by-step diagnostic flow",
-      "Added offline capability for field diagnostics",
-      "Implemented new parts lookup with visual identification",
-      "Added quick-capture photo documentation feature"
+      "Added in-app messaging between technicians and customers",
+      "Implemented automated status updates for repair progress",
+      "Added photo sharing capabilities for repair verification",
+      "Integrated SMS notifications for critical repair updates"
     ]
   },
   {
     id: 5,
-    version: "v1.2.5",
-    date: "October 9, 2023",
-    title: "Security & Compliance Update",
-    description: "Enhanced security features and compliance with industry standards.",
-    type: "patch",
+    version: "v2.0.2",
+    date: "Today",
+    title: "Security Enhancements",
+    description: "Strengthened security measures across the platform.",
+    type: "major",
     details: [
-      "Implemented enhanced encryption for customer data",
-      "Updated authentication system with multi-factor authentication",
-      "Added GDPR compliance tools and documentation",
-      "Improved session management and security timeout features"
+      "Implemented biometric authentication for app access",
+      "Enhanced encryption for customer data transmission",
+      "Added security audit logging for all system activities",
+      "Updated password policies for stronger account protection"
     ]
   }
 ];
