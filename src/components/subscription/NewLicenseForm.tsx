@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { License } from "@/types/subscription";
-import { mockSubscriptionPlans } from "@/data/mockSubscriptions";
+import { useSubscriptionStore } from "@/store/subscriptionStore";
 
 interface NewLicenseFormProps {
   onSubmit: (license: License) => void;
@@ -16,24 +16,27 @@ export function NewLicenseForm({
   onSubmit,
   onCancel
 }: NewLicenseFormProps) {
+  const { getActivePlans } = useSubscriptionStore();
+  const activePlans = getActivePlans();
+  
   const [companyName, setCompanyName] = useState("");
   const [companyId, setCompanyId] = useState("");
   const [planId, setPlanId] = useState("");
   const [activeTechnicians, setActiveTechnicians] = useState("1");
   const [trialPeriod, setTrialPeriod] = useState(
-    planId ? mockSubscriptionPlans.find(p => p.id === planId)?.trialPeriod.toString() || "14" : "14"
+    planId ? activePlans.find(p => p.id === planId)?.trialPeriod.toString() || "14" : "14"
   );
 
   const handlePlanChange = (value: string) => {
     setPlanId(value);
-    const plan = mockSubscriptionPlans.find(p => p.id === value);
+    const plan = activePlans.find(p => p.id === value);
     if (plan) {
       setTrialPeriod(plan.trialPeriod.toString());
     }
   };
 
   const handleSubmit = () => {
-    const selectedPlan = mockSubscriptionPlans.find(p => p.id === planId);
+    const selectedPlan = activePlans.find(p => p.id === planId);
     
     if (!selectedPlan) return;
     
@@ -87,13 +90,24 @@ export function NewLicenseForm({
             <SelectValue placeholder="Select a plan" />
           </SelectTrigger>
           <SelectContent>
-            {mockSubscriptionPlans.filter(p => p.isActive).map(plan => (
-              <SelectItem key={plan.id} value={plan.id}>
-                {plan.name} (${plan.monthlyPrice}/month)
+            {activePlans.length > 0 ? (
+              activePlans.map(plan => (
+                <SelectItem key={plan.id} value={plan.id}>
+                  {plan.name} (${plan.monthlyPrice}/month)
+                </SelectItem>
+              ))
+            ) : (
+              <SelectItem value="no-plans" disabled>
+                No active plans available
               </SelectItem>
-            ))}
+            )}
           </SelectContent>
         </Select>
+        {activePlans.length === 0 && (
+          <p className="text-sm text-red-500 mt-1">
+            No active plans available. Please create a plan first.
+          </p>
+        )}
       </div>
       
       <div className="space-y-2">
@@ -124,7 +138,7 @@ export function NewLicenseForm({
         <Button variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button onClick={handleSubmit} disabled={!companyName || !planId}>
+        <Button onClick={handleSubmit} disabled={!companyName || !planId || activePlans.length === 0}>
           Create License
         </Button>
       </div>

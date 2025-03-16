@@ -10,14 +10,18 @@ import { Badge } from "@/components/ui/badge";
 import { SubscriptionPlan, BillingCycle, License } from "@/types/subscription";
 import { SubscriptionPlanCard } from "@/components/subscription/SubscriptionPlanCard";
 import { PaymentForm } from "@/components/subscription/PaymentForm";
-import { mockSubscriptionPlans, mockLicenses } from "@/data/mockSubscriptions";
-import { AlertCircle, Clock, Users, CheckCircle2, CreditCard, Calendar } from "lucide-react";
+import { AlertCircle, Clock, Users, Calendar, CreditCard } from "lucide-react";
+import { useSubscriptionStore } from "@/store/subscriptionStore";
 
 export default function CompanySubscription() {
-  const [plans] = useState<SubscriptionPlan[]>(mockSubscriptionPlans.filter(plan => plan.isActive));
+  const { getActivePlans, licenses } = useSubscriptionStore();
+  const activePlans = getActivePlans();
+  
+  // For demo purposes, use the first license with companyId "company-2"
   const [currentLicense] = useState<License | undefined>(
-    mockLicenses.find(license => license.companyId === "company-2")
+    licenses.find(license => license.companyId === "company-2")
   );
+  
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
@@ -64,39 +68,49 @@ export default function CompanySubscription() {
             </Alert>
           )}
 
-          <Tabs defaultValue="monthly" className="mb-6" onValueChange={(value) => setBillingCycle(value as BillingCycle)}>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Available Plans</h2>
-              <TabsList>
-                <TabsTrigger value="monthly">Monthly</TabsTrigger>
-                <TabsTrigger value="yearly">Yearly (Save 15%+)</TabsTrigger>
-              </TabsList>
-            </div>
+          {activePlans.length === 0 ? (
+            <Alert className="mb-6 bg-amber-50 border-amber-200">
+              <AlertCircle className="h-5 w-5 text-amber-600" />
+              <AlertTitle className="text-amber-800">No Plans Available</AlertTitle>
+              <AlertDescription className="text-amber-700">
+                There are currently no subscription plans available. Please contact support for assistance.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <Tabs defaultValue="monthly" className="mb-6" onValueChange={(value) => setBillingCycle(value as BillingCycle)}>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Available Plans</h2>
+                <TabsList>
+                  <TabsTrigger value="monthly">Monthly</TabsTrigger>
+                  <TabsTrigger value="yearly">Yearly (Save 15%+)</TabsTrigger>
+                </TabsList>
+              </div>
 
-            <TabsContent value="monthly" className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {plans.map((plan) => (
-                <SubscriptionPlanCard
-                  key={plan.id}
-                  plan={plan}
-                  onSelect={() => handlePlanSelect(plan)}
-                  billingCycle="monthly"
-                  isCurrentPlan={currentLicense?.planId === plan.id}
-                />
-              ))}
-            </TabsContent>
+              <TabsContent value="monthly" className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {activePlans.map((plan) => (
+                  <SubscriptionPlanCard
+                    key={plan.id}
+                    plan={plan}
+                    onSelect={() => handlePlanSelect(plan)}
+                    billingCycle="monthly"
+                    isCurrentPlan={currentLicense?.planId === plan.id}
+                  />
+                ))}
+              </TabsContent>
 
-            <TabsContent value="yearly" className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {plans.map((plan) => (
-                <SubscriptionPlanCard
-                  key={plan.id}
-                  plan={plan}
-                  onSelect={() => handlePlanSelect(plan)}
-                  billingCycle="yearly"
-                  isCurrentPlan={currentLicense?.planId === plan.id}
-                />
-              ))}
-            </TabsContent>
-          </Tabs>
+              <TabsContent value="yearly" className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {activePlans.map((plan) => (
+                  <SubscriptionPlanCard
+                    key={plan.id}
+                    plan={plan}
+                    onSelect={() => handlePlanSelect(plan)}
+                    billingCycle="yearly"
+                    isCurrentPlan={currentLicense?.planId === plan.id}
+                  />
+                ))}
+              </TabsContent>
+            </Tabs>
+          )}
         </div>
 
         <div className="w-full lg:w-1/3">
@@ -144,16 +158,18 @@ export default function CompanySubscription() {
               ) : (
                 <div className="text-center py-8">
                   <p className="text-gray-500">No active subscription</p>
-                  <Button className="mt-4" onClick={() => setSelectedPlan(plans[0])}>
-                    Select a Plan
-                  </Button>
+                  {activePlans.length > 0 && (
+                    <Button className="mt-4" onClick={() => setSelectedPlan(activePlans[0])}>
+                      Select a Plan
+                    </Button>
+                  )}
                 </div>
               )}
             </CardContent>
-            {currentLicense && (
+            {currentLicense && activePlans.length > 0 && (
               <CardFooter>
                 <Button className="w-full" onClick={() => setSelectedPlan(
-                  plans.find(p => p.id === currentLicense.planId) || plans[0]
+                  activePlans.find(p => p.id === currentLicense.planId) || activePlans[0]
                 )}>
                   {currentLicense.status === 'active' ? 'Change Plan' : 'Subscribe Now'}
                 </Button>

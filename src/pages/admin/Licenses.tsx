@@ -1,18 +1,18 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { License } from "@/types/subscription";
-import { mockLicenses } from "@/data/mockSubscriptions";
 import { LicenseCard } from "@/components/subscription/LicenseCard";
 import { NewLicenseForm } from "@/components/subscription/NewLicenseForm";
 import { Search, Plus, Package } from "lucide-react";
+import { useSubscriptionStore } from "@/store/subscriptionStore";
 
 export default function AdminLicenses() {
-  const [licenses, setLicenses] = useState<License[]>(mockLicenses);
+  const { licenses, addLicense, deactivateLicense } = useSubscriptionStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -31,15 +31,12 @@ export default function AdminLicenses() {
   });
 
   const handleAddLicense = (newLicense: License) => {
-    setLicenses([...licenses, newLicense]);
+    addLicense(newLicense);
     setIsDialogOpen(false);
   };
 
   const handleDeactivateLicense = (licenseId: string) => {
-    const updatedLicenses = licenses.map(license => 
-      license.id === licenseId ? { ...license, status: 'canceled' as const, updatedAt: new Date() } : license
-    );
-    setLicenses(updatedLicenses);
+    deactivateLicense(licenseId);
   };
 
   return (

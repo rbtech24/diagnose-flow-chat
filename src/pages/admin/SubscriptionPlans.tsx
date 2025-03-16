@@ -8,15 +8,16 @@ import { SubscriptionPlanForm } from "@/components/subscription/SubscriptionPlan
 import { SubscriptionPlan } from "@/types/subscription";
 import { Plus, Package } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { useSubscriptionStore } from "@/store/subscriptionStore";
 
 export default function AdminSubscriptionPlans() {
-  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const { plans, addPlan, updatePlan, togglePlanStatus } = useSubscriptionStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
   const { toast } = useToast();
 
   const handleCreatePlan = (plan: SubscriptionPlan) => {
-    setPlans([...plans, plan]);
+    addPlan(plan);
     setIsDialogOpen(false);
     setEditingPlan(null);
     toast({
@@ -31,10 +32,7 @@ export default function AdminSubscriptionPlans() {
   };
 
   const handleUpdatePlan = (updatedPlan: SubscriptionPlan) => {
-    const updatedPlans = plans.map(p => 
-      p.id === updatedPlan.id ? updatedPlan : p
-    );
-    setPlans(updatedPlans);
+    updatePlan(updatedPlan);
     setIsDialogOpen(false);
     setEditingPlan(null);
     toast({
@@ -44,16 +42,13 @@ export default function AdminSubscriptionPlans() {
   };
 
   const handleTogglePlanStatus = (planId: string) => {
-    const updatedPlans = plans.map(plan => 
-      plan.id === planId ? { ...plan, isActive: !plan.isActive, updatedAt: new Date() } : plan
-    );
-    setPlans(updatedPlans);
+    togglePlanStatus(planId);
     
-    const plan = updatedPlans.find(p => p.id === planId);
+    const plan = plans.find(p => p.id === planId);
     if (plan) {
       toast({
-        title: plan.isActive ? "Plan activated" : "Plan deactivated",
-        description: `${plan.name} plan has been ${plan.isActive ? "activated" : "deactivated"}.`,
+        title: !plan.isActive ? "Plan activated" : "Plan deactivated",
+        description: `${plan.name} plan has been ${!plan.isActive ? "activated" : "deactivated"}.`,
       });
     }
   };
