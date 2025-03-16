@@ -70,6 +70,7 @@ import AdminKnowledgeBase from "./pages/admin/KnowledgeBase";
 import { Toaster } from "react-hot-toast";
 import { OfflineIndicator } from "./components/system/OfflineIndicator";
 import { MobileOfflineIndicator } from "./components/system/MobileOfflineIndicator";
+import AppointmentManagement from "./pages/company/AppointmentManagement";
 
 const router = createBrowserRouter([
   {
@@ -152,7 +153,9 @@ const router = createBrowserRouter([
       { path: "subscription", element: <CompanySubscription /> },
       { path: "technicians", element: <ManageTechnicians /> },
       { path: "techs", element: <ManageTechnicians /> },
-      { path: "diagnostics", element: <DiagnosticsPage /> }
+      { path: "diagnostics", element: <DiagnosticsPage /> },
+      { path: "appointments", element: <AppointmentManagement /> },
+      { path: "knowledge", element: <KnowledgePage /> }
     ]
   },
   {
