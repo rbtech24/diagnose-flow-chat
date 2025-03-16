@@ -17,8 +17,10 @@ import AdminSupport from "./pages/admin/Support";
 import AdminProfile from "./pages/admin/Profile";
 import Community from "./pages/company/Community";
 import TechCommunity from "./pages/tech/Community";
+import AdminCommunity from "./pages/admin/Community";
 import CommunityPostDetail from "./pages/company/CommunityPostDetail";
 import TechCommunityPostDetail from "./pages/tech/CommunityPostDetail";
+import AdminCommunityPostDetail from "./pages/admin/CommunityPostDetail";
 import AdminFeatureRequests from "./pages/admin/FeatureRequests";
 import AdminFeatureRequestDetailPage from "./pages/admin/FeatureRequestDetail";
 import CompanyFeatureRequests from "./pages/company/FeatureRequests";
@@ -42,6 +44,7 @@ import NotFound from "./pages/NotFound";
 import WorkflowEditor from "./pages/WorkflowEditor";
 import Workflows from "./pages/Workflows";
 import AdminSupportTicketDetail from "./pages/admin/SupportTicketDetail";
+import ForgotPassword from "./pages/ForgotPassword";
 
 const router = createBrowserRouter([
   {
@@ -55,6 +58,10 @@ const router = createBrowserRouter([
   {
     path: "/signup",
     element: <SignUp />
+  },
+  {
+    path: "/forgot-password",
+    element: <ForgotPassword />
   },
   {
     path: "/company",
@@ -97,6 +104,8 @@ const router = createBrowserRouter([
       { path: "support", element: <AdminSupport /> },
       { path: "support/:ticketId", element: <AdminSupportTicketDetail /> },
       { path: "profile", element: <AdminProfile /> },
+      { path: "community", element: <AdminCommunity /> },
+      { path: "community/:postId", element: <AdminCommunityPostDetail /> },
       { path: "feature-requests", element: <AdminFeatureRequests /> },
       { path: "feature-requests/:id", element: <AdminFeatureRequestDetailPage /> },
       { path: "subscription-plans", element: <AdminSubscriptionPlans /> },

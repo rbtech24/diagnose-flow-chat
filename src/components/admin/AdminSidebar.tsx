@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { 
   Home, Users, LifeBuoy, Settings, LogOut, 
   FileText, Package, CreditCard, Network,
-  Building2, Workflow
+  Building2, Workflow, MessageSquare
 } from "lucide-react";
 
 import {
@@ -61,6 +61,13 @@ export function AdminSidebar() {
               active={isActive("/admin/workflows")}
             >
               <Link to="/admin/workflows" className="w-full h-full flex items-center">Workflows</Link>
+            </SidebarNavItem>
+
+            <SidebarNavItem 
+              icon={<MessageSquare className="w-5 h-5" />} 
+              active={isActive("/admin/community")}
+            >
+              <Link to="/admin/community" className="w-full h-full flex items-center">Community</Link>
             </SidebarNavItem>
           </SidebarNavGroup>
 

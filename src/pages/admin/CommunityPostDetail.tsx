@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CommunityPostDetail } from '@/components/community/CommunityPostDetail';
-import { CommunityPost, CommunityComment, Attachment } from '@/types/community';
+import { CommunityPost, CommunityComment } from '@/types/community';
 import { mockPosts, currentUser } from '@/data/mockCommunity';
 
 export default function AdminCommunityPostDetail() {

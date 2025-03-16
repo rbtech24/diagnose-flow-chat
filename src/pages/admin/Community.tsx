@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, AlertTriangle, Trash2 } from 'lucide-react';
 import { CommunityFilters } from '@/components/community/CommunityFilters';
@@ -81,6 +81,10 @@ export default function AdminCommunity() {
     navigate(`/admin/community/${postId}`);
   };
 
+  const handleDeletePost = (postId: string) => {
+    setPosts(posts.filter(post => post.id !== postId));
+  };
+
   // Count stats
   const questionCount = posts.filter(post => post.type === 'question').length;
   const techSheetRequestCount = posts.filter(post => post.type === 'tech-sheet-request').length;
@@ -139,6 +143,7 @@ export default function AdminCommunity() {
                 variant="ghost" 
                 size="icon" 
                 className="flex-shrink-0 h-10 w-10 mt-2 text-destructive hover:text-destructive"
+                onClick={() => handleDeletePost(post.id)}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
