@@ -1,5 +1,5 @@
 
-import { WorkflowGrid } from '@/components/workflow/WorkflowGrid';
+import { WorkflowGrid } from './WorkflowGrid';
 import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
 
@@ -8,17 +8,18 @@ interface WorkflowViewProps {
   workflows: SavedWorkflow[];
   isReordering: boolean;
   selectedFolder: string;
-  onEdit: (index: number, name: string) => void;
-  onDelete: (index: number) => void;
-  onToggleWorkflow: (applianceIndex: number, symptomIndex: number) => void;
-  onMoveSymptom: (applianceIndex: number, fromIndex: number, toIndex: number) => void;
-  onMoveAppliance: (fromIndex: number, toIndex: number) => void;
-  onOpenWorkflowEditor: (folder: string, name?: string) => void;
-  onAddIssue: (applianceName: string) => void;
-  onDeleteWorkflow: (workflow: SavedWorkflow) => void;
-  onMoveWorkflow: (fromIndex: number, toIndex: number) => void;
-  onToggleWorkflowActive: (workflow: SavedWorkflow) => void;
-  onMoveWorkflowToFolder: (workflow: SavedWorkflow, targetFolder: string) => void;
+  onEdit?: (index: number, name: string) => void;
+  onDelete?: (index: number) => void;
+  onToggleWorkflow?: (applianceIndex: number, symptomIndex: number) => void;
+  onMoveSymptom?: (applianceIndex: number, fromIndex: number, toIndex: number) => void;
+  onMoveAppliance?: (fromIndex: number, toIndex: number) => void;
+  onOpenWorkflowEditor?: (applianceName: string, symptomName?: string) => void;
+  onAddIssue?: (applianceName: string) => void;
+  onDeleteWorkflow?: (workflow: SavedWorkflow) => void;
+  onMoveWorkflow?: (fromIndex: number, toIndex: number) => void;
+  onToggleWorkflowActive?: (workflow: SavedWorkflow) => void;
+  onMoveWorkflowToFolder?: (workflow: SavedWorkflow, targetFolder: string) => void;
+  isReadOnly?: boolean;
 }
 
 export function WorkflowView({
@@ -37,41 +38,41 @@ export function WorkflowView({
   onMoveWorkflow,
   onToggleWorkflowActive,
   onMoveWorkflowToFolder,
+  isReadOnly = false
 }: WorkflowViewProps) {
-  const getSymptomCardColor = (index: number): string => {
+  // Generate pastel colors for item cards
+  const getSymptomCardColor = (index: number) => {
     const colors = [
-      'bg-blue-100',
-      'bg-green-100',
-      'bg-yellow-100',
-      'bg-purple-100',
-      'bg-pink-100',
-      'bg-indigo-100'
+      'bg-blue-100 border-blue-200',
+      'bg-green-100 border-green-200',
+      'bg-purple-100 border-purple-200',
+      'bg-amber-100 border-amber-200',
+      'bg-rose-100 border-rose-200',
+      'bg-teal-100 border-teal-200',
     ];
     return colors[index % colors.length];
   };
 
-  // Filter out workflows that belong to any appliance
-  const orphanedWorkflows = workflows.filter(workflow => 
-    !filteredAppliances.some(appliance => appliance.name === workflow.metadata.folder)
-  );
-
   return (
-    <WorkflowGrid
-      appliances={filteredAppliances}
-      workflows={orphanedWorkflows}
-      isReordering={isReordering}
-      onEdit={onEdit}
-      onDelete={onDelete}
-      onToggleWorkflow={onToggleWorkflow}
-      onMoveSymptom={onMoveSymptom}
-      onMoveAppliance={onMoveAppliance}
-      onOpenWorkflowEditor={onOpenWorkflowEditor}
-      onAddIssue={onAddIssue}
-      onDeleteWorkflow={onDeleteWorkflow}
-      onMoveWorkflow={onMoveWorkflow}
-      onToggleWorkflowActive={onToggleWorkflowActive}
-      onMoveWorkflowToFolder={onMoveWorkflowToFolder}
-      getSymptomCardColor={getSymptomCardColor}
-    />
+    <div className="mt-6">
+      <WorkflowGrid
+        appliances={filteredAppliances}
+        workflows={workflows}
+        isReordering={isReordering}
+        onEdit={onEdit || (() => {})}
+        onDelete={onDelete || (() => {})}
+        onToggleWorkflow={onToggleWorkflow || (() => {})}
+        onMoveSymptom={onMoveSymptom || (() => {})}
+        onMoveAppliance={onMoveAppliance || (() => {})}
+        onOpenWorkflowEditor={onOpenWorkflowEditor || (() => {})}
+        onAddIssue={onAddIssue || (() => {})}
+        onDeleteWorkflow={onDeleteWorkflow || (() => {})}
+        onMoveWorkflow={onMoveWorkflow || (() => {})}
+        onToggleWorkflowActive={onToggleWorkflowActive || (() => {})}
+        onMoveWorkflowToFolder={onMoveWorkflowToFolder || (() => {})}
+        getSymptomCardColor={getSymptomCardColor}
+        isReadOnly={isReadOnly}
+      />
+    </div>
   );
 }

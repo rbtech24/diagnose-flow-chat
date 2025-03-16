@@ -24,6 +24,7 @@ interface WorkflowGridProps {
   onToggleWorkflowActive: (workflow: SavedWorkflow) => void;
   onMoveWorkflowToFolder?: (workflow: SavedWorkflow, targetFolder: string) => void;
   getSymptomCardColor: (index: number) => string;
+  isReadOnly?: boolean;
 }
 
 export function WorkflowGrid({
@@ -42,6 +43,7 @@ export function WorkflowGrid({
   onToggleWorkflowActive,
   onMoveWorkflowToFolder,
   getSymptomCardColor,
+  isReadOnly = false
 }: WorkflowGridProps) {
   if (appliances.length === 0 && workflows.length === 0) {
     return (
@@ -52,6 +54,7 @@ export function WorkflowGrid({
   }
 
   const handleDragOver = (e: React.DragEvent) => {
+    if (isReadOnly) return;
     e.preventDefault();
     const targetCard = (e.target as HTMLElement).closest('.appliance-card');
     if (targetCard) {
@@ -60,6 +63,7 @@ export function WorkflowGrid({
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
+    if (isReadOnly) return;
     e.preventDefault();
     const targetCard = (e.target as HTMLElement).closest('.appliance-card');
     if (targetCard) {
@@ -68,6 +72,7 @@ export function WorkflowGrid({
   };
 
   const handleDrop = (e: React.DragEvent, targetAppliance: string) => {
+    if (isReadOnly) return;
     e.preventDefault();
     const targetCard = (e.target as HTMLElement).closest('.appliance-card');
     if (targetCard) {
@@ -87,28 +92,49 @@ export function WorkflowGrid({
     }
   };
 
+  const handleViewWorkflow = (folder: string, name?: string) => {
+    if (isReadOnly) {
+      // Just show a toast message for view-only users
+      toast({
+        title: "Workflow Details",
+        description: `Viewing workflow: ${name || 'New Workflow'}`
+      });
+      return;
+    }
+    
+    // For admins, open the editor
+    onOpenWorkflowEditor(folder, name);
+  };
+
   return (
     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
       {appliances.map((appliance, index) => (
         <div
           key={`appliance-${appliance.name}`}
           className="appliance-card"
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={(e) => handleDrop(e, appliance.name)}
+          onDragOver={isReadOnly ? undefined : handleDragOver}
+          onDragLeave={isReadOnly ? undefined : handleDragLeave}
+          onDrop={isReadOnly ? undefined : (e) => handleDrop(e, appliance.name)}
         >
           <ApplianceCard
             appliance={appliance}
             index={index}
             isReordering={isReordering}
-            onEdit={() => onEdit(index, appliance.name)}
-            onDelete={() => onDelete(index)}
-            onToggleWorkflow={(symptomIndex) => onToggleWorkflow(index, symptomIndex)}
-            onMoveSymptom={(fromIndex, toIndex) => onMoveSymptom(index, fromIndex, toIndex)}
-            onMoveAppliance={onMoveAppliance}
-            onOpenWorkflowEditor={(symptomName) => onOpenWorkflowEditor(appliance.name, symptomName)}
-            onAddIssue={() => onAddIssue(appliance.name)}
+            onEdit={isReadOnly ? undefined : () => onEdit(index, appliance.name)}
+            onDelete={isReadOnly ? undefined : () => onDelete(index)}
+            onToggleWorkflow={isReadOnly ? undefined : (symptomIndex) => onToggleWorkflow(index, symptomIndex)}
+            onMoveSymptom={isReadOnly ? undefined : (fromIndex, toIndex) => onMoveSymptom(index, fromIndex, toIndex)}
+            onMoveAppliance={isReadOnly ? undefined : onMoveAppliance}
+            onOpenWorkflowEditor={isReadOnly ? 
+              (symptomName) => toast({
+                title: "View Only",
+                description: `Viewing ${symptomName} in ${appliance.name}`
+              }) : 
+              (symptomName) => onOpenWorkflowEditor(appliance.name, symptomName)
+            }
+            onAddIssue={isReadOnly ? undefined : () => onAddIssue(appliance.name)}
             getSymptomCardColor={getSymptomCardColor}
+            isReadOnly={isReadOnly}
           />
         </div>
       ))}
@@ -117,14 +143,14 @@ export function WorkflowGrid({
         <Card 
           key={`workflow-${workflow.metadata.name}-${workflow.metadata.folder}`}
           className="group relative p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200"
-          draggable={true}
-          onDragStart={(e) => {
+          draggable={!isReadOnly}
+          onDragStart={isReadOnly ? undefined : (e) => {
             e.dataTransfer.setData('workflow-index', index.toString());
             e.dataTransfer.setData('workflow-data', JSON.stringify(workflow));
             const dragPreview = e.target as HTMLElement;
             dragPreview.classList.add('opacity-50');
           }}
-          onDragEnd={(e) => {
+          onDragEnd={isReadOnly ? undefined : (e) => {
             const dragPreview = e.target as HTMLElement;
             dragPreview.classList.remove('opacity-50');
           }}
@@ -155,32 +181,36 @@ export function WorkflowGrid({
             
             <div className="flex flex-col items-end gap-2">
               <div className="flex gap-1">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onDeleteWorkflow(workflow);
-                  }}
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
+                {!isReadOnly && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onDeleteWorkflow(workflow);
+                    }}
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                )}
                 <Button 
                   variant="ghost" 
                   size="sm"
                   className="h-8 w-8 p-0 text-green-500 hover:text-green-600 hover:bg-green-50"
-                  onClick={() => onOpenWorkflowEditor(workflow.metadata.folder || '', workflow.metadata.name)}
+                  onClick={() => handleViewWorkflow(workflow.metadata.folder || '', workflow.metadata.name)}
                 >
                   <ArrowUpRight className="h-4 w-4" />
                 </Button>
               </div>
-              <Switch
-                checked={workflow.metadata.isActive}
-                onCheckedChange={() => onToggleWorkflowActive(workflow)}
-                className="data-[state=checked]:bg-green-500"
-              />
+              {!isReadOnly && (
+                <Switch
+                  checked={workflow.metadata.isActive}
+                  onCheckedChange={() => onToggleWorkflowActive(workflow)}
+                  className="data-[state=checked]:bg-green-500"
+                />
+              )}
             </div>
           </div>
         </Card>

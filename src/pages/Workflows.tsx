@@ -9,6 +9,7 @@ import { WorkflowView } from '@/components/workflow/WorkflowView';
 import { ApplianceManager } from '@/components/workflow/ApplianceManager';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { useUserRole } from '@/hooks/useUserRole';
 
 export default function Workflows() {
   const navigate = useNavigate();
@@ -16,6 +17,8 @@ export default function Workflows() {
   const [editingAppliance, setEditingAppliance] = useState<{index: number, name: string} | null>(null);
   const [deletingApplianceIndex, setDeletingApplianceIndex] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const { userRole } = useUserRole();
+  const isAdmin = userRole === 'admin';
 
   const {
     appliances,
@@ -48,6 +51,15 @@ export default function Workflows() {
   );
 
   const handleAddAppliance = (name: string) => {
+    if (!isAdmin) {
+      toast({
+        title: "Permission Denied",
+        description: "Only administrators can add appliances.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     addAppliance(name);
     toast({
       title: "Appliance Added",
@@ -56,6 +68,14 @@ export default function Workflows() {
   };
 
   const openWorkflowEditor = (folder: string, name?: string) => {
+    if (!isAdmin) {
+      toast({
+        title: "View-Only Access",
+        description: "You don't have permission to edit workflows."
+      });
+      return;
+    }
+    
     const path = name 
       ? `/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`
       : `/workflow-editor?folder=${encodeURIComponent(folder)}`;
@@ -63,11 +83,26 @@ export default function Workflows() {
   };
 
   const handleAddIssue = (applianceName: string) => {
+    if (!isAdmin) {
+      toast({
+        title: "Permission Denied",
+        description: "Only administrators can add workflows.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     openWorkflowEditor(applianceName);
   };
 
-  const handleBackToAdmin = () => {
-    navigate('/admin');
+  const handleBackToDashboard = () => {
+    if (isAdmin) {
+      navigate('/admin');
+    } else if (userRole === 'company') {
+      navigate('/company');
+    } else {
+      navigate('/tech');
+    }
   };
 
   return (
@@ -77,10 +112,10 @@ export default function Workflows() {
           variant="outline" 
           size="sm" 
           className="flex items-center text-slate-600 hover:text-slate-900"
-          onClick={handleBackToAdmin}
+          onClick={handleBackToDashboard}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Admin Dashboard
+          Back to Dashboard
         </Button>
       </div>
 
@@ -91,8 +126,8 @@ export default function Workflows() {
         onFolderChange={setSelectedFolder}
         folders={folders}
         isReordering={isReordering}
-        onReorderingChange={setIsReordering}
-        onAddAppliance={handleAddAppliance}
+        onReorderingChange={isAdmin ? setIsReordering : undefined}
+        onAddAppliance={isAdmin ? handleAddAppliance : undefined}
       />
 
       <WorkflowView
@@ -100,27 +135,30 @@ export default function Workflows() {
         workflows={workflows}
         isReordering={isReordering}
         selectedFolder={selectedFolder}
-        onEdit={(index, name) => setEditingAppliance({ index, name })}
-        onDelete={(index) => setDeletingApplianceIndex(index)}
-        onToggleWorkflow={toggleWorkflow}
-        onMoveSymptom={moveSymptom}
-        onMoveAppliance={moveAppliance}
-        onOpenWorkflowEditor={openWorkflowEditor}
-        onAddIssue={handleAddIssue}
-        onDeleteWorkflow={handleDeleteWorkflow}
-        onMoveWorkflow={handleMoveWorkflow}
-        onToggleWorkflowActive={handleToggleWorkflowActive}
-        onMoveWorkflowToFolder={handleMoveWorkflowToFolder}
+        onEdit={isAdmin ? (index, name) => setEditingAppliance({ index, name }) : undefined}
+        onDelete={isAdmin ? (index) => setDeletingApplianceIndex(index) : undefined}
+        onToggleWorkflow={isAdmin ? toggleWorkflow : undefined}
+        onMoveSymptom={isAdmin ? moveSymptom : undefined}
+        onMoveAppliance={isAdmin ? moveAppliance : undefined}
+        onOpenWorkflowEditor={isAdmin ? openWorkflowEditor : undefined}
+        onAddIssue={isAdmin ? handleAddIssue : undefined}
+        onDeleteWorkflow={isAdmin ? handleDeleteWorkflow : undefined}
+        onMoveWorkflow={isAdmin ? handleMoveWorkflow : undefined}
+        onToggleWorkflowActive={isAdmin ? handleToggleWorkflowActive : undefined}
+        onMoveWorkflowToFolder={isAdmin ? handleMoveWorkflowToFolder : undefined}
+        isReadOnly={!isAdmin}
       />
 
-      <ApplianceManager
-        editingAppliance={editingAppliance}
-        setEditingAppliance={setEditingAppliance}
-        deletingApplianceIndex={deletingApplianceIndex}
-        setDeletingApplianceIndex={setDeletingApplianceIndex}
-        editAppliance={editAppliance}
-        deleteAppliance={deleteAppliance}
-      />
+      {isAdmin && (
+        <ApplianceManager
+          editingAppliance={editingAppliance}
+          setEditingAppliance={setEditingAppliance}
+          deletingApplianceIndex={deletingApplianceIndex}
+          setDeletingApplianceIndex={setDeletingApplianceIndex}
+          editAppliance={editAppliance}
+          deleteAppliance={deleteAppliance}
+        />
+      )}
     </div>
   );
 }

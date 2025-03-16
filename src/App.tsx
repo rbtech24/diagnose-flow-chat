@@ -78,6 +78,7 @@ const router = createBrowserRouter([
       { path: "feature-requests/:id", element: <CompanyFeatureRequestDetailPage /> },
       { path: "subscription", element: <CompanySubscription /> },
       { path: "technicians", element: <ManageTechnicians /> },
+      { path: "workflows", element: <Workflows /> }
     ]
   },
   {
@@ -93,6 +94,7 @@ const router = createBrowserRouter([
       { path: "community/:postId", element: <TechCommunityPostDetail /> },
       { path: "feature-requests", element: <TechFeatureRequests /> },
       { path: "feature-requests/:id", element: <TechFeatureRequestDetailPage /> },
+      { path: "workflows", element: <Workflows /> }
     ]
   },
   {

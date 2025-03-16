@@ -1,186 +1,95 @@
 
 import { Link, useLocation } from "react-router-dom";
+import { 
+  Home, 
+  LifeBuoy, 
+  Settings, 
+  LogOut, 
+  MessageSquare,
+  FileText,
+  Workflow
+} from "lucide-react";
+
 import {
   Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
+  SidebarMain,
+  SidebarNav,
+  SidebarNavItem,
+  SidebarFooter,
+  SidebarToggle,
+  SidebarNavGroup
 } from "@/components/ui/sidebar";
-import { 
-  LayoutDashboard, Wrench, History, Clock, Settings, UserCircle,
-  LogOut, HelpCircle, FileText, Lightbulb, Users, MessageSquare
-} from "lucide-react";
 
 export function TechSidebar() {
   const location = useLocation();
-  
+  const isActive = (path: string) => location.pathname === path;
+
   return (
-    <Sidebar className="bg-slate-900 text-white border-r border-slate-800">
-      <SidebarHeader className="border-b border-slate-800">
-        <div className="font-bold text-lg bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">Technician Portal</div>
+    <Sidebar defaultExpanded={true}>
+      <SidebarHeader className="flex items-center justify-between py-3">
+        <div className="flex items-center gap-2 px-4">
+          <span className="text-lg font-bold">Technician</span>
+        </div>
+        <SidebarToggle />
       </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-slate-400">Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/tech"} 
-                  className={location.pathname === "/tech" ? "bg-blue-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/tech">
-                    <LayoutDashboard className="mr-2 h-4 w-4 text-blue-400" />
-                    <span>Dashboard</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/tech/repairs"} 
-                  className={location.pathname === "/tech/repairs" ? "bg-blue-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/tech/repairs">
-                    <Wrench className="mr-2 h-4 w-4 text-blue-400" />
-                    <span>Active Repairs</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/tech/history"} 
-                  className={location.pathname === "/tech/history" ? "bg-blue-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/tech/history">
-                    <History className="mr-2 h-4 w-4 text-blue-400" />
-                    <span>Repair History</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/tech/schedule"} 
-                  className={location.pathname === "/tech/schedule" ? "bg-blue-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/tech/schedule">
-                    <Clock className="mr-2 h-4 w-4 text-blue-400" />
-                    <span>Schedule</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-slate-400">Resources</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname.startsWith("/tech/support")} 
-                  className={location.pathname.startsWith("/tech/support") ? "bg-blue-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/tech/support">
-                    <MessageSquare className="mr-2 h-4 w-4 text-blue-400" />
-                    <span>Support</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/tech/community"} 
-                  className={location.pathname === "/tech/community" ? "bg-blue-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/tech/community">
-                    <Users className="mr-2 h-4 w-4 text-blue-400" />
-                    <span>Community</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/tech/guides"} 
-                  className={location.pathname === "/tech/guides" ? "bg-blue-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/tech/guides">
-                    <FileText className="mr-2 h-4 w-4 text-blue-400" />
-                    <span>Repair Guides</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/tech/feature-requests"} 
-                  className={location.pathname === "/tech/feature-requests" ? "bg-blue-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/tech/feature-requests">
-                    <Lightbulb className="mr-2 h-4 w-4 text-blue-400" />
-                    <span>Feature Requests</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-slate-400">Account</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/tech/profile"} 
-                  className={location.pathname === "/tech/profile" ? "bg-blue-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/tech/profile">
-                    <UserCircle className="mr-2 h-4 w-4 text-blue-400" />
-                    <span>Profile</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  active={location.pathname === "/tech/settings"} 
-                  className={location.pathname === "/tech/settings" ? "bg-blue-800 text-white" : "hover:bg-slate-800"}
-                  asChild
-                >
-                  <Link to="/tech/settings">
-                    <Settings className="mr-2 h-4 w-4 text-blue-400" />
-                    <span>Settings</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-      <SidebarFooter className="border-t border-slate-800">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton className="text-slate-400 hover:bg-slate-800" asChild>
-              <Link to="/">
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Logout</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      
+      <SidebarMain>
+        <SidebarNav>
+          <SidebarNavGroup label="DASHBOARD">
+            <SidebarNavItem 
+              icon={<Home className="w-5 h-5" />} 
+              active={isActive("/tech/dashboard") || isActive("/tech")}
+            >
+              <Link to="/tech/dashboard" className="w-full h-full flex items-center">Dashboard</Link>
+            </SidebarNavItem>
+          </SidebarNavGroup>
+          
+          <SidebarNavGroup label="RESOURCES">
+            <SidebarNavItem 
+              icon={<Workflow className="w-5 h-5" />} 
+              active={isActive("/tech/workflows")}
+            >
+              <Link to="/tech/workflows" className="w-full h-full flex items-center">Workflows</Link>
+            </SidebarNavItem>
+
+            <SidebarNavItem 
+              icon={<MessageSquare className="w-5 h-5" />} 
+              active={isActive("/tech/community")}
+            >
+              <Link to="/tech/community" className="w-full h-full flex items-center">Community</Link>
+            </SidebarNavItem>
+            
+            <SidebarNavItem 
+              icon={<FileText className="w-5 h-5" />} 
+              active={isActive("/tech/feature-requests")}
+            >
+              <Link to="/tech/feature-requests" className="w-full h-full flex items-center">Feature Requests</Link>
+            </SidebarNavItem>
+          </SidebarNavGroup>
+
+          <SidebarNavGroup label="SUPPORT">
+            <SidebarNavItem 
+              icon={<LifeBuoy className="w-5 h-5" />} 
+              active={isActive("/tech/support")}
+            >
+              <Link to="/tech/support" className="w-full h-full flex items-center">Support</Link>
+            </SidebarNavItem>
+          </SidebarNavGroup>
+        </SidebarNav>
+      </SidebarMain>
+      
+      <SidebarFooter>
+        <div className="flex w-full items-center justify-between p-4">
+          <Link to="/tech/profile" className="flex items-center gap-2 text-sm font-medium">
+            <Settings size={20} className="text-muted-foreground" />
+            <span>Settings</span>
+          </Link>
+          <Link to="/login" className="flex items-center text-sm gap-1 text-muted-foreground hover:text-foreground transition-colors">
+            <LogOut size={18} />
+            <span>Logout</span>
+          </Link>
+        </div>
       </SidebarFooter>
     </Sidebar>
   );

@@ -2,11 +2,13 @@
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import FlowEditor from '@/components/FlowEditor';
 import NodeConfigPanel from '@/components/NodeConfigPanel';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Node } from '@xyflow/react';
 import { ReactFlowProvider } from '@xyflow/react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { useUserRole } from '@/hooks/useUserRole';
+import { toast } from '@/hooks/use-toast';
 
 export default function WorkflowEditor() {
   const [searchParams] = useSearchParams();
@@ -15,6 +17,19 @@ export default function WorkflowEditor() {
   const name = searchParams.get('name');
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [updateNodeFn, setUpdateNodeFn] = useState<((nodeId: string, newData: any) => void) | null>(null);
+  const { userRole, isLoading } = useUserRole();
+
+  useEffect(() => {
+    // Check if user has admin permissions
+    if (!isLoading && userRole !== 'admin') {
+      toast({
+        title: "Access Denied",
+        description: "Only administrators can edit workflows.",
+        variant: "destructive"
+      });
+      navigate('/workflows');
+    }
+  }, [userRole, isLoading, navigate]);
 
   const handleNodeSelect = useCallback((node: Node, updateNode: (nodeId: string, newData: any) => void) => {
     console.log('WorkflowEditor handleNodeSelect:', node);
@@ -29,9 +44,17 @@ export default function WorkflowEditor() {
     }
   }, [selectedNode, updateNodeFn]);
 
-  const handleBackToAdmin = () => {
-    navigate('/admin');
+  const handleBackToDashboard = () => {
+    if (userRole === 'admin') {
+      navigate('/admin');
+    } else {
+      navigate('/workflows');
+    }
   };
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
 
   return (
     <ReactFlowProvider>
@@ -41,10 +64,10 @@ export default function WorkflowEditor() {
             variant="outline" 
             size="sm" 
             className="flex items-center text-slate-600 hover:text-slate-900"
-            onClick={handleBackToAdmin}
+            onClick={handleBackToDashboard}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Admin Dashboard
+            Back to Dashboard
           </Button>
           <div className="ml-4 text-sm text-slate-500">
             {folder && `Editing: ${folder}${name ? ` / ${name}` : ''}`}

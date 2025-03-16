@@ -1,26 +1,19 @@
-import { Link } from 'react-router-dom';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
-import { Plus } from 'lucide-react';
+import { Plus, Search, Settings } from 'lucide-react';
 import { AddApplianceDialog } from '@/components/appliance/AddApplianceDialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { useState } from 'react';
 
 interface WorkflowHeaderProps {
   searchTerm: string;
-  onSearchChange: (value: string) => void;
+  onSearchChange: (term: string) => void;
   selectedFolder: string;
   onFolderChange: (folder: string) => void;
   folders: string[];
   isReordering: boolean;
-  onReorderingChange: (value: boolean) => void;
-  onAddAppliance: (name: string) => void;
+  onReorderingChange?: (reordering: boolean) => void;
+  onAddAppliance?: (name: string) => void;
 }
 
 export function WorkflowHeader({
@@ -31,51 +24,80 @@ export function WorkflowHeader({
   folders,
   isReordering,
   onReorderingChange,
-  onAddAppliance,
+  onAddAppliance
 }: WorkflowHeaderProps) {
+  const [isAddApplianceOpen, setIsAddApplianceOpen] = useState(false);
+
   return (
-    <div className="flex items-center justify-between mb-6">
-      <div className="flex items-center gap-4">
-        <h1 className="text-2xl font-bold text-[#14162F]">Appliances</h1>
+    <div className="space-y-4">
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Workflows</h1>
+          <p className="text-muted-foreground">
+            {onReorderingChange 
+              ? "Manage and organize diagnostic workflows for your appliances" 
+              : "View diagnostic workflows for appliances"}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search..." 
+              className="pl-8 min-w-[250px]"
+              value={searchTerm}
+              onChange={(e) => onSearchChange(e.target.value)}
+            />
+          </div>
+          
+          {onAddAppliance && (
+            <Button onClick={() => setIsAddApplianceOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Appliance
+            </Button>
+          )}
+          
+          {onReorderingChange && (
+            <Button 
+              variant={isReordering ? "default" : "outline"} 
+              onClick={() => onReorderingChange(!isReordering)}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              {isReordering ? "Done Reordering" : "Reorder"}
+            </Button>
+          )}
+        </div>
       </div>
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <Input
-            placeholder="Search appliances and workflows..."
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="w-64"
-          />
-          <Select
-            value={selectedFolder || "all_folders"}
-            onValueChange={(value) => onFolderChange(value === "all_folders" ? "" : value)}
-          >
-            <SelectTrigger className="w-[180px] bg-white">
-              <SelectValue placeholder="All Folders" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all_folders">All Folders</SelectItem>
-              {folders.map((folder) => (
-                <SelectItem key={folder} value={folder}>
-                  {folder}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Re-arrange:</span>
-          <Switch checked={isReordering} onCheckedChange={onReorderingChange} />
-          <span className="text-sm font-medium">{isReordering ? 'ON' : 'OFF'}</span>
-        </div>
-        <Button className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white gap-2" asChild>
-          <Link to="/workflow-editor?new=true">
-            <Plus className="h-4 w-4" />
-            New Workflow
-          </Link>
+
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant={selectedFolder === "" ? "default" : "outline"}
+          size="sm"
+          onClick={() => onFolderChange("")}
+        >
+          All
         </Button>
-        <AddApplianceDialog onSave={onAddAppliance} />
+        
+        {folders.map((folder) => (
+          <Button
+            key={folder}
+            variant={selectedFolder === folder ? "default" : "outline"}
+            size="sm"
+            onClick={() => onFolderChange(folder)}
+          >
+            {folder}
+          </Button>
+        ))}
       </div>
+      
+      {onAddAppliance && (
+        <AddApplianceDialog
+          isOpen={isAddApplianceOpen}
+          onClose={() => setIsAddApplianceOpen(false)}
+          onAddAppliance={onAddAppliance}
+        />
+      )}
     </div>
   );
 }

@@ -1,7 +1,15 @@
 
 import { Link, useLocation } from "react-router-dom";
-import {
-  Home, MessageSquare, FileText, LifeBuoy, Settings, LogOut, CreditCard, UserCog
+import { 
+  Home, 
+  Users, 
+  LifeBuoy, 
+  Settings, 
+  LogOut, 
+  CreditCard,
+  MessageSquare,
+  FileText,
+  Workflow
 } from "lucide-react";
 
 import {
@@ -21,66 +29,75 @@ export function CompanySidebar() {
 
   return (
     <Sidebar defaultExpanded={true}>
-      <SidebarHeader className="flex items-center justify-between">
+      <SidebarHeader className="flex items-center justify-between py-3">
         <div className="flex items-center gap-2 px-4">
-          <span className="text-lg font-semibold">Company</span>
+          <span className="text-lg font-bold">Company</span>
         </div>
         <SidebarToggle />
       </SidebarHeader>
       
       <SidebarMain>
         <SidebarNav>
-          <SidebarNavGroup label="Dashboard">
+          <SidebarNavGroup label="DASHBOARD">
             <SidebarNavItem 
-              icon={<Home />} 
-              active={isActive("/company/dashboard")}
+              icon={<Home className="w-5 h-5" />} 
+              active={isActive("/company/dashboard") || isActive("/company")}
             >
               <Link to="/company/dashboard" className="w-full h-full flex items-center">Dashboard</Link>
             </SidebarNavItem>
-            
-            <SidebarNavItem 
-              icon={<UserCog />} 
-              active={isActive("/company/technicians")}
-            >
-              <Link to="/company/technicians" className="w-full h-full flex items-center">Manage Technicians</Link>
-            </SidebarNavItem>
-            
-            <SidebarNavItem 
-              icon={<CreditCard />} 
-              active={isActive("/company/subscription")}
-            >
-              <Link to="/company/subscription" className="w-full h-full flex items-center">Subscription</Link>
-            </SidebarNavItem>
           </SidebarNavGroup>
-
-          <SidebarNavGroup label="Community">
+          
+          <SidebarNavGroup label="RESOURCES">
             <SidebarNavItem 
-              icon={<MessageSquare />} 
+              icon={<Workflow className="w-5 h-5" />} 
+              active={isActive("/company/workflows")}
+            >
+              <Link to="/company/workflows" className="w-full h-full flex items-center">Workflows</Link>
+            </SidebarNavItem>
+
+            <SidebarNavItem 
+              icon={<MessageSquare className="w-5 h-5" />} 
               active={isActive("/company/community")}
             >
-              <Link to="/company/community" className="w-full h-full flex items-center">Forums</Link>
+              <Link to="/company/community" className="w-full h-full flex items-center">Community</Link>
             </SidebarNavItem>
             
             <SidebarNavItem 
-              icon={<FileText />} 
+              icon={<FileText className="w-5 h-5" />} 
               active={isActive("/company/feature-requests")}
             >
               <Link to="/company/feature-requests" className="w-full h-full flex items-center">Feature Requests</Link>
             </SidebarNavItem>
           </SidebarNavGroup>
 
-          <SidebarNavGroup label="Support">
+          <SidebarNavGroup label="MANAGEMENT">
             <SidebarNavItem 
-              icon={<LifeBuoy />} 
+              icon={<Users className="w-5 h-5" />} 
+              active={isActive("/company/technicians")}
+            >
+              <Link to="/company/technicians" className="w-full h-full flex items-center">Technicians</Link>
+            </SidebarNavItem>
+            
+            <SidebarNavItem 
+              icon={<CreditCard className="w-5 h-5" />} 
+              active={isActive("/company/subscription")}
+            >
+              <Link to="/company/subscription" className="w-full h-full flex items-center">Subscription</Link>
+            </SidebarNavItem>
+          </SidebarNavGroup>
+
+          <SidebarNavGroup label="SUPPORT">
+            <SidebarNavItem 
+              icon={<LifeBuoy className="w-5 h-5" />} 
               active={isActive("/company/support")}
             >
-              <Link to="/company/support" className="w-full h-full flex items-center">Support Tickets</Link>
+              <Link to="/company/support" className="w-full h-full flex items-center">Support</Link>
             </SidebarNavItem>
           </SidebarNavGroup>
         </SidebarNav>
       </SidebarMain>
       
-      <SidebarFooter className="border-t">
+      <SidebarFooter>
         <div className="flex w-full items-center justify-between p-4">
           <Link to="/company/profile" className="flex items-center gap-2 text-sm font-medium">
             <Settings size={20} className="text-muted-foreground" />
