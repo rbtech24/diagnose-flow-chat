@@ -7,9 +7,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Wrench, Building2, History, Award, BarChart, Phone, BookOpen } from "lucide-react";
+import { 
+  Wrench, 
+  Building2, 
+  History, 
+  Award, 
+  BarChart, 
+  Phone, 
+  BookOpen,
+  Upload,
+  Trash2,
+  Moon,
+  Bell
+} from "lucide-react";
 import { PerformanceMetrics } from "@/components/tech/PerformanceMetrics";
 import { ServiceHistory } from "@/components/tech/ServiceHistory";
+import { ProfileImageUpload } from "@/components/profile/ProfileImageUpload";
+import { AccountDeletion } from "@/components/profile/AccountDeletion";
+import { ThemePreferences } from "@/components/profile/ThemePreferences";
+import { NotificationSettings } from "@/components/profile/NotificationSettings";
 
 export default function TechProfile() {
   // Mock technician data - would typically come from API/context
@@ -25,7 +41,8 @@ export default function TechProfile() {
     completedRepairs: 248,
     rating: 4.8,
     assignedToCompany: true,
-    yearsExperience: 7
+    yearsExperience: 7,
+    avatarUrl: "" // Will be populated by the image upload component
   });
 
   const handleProfileUpdate = (values: any) => {
@@ -154,6 +171,14 @@ export default function TechProfile() {
       content: <ProfileForm defaultValues={techData} onSubmit={handleProfileUpdate} title="Technician Profile" description="Update your technician profile information." />
     },
     {
+      id: "avatar",
+      label: "Profile Image",
+      content: <ProfileImageUpload 
+        currentImageUrl={techData.avatarUrl} 
+        onImageUpdate={(url) => handleProfileUpdate({avatarUrl: url})} 
+      />
+    },
+    {
       id: "skills",
       label: "Skills & Company",
       content: (
@@ -189,9 +214,24 @@ export default function TechProfile() {
       content: contactCard
     },
     {
+      id: "theme",
+      label: "Theme",
+      content: <ThemePreferences />
+    },
+    {
+      id: "notifications",
+      label: "Notifications",
+      content: <NotificationSettings />
+    },
+    {
       id: "security",
       label: "Security",
       content: <PasswordForm />
+    },
+    {
+      id: "account",
+      label: "Account",
+      content: <AccountDeletion />
     },
   ];
 
@@ -200,6 +240,7 @@ export default function TechProfile() {
       name={techData.name}
       email={techData.email}
       role={techData.role}
+      avatarUrl={techData.avatarUrl}
       tabs={tabs}
     />
   );
