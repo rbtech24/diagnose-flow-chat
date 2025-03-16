@@ -8,28 +8,49 @@ import { ReactFlowProvider } from '@xyflow/react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useUserRole } from '@/hooks/useUserRole';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/context/AuthContext';
 
 export default function WorkflowEditor() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const folder = searchParams.get('folder');
   const name = searchParams.get('name');
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [updateNodeFn, setUpdateNodeFn] = useState<((nodeId: string, newData: any) => void) | null>(null);
   const { userRole, isLoading } = useUserRole();
+  const { checkWorkflowAccess } = useAuth();
 
   useEffect(() => {
     // Check if user has admin permissions
-    if (!isLoading && userRole !== 'admin') {
-      toast({
-        title: "Access Denied",
-        description: "Only administrators can edit workflows.",
-        variant: "destructive"
-      });
-      navigate('/admin/workflows');
+    if (!isLoading) {
+      if (userRole !== 'admin') {
+        toast({
+          title: "Access Denied",
+          description: "Only administrators can edit workflows.",
+          variant: "destructive"
+        });
+        navigate('/admin/workflows');
+        return;
+      }
+      
+      // For existing workflows, check licensing
+      if (folder && name) {
+        const workflowId = `${folder}-${name}`;
+        const accessStatus = checkWorkflowAccess(workflowId);
+        
+        if (!accessStatus.hasAccess) {
+          toast({
+            title: "License Issue",
+            description: accessStatus.message || "Your license doesn't allow editing this workflow.",
+            variant: "destructive"
+          });
+          navigate('/admin/workflows');
+        }
+      }
     }
-  }, [userRole, isLoading, navigate]);
+  }, [userRole, isLoading, navigate, folder, name, toast, checkWorkflowAccess]);
 
   const handleNodeSelect = useCallback((node: Node, updateNode: (nodeId: string, newData: any) => void) => {
     console.log('WorkflowEditor handleNodeSelect:', node);

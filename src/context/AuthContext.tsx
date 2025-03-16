@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User } from "@/types/user";
 import { useUserManagementStore } from "@/store/userManagementStore";
@@ -9,7 +8,9 @@ import {
   updateLastActivity, 
   hasSessionTimedOut, 
   registerSession,
-  verifyLicense
+  verifyLicense,
+  trackWorkflowUsage,
+  getWorkflowUsageStats
 } from "@/utils/auth";
 
 interface AuthContextType {
@@ -19,6 +20,8 @@ interface AuthContextType {
   logout: () => Promise<void>;
   signup: (userData: any) => Promise<boolean>;
   resetPassword: (email: string) => Promise<boolean>;
+  checkWorkflowAccess: (workflowId: string) => { hasAccess: boolean, message?: string };
+  workflowUsageStats: () => any;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -91,6 +94,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [user, toast]);
 
+  // License verification check on interval
+  useEffect(() => {
+    if (!user) return;
+    
+    // Check license status every 30 minutes
+    const checkLicenseInterval = setInterval(() => {
+      const licenseStatus = verifyLicense(user);
+      
+      if (!licenseStatus.valid) {
+        toast({
+          title: "License issue detected",
+          description: licenseStatus.message || "Your license is no longer valid.",
+          variant: "destructive",
+        });
+        logout();
+      }
+    }, 30 * 60 * 1000); // Check every 30 minutes
+    
+    return () => {
+      clearInterval(checkLicenseInterval);
+    };
+  }, [user, toast]);
+
   useEffect(() => {
     // Check if user is logged in from localStorage
     const checkAuth = async () => {
@@ -101,7 +127,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const parsedUser = JSON.parse(storedUser);
           
           // Verify license before setting user
-          if (verifyLicense(parsedUser)) {
+          const licenseStatus = verifyLicense(parsedUser);
+          if (licenseStatus.valid) {
             setUser(parsedUser);
             // Set up session tracking
             const storedSessionId = localStorage.getItem('session_id');
@@ -115,8 +142,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // License is invalid, log user out
             localStorage.removeItem("currentUser");
             toast({
-              title: "License expired",
-              description: "Your subscription has expired. Please contact support.",
+              title: "License issue",
+              description: licenseStatus.message || "Your subscription has expired. Please contact support.",
               variant: "destructive",
             });
           }
@@ -131,6 +158,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     checkAuth();
   }, [toast]);
+
+  // Function to check if user has access to a specific workflow
+  const checkWorkflowAccess = (workflowId: string) => {
+    if (!user) {
+      return { hasAccess: false, message: "You must be logged in to access workflows" };
+    }
+    
+    // Verify license
+    const licenseStatus = verifyLicense(user);
+    if (!licenseStatus.valid) {
+      return { hasAccess: false, message: licenseStatus.message };
+    }
+    
+    // Track workflow usage and check against limits
+    const withinLimits = trackWorkflowUsage(workflowId);
+    if (!withinLimits) {
+      return { 
+        hasAccess: false, 
+        message: "You've reached your daily workflow usage limit. Please try again tomorrow or upgrade your plan."
+      };
+    }
+    
+    return { hasAccess: true };
+  };
+
+  // Get workflow usage statistics
+  const workflowUsageStats = () => {
+    return getWorkflowUsageStats();
+  };
 
   const login = async (email: string, password: string, userRole: "admin" | "company" | "tech") => {
     // In a real app, this would authenticate with a backend
@@ -250,6 +306,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     signup,
     resetPassword,
+    checkWorkflowAccess,
+    workflowUsageStats,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

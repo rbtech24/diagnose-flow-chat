@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { User, UserWithPassword } from "@/types/user";
 import { useUserManagementStore } from "@/store/userManagementStore";
@@ -7,6 +6,7 @@ import { useUserManagementStore } from "@/store/userManagementStore";
 const SESSION_ID_KEY = 'session_id';
 const LAST_ACTIVITY_KEY = 'last_activity';
 const SESSION_TIMEOUT_MS = 4 * 60 * 60 * 1000; // 4 hours in milliseconds
+const WORKFLOW_USAGE_KEY = 'workflow_usage';
 
 /**
  * Generate a unique session ID
@@ -59,30 +59,138 @@ export function registerSession(): string {
 }
 
 /**
- * Check if current license is valid
- * @param user The current user
- * @returns Boolean indicating if license is valid
+ * Track workflow usage for license limits
+ * @param workflowId The ID of the workflow being used
+ * @returns Boolean indicating if user has reached their limit
  */
-export function verifyLicense(user: User | null): boolean {
-  if (!user) return false;
+export function trackWorkflowUsage(workflowId: string): boolean {
+  // Get today's date in YYYY-MM-DD format for daily tracking
+  const today = new Date().toISOString().split('T')[0];
+  
+  // Get or initialize usage data
+  const usageData = JSON.parse(localStorage.getItem(WORKFLOW_USAGE_KEY) || '{}');
+  if (!usageData[today]) {
+    usageData[today] = {
+      count: 0,
+      workflows: []
+    };
+  }
+  
+  // Check if this workflow was already used today (to prevent double-counting)
+  if (!usageData[today].workflows.includes(workflowId)) {
+    usageData[today].count += 1;
+    usageData[today].workflows.push(workflowId);
+  }
+  
+  // Save updated usage data
+  localStorage.setItem(WORKFLOW_USAGE_KEY, JSON.stringify(usageData));
+  
+  // Get user's license info from localStorage
+  const user = JSON.parse(localStorage.getItem("currentUser") || "null");
+  if (!user) return true; // If no user, allow access (will be caught elsewhere)
+  
+  // Check against daily limits based on subscription plan
+  if (user.role === 'tech' || user.role === 'company') {
+    // This is where you'd check against the user's plan limit
+    // For demo purposes, we'll use a hardcoded limit of 20
+    const dailyLimit = 20;
+    return usageData[today].count <= dailyLimit;
+  }
+  
+  // Admin users have unlimited access
+  return true;
+}
+
+/**
+ * Get workflow usage data
+ * @returns Object with usage statistics
+ */
+export function getWorkflowUsageStats() {
+  const usageData = JSON.parse(localStorage.getItem(WORKFLOW_USAGE_KEY) || '{}');
+  const today = new Date().toISOString().split('T')[0];
+  
+  // Calculate weekly and monthly totals
+  const dates = Object.keys(usageData).sort();
+  const todayCount = (usageData[today]?.count || 0);
+  
+  // Get date from 7 days ago
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+  const weekAgoStr = weekAgo.toISOString().split('T')[0];
+  
+  // Get date from 30 days ago
+  const monthAgo = new Date();
+  monthAgo.setDate(monthAgo.getDate() - 30);
+  const monthAgoStr = monthAgo.toISOString().split('T')[0];
+  
+  // Calculate totals
+  let weeklyTotal = 0;
+  let monthlyTotal = 0;
+  
+  dates.forEach(date => {
+    if (date >= weekAgoStr) {
+      weeklyTotal += usageData[date].count;
+    }
+    if (date >= monthAgoStr) {
+      monthlyTotal += usageData[date].count;
+    }
+  });
+  
+  return {
+    today: todayCount,
+    weekly: weeklyTotal,
+    monthly: monthlyTotal,
+    allData: usageData
+  };
+}
+
+/**
+ * Check if current license is valid with enhanced verification
+ * @param user The current user
+ * @returns Object with status and message
+ */
+export function verifyLicense(user: User | null): {valid: boolean, message?: string} {
+  if (!user) return { valid: false, message: "No user provided" };
+  
+  // For admin users, license is always valid
+  if (user.role === 'admin') {
+    return { valid: true };
+  }
   
   // For company and tech users, check subscription status
   if (user.role === 'company' || user.role === 'tech') {
     // If status is not active or trial, license is invalid
     if (user.subscriptionStatus !== 'active' && user.subscriptionStatus !== 'trial') {
-      return false;
+      return { 
+        valid: false, 
+        message: `Your subscription is ${user.subscriptionStatus}. Please contact support.`
+      };
     }
     
     // If trial has ended, license is invalid
     if (user.subscriptionStatus === 'trial' && user.trialEndsAt) {
       const trialEndDate = new Date(user.trialEndsAt);
       if (trialEndDate < new Date()) {
-        return false;
+        return { 
+          valid: false, 
+          message: `Your trial period has ended on ${trialEndDate.toLocaleDateString()}. Please upgrade your subscription.`
+        };
       }
+    }
+    
+    // Check if user has exceeded workflow usage limits
+    const usage = getWorkflowUsageStats();
+    const dailyLimit = 20; // This would come from the user's plan in a real implementation
+    
+    if (usage.today >= dailyLimit) {
+      return {
+        valid: false,
+        message: `You've reached your daily workflow usage limit (${usage.today}/${dailyLimit}). Please try again tomorrow or upgrade your plan.`
+      };
     }
   }
   
-  return true;
+  return { valid: true };
 }
 
 /**
