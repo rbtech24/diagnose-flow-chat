@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -311,29 +312,29 @@ export default function Index() {
               <h3 className="font-medium mb-4">Product</h3>
               <ul className="space-y-2 text-sm text-gray-600">
                 <li><a href="#features" className="hover:text-blue-600">Features</a></li>
-                <li><a href="#" className="hover:text-blue-600">Case Studies</a></li>
-                <li><a href="#" className="hover:text-blue-600">Reviews</a></li>
-                <li><a href="#" className="hover:text-blue-600">Updates</a></li>
+                <li><Link to="/case-studies" className="hover:text-blue-600">Case Studies</Link></li>
+                <li><a href="#testimonials" className="hover:text-blue-600">Reviews</a></li>
+                <li><Link to="/updates" className="hover:text-blue-600">Updates</Link></li>
               </ul>
             </div>
             
             <div>
               <h3 className="font-medium mb-4">Company</h3>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li><a href="#" className="hover:text-blue-600">About</a></li>
-                <li><a href="#" className="hover:text-blue-600">Careers</a></li>
-                <li><a href="#" className="hover:text-blue-600">Contact</a></li>
-                <li><a href="#" className="hover:text-blue-600">Partners</a></li>
+                <li><Link to="/about" className="hover:text-blue-600">About</Link></li>
+                <li><Link to="/careers" className="hover:text-blue-600">Careers</Link></li>
+                <li><Link to="/contact" className="hover:text-blue-600">Contact</Link></li>
+                <li><Link to="/partners" className="hover:text-blue-600">Partners</Link></li>
               </ul>
             </div>
             
             <div>
               <h3 className="font-medium mb-4">Support</h3>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li><a href="#" className="hover:text-blue-600">Help Center</a></li>
-                <li><a href="#" className="hover:text-blue-600">Community</a></li>
-                <li><a href="#" className="hover:text-blue-600">Status</a></li>
-                <li><a href="#" className="hover:text-blue-600">Get Started</a></li>
+                <li><Link to="/help-center" className="hover:text-blue-600">Help Center</Link></li>
+                <li><Link to="/community-forum" className="hover:text-blue-600">Community</Link></li>
+                <li><Link to="/status" className="hover:text-blue-600">Status</Link></li>
+                <li><Link to="/get-started" className="hover:text-blue-600">Get Started</Link></li>
               </ul>
             </div>
           </div>
