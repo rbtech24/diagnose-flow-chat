@@ -65,25 +65,6 @@ export default function About() {
             <li><strong>Collaboration:</strong> We work closely with our customers to develop solutions that meet their needs.</li>
             <li><strong>Integrity:</strong> We conduct our business with honesty and transparency.</li>
           </ul>
-          
-          <h3 className="text-xl font-semibold mb-4">Leadership Team</h3>
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 my-8">
-            <div className="text-center">
-              <div className="w-32 h-32 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center text-gray-500 text-3xl">JD</div>
-              <h4 className="font-semibold">John Doe</h4>
-              <p className="text-gray-600">CEO & Co-Founder</p>
-            </div>
-            <div className="text-center">
-              <div className="w-32 h-32 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center text-gray-500 text-3xl">JS</div>
-              <h4 className="font-semibold">Jane Smith</h4>
-              <p className="text-gray-600">CTO & Co-Founder</p>
-            </div>
-            <div className="text-center">
-              <div className="w-32 h-32 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center text-gray-500 text-3xl">RB</div>
-              <h4 className="font-semibold">Robert Brown</h4>
-              <p className="text-gray-600">Head of Product</p>
-            </div>
-          </div>
         </div>
         
         <div className="bg-blue-50 rounded-lg p-8 my-12">
