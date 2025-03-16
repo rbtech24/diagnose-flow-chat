@@ -7,7 +7,8 @@ import {
   MessageCircle, 
   Lightbulb, 
   HelpCircle,
-  Book
+  Book,
+  Calendar
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -28,6 +29,12 @@ export function CompanySidebar() {
       icon: <Users className="h-5 w-5" />,
       href: "/company/technicians",
       active: currentPath === "/company/technicians"
+    },
+    {
+      title: "Appointments",
+      icon: <Calendar className="h-5 w-5" />,
+      href: "/company/appointments",
+      active: currentPath === "/company/appointments"
     },
     {
       title: "Knowledge Base",

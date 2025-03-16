@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { 
   Clock, CheckCircle, AlertTriangle, Search,
   Timer, Wrench, Percent, MessagesSquare, 
-  ArrowUp, PlusCircle, Database
+  ArrowUp, PlusCircle, Database, Tag
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -36,7 +37,10 @@ export default function TechnicianDashboard() {
       isCurrent: true,
       title: "Refrigerator Not Cooling",
       customer: "Sarah Johnson",
-      address: "123 Main St"
+      address: "123 Main St",
+      modelName: "WhirlFrost XL",
+      modelNumber: "WF-2023-XL",
+      symptom: "Not cooling properly"
     },
     {
       id: "2",
@@ -44,7 +48,10 @@ export default function TechnicianDashboard() {
       isCurrent: false,
       title: "Dryer Not Heating",
       customer: "Mike Williams",
-      address: "456 Oak Dr"
+      address: "456 Oak Dr",
+      modelName: "DryMaster Pro",
+      modelNumber: "DMP-500",
+      symptom: "No heat"
     }
   ]);
 
@@ -53,7 +60,10 @@ export default function TechnicianDashboard() {
     title: "",
     time: "",
     customer: "",
-    address: ""
+    address: "",
+    modelName: "",
+    modelNumber: "",
+    symptom: ""
   });
 
   // Handle adding a new appointment
@@ -69,7 +79,10 @@ export default function TechnicianDashboard() {
       isCurrent: false,
       title: newAppointment.title,
       customer: newAppointment.customer,
-      address: newAppointment.address || "No address provided"
+      address: newAppointment.address || "No address provided",
+      modelName: newAppointment.modelName || "Not specified",
+      modelNumber: newAppointment.modelNumber || "Not specified",
+      symptom: newAppointment.symptom || "Not specified"
     };
 
     setAppointments([...appointments, appointment]);
@@ -77,7 +90,10 @@ export default function TechnicianDashboard() {
       title: "",
       time: "",
       customer: "",
-      address: ""
+      address: "",
+      modelName: "",
+      modelNumber: "",
+      symptom: ""
     });
 
     toast.success("Appointment added successfully");
@@ -229,7 +245,7 @@ export default function TechnicianDashboard() {
                   Add Appointment
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-md">
                 <DialogHeader>
                   <DialogTitle>Add New Appointment</DialogTitle>
                 </DialogHeader>
@@ -274,6 +290,38 @@ export default function TechnicianDashboard() {
                       onChange={(e) => setNewAppointment({...newAppointment, address: e.target.value})}
                     />
                   </div>
+                  
+                  {/* New Model and Symptom fields */}
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <label htmlFor="model-name" className="text-right">Model Name</label>
+                    <Input 
+                      id="model-name" 
+                      placeholder="e.g. WhirlFrost XL" 
+                      className="col-span-3"
+                      value={newAppointment.modelName}
+                      onChange={(e) => setNewAppointment({...newAppointment, modelName: e.target.value})}
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <label htmlFor="model-number" className="text-right">Model Number</label>
+                    <Input 
+                      id="model-number" 
+                      placeholder="e.g. WF-2023-XL" 
+                      className="col-span-3"
+                      value={newAppointment.modelNumber}
+                      onChange={(e) => setNewAppointment({...newAppointment, modelNumber: e.target.value})}
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <label htmlFor="symptom" className="text-right">Symptom</label>
+                    <Input 
+                      id="symptom" 
+                      placeholder="e.g. Not cooling properly" 
+                      className="col-span-3"
+                      value={newAppointment.symptom}
+                      onChange={(e) => setNewAppointment({...newAppointment, symptom: e.target.value})}
+                    />
+                  </div>
                 </div>
                 <div className="flex justify-end">
                   <Button onClick={handleAddAppointment}>Add Appointment</Button>
@@ -304,6 +352,22 @@ export default function TechnicianDashboard() {
                       </div>
                       <h3 className="text-lg font-bold mt-1">{appointment.title}</h3>
                       <p className="text-sm text-gray-600 mt-1">{appointment.customer} • {appointment.address}</p>
+                      
+                      {/* Display model and symptom details */}
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <span className="inline-flex items-center text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
+                          <Tag className="h-3 w-3 mr-1" />
+                          {appointment.modelName}
+                        </span>
+                        <span className="inline-flex items-center text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded">
+                          <Tag className="h-3 w-3 mr-1" />
+                          {appointment.modelNumber}
+                        </span>
+                        <span className="inline-flex items-center text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded">
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          {appointment.symptom}
+                        </span>
+                      </div>
                     </div>
                     <Button size="sm" variant={appointment.isCurrent ? "default" : "outline"}>
                       View Details
