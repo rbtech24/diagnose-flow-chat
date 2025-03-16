@@ -2,7 +2,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { SubscriptionPlan, License } from '@/types/subscription';
-import { mockSubscriptionPlans, mockLicenses } from '@/data/mockSubscriptions';
 
 interface SubscriptionState {
   plans: SubscriptionPlan[];
@@ -19,8 +18,8 @@ interface SubscriptionState {
 export const useSubscriptionStore = create<SubscriptionState>()(
   persist(
     (set, get) => ({
-      plans: mockSubscriptionPlans,
-      licenses: mockLicenses,
+      plans: [],
+      licenses: [],
       
       addPlan: (plan: SubscriptionPlan) => 
         set((state) => ({ plans: [...state.plans, plan] })),
