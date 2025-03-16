@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -342,13 +341,6 @@ export default function TechnicianDashboard() {
             </div>
           </CardContent>
         </Card>
-      </div>
-      
-      {/* Floating AI Assistant Button */}
-      <div className="fixed bottom-8 right-8">
-        <Button size="lg" className="h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg">
-          <MessagesSquare className="h-6 w-6" />
-        </Button>
       </div>
     </div>
   );
