@@ -266,12 +266,6 @@ export default function CompanyDashboard() {
           </div>
         </CardContent>
       </Card>
-      
-      <div className="fixed bottom-8 right-8">
-        <Button size="lg" className="h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg">
-          <MessagesSquare className="h-6 w-6" />
-        </Button>
-      </div>
     </div>
   );
 }
