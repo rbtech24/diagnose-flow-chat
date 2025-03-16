@@ -1,10 +1,18 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, CheckCircle, Wrench, Building2, Workflow, BarChart, ShieldCheck, Gauge, Clock } from "lucide-react";
+import { useEffect } from "react";
 
 export default function Index() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo(0, 0);
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <header className="sticky top-0 z-10 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
@@ -20,18 +28,18 @@ export default function Index() {
             <a href="#features" className="text-sm font-medium hover:text-blue-600">Features</a>
             <a href="#testimonials" className="text-sm font-medium hover:text-blue-600">Testimonials</a>
             <Button asChild variant="outline">
-              <Link to="/login">
+              <Link to="/login" onClick={scrollToTop}>
                 Login
               </Link>
             </Button>
             <Button asChild className="bg-blue-600 hover:bg-blue-700">
-              <Link to="/signup">
+              <Link to="/signup" onClick={scrollToTop}>
                 Get Started
               </Link>
             </Button>
           </nav>
           <Button asChild variant="outline" className="md:hidden">
-            <Link to="/login">
+            <Link to="/login" onClick={scrollToTop}>
               Login
             </Link>
           </Button>
@@ -51,7 +59,7 @@ export default function Index() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
-                    <Link to="/signup">
+                    <Link to="/signup" onClick={scrollToTop}>
                       Start Free Trial <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
@@ -264,7 +272,7 @@ export default function Index() {
             <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Repair Service?</h2>
             <p className="max-w-2xl mx-auto mb-8">Join the hundreds of appliance repair companies already using Repair Auto Pilot to streamline their operations.</p>
             <Button asChild size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
-              <Link to="/signup">
+              <Link to="/signup" onClick={scrollToTop}>
                 Start Your Free Trial
               </Link>
             </Button>
@@ -312,29 +320,29 @@ export default function Index() {
               <h3 className="font-medium mb-4">Product</h3>
               <ul className="space-y-2 text-sm text-gray-600">
                 <li><a href="#features" className="hover:text-blue-600">Features</a></li>
-                <li><Link to="/case-studies" className="hover:text-blue-600">Case Studies</Link></li>
+                <li><Link to="/case-studies" onClick={scrollToTop} className="hover:text-blue-600">Case Studies</Link></li>
                 <li><a href="#testimonials" className="hover:text-blue-600">Reviews</a></li>
-                <li><Link to="/updates" className="hover:text-blue-600">Updates</Link></li>
+                <li><Link to="/updates" onClick={scrollToTop} className="hover:text-blue-600">Updates</Link></li>
               </ul>
             </div>
             
             <div>
               <h3 className="font-medium mb-4">Company</h3>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li><Link to="/about" className="hover:text-blue-600">About</Link></li>
-                <li><Link to="/careers" className="hover:text-blue-600">Careers</Link></li>
-                <li><Link to="/contact" className="hover:text-blue-600">Contact</Link></li>
-                <li><Link to="/partners" className="hover:text-blue-600">Partners</Link></li>
+                <li><Link to="/about" onClick={scrollToTop} className="hover:text-blue-600">About</Link></li>
+                <li><Link to="/careers" onClick={scrollToTop} className="hover:text-blue-600">Careers</Link></li>
+                <li><Link to="/contact" onClick={scrollToTop} className="hover:text-blue-600">Contact</Link></li>
+                <li><Link to="/partners" onClick={scrollToTop} className="hover:text-blue-600">Partners</Link></li>
               </ul>
             </div>
             
             <div>
               <h3 className="font-medium mb-4">Support</h3>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li><Link to="/help-center" className="hover:text-blue-600">Help Center</Link></li>
-                <li><Link to="/community-forum" className="hover:text-blue-600">Community</Link></li>
-                <li><Link to="/status" className="hover:text-blue-600">Status</Link></li>
-                <li><Link to="/get-started" className="hover:text-blue-600">Get Started</Link></li>
+                <li><Link to="/help-center" onClick={scrollToTop} className="hover:text-blue-600">Help Center</Link></li>
+                <li><Link to="/community-forum" onClick={scrollToTop} className="hover:text-blue-600">Community</Link></li>
+                <li><Link to="/status" onClick={scrollToTop} className="hover:text-blue-600">Status</Link></li>
+                <li><Link to="/get-started" onClick={scrollToTop} className="hover:text-blue-600">Get Started</Link></li>
               </ul>
             </div>
           </div>
@@ -342,9 +350,9 @@ export default function Index() {
           <div className="border-t mt-12 pt-8 text-center">
             <p className="text-sm text-gray-500">© 2023 Repair Auto Pilot. All rights reserved.</p>
             <div className="flex justify-center gap-4 mt-4">
-              <Link to="/terms-of-use" className="text-sm text-gray-500 hover:text-blue-600">Terms of Use</Link>
+              <Link to="/terms-of-use" onClick={scrollToTop} className="text-sm text-gray-500 hover:text-blue-600">Terms of Use</Link>
               <span className="text-gray-400">|</span>
-              <Link to="/privacy-policy" className="text-sm text-gray-500 hover:text-blue-600">Privacy Policy</Link>
+              <Link to="/privacy-policy" onClick={scrollToTop} className="text-sm text-gray-500 hover:text-blue-600">Privacy Policy</Link>
             </div>
           </div>
         </div>
