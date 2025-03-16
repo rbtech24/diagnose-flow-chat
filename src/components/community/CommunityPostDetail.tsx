@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { CommunityPost, CommunityComment, Attachment } from '@/types/community';
+import { CommunityPost, CommunityPostComment } from '@/types/community';
 
 interface CommunityPostDetailProps {
   post: CommunityPost;
@@ -132,15 +132,15 @@ export function CommunityPostDetail({
                 {post.attachments.map((attachment) => (
                   <a 
                     key={attachment.id}
-                    href={attachment.fileUrl}
+                    href={attachment.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center p-2 border rounded-md hover:bg-gray-50"
                   >
                     <PaperclipIcon className="h-4 w-4 mr-2 text-blue-500" />
-                    <span className="text-sm text-blue-600">{attachment.fileName}</span>
+                    <span className="text-sm text-blue-600">{attachment.filename}</span>
                     <span className="text-xs text-gray-500 ml-auto">
-                      {(attachment.fileSize / 1024 / 1024).toFixed(1)} MB
+                      {(attachment.size / 1024 / 1024).toFixed(1)} MB
                     </span>
                   </a>
                 ))}
@@ -206,7 +206,7 @@ export function CommunityPostDetail({
                   <p className="whitespace-pre-line">{comment.content}</p>
                 </div>
                 
-                {comment.attachments.length > 0 && (
+                {comment.attachments && comment.attachments.length > 0 && (
                   <div className="mt-4">
                     <h4 className="text-sm font-semibold mb-2">Attachments:</h4>
                     <div className="space-y-2">
@@ -236,7 +236,7 @@ export function CommunityPostDetail({
                     onClick={() => onUpvote(post.id, comment.id)}
                   >
                     <ThumbsUp className="h-4 w-4 mr-1" />
-                    {comment.upvotes}
+                    {comment.upvotes || 0}
                   </Button>
                   
                   {post.type === 'question' && !post.isSolved && !comment.isAnswer && (

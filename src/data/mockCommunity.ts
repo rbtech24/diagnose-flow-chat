@@ -1,5 +1,5 @@
 
-import { CommunityPost, CommunityComment, Attachment } from "@/types/community";
+import { CommunityPost, CommunityPostComment, Attachment } from "@/types/community";
 
 export const currentUser = {
   id: "user-1",
@@ -39,7 +39,7 @@ export const mockAttachments: Attachment[] = [
   }
 ];
 
-export const mockComments: CommunityComment[] = [
+export const mockComments: CommunityPostComment[] = [
   {
     id: "comment-1",
     postId: "post-1",

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CommunityPostDetail } from '@/components/community/CommunityPostDetail';
-import { CommunityPost, CommunityComment, Attachment } from '@/types/community';
+import { CommunityPost, CommunityPostComment } from '@/types/community';
 import { mockPosts, currentUser } from '@/data/mockCommunity';
 
 export default function CompanyCommunityPostDetail() {
@@ -27,7 +27,7 @@ export default function CompanyCommunityPostDetail() {
   const handleAddComment = (postId: string, content: string, files: File[]) => {
     if (post) {
       // In a real app, you would upload files and get URLs
-      const newComment: CommunityComment = {
+      const newComment: CommunityPostComment = {
         id: `comment-${Date.now()}`,
         postId,
         content,
@@ -69,7 +69,7 @@ export default function CompanyCommunityPostDetail() {
         // Upvote a comment
         const updatedComments = post.comments.map(comment => 
           comment.id === commentId 
-            ? { ...comment, upvotes: comment.upvotes + 1 } 
+            ? { ...comment, upvotes: (comment.upvotes || 0) + 1 } 
             : comment
         );
         
