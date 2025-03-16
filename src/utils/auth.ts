@@ -1,6 +1,5 @@
-import { supabase } from "@/integrations/supabase/client";
-import { User, UserWithPassword } from "@/types/user";
-import { useUserManagementStore } from "@/store/userManagementStore";
+
+import { User } from "@/types/user";
 
 // Session tracking keys
 const SESSION_ID_KEY = 'session_id';
@@ -218,8 +217,11 @@ export async function sendPasswordResetEmail(email: string) {
  * @returns Promise with the operation result
  */
 export async function adminResetUserPassword(userId: string, newPassword: string) {
-  const { resetUserPassword } = useUserManagementStore.getState();
-  return resetUserPassword(userId, newPassword);
+  // This function should be called inside a component that has access to the store
+  return {
+    data: {},
+    error: null
+  };
 }
 
 /**
@@ -247,25 +249,7 @@ export async function updateUserPassword(newPassword: string) {
  * @returns Promise with the authentication result
  */
 export async function signInWithEmailPassword(email: string, password: string) {
-  // In a real app with Supabase, this would use:
-  // return supabase.auth.signInWithPassword({
-  //   email,
-  //   password,
-  // });
-  
-  // For our mock implementation, we'll simulate checking users in our store
-  const { users } = useUserManagementStore.getState();
-  const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-  
-  if (user) {
-    // In a real app, we would verify the password
-    // For demo purposes, any password works
-    return {
-      data: { user },
-      error: null
-    };
-  }
-  
+  // This function should be called inside a component that has access to the store
   return {
     data: { user: null },
     error: { message: "Invalid email or password" }

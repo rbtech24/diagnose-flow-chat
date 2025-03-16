@@ -1,7 +1,7 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User } from "@/types/user";
 import { useUserManagementStore } from "@/store/userManagementStore";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { 
   generateSessionId, 
@@ -29,9 +29,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { users } = useUserManagementStore();
-  const { toast } = useToast();
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const { toast } = useToast();
+  const { users } = useUserManagementStore();
 
   // Initialize broadcast channel for cross-tab communication
   useEffect(() => {
@@ -92,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       window.removeEventListener('touchstart', handleActivity);
       clearInterval(checkTimeout);
     };
-  }, [user, toast]);
+  }, [user]);
 
   // License verification check on interval
   useEffect(() => {
@@ -115,7 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       clearInterval(checkLicenseInterval);
     };
-  }, [user, toast]);
+  }, [user]);
 
   useEffect(() => {
     // Check if user is logged in from localStorage
@@ -157,7 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     
     checkAuth();
-  }, [toast]);
+  }, []);
 
   // Function to check if user has access to a specific workflow
   const checkWorkflowAccess = (workflowId: string) => {
@@ -198,7 +198,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (foundUser) {
         // Verify license before logging in
-        if (!verifyLicense(foundUser)) {
+        if (!verifyLicense(foundUser).valid) {
           toast({
             title: "Login failed",
             description: "Your license has expired. Please contact support.",
