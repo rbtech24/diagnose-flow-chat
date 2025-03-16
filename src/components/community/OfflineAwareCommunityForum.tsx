@@ -42,6 +42,7 @@ export function OfflineAwareCommunityForum({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showAddNewPost, setShowAddNewPost] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const isMobile = useIsMobile();
   
   const { syncStatus, pendingChanges, processedChanges, syncOfflineChanges } = useCommunitySync();
@@ -110,6 +111,46 @@ export function OfflineAwareCommunityForum({
     );
   }
   
+  // Render mobile filters sheet when on mobile
+  const renderMobileFilters = () => {
+    if (!isMobile) return null;
+    
+    return (
+      <div className={`fixed inset-0 bg-background/80 backdrop-blur-sm z-50 transition-all duration-300 ${showMobileFilters ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        <div className={`fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 transition-transform duration-300 ${showMobileFilters ? 'translate-y-0' : 'translate-y-full'}`}>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold">Filters</h2>
+            <Button variant="ghost" size="sm" onClick={() => setShowMobileFilters(false)}>
+              Close
+            </Button>
+          </div>
+          
+          <div className="space-y-4">
+            <CommunityStats posts={posts} showDocumentStats={true} />
+            <CommunityFilters
+              tags={allTags}
+              selectedTags={selectedTags}
+              onTagSelect={(tag) => {
+                if (selectedTags.includes(tag)) {
+                  setSelectedTags(selectedTags.filter((t) => t !== tag));
+                } else {
+                  setSelectedTags([...selectedTags, tag]);
+                }
+              }}
+            />
+            
+            <Button 
+              className="w-full mt-4" 
+              onClick={() => setShowMobileFilters(false)}
+            >
+              Apply Filters
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+  
   return (
     <div className="space-y-4">
       {pendingChanges > 0 && (
@@ -176,14 +217,24 @@ export function OfflineAwareCommunityForum({
             </TabsList>
           </Tabs>
           
-          <Button variant="outline" size="icon">
-            <Filter className="h-4 w-4" />
-          </Button>
+          {isMobile ? (
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={() => setShowMobileFilters(true)}
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Button variant="outline" size="icon">
+              <Filter className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
           {filteredPosts.length === 0 ? (
             <Card className="p-6 text-center">
               <p className="text-muted-foreground mb-4">No posts match your current filters</p>
@@ -206,20 +257,23 @@ export function OfflineAwareCommunityForum({
           )}
         </div>
         
-        <div className="space-y-6">
-          <CommunityStats posts={posts} />
-          <CommunityFilters
-            tags={allTags}
-            selectedTags={selectedTags}
-            onTagSelect={(tag) => {
-              if (selectedTags.includes(tag)) {
-                setSelectedTags(selectedTags.filter((t) => t !== tag));
-              } else {
-                setSelectedTags([...selectedTags, tag]);
-              }
-            }}
-          />
-        </div>
+        {/* Desktop sidebar - hide on mobile */}
+        {!isMobile && (
+          <div className="hidden lg:block space-y-6">
+            <CommunityStats posts={posts} />
+            <CommunityFilters
+              tags={allTags}
+              selectedTags={selectedTags}
+              onTagSelect={(tag) => {
+                if (selectedTags.includes(tag)) {
+                  setSelectedTags(selectedTags.filter((t) => t !== tag));
+                } else {
+                  setSelectedTags([...selectedTags, tag]);
+                }
+              }}
+            />
+          </div>
+        )}
       </div>
       
       <NewPostDialog
@@ -228,6 +282,9 @@ export function OfflineAwareCommunityForum({
         onSubmit={handleCreatePost}
         userRole={userRole}
       />
+      
+      {/* Mobile filters drawer */}
+      {renderMobileFilters()}
     </div>
   );
 }

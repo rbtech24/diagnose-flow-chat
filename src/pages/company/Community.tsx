@@ -42,10 +42,10 @@ export default function CompanyCommunity() {
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+    <div className="container mx-auto px-0 sm:px-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Company Community</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Company Community</h1>
           <p className="text-muted-foreground mt-1">
             Share knowledge, request technical documents, and collaborate with technicians
           </p>

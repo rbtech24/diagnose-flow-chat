@@ -3,6 +3,7 @@ import React from 'react';
 import { MessageSquare, FileText, Workflow, Users, FileSpreadsheet, CheckCircle } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { CommunityPost } from '@/types/community';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface StatCardProps {
   icon: React.ReactNode;
@@ -14,7 +15,7 @@ interface StatCardProps {
 function StatCard({ icon, label, value, color }: StatCardProps) {
   return (
     <Card>
-      <CardContent className="flex items-center p-6">
+      <CardContent className="flex items-center p-4 sm:p-6">
         <div className={`p-2 rounded-full ${color} mr-4`}>
           {icon}
         </div>
@@ -33,6 +34,7 @@ export interface CommunityStatsProps {
 }
 
 export function CommunityStats({ posts, showDocumentStats = true }: CommunityStatsProps) {
+  const isMobile = useIsMobile();
   const questionCount = posts.filter(post => post.type === 'question').length;
   const techSheetRequestCount = posts.filter(post => post.type === 'tech-sheet-request').length;
   const wireDiagramRequestCount = posts.filter(post => post.type === 'wire-diagram-request').length;
@@ -42,8 +44,38 @@ export function CommunityStats({ posts, showDocumentStats = true }: CommunitySta
   ).length;
   const activeMemberCount = new Set(posts.map(post => post.authorId)).size;
 
+  // For mobile, show a simplified version with fewer stats
+  if (isMobile) {
+    return (
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <StatCard
+          icon={<MessageSquare className="h-4 w-4 text-blue-600" />}
+          label="Questions"
+          value={questionCount}
+          color="bg-blue-100"
+        />
+        {showDocumentStats ? (
+          <StatCard
+            icon={<CheckCircle className="h-4 w-4 text-emerald-600" />}
+            label="Fulfilled"
+            value={fulfilledRequestCount}
+            color="bg-emerald-100"
+          />
+        ) : (
+          <StatCard
+            icon={<Users className="h-4 w-4 text-purple-600" />}
+            label="Members"
+            value={activeMemberCount}
+            color="bg-purple-100"
+          />
+        )}
+      </div>
+    );
+  }
+
+  // Desktop layout with more stats
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-2 gap-3 mb-4">
       <StatCard
         icon={<MessageSquare className="h-5 w-5 text-blue-600" />}
         label="Questions"
