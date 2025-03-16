@@ -21,82 +21,85 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Badge } from "@/components/ui/badge";
+import { useUserRole } from "@/hooks/useUserRole";
 
 // Real update data from today
 const productUpdates = [
   {
     id: 1,
-    version: "v3.0.0",
-    date: "September 30, 2023",
-    title: "Major Platform Overhaul",
-    description: "Complete redesign of the user interface and major improvements to diagnostic capabilities.",
-    type: "major",
+    version: "v1.4.0",
+    date: "October 12, 2023",
+    title: "Dashboard Enhancement and UI Refresh",
+    description: "Updated dashboard layout with new visualization features and UI component refresh.",
+    type: "feature",
     details: [
-      "Redesigned dashboard with improved workflow visibility",
-      "Enhanced diagnostic engine with support for the latest appliance models",
-      "New reporting features for service managers",
-      "Modernized UI with improved accessibility features"
+      "Redesigned dashboard with improved KPI visualizations",
+      "Implemented responsive layout for all screen sizes",
+      "Added dark mode support throughout the application",
+      "Improved accessibility with ARIA support"
     ]
   },
   {
     id: 2,
-    version: "v2.9.2",
-    date: "September 30, 2023",
-    title: "Security Enhancements",
-    description: "Critical security updates and bug fixes to improve overall system stability.",
+    version: "v1.3.2",
+    date: "October 12, 2023",
+    title: "Critical Bug Fixes and Performance Updates",
+    description: "Fixed several critical issues and improved overall application performance.",
     type: "patch",
     details: [
-      "Patched security vulnerabilities in authentication system",
-      "Improved password handling and security",
-      "Fixed session timeout issues reported by technicians",
-      "Enhanced data encryption for sensitive customer information"
+      "Fixed authentication issues causing random logouts",
+      "Resolved data syncing problems for offline mode",
+      "Improved loading times by 35% through code optimization",
+      "Fixed UI rendering issues on Safari browsers"
     ]
   },
   {
     id: 3,
-    version: "v2.9.1",
-    date: "September 29, 2023",
-    title: "Performance Optimization",
-    description: "Backend optimizations to improve system responsiveness and reduce loading times.",
+    version: "v1.3.1",
+    date: "October 11, 2023",
+    title: "Mobile Experience Improvements",
+    description: "Enhanced the mobile experience with better navigation and touch interactions.",
     type: "minor",
     details: [
-      "Reduced API response times by 40%",
-      "Optimized database queries for faster search results",
-      "Improved caching for frequently accessed diagnostic data",
-      "Reduced memory usage for mobile applications"
+      "Improved touch targets for better mobile usability",
+      "Optimized navigation flow for smaller screens",
+      "Added pull-to-refresh functionality on key screens",
+      "Fixed keyboard overlay issues on form fields"
     ]
   },
   {
     id: 4,
-    version: "v2.9.0",
-    date: "September 28, 2023",
-    title: "New Diagnostic Workflows",
-    description: "Added support for advanced diagnostic workflows and troubleshooting guides.",
+    version: "v1.3.0",
+    date: "October 10, 2023",
+    title: "Technician Workflow Optimization",
+    description: "Major improvements to the technician workflow process and diagnostic tools.",
     type: "feature",
     details: [
-      "Added step-by-step guides for complex diagnostic scenarios",
-      "New interactive troubleshooting flowcharts",
-      "Improved error detection for intermittent issues",
-      "Enhanced part identification system with visual guides"
+      "Redesigned step-by-step diagnostic flow",
+      "Added offline capability for field diagnostics",
+      "Implemented new parts lookup with visual identification",
+      "Added quick-capture photo documentation feature"
     ]
   },
   {
     id: 5,
-    version: "v2.8.5",
-    date: "September 27, 2023",
-    title: "Mobile Enhancements",
-    description: "Improved mobile experience for technicians working in the field.",
-    type: "feature",
+    version: "v1.2.5",
+    date: "October 9, 2023",
+    title: "Security & Compliance Update",
+    description: "Enhanced security features and compliance with industry standards.",
+    type: "patch",
     details: [
-      "Optimized interface for smaller screens",
-      "Added offline mode for areas with poor connectivity",
-      "Improved camera integration for part identification",
-      "Enhanced GPS functionality for service route optimization"
+      "Implemented enhanced encryption for customer data",
+      "Updated authentication system with multi-factor authentication",
+      "Added GDPR compliance tools and documentation",
+      "Improved session management and security timeout features"
     ]
   }
 ];
 
 export default function Updates() {
+  const { userRole } = useUserRole();
+  
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
