@@ -1,4 +1,3 @@
-
 import { ApplianceCard } from '@/components/appliance/ApplianceCard';
 import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
@@ -134,7 +133,6 @@ export function WorkflowGrid({
             }
             onAddIssue={isReadOnly ? undefined : () => onAddIssue(appliance.name)}
             getSymptomCardColor={getSymptomCardColor}
-            isReadOnly={isReadOnly}
           />
         </div>
       ))}

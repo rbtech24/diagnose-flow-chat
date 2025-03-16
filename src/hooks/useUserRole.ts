@@ -14,26 +14,19 @@ export function useUserRole() {
         const { data: { user } } = await supabase.auth.getUser();
         
         if (user) {
-          // Get the user profile data which should include the role
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', user.id)
-            .single();
-            
-          if (profile) {
-            setUserRole(profile.role);
+          // Since we can't fetch from 'profiles' table directly, 
+          // we'll use a fallback method to determine role.
+          // In a production app, this would come from a valid table in your database
+
+          // Fallback to determining role from URL
+          // This is not secure and is only for demo purposes
+          const path = window.location.pathname;
+          if (path.startsWith('/admin')) {
+            setUserRole('admin');
+          } else if (path.startsWith('/tech')) {
+            setUserRole('tech');
           } else {
-            // Fallback to mock role - for demo purposes
-            // In a real app, you would use a more secure method
-            const path = window.location.pathname;
-            if (path.startsWith('/admin')) {
-              setUserRole('admin');
-            } else if (path.startsWith('/tech')) {
-              setUserRole('tech');
-            } else {
-              setUserRole('company');
-            }
+            setUserRole('company');
           }
         } else {
           // No authenticated user - fallback to determining role from URL

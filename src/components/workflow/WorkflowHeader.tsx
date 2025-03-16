@@ -26,7 +26,7 @@ export function WorkflowHeader({
   onReorderingChange,
   onAddAppliance
 }: WorkflowHeaderProps) {
-  const [isAddApplianceOpen, setIsAddApplianceOpen] = useState(false);
+  const [isAddApplianceDialogOpen, setIsAddApplianceDialogOpen] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -52,7 +52,7 @@ export function WorkflowHeader({
           </div>
           
           {onAddAppliance && (
-            <Button onClick={() => setIsAddApplianceOpen(true)}>
+            <Button onClick={() => setIsAddApplianceDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Add Appliance
             </Button>
@@ -93,8 +93,8 @@ export function WorkflowHeader({
       
       {onAddAppliance && (
         <AddApplianceDialog
-          isOpen={isAddApplianceOpen}
-          onClose={() => setIsAddApplianceOpen(false)}
+          open={isAddApplianceDialogOpen}
+          onClose={() => setIsAddApplianceDialogOpen(false)}
           onAddAppliance={onAddAppliance}
         />
       )}
