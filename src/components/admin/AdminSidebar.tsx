@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { GitPullRequest, Users, Building2, FileText, BarChart3, HeadphonesIcon, Settings, MessageSquare, Lightbulb, PiggyBank, Database, Workflow, ArrowUp } from "lucide-react";
+import { GitPullRequest, Users, Building2, FileText, BarChart3, HeadphonesIcon, Settings, MessageSquare, Lightbulb, PiggyBank, Database, Workflow, ArrowUp, BellRing } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +43,15 @@ export function AdminSidebar() {
             >
               <ArrowUp className="mr-2 h-4 w-4" />
               CRM Integration
+            </Button>
+          </Link>
+          <Link to="/admin/system-messages">
+            <Button
+              variant={isActive("/admin/system-messages") ? "secondary" : "ghost"}
+              className={cn("w-full justify-start", isActive("/admin/system-messages") ? "bg-green-100 text-green-900" : "text-gray-600 hover:bg-green-50 hover:text-green-700")}
+            >
+              <BellRing className="mr-2 h-4 w-4" />
+              System Messages
             </Button>
           </Link>
           <Link to="/admin/support">

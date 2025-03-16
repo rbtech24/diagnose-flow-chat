@@ -1,3 +1,4 @@
+
 import {
   createBrowserRouter,
   RouterProvider,
@@ -58,6 +59,8 @@ import GetStarted from "./pages/GetStarted";
 import CaseStudies from "./pages/CaseStudies";
 import Updates from "./pages/Updates";
 import CRMIntegration from "./pages/admin/CRMIntegration";
+import SystemMessagesPage from "./pages/admin/SystemMessages";
+import { SystemMessageProvider } from "./context/SystemMessageContext";
 
 const router = createBrowserRouter([
   {
@@ -176,6 +179,7 @@ const router = createBrowserRouter([
       { path: "licenses", element: <AdminLicenses /> },
       { path: "api-integrations", element: <APIIntegrations /> },
       { path: "crm-integration", element: <CRMIntegration /> },
+      { path: "system-messages", element: <SystemMessagesPage /> },
       { path: "users", element: <AdminUsers /> },
       { path: "users/:id", element: <UserDetail /> },
       { path: "companies", element: <AdminCompanies /> },
@@ -200,7 +204,9 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <RouterProvider router={router} />
+    <SystemMessageProvider>
+      <RouterProvider router={router} />
+    </SystemMessageProvider>
   );
 }
 
