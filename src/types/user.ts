@@ -33,3 +33,8 @@ export interface TechnicianInvite {
   createdAt: Date;
   expiresAt: Date;
 }
+
+// Extended user type for registration/creation that includes password
+export interface UserWithPassword extends Omit<User, 'id'> {
+  password: string;
+}

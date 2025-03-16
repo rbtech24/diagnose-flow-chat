@@ -1,4 +1,3 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -42,8 +41,6 @@ export default function UserNew() {
 
   const onSubmit = async (data: UserFormValues) => {
     try {
-      // Since the addUser function expects non-optional properties for name, email, and role,
-      // we ensure they are provided (they will be due to the form validation)
       const newUser = await addUser({
         name: data.name,
         email: data.email,

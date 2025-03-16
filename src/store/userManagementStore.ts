@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User, TechnicianInvite } from '@/types/user';
@@ -37,7 +36,7 @@ interface UserManagementState {
   // User Actions
   fetchUsers: () => Promise<void>;
   fetchUserById: (id: string) => Promise<User | undefined>;
-  addUser: (user: Omit<User, 'id'>) => Promise<User>;
+  addUser: (user: UserWithPassword) => Promise<User>;
   updateUser: (id: string, userData: Partial<User>) => Promise<User | undefined>;
   deleteUser: (id: string) => Promise<boolean>;
   resetUserPassword: (id: string, newPassword: string) => Promise<boolean>;
@@ -55,10 +54,8 @@ interface UserManagementState {
   cancelTechnicianInvite: (inviteId: string) => Promise<boolean>;
 }
 
-// In a real app, these would come from a database
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
-// Initial data (in a real app, this would be loaded from the backend)
 const initialUsers: User[] = [
   {
     id: "admin-1",
@@ -200,8 +197,10 @@ export const useUserManagementStore = create<UserManagementState>()(
           // const { data, error } = await supabase.from('users').insert([userData]).select().single();
           // if (error) throw error;
           
+          const { password, ...userDataWithoutPassword } = userData;
+          
           const newUser: User = {
-            ...userData,
+            ...userDataWithoutPassword,
             id: generateId()
           };
           

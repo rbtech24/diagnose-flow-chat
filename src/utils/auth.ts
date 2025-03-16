@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { User } from "@/types/user";
+import { User, UserWithPassword } from "@/types/user";
 import { useUserManagementStore } from "@/store/userManagementStore";
 
 /**
