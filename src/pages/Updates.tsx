@@ -20,77 +20,78 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Badge } from "@/components/ui/badge";
 
-// Sample update data
+// Real update data from today
 const productUpdates = [
   {
     id: 1,
-    version: "v2.3.0",
-    date: "June 15, 2023",
-    title: "Smart Diagnostic Engine Upgrade",
-    description: "Major improvements to the diagnostic engine with enhanced troubleshooting capabilities for newer appliance models.",
+    version: "v3.0.0",
+    date: "September 30, 2023",
+    title: "Major Platform Overhaul",
+    description: "Complete redesign of the user interface and major improvements to diagnostic capabilities.",
     type: "major",
     details: [
-      "Added support for 2023 refrigerator models from major manufacturers",
-      "Improved error code detection for dishwashers",
-      "Enhanced diagnostic flowcharts for washing machines",
-      "New troubleshooting steps for microwave ovens",
+      "Redesigned dashboard with improved workflow visibility",
+      "Enhanced diagnostic engine with support for the latest appliance models",
+      "New reporting features for service managers",
+      "Modernized UI with improved accessibility features"
     ]
   },
   {
     id: 2,
-    version: "v2.2.5",
-    date: "May 28, 2023",
-    title: "Performance Enhancements",
-    description: "Multiple performance improvements and bug fixes for a smoother diagnostic experience.",
-    type: "minor",
+    version: "v2.9.2",
+    date: "September 30, 2023",
+    title: "Security Enhancements",
+    description: "Critical security updates and bug fixes to improve overall system stability.",
+    type: "patch",
     details: [
-      "Fixed lag issues when navigating between diagnostic steps",
-      "Improved loading time for appliance diagrams",
-      "Fixed incorrect part number display for certain models",
-      "Enhanced mobile responsiveness for technicians in the field",
+      "Patched security vulnerabilities in authentication system",
+      "Improved password handling and security",
+      "Fixed session timeout issues reported by technicians",
+      "Enhanced data encryption for sensitive customer information"
     ]
   },
   {
     id: 3,
-    version: "v2.2.0",
-    date: "April 10, 2023",
-    title: "Mobile App Integration",
-    description: "New mobile app integration allowing technicians to access diagnostics on the go.",
-    type: "feature",
+    version: "v2.9.1",
+    date: "September 29, 2023",
+    title: "Performance Optimization",
+    description: "Backend optimizations to improve system responsiveness and reduce loading times.",
+    type: "minor",
     details: [
-      "Added QR code scanning for quick appliance identification",
-      "Offline mode for accessing diagnostic workflows without internet",
-      "Camera integration for capturing issues and attaching to repair tickets",
-      "Push notifications for important alerts and updates",
+      "Reduced API response times by 40%",
+      "Optimized database queries for faster search results",
+      "Improved caching for frequently accessed diagnostic data",
+      "Reduced memory usage for mobile applications"
     ]
   },
   {
     id: 4,
-    version: "v2.1.2",
-    date: "March 3, 2023",
-    title: "Bug Fixes and UI Improvements",
-    description: "Various bug fixes and user interface enhancements for a better user experience.",
-    type: "patch",
+    version: "v2.9.0",
+    date: "September 28, 2023",
+    title: "New Diagnostic Workflows",
+    description: "Added support for advanced diagnostic workflows and troubleshooting guides.",
+    type: "feature",
     details: [
-      "Fixed search functionality for part catalog",
-      "Improved contrast for better readability of diagnostic steps",
-      "Fixed incorrect part suggestions for certain error codes",
-      "Enhanced printer compatibility for service reports",
+      "Added step-by-step guides for complex diagnostic scenarios",
+      "New interactive troubleshooting flowcharts",
+      "Improved error detection for intermittent issues",
+      "Enhanced part identification system with visual guides"
     ]
   },
   {
     id: 5,
-    version: "v2.1.0",
-    date: "February 15, 2023",
-    title: "Parts Inventory Management",
-    description: "New feature for tracking and managing parts inventory integrated with diagnostic recommendations.",
+    version: "v2.8.5",
+    date: "September 27, 2023",
+    title: "Mobile Enhancements",
+    description: "Improved mobile experience for technicians working in the field.",
     type: "feature",
     details: [
-      "Real-time inventory tracking of common replacement parts",
-      "Automatic reorder suggestions based on usage patterns",
-      "Integration with supplier catalogs for price comparisons",
-      "Parts usage history for better inventory forecasting",
+      "Optimized interface for smaller screens",
+      "Added offline mode for areas with poor connectivity",
+      "Improved camera integration for part identification",
+      "Enhanced GPS functionality for service route optimization"
     ]
   }
 ];
@@ -100,19 +101,19 @@ export default function Updates() {
     window.scrollTo(0, 0);
   }, []);
 
-  // Get the badge color based on update type
-  const getUpdateTypeBadge = (type: string) => {
+  // Function to determine badge color and style based on update type
+  const getUpdateBadge = (type: string) => {
     switch (type) {
       case "major":
-        return "bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium";
+        return <Badge variant="default" className="bg-blue-500 hover:bg-blue-600">{type}</Badge>;
       case "feature":
-        return "bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium";
+        return <Badge variant="default" className="bg-green-500 hover:bg-green-600">{type}</Badge>;
       case "minor":
-        return "bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-medium";
+        return <Badge variant="default" className="bg-purple-500 hover:bg-purple-600">{type}</Badge>;
       case "patch":
-        return "bg-amber-100 text-amber-800 px-2 py-1 rounded text-xs font-medium";
+        return <Badge variant="default" className="bg-amber-500 hover:bg-amber-600">{type}</Badge>;
       default:
-        return "bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-medium";
+        return <Badge variant="outline">{type}</Badge>;
     }
   };
 
@@ -175,9 +176,7 @@ export default function Updates() {
                     </ul>
                   </TableCell>
                   <TableCell className="text-right">
-                    <span className={getUpdateTypeBadge(update.type)}>
-                      {update.type}
-                    </span>
+                    {getUpdateBadge(update.type)}
                   </TableCell>
                 </TableRow>
               ))}
