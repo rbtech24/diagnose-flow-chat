@@ -1,4 +1,3 @@
-
 import {
   createBrowserRouter,
   RouterProvider,
@@ -68,6 +67,9 @@ import TechTools from "./pages/tech/TechTools";
 import TechSupportTicketDetail from "./pages/tech/SupportTicketDetail";
 import TechKnowledgePage from "./pages/tech/KnowledgePage";
 import AdminKnowledgeBase from "./pages/admin/KnowledgeBase";
+import { Toaster } from "react-hot-toast";
+import { OfflineIndicator } from "react-offline/lib/components/OfflineIndicator";
+import { MobileOfflineIndicator } from "react-offline/lib/components/MobileOfflineIndicator";
 
 const router = createBrowserRouter([
   {
@@ -217,6 +219,9 @@ const router = createBrowserRouter([
 function App() {
   return (
     <SystemMessageProvider>
+      <Toaster />
+      <OfflineIndicator />
+      <MobileOfflineIndicator />
       <RouterProvider router={router} />
     </SystemMessageProvider>
   );

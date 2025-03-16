@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { KnowledgeArticle } from "@/types/knowledge";
 import { useKnowledgeSync } from "@/hooks/useKnowledgeSync";
@@ -8,6 +7,7 @@ import { knowledgeStorage } from "@/utils/offlineStorage";
 import { Button } from "@/components/ui/button";
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
 import { Loader2, RefreshCw } from "lucide-react";
+import { SyncStatusBadge } from "@/components/system/SyncStatusBadge";
 
 interface OfflineAwareKnowledgeBaseProps {
   children: React.ReactNode;
@@ -100,10 +100,16 @@ export function OfflineAwareKnowledgeBase({ children }: OfflineAwareKnowledgeBas
           <Button 
             variant="outline" 
             onClick={syncOfflineChanges}
-            className="mb-2"
+            className="mb-2 gap-2"
           >
             <RefreshCw className="mr-2 h-4 w-4" />
-            Sync {pendingChanges} Changes
+            <span>Sync {pendingChanges} Changes</span>
+            <SyncStatusBadge 
+              syncItems={pendingChanges} 
+              syncType="knowledge"
+              variant="icon-only" 
+              className="h-5 w-5 ml-1" 
+            />
           </Button>
         </div>
       )}
