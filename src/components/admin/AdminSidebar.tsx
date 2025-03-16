@@ -14,7 +14,8 @@ import {
   BellRing,
   Plug,
   Shield,
-  Key
+  Key,
+  Book
 } from "lucide-react";
 
 export function AdminSidebar() {
@@ -36,6 +37,7 @@ export function AdminSidebar() {
     { path: "/admin/support", label: "Support", icon: <MessageSquare className="h-5 w-5" /> },
     { path: "/admin/feature-requests", label: "Feature Requests", icon: <Lightbulb className="h-5 w-5" /> },
     { path: "/admin/community", label: "Community", icon: <Users className="h-5 w-5" /> },
+    { path: "/admin/knowledge-base", label: "Knowledge Base", icon: <Book className="h-5 w-5" /> },
     { path: "/admin/system-messages", label: "System Messages", icon: <BellRing className="h-5 w-5" /> },
     { path: "/admin/crm-integration", label: "CRM Integration", icon: <Plug className="h-5 w-5" /> },
     { path: "/admin/api-integrations", label: "API Integrations", icon: <Plug className="h-5 w-5" /> },

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUserMessages, useSystemMessages } from "@/context/SystemMessageContext";
 import { SystemMessage } from "@/components/system/SystemMessage";
+import { OfflineIndicator } from "@/components/system/OfflineIndicator";
 import { Search, Menu } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
@@ -76,6 +77,7 @@ export function AdminLayout() {
             />
           ))}
           <Outlet />
+          <OfflineIndicator />
         </div>
       </div>
     </div>

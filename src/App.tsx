@@ -67,6 +67,7 @@ import ApiKeys from "./pages/admin/ApiKeys";
 import TechTools from "./pages/tech/TechTools";
 import TechSupportTicketDetail from "./pages/tech/SupportTicketDetail";
 import TechKnowledgePage from "./pages/tech/KnowledgePage";
+import AdminKnowledgeBase from "./pages/admin/KnowledgeBase";
 
 const router = createBrowserRouter([
   {
@@ -188,6 +189,7 @@ const router = createBrowserRouter([
       { path: "api-integrations", element: <APIIntegrations /> },
       { path: "crm-integration", element: <CRMIntegration /> },
       { path: "system-messages", element: <SystemMessagesPage /> },
+      { path: "knowledge-base", element: <AdminKnowledgeBase /> },
       { path: "users", element: <AdminUsers /> },
       { path: "users/:id", element: <UserDetail /> },
       { path: "companies", element: <AdminCompanies /> },

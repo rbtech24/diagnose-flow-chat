@@ -1,11 +1,13 @@
 
+import { Outlet } from "react-router-dom";
 import { TechSidebar } from "./TechSidebar";
-import { Outlet, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useUserMessages, useSystemMessages } from "@/context/SystemMessageContext";
 import { SystemMessage } from "@/components/system/SystemMessage";
+import { OfflineIndicator } from "@/components/system/OfflineIndicator";
+import { Search, Menu } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -75,6 +77,7 @@ export function TechLayout() {
             />
           ))}
           <Outlet />
+          <OfflineIndicator />
         </div>
       </div>
     </div>
