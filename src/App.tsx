@@ -64,6 +64,7 @@ import { SystemMessageProvider } from "./context/SystemMessageContext";
 import AdminAccounts from "./pages/admin/AdminAccounts";
 import ApiKeys from "./pages/admin/ApiKeys";
 import TechTools from "./pages/tech/TechTools";
+import TechSupportTicketDetail from "./pages/tech/SupportTicketDetail";
 
 const router = createBrowserRouter([
   {
@@ -160,7 +161,7 @@ const router = createBrowserRouter([
       { path: "community", element: <TechCommunity /> },
       { path: "community/:postId", element: <TechCommunityPostDetail /> },
       { path: "feature-requests", element: <TechFeatureRequests /> },
-      { path: "feature-requests/:requestId", element: <TechFeatureRequestDetail /> },
+      { path: "feature-requests/:requestId", element: <TechFeatureRequestDetailPage /> },
       { path: "support", element: <TechSupport /> },
       { path: "support/:ticketId", element: <TechSupportTicketDetail /> },
       { path: "tools", element: <TechTools /> }
