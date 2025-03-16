@@ -9,88 +9,39 @@ import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { useAPIConfigStore } from "@/store/apiConfigStore";
 import { 
   CreditCard, Mail, MessageSquare, Database, Sparkles, Save, 
   Check, AlertCircle, Info, Lock
 } from "lucide-react";
 
-interface APIConfig {
-  enabled: boolean;
-  apiKey: string;
-  apiSecret?: string;
-  region?: string;
-  additionalSettings?: Record<string, string>;
-}
-
-interface APIConfigurations {
-  stripe: APIConfig;
-  helcim: APIConfig;
-  twilio: APIConfig;
-  sendgrid: APIConfig;
-  supabase: APIConfig;
-  openai: APIConfig;
-  claude: APIConfig;
-  grox: APIConfig;
-}
-
 export default function APIIntegrations() {
-  const [configs, setConfigs] = useState<APIConfigurations>({
-    stripe: { enabled: false, apiKey: '', apiSecret: '' },
-    helcim: { enabled: false, apiKey: '', apiSecret: '' },
-    twilio: { enabled: false, apiKey: '', apiSecret: '', additionalSettings: { accountSid: '' }},
-    sendgrid: { enabled: false, apiKey: '' },
-    supabase: { enabled: true, apiKey: '***************', apiSecret: '***************' },
-    openai: { enabled: false, apiKey: '', additionalSettings: { organization: '' } },
-    claude: { enabled: false, apiKey: '' },
-    grox: { enabled: false, apiKey: '' }
-  });
-
+  const { configs, updateConfig, toggleService, updateNestedSetting } = useAPIConfigStore();
   const [activeTab, setActiveTab] = useState("payment");
 
-  const handleToggleService = (service: keyof APIConfigurations) => {
-    setConfigs(prev => ({
-      ...prev,
-      [service]: {
-        ...prev[service],
-        enabled: !prev[service].enabled
-      }
-    }));
+  const handleToggleService = (service: keyof typeof configs) => {
+    toggleService(service);
   };
 
   const handleInputChange = (
-    service: keyof APIConfigurations, 
+    service: keyof typeof configs, 
     field: string, 
     value: string
   ) => {
-    setConfigs(prev => ({
-      ...prev,
-      [service]: {
-        ...prev[service],
-        [field]: value
-      }
-    }));
+    updateConfig(service, { [field]: value } as any);
   };
 
   const handleNestedInputChange = (
-    service: keyof APIConfigurations, 
-    parentField: string,
+    service: keyof typeof configs, 
+    settingType: 'additionalSettings',
     field: string, 
     value: string
   ) => {
-    setConfigs(prev => ({
-      ...prev,
-      [service]: {
-        ...prev[service],
-        [parentField]: {
-          ...prev[service][parentField as keyof APIConfig] as Record<string, string>,
-          [field]: value
-        }
-      }
-    }));
+    updateNestedSetting(service, settingType, field, value);
   };
 
-  const handleSaveConfig = (service: keyof APIConfigurations) => {
-    // In a real app, this would save to the database
+  const handleSaveConfig = (service: keyof typeof configs) => {
+    // In a real implementation with Supabase, we would save to the database here
     toast.success(`${service.charAt(0).toUpperCase() + service.slice(1)} configuration saved`);
   };
 
@@ -382,8 +333,6 @@ export default function APIIntegrations() {
               </>
             )}
           </Card>
-
-          {/* Google integration could be added here */}
         </TabsContent>
 
         <TabsContent value="ai" className="space-y-6">
