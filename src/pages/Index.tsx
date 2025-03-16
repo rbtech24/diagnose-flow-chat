@@ -181,8 +181,8 @@ export default function Index() {
                   <div className="bg-red-100 text-red-600 h-12 w-12 rounded-lg flex items-center justify-center mb-4">
                     <Building2 className="h-6 w-6" />
                   </div>
-                  <h3 className="text-xl font-bold mb-2">Multi-Level Access</h3>
-                  <p className="text-gray-600">Different roles for technicians, company admins, and system administrators.</p>
+                  <h3 className="text-xl font-bold mb-2">Role-Based Access</h3>
+                  <p className="text-gray-600">Dedicated interfaces for company managers and technicians, with appropriate permissions for each role.</p>
                 </CardContent>
               </Card>
               

@@ -2,76 +2,9 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle, AlertCircle, Clock } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 
 export default function Status() {
-  const services = [
-    {
-      name: "Diagnostic API",
-      status: "operational",
-      uptime: "99.99%",
-      lastIncident: "None"
-    },
-    {
-      name: "Web Application",
-      status: "operational",
-      uptime: "99.98%",
-      lastIncident: "3 days ago"
-    },
-    {
-      name: "Mobile Application",
-      status: "operational",
-      uptime: "99.95%",
-      lastIncident: "7 days ago"
-    },
-    {
-      name: "Workflow Engine",
-      status: "operational",
-      uptime: "99.97%",
-      lastIncident: "14 days ago"
-    },
-    {
-      name: "Authentication Service",
-      status: "operational",
-      uptime: "99.99%",
-      lastIncident: "None"
-    },
-    {
-      name: "Database",
-      status: "maintenance",
-      uptime: "99.90%",
-      lastIncident: "Ongoing maintenance"
-    }
-  ];
-
-  const incidents = [
-    {
-      date: "May 15, 2023",
-      title: "Brief API Outage",
-      description: "The Diagnostic API experienced a 5-minute outage due to a deployment issue. All systems were quickly restored with no data loss.",
-      status: "resolved",
-      time: "10:32 AM - 10:37 AM EST"
-    },
-    {
-      date: "April 22, 2023",
-      title: "Workflow Editor Performance Degradation",
-      description: "The Workflow Editor experienced slow performance for approximately 1 hour due to unusually high traffic. Our team addressed the issue by scaling up resources.",
-      status: "resolved",
-      time: "3:15 PM - 4:20 PM EST"
-    }
-  ];
-
-  const maintenanceEvents = [
-    {
-      date: "May 22, 2023",
-      title: "Database Optimization",
-      description: "Scheduled maintenance to optimize database performance. No service interruption is expected.",
-      status: "scheduled",
-      time: "2:00 AM - 4:00 AM EST"
-    }
-  ];
-
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <header className="sticky top-0 z-10 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
@@ -93,164 +26,131 @@ export default function Status() {
       </header>
       
       <main className="flex-1 container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">System Status</h1>
+        <h1 className="text-3xl font-bold mb-4">System Status</h1>
+        <p className="text-gray-600 mb-8 max-w-3xl">
+          Check the current status of all Repair Auto Pilot services and systems.
+        </p>
         
-        <div className="grid sm:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-green-50 border-green-200">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-                <h2 className="font-semibold">All Systems Operational</h2>
-              </div>
-              <p className="text-sm text-gray-600">Last updated: May 19, 2023 - 10:15 AM EST</p>
-            </CardContent>
-          </Card>
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-8 flex items-center gap-4">
+          <CheckCircle className="h-6 w-6 text-green-500 flex-shrink-0" />
+          <div>
+            <h2 className="text-lg font-semibold">All Systems Operational</h2>
+            <p className="text-gray-600">All services are running normally.</p>
+          </div>
+        </div>
+        
+        <div className="space-y-4 mb-8">
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              <span className="font-medium">Web Application</span>
+            </div>
+            <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50">Operational</Badge>
+          </div>
           
-          <Card>
-            <CardContent className="p-6">
-              <h2 className="font-semibold mb-2">30-Day Uptime</h2>
-              <div className="flex items-end gap-2">
-                <div className="text-3xl font-bold">99.97%</div>
-                <div className="text-sm text-green-600 mb-1">+0.02%</div>
-              </div>
-              <Progress value={99.97} className="h-2 mt-2" />
-            </CardContent>
-          </Card>
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              <span className="font-medium">Mobile Applications</span>
+            </div>
+            <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50">Operational</Badge>
+          </div>
           
-          <Card>
-            <CardContent className="p-6">
-              <h2 className="font-semibold mb-2">Current Incidents</h2>
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              <span className="font-medium">API Services</span>
+            </div>
+            <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50">Operational</Badge>
+          </div>
+          
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              <span className="font-medium">Database</span>
+            </div>
+            <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50">Operational</Badge>
+          </div>
+          
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              <span className="font-medium">Authentication</span>
+            </div>
+            <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50">Operational</Badge>
+          </div>
+          
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex items-center gap-3">
+              <Clock className="h-5 w-5 text-yellow-500" />
+              <span className="font-medium">Analytics Engine</span>
+            </div>
+            <Badge variant="outline" className="bg-yellow-50 text-yellow-700 hover:bg-yellow-50">Degraded Performance</Badge>
+          </div>
+          
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              <span className="font-medium">Notification Services</span>
+            </div>
+            <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50">Operational</Badge>
+          </div>
+        </div>
+        
+        <h2 className="text-2xl font-bold mb-4">Past Incidents</h2>
+        
+        <div className="space-y-6 mb-8">
+          <div className="border rounded-lg overflow-hidden">
+            <div className="bg-gray-50 p-4 border-b">
               <div className="flex items-center gap-2">
-                <div className="text-3xl font-bold">1</div>
-                <div className="text-sm text-gray-600">scheduled maintenance</div>
+                <AlertCircle className="h-5 w-5 text-red-500" />
+                <h3 className="font-medium">API Service Disruption</h3>
+                <Badge variant="outline">Resolved</Badge>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        <h2 className="text-2xl font-semibold mt-12 mb-6">Service Status</h2>
-        <div className="space-y-4 mb-12">
-          {services.map((service, index) => (
-            <Card key={index} className="hover:border-blue-300 transition-colors">
-              <CardContent className="p-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <div className="flex items-center gap-3">
-                    {service.status === "operational" ? (
-                      <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-                    ) : service.status === "maintenance" ? (
-                      <div className="h-3 w-3 bg-amber-500 rounded-full"></div>
-                    ) : (
-                      <div className="h-3 w-3 bg-red-500 rounded-full"></div>
-                    )}
-                    <h3 className="font-medium">{service.name}</h3>
-                    {service.status === "maintenance" && (
-                      <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">Maintenance</Badge>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-500">Status:</span>
-                      <span className="ml-2 capitalize font-medium">
-                        {service.status === "operational" ? (
-                          <span className="text-green-600">Operational</span>
-                        ) : service.status === "maintenance" ? (
-                          <span className="text-amber-600">Maintenance</span>
-                        ) : (
-                          <span className="text-red-600">Degraded</span>
-                        )}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Uptime:</span>
-                      <span className="ml-2 font-medium">{service.uptime}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Last Incident:</span>
-                      <span className="ml-2">{service.lastIncident}</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-        
-        <div className="grid md:grid-cols-2 gap-8 my-12">
-          <div>
-            <h2 className="text-2xl font-semibold mb-6">Recent Incidents</h2>
-            <div className="space-y-4">
-              {incidents.length > 0 ? (
-                incidents.map((incident, index) => (
-                  <Card key={index}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3 mb-2">
-                        <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-                        <div>
-                          <h3 className="font-medium">{incident.title}</h3>
-                          <p className="text-sm text-gray-500">{incident.date} • {incident.time}</p>
-                        </div>
-                      </div>
-                      <div className="pl-8">
-                        <p className="text-sm text-gray-600 mb-2">{incident.description}</p>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs bg-green-100 text-green-700 rounded-full px-2 py-0.5">Resolved</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <Card>
-                  <CardContent className="p-4 text-center">
-                    <p className="text-gray-600">No recent incidents to report.</p>
-                  </CardContent>
-                </Card>
-              )}
+              <p className="text-sm text-gray-500 mt-1">July 12, 2023</p>
+            </div>
+            <div className="p-4 space-y-4">
+              <div>
+                <p className="text-sm text-gray-500">11:45 AM</p>
+                <p>The issue has been resolved and all services have been restored to full functionality.</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">10:30 AM</p>
+                <p>Our engineers have identified the root cause and are implementing a fix.</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">9:15 AM</p>
+                <p>We are investigating reports of API service disruptions affecting some diagnostic workflows.</p>
+              </div>
             </div>
           </div>
           
-          <div>
-            <h2 className="text-2xl font-semibold mb-6">Upcoming Maintenance</h2>
-            <div className="space-y-4">
-              {maintenanceEvents.length > 0 ? (
-                maintenanceEvents.map((event, index) => (
-                  <Card key={index}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3 mb-2">
-                        <Clock className="h-5 w-5 text-amber-600 mt-0.5" />
-                        <div>
-                          <h3 className="font-medium">{event.title}</h3>
-                          <p className="text-sm text-gray-500">{event.date} • {event.time}</p>
-                        </div>
-                      </div>
-                      <div className="pl-8">
-                        <p className="text-sm text-gray-600 mb-2">{event.description}</p>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs bg-amber-100 text-amber-700 rounded-full px-2 py-0.5">Scheduled</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <Card>
-                  <CardContent className="p-4 text-center">
-                    <p className="text-gray-600">No scheduled maintenance at this time.</p>
-                  </CardContent>
-                </Card>
-              )}
+          <div className="border rounded-lg overflow-hidden">
+            <div className="bg-gray-50 p-4 border-b">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-red-500" />
+                <h3 className="font-medium">Database Maintenance</h3>
+                <Badge variant="outline">Resolved</Badge>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">June 5, 2023</p>
+            </div>
+            <div className="p-4 space-y-4">
+              <div>
+                <p className="text-sm text-gray-500">2:00 AM</p>
+                <p>Scheduled maintenance has been completed. All systems are functioning normally.</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">12:00 AM</p>
+                <p>Scheduled database maintenance has begun. Some services may experience temporary disruptions.</p>
+              </div>
             </div>
           </div>
         </div>
         
-        <div className="bg-gray-50 rounded-lg p-8 my-12 text-center">
-          <h2 className="text-2xl font-semibold mb-4">Subscribe to Updates</h2>
-          <p className="mb-6 max-w-2xl mx-auto">
-            Get notified about system status changes and scheduled maintenance via email or SMS.
-          </p>
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            Subscribe to Updates
-          </Button>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+          <h2 className="text-lg font-semibold mb-2">Subscribe to Updates</h2>
+          <p className="text-gray-600 mb-4">Receive real-time notifications about system status and scheduled maintenance.</p>
+          <Button className="bg-blue-600">Subscribe to Status Updates</Button>
         </div>
       </main>
       
