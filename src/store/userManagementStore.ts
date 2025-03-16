@@ -1,6 +1,7 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User, TechnicianInvite } from '@/types/user';
+import { User, TechnicianInvite, UserWithPassword } from '@/types/user';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
