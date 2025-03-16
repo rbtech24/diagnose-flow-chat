@@ -1,4 +1,3 @@
-
 /**
  * Utility for managing offline data storage and synchronization
  */
@@ -29,6 +28,16 @@ const WORKFLOW_DB: DBConfig = {
   }
 };
 
+const COMMUNITY_DB: DBConfig = {
+  name: 'offlineCommunityDb',
+  version: 1,
+  stores: {
+    posts: 'id',
+    comments: 'id,postId',
+    pendingUpdates: 'id,timestamp'
+  }
+};
+
 // ServiceWorker sync registration interface
 interface SyncRegistration extends ServiceWorkerRegistration {
   sync: {
@@ -50,7 +59,8 @@ export interface PendingUpdate {
 // Background sync tags
 export const SYNC_TAGS = {
   KNOWLEDGE: 'sync-knowledge-updates',
-  WORKFLOW: 'sync-workflow-updates'
+  WORKFLOW: 'sync-workflow-updates',
+  COMMUNITY: 'sync-community-updates'
 };
 
 // Open a database connection
@@ -228,7 +238,7 @@ export const clearStore = async (
 
 // Store pending update for background sync
 export const storePendingUpdate = async (
-  type: 'knowledge' | 'workflow',
+  type: 'knowledge' | 'workflow' | 'community',
   request: {
     url: string;
     method: string;
@@ -236,7 +246,7 @@ export const storePendingUpdate = async (
     body?: any;
   }
 ): Promise<void> => {
-  const dbConfig = type === 'knowledge' ? KNOWLEDGE_DB : WORKFLOW_DB;
+  const dbConfig = type === 'knowledge' ? KNOWLEDGE_DB : type === 'workflow' ? WORKFLOW_DB : COMMUNITY_DB;
   const pendingUpdate: PendingUpdate = {
     ...request,
     timestamp: Date.now(),
@@ -251,7 +261,7 @@ export const storePendingUpdate = async (
     if ('serviceWorker' in navigator && 'SyncManager' in window) {
       const registration = await navigator.serviceWorker.ready;
       await (registration as SyncRegistration).sync.register(
-        type === 'knowledge' ? SYNC_TAGS.KNOWLEDGE : SYNC_TAGS.WORKFLOW
+        type === 'knowledge' ? SYNC_TAGS.KNOWLEDGE : type === 'workflow' ? SYNC_TAGS.WORKFLOW : SYNC_TAGS.COMMUNITY
       );
     }
   } catch (error) {
@@ -308,6 +318,56 @@ export const workflowStorage = {
     deleteData(WORKFLOW_DB, 'pendingUpdates', id)
 };
 
+// Community specific functions
+export const communityStorage = {
+  storePost: <T extends { id: string | number }>(post: T) => 
+    storeData(COMMUNITY_DB, 'posts', post),
+  
+  getPost: <T>(id: string | number) => 
+    getData<T>(COMMUNITY_DB, 'posts', id),
+  
+  getAllPosts: <T>() => 
+    getAllData<T>(COMMUNITY_DB, 'posts'),
+  
+  deletePost: (id: string | number) => 
+    deleteData(COMMUNITY_DB, 'posts', id),
+  
+  storeComment: <T extends { id: string | number; postId: string | number }>(comment: T) => 
+    storeData(COMMUNITY_DB, 'comments', comment),
+    
+  getCommentsByPost: async <T>(postId: string | number): Promise<T[]> => {
+    const db = await openDatabase(COMMUNITY_DB);
+    
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction('comments', 'readonly');
+      const store = transaction.objectStore('comments');
+      const index = store.index('postId');
+      const request = index.getAll(postId);
+      
+      request.onerror = () => {
+        reject(new Error(`Failed to retrieve comments for post ${postId}`));
+      };
+      
+      request.onsuccess = (event) => {
+        resolve((event.target as IDBRequest).result || []);
+      };
+      
+      transaction.oncomplete = () => {
+        db.close();
+      };
+    });
+  },
+  
+  storePendingUpdate: (request: Parameters<typeof storePendingUpdate>[1]) => 
+    storePendingUpdate('community', request),
+    
+  getPendingUpdates: () => 
+    getAllData<PendingUpdate>(COMMUNITY_DB, 'pendingUpdates'),
+    
+  removePendingUpdate: (id: IDBValidKey) => 
+    deleteData(COMMUNITY_DB, 'pendingUpdates', id)
+};
+
 // Check if the application is online
 export const isOnline = (): boolean => {
   return navigator.onLine;
@@ -343,10 +403,37 @@ export const hasPendingChanges = async (): Promise<boolean> => {
   try {
     const knowledgePending = await knowledgeStorage.getPendingUpdates();
     const workflowPending = await workflowStorage.getPendingUpdates();
+    const communityPending = await communityStorage.getPendingUpdates();
     
-    return knowledgePending.length > 0 || workflowPending.length > 0;
+    return knowledgePending.length > 0 || workflowPending.length > 0 || communityPending.length > 0;
   } catch (error) {
     console.error('Error checking for pending changes:', error);
     return false;
+  }
+};
+
+// Function to get all pending updates across all modules
+export const getAllPendingUpdates = async (): Promise<{
+  knowledge: PendingUpdate[];
+  workflow: PendingUpdate[];
+  community: PendingUpdate[];
+}> => {
+  try {
+    const knowledge = await knowledgeStorage.getPendingUpdates();
+    const workflow = await workflowStorage.getPendingUpdates();
+    const community = await communityStorage.getPendingUpdates();
+    
+    return {
+      knowledge,
+      workflow,
+      community
+    };
+  } catch (error) {
+    console.error('Error getting all pending updates:', error);
+    return {
+      knowledge: [],
+      workflow: [],
+      community: []
+    };
   }
 };

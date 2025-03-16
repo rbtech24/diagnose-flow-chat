@@ -1,9 +1,9 @@
-
 // Service Worker for Repair Auto Pilot
 
 const CACHE_NAME = 'repair-auto-pilot-v2';
 const DYNAMIC_CACHE = 'dynamic-cache-v1';
 const KNOWLEDGE_CACHE = 'knowledge-cache-v1';
+const COMMUNITY_CACHE = 'community-cache-v1';
 
 // Assets that should be cached immediately on install
 const STATIC_ASSETS = [
@@ -15,14 +15,16 @@ const STATIC_ASSETS = [
   '/offline.html'
 ];
 
-// URLs that should be cached separately for knowledge base data
-const KNOWLEDGE_URLS = [
-  '/api/knowledge'
-];
+// URLs that should be cached separately
+const API_PATHS = {
+  KNOWLEDGE: '/api/knowledge',
+  COMMUNITY: '/api/community'
+};
 
 // Background sync registration
 const SYNC_KNOWLEDGE_TAG = 'sync-knowledge-updates';
 const SYNC_WORKFLOW_TAG = 'sync-workflow-updates';
+const SYNC_COMMUNITY_TAG = 'sync-community-updates';
 
 // Install event - cache core assets
 self.addEventListener('install', event => {
@@ -43,7 +45,7 @@ self.addEventListener('install', event => {
 // Activate event - clean up old caches
 self.addEventListener('activate', event => {
   console.log('[Service Worker] Activating Service Worker...');
-  const currentCaches = [CACHE_NAME, DYNAMIC_CACHE, KNOWLEDGE_CACHE];
+  const currentCaches = [CACHE_NAME, DYNAMIC_CACHE, KNOWLEDGE_CACHE, COMMUNITY_CACHE];
   
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -68,25 +70,27 @@ const isApiRequest = (url) => {
   return url.includes('/api/');
 };
 
-// Helper function to determine if a request is for knowledge data
-const isKnowledgeRequest = (url) => {
-  return url.includes('/api/knowledge');
+// Helper function to determine request type
+const getRequestType = (url) => {
+  if (url.includes(API_PATHS.KNOWLEDGE)) return 'knowledge';
+  if (url.includes(API_PATHS.COMMUNITY)) return 'community';
+  return 'other';
 };
 
-// Cache then network strategy for knowledge requests
-const handleKnowledgeRequest = (event) => {
+// Cache then network strategy for API requests
+const handleApiRequest = (event, cacheKey) => {
   // Try to get from network and update cache
   const networkResponse = fetch(event.request)
     .then(response => {
       const clonedResponse = response.clone();
-      caches.open(KNOWLEDGE_CACHE)
+      caches.open(cacheKey)
         .then(cache => {
           cache.put(event.request, clonedResponse);
         });
       return response;
     })
     .catch(err => {
-      console.log('[Service Worker] Knowledge fetch failed:', err);
+      console.log(`[Service Worker] ${cacheKey} fetch failed:`, err);
     });
 
   // Return cached response if available, otherwise wait for network
@@ -101,10 +105,13 @@ const handleKnowledgeRequest = (event) => {
 // Fetch event - implement different strategies based on request type
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
+  const requestType = getRequestType(url.pathname);
   
-  // Handle knowledge API requests with cache-then-network strategy
-  if (isKnowledgeRequest(url.pathname)) {
-    return handleKnowledgeRequest(event);
+  // Handle API requests with cache-then-network strategy
+  if (requestType === 'knowledge') {
+    return handleApiRequest(event, KNOWLEDGE_CACHE);
+  } else if (requestType === 'community') {
+    return handleApiRequest(event, COMMUNITY_CACHE);
   }
   
   // For API requests, use network-first strategy
@@ -176,6 +183,8 @@ self.addEventListener('sync', event => {
     event.waitUntil(syncKnowledgeUpdates());
   } else if (event.tag === SYNC_WORKFLOW_TAG) {
     event.waitUntil(syncWorkflowUpdates());
+  } else if (event.tag === SYNC_COMMUNITY_TAG) {
+    event.waitUntil(syncCommunityUpdates());
   }
 });
 
@@ -369,6 +378,138 @@ const syncWorkflowUpdates = async () => {
   }
 };
 
+// Function to sync community updates when back online
+const syncCommunityUpdates = async () => {
+  try {
+    const dbName = 'offlineCommunityDb';
+    const storeName = 'pendingUpdates';
+    
+    // Open IndexedDB
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open(dbName, 1);
+      request.onerror = reject;
+      request.onsuccess = () => resolve(request.result);
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(storeName)) {
+          db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true });
+        }
+      };
+    });
+    
+    // Get all pending updates
+    const tx = db.transaction(storeName, 'readwrite');
+    const store = tx.objectStore(storeName);
+    const pendingUpdates = await new Promise((resolve, reject) => {
+      const request = store.getAll();
+      request.onerror = reject;
+      request.onsuccess = () => resolve(request.result);
+    });
+    
+    // Process each update
+    const successfulUpdates = [];
+    
+    for (const update of pendingUpdates) {
+      try {
+        // Create the request options
+        const options = {
+          method: update.method,
+          headers: update.headers,
+        };
+        
+        if (update.body && (update.method === 'POST' || update.method === 'PUT')) {
+          options.body = update.body;
+        }
+        
+        // Make the request
+        const response = await fetch(update.url, options);
+        
+        if (response.ok) {
+          // Add to successful updates to remove later
+          successfulUpdates.push(update.id);
+          
+          // Broadcast success message to any open clients
+          const clients = await self.clients.matchAll({ type: 'window' });
+          for (const client of clients) {
+            client.postMessage({
+              type: 'SYNC_SUCCESS',
+              tag: SYNC_COMMUNITY_TAG,
+              updateId: update.id
+            });
+          }
+        } else {
+          // If failed, increment attempts counter
+          const updatedRecord = { ...update, attempts: (update.attempts || 0) + 1 };
+          store.put(updatedRecord);
+          
+          console.error(`[Service Worker] Failed to sync community update ${update.id}: ${response.status}`);
+          
+          // Notify clients of error
+          const clients = await self.clients.matchAll({ type: 'window' });
+          for (const client of clients) {
+            client.postMessage({
+              type: 'SYNC_ERROR',
+              tag: SYNC_COMMUNITY_TAG,
+              updateId: update.id,
+              error: `Status ${response.status}`
+            });
+          }
+        }
+      } catch (error) {
+        console.error('[Service Worker] Error processing community update:', error);
+        
+        // Notify clients of error
+        const clients = await self.clients.matchAll({ type: 'window' });
+        for (const client of clients) {
+          client.postMessage({
+            type: 'SYNC_ERROR',
+            tag: SYNC_COMMUNITY_TAG,
+            error: error.message
+          });
+        }
+      }
+    }
+    
+    // Remove successful updates
+    for (const id of successfulUpdates) {
+      store.delete(id);
+    }
+    
+    await new Promise((resolve) => {
+      tx.oncomplete = resolve;
+    });
+    
+    // Close the database
+    db.close();
+    
+    // Notify clients that sync is complete
+    const clients = await self.clients.matchAll({ type: 'window' });
+    for (const client of clients) {
+      client.postMessage({
+        type: 'SYNC_COMPLETE',
+        tag: SYNC_COMMUNITY_TAG,
+        syncedCount: successfulUpdates.length,
+        remainingCount: pendingUpdates.length - successfulUpdates.length
+      });
+    }
+    
+    console.log('[Service Worker] Community updates synced successfully');
+    
+  } catch (error) {
+    console.error('[Service Worker] Error syncing community updates:', error);
+    
+    // Notify clients of error
+    const clients = await self.clients.matchAll({ type: 'window' });
+    for (const client of clients) {
+      client.postMessage({
+        type: 'SYNC_ERROR',
+        tag: SYNC_COMMUNITY_TAG,
+        error: error.message
+      });
+    }
+  }
+};
+
 // Listen for messages from the client
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
@@ -381,6 +522,8 @@ self.addEventListener('message', event => {
       syncKnowledgeUpdates();
     } else if (event.data.tag === SYNC_WORKFLOW_TAG) {
       syncWorkflowUpdates();
+    } else if (event.data.tag === SYNC_COMMUNITY_TAG) {
+      syncCommunityUpdates();
     }
   }
 });

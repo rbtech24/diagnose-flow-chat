@@ -4,17 +4,20 @@ import { useOfflineStatus } from '@/hooks/useOfflineStatus';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Cloud, CloudOff, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface SyncStatusIndicatorProps {
   syncItems?: number;
   processedItems?: number;
   showDetails?: boolean;
+  moduleName?: string;
 }
 
 export function SyncStatusIndicator({ 
   syncItems = 0, 
   processedItems = 0, 
-  showDetails = false 
+  showDetails = false,
+  moduleName = 'Changes'
 }: SyncStatusIndicatorProps) {
   const { isOffline, reconnecting, lastOnlineTime } = useOfflineStatus();
   
@@ -25,7 +28,7 @@ export function SyncStatusIndicator({
       <Alert variant="destructive" className="mb-4">
         <CloudOff className="h-4 w-4 mr-2" />
         <AlertDescription className="flex items-center justify-between">
-          <span>You're working offline. Changes will sync when you reconnect.</span>
+          <span>You're working offline. {moduleName} will sync when you reconnect.</span>
           {showDetails && lastOnlineTime && (
             <span className="text-xs">Last online: {lastOnlineTime.toLocaleString()}</span>
           )}
@@ -40,7 +43,7 @@ export function SyncStatusIndicator({
         <AlertCircle className="h-4 w-4 mr-2" />
         <AlertDescription className="space-y-2">
           <div className="flex justify-between">
-            <span>Syncing your changes...</span>
+            <span>Syncing your {moduleName.toLowerCase()}...</span>
             <span>{processedItems} of {syncItems}</span>
           </div>
           {syncItems > 0 && (
@@ -56,11 +59,25 @@ export function SyncStatusIndicator({
       <Alert variant="success" className="mb-4">
         <CheckCircle2 className="h-4 w-4 mr-2" />
         <AlertDescription>
-          All changes have been synchronized successfully!
+          All {moduleName.toLowerCase()} have been synchronized successfully!
         </AlertDescription>
       </Alert>
     );
   }
   
   return null;
+}
+
+// Function to show toast notifications for sync events
+export function showSyncNotification(type: 'success' | 'error' | 'warning', message: string) {
+  toast({
+    variant: type === 'error' ? 'destructive' : undefined,
+    title: type === 'success' 
+      ? 'Sync Complete' 
+      : type === 'error' 
+        ? 'Sync Error' 
+        : 'Sync In Progress',
+    description: message,
+    duration: type === 'error' ? 5000 : 3000,
+  });
 }
