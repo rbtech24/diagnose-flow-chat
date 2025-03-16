@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { GitPullRequest, Users, Building2, FileText, BarChart3, HeadphonesIcon, Settings, MessageSquare, Lightbulb, PiggyBank, Database, Workflow } from "lucide-react";
+import { GitPullRequest, Users, Building2, FileText, BarChart3, HeadphonesIcon, Settings, MessageSquare, Lightbulb, PiggyBank, Database, Workflow, ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +34,15 @@ export function AdminSidebar() {
             >
               <Workflow className="mr-2 h-4 w-4" />
               Workflows
+            </Button>
+          </Link>
+          <Link to="/admin/crm-integration">
+            <Button
+              variant={isActive("/admin/crm-integration") ? "secondary" : "ghost"}
+              className={cn("w-full justify-start", isActive("/admin/crm-integration") ? "bg-blue-100 text-blue-900" : "text-gray-600 hover:bg-blue-50 hover:text-blue-700")}
+            >
+              <ArrowUp className="mr-2 h-4 w-4" />
+              CRM Integration
             </Button>
           </Link>
           <Link to="/admin/support">

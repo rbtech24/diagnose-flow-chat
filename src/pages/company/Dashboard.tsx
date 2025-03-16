@@ -1,9 +1,10 @@
+
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   Users, Wrench, Clock, AlertTriangle, Search,
-  PlusCircle, ArrowUp, ArrowDown, MessagesSquare,
+  PlusCircle, ArrowUp, MessagesSquare,
   Play, Activity, Stethoscope
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -97,7 +98,7 @@ export default function CompanyDashboard() {
         </Card>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card className="border-cyan-200 bg-cyan-50">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Active Jobs</CardTitle>
@@ -118,22 +119,6 @@ export default function CompanyDashboard() {
             <div className="flex items-center">
               <Users className="h-4 w-4 text-green-600 mr-2" />
               <span className="text-2xl font-bold">8</span>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-emerald-200 bg-emerald-50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <ArrowUp className="h-4 w-4 text-emerald-600 mr-2" />
-              <span className="text-2xl font-bold">$12.5k</span>
-              <span className="ml-2 text-xs text-emerald-500 flex items-center">
-                <ArrowUp className="h-3 w-3 mr-1" />
-                12%
-              </span>
             </div>
           </CardContent>
         </Card>
@@ -263,6 +248,24 @@ export default function CompanyDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Add CRM Integration "Coming Soon" Section */}
+      <Card className="mb-8 border-2 border-dashed border-blue-200 bg-blue-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ArrowUp className="h-5 w-5 text-blue-600" />
+            CRM Integration
+          </CardTitle>
+          <CardDescription>Connect with services like HouseCallPro</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-4">
+            <div className="bg-blue-100 text-blue-700 inline-block p-2 rounded-lg text-xs font-semibold mb-3">COMING SOON</div>
+            <p className="text-sm text-gray-600 mb-2">Seamlessly integrate with your favorite CRM platforms</p>
+            <p className="text-xs text-gray-500">We're working hard to bring this feature to you. Check back soon!</p>
+          </div>
+        </CardContent>
+      </Card>
       
       <div className="fixed bottom-8 right-8">
         <Button size="lg" className="h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg">

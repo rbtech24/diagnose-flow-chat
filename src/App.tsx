@@ -57,6 +57,7 @@ import Status from "./pages/Status";
 import GetStarted from "./pages/GetStarted";
 import CaseStudies from "./pages/CaseStudies";
 import Updates from "./pages/Updates";
+import CRMIntegration from "./pages/admin/CRMIntegration";
 
 const router = createBrowserRouter([
   {
@@ -138,6 +139,7 @@ const router = createBrowserRouter([
       { path: "feature-requests/:id", element: <CompanyFeatureRequestDetailPage /> },
       { path: "subscription", element: <CompanySubscription /> },
       { path: "technicians", element: <ManageTechnicians /> },
+      { path: "techs", element: <ManageTechnicians /> },
       { path: "diagnostics", element: <DiagnosticsPage /> }
     ]
   },
@@ -173,6 +175,7 @@ const router = createBrowserRouter([
       { path: "subscription-plans", element: <AdminSubscriptionPlans /> },
       { path: "licenses", element: <AdminLicenses /> },
       { path: "api-integrations", element: <APIIntegrations /> },
+      { path: "crm-integration", element: <CRMIntegration /> },
       { path: "users", element: <AdminUsers /> },
       { path: "users/:id", element: <UserDetail /> },
       { path: "companies", element: <AdminCompanies /> },
