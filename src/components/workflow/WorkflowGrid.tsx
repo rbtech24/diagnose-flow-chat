@@ -1,9 +1,10 @@
+
 import { ApplianceCard } from '@/components/appliance/ApplianceCard';
 import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ArrowUpRight, Trash, GripVertical, FileText } from 'lucide-react';
+import { ArrowUpRight, Trash, GripVertical, FileText, Edit, Eye } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { toast } from '@/hooks/use-toast';
 
@@ -180,18 +181,28 @@ export function WorkflowGrid({
             <div className="flex flex-col items-end gap-2">
               <div className="flex gap-1">
                 {!isReadOnly && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onDeleteWorkflow(workflow);
-                    }}
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
+                  <>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onDeleteWorkflow(workflow);
+                      }}
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="h-8 w-8 p-0 text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+                      onClick={() => onOpenWorkflowEditor(workflow.metadata.folder || '', workflow.metadata.name)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </>
                 )}
                 <Button 
                   variant="ghost" 
@@ -199,7 +210,7 @@ export function WorkflowGrid({
                   className="h-8 w-8 p-0 text-green-500 hover:text-green-600 hover:bg-green-50"
                   onClick={() => handleViewWorkflow(workflow.metadata.folder || '', workflow.metadata.name)}
                 >
-                  <ArrowUpRight className="h-4 w-4" />
+                  {isReadOnly ? <Eye className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
                 </Button>
               </div>
               {!isReadOnly && (
