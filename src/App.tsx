@@ -1,3 +1,4 @@
+
 import {
   createBrowserRouter,
   RouterProvider,
@@ -72,6 +73,8 @@ import { OfflineIndicator } from "./components/system/OfflineIndicator";
 import { MobileOfflineIndicator } from "./components/system/MobileOfflineIndicator";
 import AppointmentManagement from "./pages/company/AppointmentManagement";
 import CompanyKnowledgePage from "./pages/company/KnowledgePage";
+
+// Note: We're removing the AuthProvider from App.tsx since it's causing React hook issues
 
 const router = createBrowserRouter([
   {

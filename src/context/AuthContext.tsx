@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User } from "@/types/user";
 import { useUserManagementStore } from "@/store/userManagementStore";
@@ -33,14 +32,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
   const { users } = useUserManagementStore();
 
-  // Initialize broadcast channel for cross-tab communication
   useEffect(() => {
     const broadcastChannel = new BroadcastChannel('auth_channel');
     
-    // Listen for login events from other tabs
     broadcastChannel.onmessage = (event) => {
       if (event.data.type === 'new_login' && sessionId && event.data.sessionId !== sessionId) {
-        // Another tab logged in with same account, log this one out
         toast({
           title: "Logged out",
           description: "Your account was logged in on another device",
@@ -55,16 +51,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [sessionId, toast]);
 
-  // Activity tracking and session timeout
   useEffect(() => {
     if (!user) return;
     
-    // Update activity on user interaction
     const handleActivity = () => {
       updateLastActivity();
     };
     
-    // Check for session timeout every minute
     const checkTimeout = setInterval(() => {
       if (hasSessionTimedOut()) {
         toast({
@@ -74,15 +67,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
         logout();
       }
-    }, 60000); // Check every minute
+    }, 60000);
     
-    // Set up event listeners for user activity
     window.addEventListener('mousemove', handleActivity);
     window.addEventListener('keypress', handleActivity);
     window.addEventListener('click', handleActivity);
     window.addEventListener('touchstart', handleActivity);
     
-    // Initialize activity timestamp
     updateLastActivity();
     
     return () => {
@@ -94,11 +85,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [user]);
 
-  // License verification check on interval
   useEffect(() => {
     if (!user) return;
     
-    // Check license status every 30 minutes
     const checkLicenseInterval = setInterval(() => {
       const licenseStatus = verifyLicense(user);
       
@@ -110,7 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
         logout();
       }
-    }, 30 * 60 * 1000); // Check every 30 minutes
+    }, 30 * 60 * 1000);
     
     return () => {
       clearInterval(checkLicenseInterval);
@@ -118,7 +107,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user]);
 
   useEffect(() => {
-    // Check if user is logged in from localStorage
     const checkAuth = async () => {
       const storedUser = localStorage.getItem("currentUser");
       
@@ -126,11 +114,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           const parsedUser = JSON.parse(storedUser);
           
-          // Verify license before setting user
           const licenseStatus = verifyLicense(parsedUser);
           if (licenseStatus.valid) {
             setUser(parsedUser);
-            // Set up session tracking
             const storedSessionId = localStorage.getItem('session_id');
             if (storedSessionId) {
               setSessionId(storedSessionId);
@@ -139,7 +125,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               setSessionId(newSessionId);
             }
           } else {
-            // License is invalid, log user out
             localStorage.removeItem("currentUser");
             toast({
               title: "License issue",
@@ -157,21 +142,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     
     checkAuth();
-  }, []);
+  }, [toast]);
 
-  // Function to check if user has access to a specific workflow
   const checkWorkflowAccess = (workflowId: string) => {
     if (!user) {
       return { hasAccess: false, message: "You must be logged in to access workflows" };
     }
     
-    // Verify license
     const licenseStatus = verifyLicense(user);
     if (!licenseStatus.valid) {
       return { hasAccess: false, message: licenseStatus.message };
     }
     
-    // Track workflow usage and check against limits
     const withinLimits = trackWorkflowUsage(workflowId);
     if (!withinLimits) {
       return { 
@@ -183,21 +165,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { hasAccess: true };
   };
 
-  // Get workflow usage statistics
   const workflowUsageStats = () => {
     return getWorkflowUsageStats();
   };
 
   const login = async (email: string, password: string, userRole: "admin" | "company" | "tech") => {
-    // In a real app, this would authenticate with a backend
-    // For now, we'll just find a matching user in our store
     try {
       const foundUser = users.find(
         u => u.email.toLowerCase() === email.toLowerCase() && u.role === userRole
       );
       
       if (foundUser) {
-        // Verify license before logging in
         if (!verifyLicense(foundUser).valid) {
           toast({
             title: "Login failed",
@@ -207,16 +185,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return false;
         }
         
-        // In a real app, we would verify the password here
-        // For demo purposes, any password will work
         setUser(foundUser);
         localStorage.setItem("currentUser", JSON.stringify(foundUser));
         
-        // Register this session and broadcast to other tabs
         const newSessionId = registerSession();
         setSessionId(newSessionId);
         
-        // Initialize activity tracking
         updateLastActivity();
         
         return true;
@@ -240,7 +214,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    // In a real app, this would sign out from the backend
     setUser(null);
     setSessionId(null);
     localStorage.removeItem("currentUser");
@@ -249,9 +222,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signup = async (userData: any) => {
-    // In a real app, this would create a user in the backend
     try {
-      // For now, we'll just pretend it worked
       toast({
         title: "Signup successful",
         description: "Your account has been created. Please sign in.",
@@ -270,8 +241,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const resetPassword = async (email: string) => {
     try {
-      // In a real app, this would send a password reset email
-      // For now, we'll just check if the email exists
       const userExists = users.some(u => u.email.toLowerCase() === email.toLowerCase());
       
       if (userExists) {
