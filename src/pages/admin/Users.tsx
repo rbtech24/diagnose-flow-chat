@@ -1,12 +1,34 @@
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useUserManagementStore } from "@/store/userManagementStore";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AdminUsers() {
+  const navigate = useNavigate();
+  const { users, isLoadingUsers, fetchUsers } = useUserManagementStore();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  // Filter users based on search query
+  const filteredUsers = users.filter(user => 
+    user.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.role.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleAddUser = () => {
+    navigate("/admin/users/new");
+  };
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
@@ -17,31 +39,51 @@ export default function AdminUsers() {
         <div className="flex items-center gap-3">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search users..." className="pl-8 w-[250px]" />
+            <Input 
+              placeholder="Search users..." 
+              className="pl-8 w-[250px]" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-          <Button asChild>
-            <Link to="/admin/users/new">
-              <Plus className="h-4 w-4 mr-2" />
-              Add User
-            </Link>
+          <Button onClick={handleAddUser}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add User
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle>Platform Users</CardTitle>
-            <CardDescription>All registered users in the system</CardDescription>
-          </CardHeader>
-          <CardContent>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle>Platform Users</CardTitle>
+          <CardDescription>All registered users in the system</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoadingUsers ? (
             <div className="space-y-4">
-              {/* Sample users - would be populated from API in a real app */}
-              {[
-                { id: "1", name: "John Doe", email: "john@example.com", role: "admin" },
-                { id: "2", name: "Sarah Smith", email: "sarah@acmerepairs.com", role: "company" },
-                { id: "3", name: "Mike Johnson", email: "mike@acmerepairs.com", role: "tech" },
-              ].map((user) => (
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div>
+                      <Skeleton className="h-4 w-40" />
+                      <Skeleton className="h-3 w-32 mt-2" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-6 w-16" />
+                    <Skeleton className="h-9 w-24" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              {searchQuery ? "No users match your search" : "No users found"}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredUsers.map((user) => (
                 <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
@@ -68,9 +110,9 @@ export default function AdminUsers() {
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

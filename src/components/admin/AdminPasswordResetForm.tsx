@@ -4,86 +4,88 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { adminResetUserPassword } from "@/utils/auth";
+import { useUserManagementStore } from "@/store/userManagementStore";
 
-const passwordResetSchema = z.object({
-  newPassword: z.string().min(8, {
-    message: "Password must be at least 8 characters.",
-  }),
+const formSchema = z.object({
+  password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string(),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Passwords do not match.",
-  path: ["confirmPassword"],
-});
+}).refine(
+  (data) => data.password === data.confirmPassword,
+  {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  }
+);
 
-type AdminPasswordResetFormValues = z.infer<typeof passwordResetSchema>;
+type FormValues = z.infer<typeof formSchema>;
 
 interface AdminPasswordResetFormProps {
   userId: string;
-  onSuccess?: () => void;
-  onCancel?: () => void;
+  onSuccess: () => void;
+  onCancel: () => void;
 }
 
 export function AdminPasswordResetForm({ userId, onSuccess, onCancel }: AdminPasswordResetFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { resetUserPassword } = useUserManagementStore();
   
-  const form = useForm<AdminPasswordResetFormValues>({
-    resolver: zodResolver(passwordResetSchema),
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      newPassword: "",
+      password: "",
       confirmPassword: "",
     },
   });
 
-  async function handleSubmit(values: AdminPasswordResetFormValues) {
+  const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
-    
     try {
-      const { error } = await adminResetUserPassword(userId, values.newPassword);
+      const success = await resetUserPassword(userId, values.password);
       
-      if (error) {
-        toast({
-          title: "Error",
-          description: error.message || "Failed to reset password.",
-          variant: "destructive",
-        });
-      } else {
+      if (success) {
         toast({
           title: "Password reset successful",
-          description: "The user's password has been reset.",
+          description: "The user's password has been updated.",
         });
-        
-        if (onSuccess) {
-          onSuccess();
-        }
+        onSuccess();
+      } else {
+        toast({
+          title: "Password reset failed",
+          description: "There was an error resetting the password. Please try again.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
+      console.error("Error resetting password:", error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        title: "Password reset failed",
+        description: "There was an error resetting the password. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="newPassword"
+          name="password"
           render={({ field }) => (
             <FormItem>
               <FormLabel>New Password</FormLabel>
               <FormControl>
-                <Input type="password" {...field} />
+                <Input type="password" placeholder="••••••••" {...field} />
               </FormControl>
+              <FormDescription>
+                Must be at least 8 characters long
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -96,19 +98,17 @@ export function AdminPasswordResetForm({ userId, onSuccess, onCancel }: AdminPas
             <FormItem>
               <FormLabel>Confirm Password</FormLabel>
               <FormControl>
-                <Input type="password" {...field} />
+                <Input type="password" placeholder="••••••••" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         
-        <div className="flex justify-end gap-2">
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>
-              Cancel
-            </Button>
-          )}
+        <div className="flex justify-end gap-2 pt-2">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? "Resetting..." : "Reset Password"}
           </Button>
