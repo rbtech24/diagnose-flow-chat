@@ -71,6 +71,7 @@ import { Toaster } from "react-hot-toast";
 import { OfflineIndicator } from "./components/system/OfflineIndicator";
 import { MobileOfflineIndicator } from "./components/system/MobileOfflineIndicator";
 import AppointmentManagement from "./pages/company/AppointmentManagement";
+import CompanyKnowledgePage from "./pages/company/KnowledgePage";
 
 const router = createBrowserRouter([
   {
@@ -155,7 +156,7 @@ const router = createBrowserRouter([
       { path: "techs", element: <ManageTechnicians /> },
       { path: "diagnostics", element: <DiagnosticsPage /> },
       { path: "appointments", element: <AppointmentManagement /> },
-      { path: "knowledge", element: <KnowledgePage /> }
+      { path: "knowledge", element: <CompanyKnowledgePage /> }
     ]
   },
   {
