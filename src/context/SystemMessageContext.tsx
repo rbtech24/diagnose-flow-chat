@@ -21,20 +21,39 @@ interface SystemMessageContextType {
   clearExpiredMessages: () => void;
 }
 
+const STORAGE_KEY = "system-messages";
+
 const SystemMessageContext = createContext<SystemMessageContextType | undefined>(undefined);
 
-export function SystemMessageProvider({ children }: { children: ReactNode }) {
-  const [messages, setMessages] = useState<SystemMessageData[]>([
-    {
-      id: "maintenance-1",
-      type: "maintenance",
-      title: "Scheduled Maintenance",
-      message: "System maintenance scheduled for tonight from 2AM - 4AM. Some features may be unavailable during this time.",
-      targetUsers: ["company", "tech", "admin"],
-      dismissible: true,
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // Expires in 24 hours
+const getInitialMessages = (): SystemMessageData[] => {
+  const savedMessages = localStorage.getItem(STORAGE_KEY);
+  if (savedMessages) {
+    try {
+      return JSON.parse(savedMessages);
+    } catch (error) {
+      console.error("Error parsing saved messages:", error);
     }
-  ]);
+  }
+  
+  // Default message if none in storage
+  return [{
+    id: "maintenance-1",
+    type: "maintenance",
+    title: "Scheduled Maintenance",
+    message: "System maintenance scheduled for tonight from 2AM - 4AM. Some features may be unavailable during this time.",
+    targetUsers: ["company", "tech", "admin"],
+    dismissible: true,
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // Expires in 24 hours
+  }];
+};
+
+export function SystemMessageProvider({ children }: { children: ReactNode }) {
+  const [messages, setMessages] = useState<SystemMessageData[]>(getInitialMessages);
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+  }, [messages]);
 
   // Clear expired messages on component mount and when messages change
   useEffect(() => {

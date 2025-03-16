@@ -4,7 +4,7 @@ import { AdminSidebar } from "./AdminSidebar";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useUserMessages } from "@/context/SystemMessageContext";
+import { useUserMessages, useSystemMessages } from "@/context/SystemMessageContext";
 import { SystemMessage } from "@/components/system/SystemMessage";
 import { Search, Menu } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -14,6 +14,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 export function AdminLayout() {
   const navigate = useNavigate();
   const userMessages = useUserMessages("admin");
+  const { removeMessage } = useSystemMessages();
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -66,9 +67,12 @@ export function AdminLayout() {
           {userMessages.map(msg => (
             <SystemMessage
               key={msg.id}
+              id={msg.id}
               type={msg.type}
               title={msg.title}
               message={msg.message}
+              dismissible={msg.dismissible}
+              onDismiss={() => removeMessage(msg.id)}
             />
           ))}
           <Outlet />

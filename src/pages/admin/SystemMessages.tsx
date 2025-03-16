@@ -7,8 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useSystemMessages } from "@/context/SystemMessageContext";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
-import { BellRing, Info, AlertTriangle, X, Trash } from "lucide-react";
+import { BellRing, Info, AlertTriangle, Trash } from "lucide-react";
 import { SystemMessage } from "@/components/system/SystemMessage";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
@@ -19,12 +18,13 @@ export default function SystemMessagesPage() {
   const [newMessage, setNewMessage] = useState({
     title: "",
     message: "",
-    type: "info" as "info" | "warning" | "maintenance",
+    type: "info" as "info" | "warning" | "maintenance" | "success",
     targetUsers: {
       company: true,
       tech: true,
       admin: false
-    }
+    },
+    dismissible: true
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -48,7 +48,8 @@ export default function SystemMessagesPage() {
       title: newMessage.title,
       message: newMessage.message,
       type: newMessage.type,
-      targetUsers
+      targetUsers,
+      dismissible: newMessage.dismissible
     });
     
     toast.success("System message added successfully");
@@ -62,7 +63,8 @@ export default function SystemMessagesPage() {
         company: true,
         tech: true,
         admin: false
-      }
+      },
+      dismissible: true
     });
   };
 
@@ -159,9 +161,9 @@ export default function SystemMessagesPage() {
                   value={newMessage.type} 
                   onValueChange={(value) => setNewMessage({
                     ...newMessage, 
-                    type: value as "info" | "warning" | "maintenance"
+                    type: value as "info" | "warning" | "maintenance" | "success"
                   })}
-                  className="flex gap-4"
+                  className="flex flex-wrap gap-4"
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="info" id="info" />
@@ -179,6 +181,12 @@ export default function SystemMessagesPage() {
                     <RadioGroupItem value="maintenance" id="maintenance" />
                     <Label htmlFor="maintenance" className="flex items-center">
                       <BellRing className="h-4 w-4 text-red-500 mr-1" /> Maintenance
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="success" id="success" />
+                    <Label htmlFor="success" className="flex items-center">
+                      <BellRing className="h-4 w-4 text-green-500 mr-1" /> Success
                     </Label>
                   </div>
                 </RadioGroup>
@@ -234,6 +242,22 @@ export default function SystemMessagesPage() {
                   </div>
                 </div>
               </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="dismissible" 
+                  checked={newMessage.dismissible}
+                  onCheckedChange={(checked) => 
+                    setNewMessage({
+                      ...newMessage, 
+                      dismissible: !!checked
+                    })
+                  }
+                />
+                <label htmlFor="dismissible" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Allow users to dismiss this message
+                </label>
+              </div>
             </CardContent>
             <CardFooter>
               <Button type="submit" className="w-full">Add System Message</Button>
@@ -253,6 +277,7 @@ export default function SystemMessagesPage() {
               type={newMessage.type}
               title={newMessage.title || "Message Title"}
               message={newMessage.message || "Message content will appear here..."}
+              dismissible={newMessage.dismissible}
             />
           </CardContent>
         </Card>
