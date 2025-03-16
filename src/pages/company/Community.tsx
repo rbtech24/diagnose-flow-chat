@@ -45,9 +45,9 @@ export default function CompanyCommunity() {
     <div className="container mx-auto p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Technician Community</h1>
+          <h1 className="text-3xl font-bold">Company Community</h1>
           <p className="text-muted-foreground mt-1">
-            Share knowledge, request technical documents, and solve problems together
+            Share knowledge, request technical documents, and collaborate with technicians
           </p>
         </div>
       </div>
