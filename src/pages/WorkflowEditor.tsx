@@ -27,7 +27,7 @@ export default function WorkflowEditor() {
         description: "Only administrators can edit workflows.",
         variant: "destructive"
       });
-      navigate('/workflows');
+      navigate('/admin/workflows');
     }
   }, [userRole, isLoading, navigate]);
 
@@ -46,7 +46,7 @@ export default function WorkflowEditor() {
 
   const handleBackToDashboard = () => {
     if (userRole === 'admin') {
-      navigate('/admin');
+      navigate('/admin/workflows');
     } else {
       navigate('/workflows');
     }
@@ -67,7 +67,7 @@ export default function WorkflowEditor() {
             onClick={handleBackToDashboard}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
+            Back to Workflows
           </Button>
           <div className="ml-4 text-sm text-slate-500">
             {folder && `Editing: ${folder}${name ? ` / ${name}` : ''}`}

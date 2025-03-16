@@ -27,6 +27,15 @@ export function AdminSidebar() {
               Dashboard
             </Button>
           </Link>
+          <Link to="/admin/workflows">
+            <Button
+              variant={isActive("/admin/workflows") ? "secondary" : "ghost"}
+              className={cn("w-full justify-start", isActive("/admin/workflows") ? "bg-purple-100 text-purple-900" : "text-gray-600 hover:bg-purple-50 hover:text-purple-700")}
+            >
+              <Workflow className="mr-2 h-4 w-4" />
+              Workflows
+            </Button>
+          </Link>
           <Link to="/admin/support">
             <Button
               variant={isActive("/admin/support") ? "secondary" : "ghost"}
@@ -75,15 +84,6 @@ export function AdminSidebar() {
             >
               <Building2 className="mr-2 h-4 w-4" />
               Companies
-            </Button>
-          </Link>
-          <Link to="/admin/workflows">
-            <Button
-              variant={isActive("/admin/workflows") ? "secondary" : "ghost"}
-              className={cn("w-full justify-start", isActive("/admin/workflows") ? "bg-gray-100 text-gray-900" : "text-gray-600 hover:bg-purple-50 hover:text-purple-700")}
-            >
-              <Workflow className="mr-2 h-4 w-4" />
-              Workflows
             </Button>
           </Link>
           
