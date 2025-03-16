@@ -26,9 +26,16 @@ export interface NewPostDialogProps {
     attachments: File[];
   }) => void;
   userRole?: 'admin' | 'company' | 'tech';
+  showDocumentTypes?: boolean;
 }
 
-export function NewPostDialog({ isOpen, onOpenChange, onSubmit, userRole = 'tech' }: NewPostDialogProps) {
+export function NewPostDialog({ 
+  isOpen, 
+  onOpenChange, 
+  onSubmit, 
+  userRole = 'tech',
+  showDocumentTypes = false 
+}: NewPostDialogProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [postType, setPostType] = useState<CommunityPostType>('question');
@@ -104,8 +111,12 @@ export function NewPostDialog({ isOpen, onOpenChange, onSubmit, userRole = 'tech
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="question">Question</SelectItem>
-                  <SelectItem value="tech-sheet-request">Tech Sheet Request</SelectItem>
-                  <SelectItem value="wire-diagram-request">Wire Diagram Request</SelectItem>
+                  {showDocumentTypes && (
+                    <>
+                      <SelectItem value="tech-sheet-request">Tech Sheet Request</SelectItem>
+                      <SelectItem value="wire-diagram-request">Wire Diagram Request</SelectItem>
+                    </>
+                  )}
                   <SelectItem value="discussion">Discussion</SelectItem>
                 </SelectContent>
               </Select>
@@ -218,3 +229,4 @@ export function NewPostDialog({ isOpen, onOpenChange, onSubmit, userRole = 'tech
     </Dialog>
   );
 }
+
