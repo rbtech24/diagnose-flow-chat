@@ -1,6 +1,7 @@
 import {
   createBrowserRouter,
   RouterProvider,
+  Navigate,
 } from "react-router-dom";
 import Dashboard from "./pages/company/Dashboard";
 import TechDashboard from "./pages/tech/Dashboard";
@@ -62,6 +63,7 @@ import SystemMessagesPage from "./pages/admin/SystemMessages";
 import { SystemMessageProvider } from "./context/SystemMessageContext";
 import AdminAccounts from "./pages/admin/AdminAccounts";
 import ApiKeys from "./pages/admin/ApiKeys";
+import TechTools from "./pages/tech/TechTools";
 
 const router = createBrowserRouter([
   {
@@ -151,17 +153,18 @@ const router = createBrowserRouter([
     path: "/tech",
     element: <TechLayout />,
     children: [
-      { index: true, element: <TechDashboard /> },
+      { path: "", element: <Navigate to="/tech/dashboard" replace /> },
       { path: "dashboard", element: <TechDashboard /> },
-      { path: "support", element: <TechSupport /> },
-      { path: "support/:ticketId", element: <TechSupport /> },
       { path: "profile", element: <TechProfile /> },
+      { path: "diagnostics", element: <DiagnosticsPage /> },
       { path: "community", element: <TechCommunity /> },
       { path: "community/:postId", element: <TechCommunityPostDetail /> },
       { path: "feature-requests", element: <TechFeatureRequests /> },
-      { path: "feature-requests/:id", element: <TechFeatureRequestDetailPage /> },
-      { path: "diagnostics", element: <DiagnosticsPage /> }
-    ]
+      { path: "feature-requests/:requestId", element: <TechFeatureRequestDetail /> },
+      { path: "support", element: <TechSupport /> },
+      { path: "support/:ticketId", element: <TechSupportTicketDetail /> },
+      { path: "tools", element: <TechTools /> }
+    ],
   },
   {
     path: "/admin",

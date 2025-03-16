@@ -7,7 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Wrench, Building2, History, Award, BarChart, Phone } from "lucide-react";
+import { Wrench, Building2, History, Award, BarChart, Phone, BookOpen } from "lucide-react";
+import { PerformanceMetrics } from "@/components/tech/PerformanceMetrics";
+import { ServiceHistory } from "@/components/tech/ServiceHistory";
 
 export default function TechProfile() {
   // Mock technician data - would typically come from API/context
@@ -128,28 +130,19 @@ export default function TechProfile() {
     </Card>
   );
 
-  const statsCard = (
+  const recentServiceCard = (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <BarChart className="h-5 w-5 text-blue-500" />
-          Performance
+          <History className="h-5 w-5 text-blue-500" />
+          Recent Services
         </CardTitle>
         <CardDescription>
-          Your repair statistics and performance.
+          Your recent repair activity.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-4 text-center">
-          <div className="p-4 border rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">{techData.completedRepairs}</div>
-            <p className="text-sm text-muted-foreground">Completed Repairs</p>
-          </div>
-          <div className="p-4 border rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">{techData.rating}</div>
-            <p className="text-sm text-muted-foreground">Customer Rating</p>
-          </div>
-        </div>
+        <ServiceHistory />
       </CardContent>
     </Card>
   );
@@ -171,34 +164,29 @@ export default function TechProfile() {
       )
     },
     {
+      id: "performance",
+      label: "Performance",
+      content: <PerformanceMetrics 
+        completedRepairs={techData.completedRepairs}
+        customerRating={techData.rating}
+        averageTime="1h 42m"
+        efficiencyScore={92}
+        customersServed={185}
+      />
+    },
+    {
+      id: "history",
+      label: "Service History",
+      content: (
+        <div className="space-y-6">
+          {recentServiceCard}
+        </div>
+      )
+    },
+    {
       id: "contact",
       label: "Contact",
       content: contactCard
-    },
-    {
-      id: "stats",
-      label: "Statistics",
-      content: (
-        <div className="space-y-6">
-          {statsCard}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <History className="h-5 w-5 text-blue-500" />
-                Repair History
-              </CardTitle>
-              <CardDescription>
-                Overview of your recent repair work.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-center text-muted-foreground py-6">
-                Detailed repair history will be available here.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      )
     },
     {
       id: "security",

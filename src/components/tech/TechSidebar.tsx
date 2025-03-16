@@ -7,7 +7,10 @@ import {
   LogOut, 
   MessageSquare,
   FileText,
-  Stethoscope
+  Stethoscope,
+  History,
+  BarChart,
+  Book
 } from "lucide-react";
 
 import {
@@ -45,7 +48,7 @@ export function TechSidebar() {
             </SidebarNavItem>
           </SidebarNavGroup>
           
-          <SidebarNavGroup label="RESOURCES">
+          <SidebarNavGroup label="TOOLS">
             <SidebarNavItem 
               icon={<Stethoscope className="w-5 h-5" />} 
               active={isActive("/tech/diagnostics")}
@@ -53,6 +56,22 @@ export function TechSidebar() {
               <Link to="/tech/diagnostics" className="w-full h-full flex items-center">Diagnostics</Link>
             </SidebarNavItem>
 
+            <SidebarNavItem 
+              icon={<History className="w-5 h-5" />} 
+              active={isActive("/tech/tools")}
+            >
+              <Link to="/tech/tools" className="w-full h-full flex items-center">Tech Tools</Link>
+            </SidebarNavItem>
+
+            <SidebarNavItem 
+              icon={<Book className="w-5 h-5" />} 
+              active={isActive("/tech/knowledge")}
+            >
+              <Link to="/tech/knowledge" className="w-full h-full flex items-center">Knowledge Base</Link>
+            </SidebarNavItem>
+          </SidebarNavGroup>
+          
+          <SidebarNavGroup label="COMMUNITY">
             <SidebarNavItem 
               icon={<MessageSquare className="w-5 h-5" />} 
               active={isActive("/tech/community")}
