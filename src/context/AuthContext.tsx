@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User } from "@/types/user";
 import { useUserManagementStore } from "@/store/userManagementStore";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "react-hot-toast";
 import { 
   generateSessionId, 
   updateLastActivity, 
@@ -38,7 +38,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const { toast } = useToast();
   const { users } = useUserManagementStore();
 
   useEffect(() => {
@@ -49,7 +48,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast({
           title: "Logged out",
           description: "Your account was logged in on another device",
-          variant: "destructive",
         });
         logout();
       }
@@ -72,7 +70,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast({
           title: "Session expired",
           description: "You have been logged out due to inactivity",
-          variant: "destructive",
         });
         logout();
       }
@@ -104,7 +101,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast({
           title: "License issue detected",
           description: licenseStatus.message || "Your license is no longer valid.",
-          variant: "destructive",
         });
         logout();
       }
@@ -138,7 +134,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             toast({
               title: "License issue",
               description: licenseStatus.message || "Your subscription has expired. Please contact support.",
-              variant: "destructive",
             });
           }
         } catch (error) {
@@ -189,7 +184,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           toast({
             title: "Login failed",
             description: "Your license has expired. Please contact support.",
-            variant: "destructive",
           });
           return false;
         }
@@ -207,7 +201,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast({
           title: "Login failed",
           description: "Invalid email, password, or user role. Please try again.",
-          variant: "destructive",
         });
         return false;
       }
@@ -216,7 +209,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast({
         title: "Login failed",
         description: "An error occurred during login. Please try again.",
-        variant: "destructive",
       });
       return false;
     }
@@ -242,7 +234,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast({
         title: "Signup failed",
         description: "An error occurred during signup. Please try again.",
-        variant: "destructive",
       });
       return false;
     }
@@ -262,7 +253,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast({
           title: "Email not found",
           description: "No account found with this email address.",
-          variant: "destructive",
         });
         return false;
       }
@@ -271,7 +261,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast({
         title: "Password reset failed",
         description: "An error occurred. Please try again.",
-        variant: "destructive",
       });
       return false;
     }
