@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,7 +25,7 @@ export default function Index() {
               </Link>
             </Button>
             <Button asChild className="bg-blue-600 hover:bg-blue-700">
-              <Link to="/login">
+              <Link to="/signup">
                 Get Started
               </Link>
             </Button>
@@ -52,7 +51,7 @@ export default function Index() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
-                    <Link to="/login">
+                    <Link to="/signup">
                       Start Free Trial <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
@@ -265,7 +264,7 @@ export default function Index() {
             <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Repair Service?</h2>
             <p className="max-w-2xl mx-auto mb-8">Join the hundreds of appliance repair companies already using Repair Auto Pilot to streamline their operations.</p>
             <Button asChild size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
-              <Link to="/login">
+              <Link to="/signup">
                 Start Your Free Trial
               </Link>
             </Button>
