@@ -199,7 +199,7 @@ export function OfflineAwareCommunityForum({
             <div className="space-y-4">
               {filteredPosts.map((post) => (
                 <Link key={post.id} to={`${basePath}/${post.id}`}>
-                  <CommunityPostCard post={post} />
+                  <CommunityPostCard post={post} basePath={basePath} />
                 </Link>
               ))}
             </div>

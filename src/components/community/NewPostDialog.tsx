@@ -15,7 +15,9 @@ import {
 } from "@/components/ui/select";
 import { CommunityPostType } from '@/types/community';
 
-interface NewPostDialogProps {
+export interface NewPostDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
   onSubmit: (post: {
     title: string;
     content: string;
@@ -23,10 +25,10 @@ interface NewPostDialogProps {
     tags: string[];
     attachments: File[];
   }) => void;
+  userRole?: 'admin' | 'company' | 'tech';
 }
 
-export function NewPostDialog({ onSubmit }: NewPostDialogProps) {
-  const [open, setOpen] = useState(false);
+export function NewPostDialog({ isOpen, onOpenChange, onSubmit, userRole = 'tech' }: NewPostDialogProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [postType, setPostType] = useState<CommunityPostType>('question');
@@ -44,7 +46,7 @@ export function NewPostDialog({ onSubmit }: NewPostDialogProps) {
       attachments
     });
     resetForm();
-    setOpen(false);
+    onOpenChange(false);
   };
 
   const handleTagKeyDown = (e: React.KeyboardEvent) => {
@@ -81,13 +83,7 @@ export function NewPostDialog({ onSubmit }: NewPostDialogProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          New Post
-        </Button>
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
@@ -210,7 +206,7 @@ export function NewPostDialog({ onSubmit }: NewPostDialogProps) {
               variant="outline" 
               onClick={() => {
                 resetForm();
-                setOpen(false);
+                onOpenChange(false);
               }}
             >
               Cancel

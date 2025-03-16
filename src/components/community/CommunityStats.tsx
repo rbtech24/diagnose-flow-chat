@@ -2,6 +2,7 @@
 import React from 'react';
 import { MessageSquare, FileText, Workflow, Users } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
+import { CommunityPost } from '@/types/community';
 
 interface StatCardProps {
   icon: React.ReactNode;
@@ -26,19 +27,16 @@ function StatCard({ icon, label, value, color }: StatCardProps) {
   );
 }
 
-interface CommunityStatsProps {
-  questionCount: number;
-  techSheetRequestCount: number;
-  wireDiagramRequestCount: number;
-  activeMemberCount: number;
+export interface CommunityStatsProps {
+  posts: CommunityPost[];
 }
 
-export function CommunityStats({
-  questionCount,
-  techSheetRequestCount,
-  wireDiagramRequestCount,
-  activeMemberCount
-}: CommunityStatsProps) {
+export function CommunityStats({ posts }: CommunityStatsProps) {
+  const questionCount = posts.filter(post => post.type === 'question').length;
+  const techSheetRequestCount = posts.filter(post => post.type === 'tech-sheet-request').length;
+  const wireDiagramRequestCount = posts.filter(post => post.type === 'wire-diagram-request').length;
+  const activeMemberCount = new Set(posts.map(post => post.authorId)).size;
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <StatCard

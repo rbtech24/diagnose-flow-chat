@@ -68,8 +68,8 @@ import TechSupportTicketDetail from "./pages/tech/SupportTicketDetail";
 import TechKnowledgePage from "./pages/tech/KnowledgePage";
 import AdminKnowledgeBase from "./pages/admin/KnowledgeBase";
 import { Toaster } from "react-hot-toast";
-import { OfflineIndicator } from "react-offline/lib/components/OfflineIndicator";
-import { MobileOfflineIndicator } from "react-offline/lib/components/MobileOfflineIndicator";
+import { OfflineIndicator } from "./components/system/OfflineIndicator";
+import { MobileOfflineIndicator } from "./components/system/MobileOfflineIndicator";
 
 const router = createBrowserRouter([
   {

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { SyncStatusIndicator } from '@/components/system/SyncStatusIndicator';
 import { SyncStatusBadge } from '@/components/system/SyncStatusBadge';
@@ -185,7 +184,7 @@ export default function DataSyncDashboard() {
       toast({
         title: "Sync Complete",
         description: "All changes have been synchronized",
-        variant: "success"
+        variant: "default"
       });
     } catch (error) {
       console.error('Error syncing all changes:', error);
@@ -383,7 +382,7 @@ export default function DataSyncDashboard() {
           </AlertDescription>
         </Alert>
       ) : (
-        <Alert variant="success">
+        <Alert variant="default">
           <CheckCircle className="h-4 w-4 mr-2" />
           <AlertDescription>
             All data is synchronized. No pending updates.
