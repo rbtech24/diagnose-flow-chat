@@ -44,7 +44,7 @@ export function FlowHeader({ currentWorkflow, onQuickSave }: FlowHeaderProps) {
         </Button>
         <div className="ml-4 flex items-center gap-2">
           {currentWorkflow && (
-            <QuickSaveButton onClick={onQuickSave} />
+            <QuickSaveButton onQuickSave={onQuickSave} currentWorkflow={currentWorkflow} />
           )}
         </div>
       </div>

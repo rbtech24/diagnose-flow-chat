@@ -8,9 +8,7 @@ interface QuickSaveButtonProps {
   onQuickSave: () => void;
 }
 
-export function QuickSaveButton({ currentWorkflow, onQuickSave }: QuickSaveButtonProps) {
-  if (!currentWorkflow) return null;
-
+export function QuickSaveButton({ onQuickSave }: QuickSaveButtonProps) {
   return (
     <Button
       variant="default"
