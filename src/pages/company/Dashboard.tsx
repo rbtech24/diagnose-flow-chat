@@ -1,11 +1,10 @@
-
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   Users, Wrench, Clock, AlertTriangle, Search,
   PlusCircle, ArrowUp, ArrowDown, MessagesSquare,
-  Play, Activity
+  Play, Activity, Stethoscope
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useWorkflows } from "@/hooks/useWorkflows";
@@ -53,7 +52,7 @@ export default function CompanyDashboard() {
                 <CardDescription>{formattedDate}</CardDescription>
               </div>
               <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-                <Link to="/workflows" className="flex items-center text-white">
+                <Link to="/company/diagnostics" className="flex items-center text-white">
                   <Play className="mr-2 h-4 w-4" />
                   Start Diagnosis
                 </Link>
@@ -82,16 +81,16 @@ export default function CompanyDashboard() {
         
         <Card className="border-purple-200 bg-purple-50">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Workflows</CardTitle>
+            <CardTitle className="text-sm font-medium">Diagnostics</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col items-center justify-center h-full py-4">
               <div className="bg-purple-200 text-purple-600 p-4 rounded-full mb-2">
-                <Wrench className="h-6 w-6" />
+                <Stethoscope className="h-6 w-6" />
               </div>
-              <p className="text-sm text-center mb-1">{isLoading ? "Loading..." : `${workflows.length} available workflows`}</p>
+              <p className="text-sm text-center mb-1">{isLoading ? "Loading..." : `${workflows.length} available procedures`}</p>
               <Button variant="outline" size="sm" className="mt-2">
-                <Link to="/workflows" className="text-black">Manage Workflows</Link>
+                <Link to="/company/diagnostics" className="text-black">View Diagnostics</Link>
               </Button>
             </div>
           </CardContent>
@@ -265,7 +264,6 @@ export default function CompanyDashboard() {
         </Card>
       </div>
       
-      {/* Floating AI Assistant Button */}
       <div className="fixed bottom-8 right-8">
         <Button size="lg" className="h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg">
           <MessagesSquare className="h-6 w-6" />

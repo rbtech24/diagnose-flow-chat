@@ -7,7 +7,7 @@ import {
   LogOut, 
   MessageSquare,
   FileText,
-  Workflow
+  Stethoscope
 } from "lucide-react";
 
 import {
@@ -47,10 +47,10 @@ export function TechSidebar() {
           
           <SidebarNavGroup label="RESOURCES">
             <SidebarNavItem 
-              icon={<Workflow className="w-5 h-5" />} 
-              active={isActive("/tech/workflows")}
+              icon={<Stethoscope className="w-5 h-5" />} 
+              active={isActive("/tech/diagnostics")}
             >
-              <Link to="/tech/workflows" className="w-full h-full flex items-center">Workflows</Link>
+              <Link to="/tech/diagnostics" className="w-full h-full flex items-center">Diagnostics</Link>
             </SidebarNavItem>
 
             <SidebarNavItem 

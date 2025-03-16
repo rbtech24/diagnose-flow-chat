@@ -45,6 +45,7 @@ import WorkflowEditor from "./pages/WorkflowEditor";
 import Workflows from "./pages/Workflows";
 import AdminSupportTicketDetail from "./pages/admin/SupportTicketDetail";
 import ForgotPassword from "./pages/ForgotPassword";
+import DiagnosticsPage from "./pages/diagnostics/DiagnosticsPage";
 
 const router = createBrowserRouter([
   {
@@ -78,7 +79,7 @@ const router = createBrowserRouter([
       { path: "feature-requests/:id", element: <CompanyFeatureRequestDetailPage /> },
       { path: "subscription", element: <CompanySubscription /> },
       { path: "technicians", element: <ManageTechnicians /> },
-      { path: "workflows", element: <Workflows /> }
+      { path: "diagnostics", element: <DiagnosticsPage /> }
     ]
   },
   {
@@ -94,7 +95,7 @@ const router = createBrowserRouter([
       { path: "community/:postId", element: <TechCommunityPostDetail /> },
       { path: "feature-requests", element: <TechFeatureRequests /> },
       { path: "feature-requests/:id", element: <TechFeatureRequestDetailPage /> },
-      { path: "workflows", element: <Workflows /> }
+      { path: "diagnostics", element: <DiagnosticsPage /> }
     ]
   },
   {
