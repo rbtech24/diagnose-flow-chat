@@ -2,6 +2,13 @@
 import { useState, useEffect } from 'react';
 import { initNetworkStatusListeners } from '@/utils/offlineStorage';
 
+// Define interface for browser that supports SyncManager
+interface SyncRegistration extends ServiceWorkerRegistration {
+  sync: {
+    register(tag: string): Promise<void>;
+  }
+}
+
 /**
  * Hook to track online/offline status and manage reconnection
  */
@@ -42,9 +49,10 @@ export function useOfflineStatus() {
       if ('serviceWorker' in navigator && 'SyncManager' in window) {
         navigator.serviceWorker.ready
           .then(registration => {
+            // Type cast to our interface with sync property
             return Promise.all([
-              registration.sync.register('sync-knowledge-updates'),
-              registration.sync.register('sync-workflow-updates')
+              (registration as SyncRegistration).sync.register('sync-knowledge-updates'),
+              (registration as SyncRegistration).sync.register('sync-workflow-updates')
             ]);
           })
           .catch(error => {

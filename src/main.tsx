@@ -13,6 +13,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   </React.StrictMode>,
 );
 
+// Define interface for ServiceWorkerRegistration with sync
+interface SyncRegistration extends ServiceWorkerRegistration {
+  sync: {
+    register(tag: string): Promise<void>;
+  }
+}
+
 // Enhanced service worker registration for better offline support
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -56,8 +63,8 @@ if ('serviceWorker' in navigator) {
       // Attempt to trigger any background sync operations
       navigator.serviceWorker.ready.then(registration => {
         if ('sync' in registration) {
-          registration.sync.register('sync-knowledge-updates');
-          registration.sync.register('sync-workflow-updates');
+          (registration as SyncRegistration).sync.register('sync-knowledge-updates');
+          (registration as SyncRegistration).sync.register('sync-workflow-updates');
         }
       });
     });

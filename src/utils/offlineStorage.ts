@@ -3,8 +3,15 @@
  * Utility for managing offline data storage and synchronization
  */
 
+// Define the interface for database configurations
+interface DBConfig {
+  name: string;
+  version: number;
+  stores: Record<string, string>;
+}
+
 // Database configurations
-const KNOWLEDGE_DB = {
+const KNOWLEDGE_DB: DBConfig = {
   name: 'offlineKnowledgeDb',
   version: 1,
   stores: {
@@ -13,7 +20,7 @@ const KNOWLEDGE_DB = {
   }
 };
 
-const WORKFLOW_DB = {
+const WORKFLOW_DB: DBConfig = {
   name: 'offlineWorkflowDb',
   version: 1,
   stores: {
@@ -22,6 +29,13 @@ const WORKFLOW_DB = {
   }
 };
 
+// ServiceWorker sync registration interface
+interface SyncRegistration extends ServiceWorkerRegistration {
+  sync: {
+    register(tag: string): Promise<void>;
+  }
+}
+
 // Background sync tags
 export const SYNC_TAGS = {
   KNOWLEDGE: 'sync-knowledge-updates',
@@ -29,7 +43,7 @@ export const SYNC_TAGS = {
 };
 
 // Open a database connection
-const openDatabase = (dbConfig: typeof KNOWLEDGE_DB) => {
+const openDatabase = (dbConfig: DBConfig) => {
   return new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open(dbConfig.name, dbConfig.version);
     
@@ -48,9 +62,9 @@ const openDatabase = (dbConfig: typeof KNOWLEDGE_DB) => {
       Object.entries(dbConfig.stores).forEach(([storeName, keyPath]) => {
         if (!db.objectStoreNames.contains(storeName)) {
           const storeOptions: IDBObjectStoreParameters = 
-            typeof keyPath === 'string' 
-              ? { keyPath } 
-              : { keyPath: keyPath.split(',')[0], autoIncrement: true };
+            typeof keyPath === 'string' && keyPath.includes(',')
+              ? { keyPath: keyPath.split(',')[0], autoIncrement: true }
+              : { keyPath, autoIncrement: false };
           
           const store = db.createObjectStore(storeName, storeOptions);
           
@@ -69,7 +83,7 @@ const openDatabase = (dbConfig: typeof KNOWLEDGE_DB) => {
 
 // Generic function to store data
 export const storeData = async <T extends object>(
-  dbConfig: typeof KNOWLEDGE_DB,
+  dbConfig: DBConfig,
   storeName: string,
   data: T
 ): Promise<IDBValidKey> => {
@@ -96,7 +110,7 @@ export const storeData = async <T extends object>(
 
 // Generic function to retrieve data
 export const getData = async <T>(
-  dbConfig: typeof KNOWLEDGE_DB,
+  dbConfig: DBConfig,
   storeName: string,
   key: IDBValidKey
 ): Promise<T | null> => {
@@ -123,7 +137,7 @@ export const getData = async <T>(
 
 // Function to get all data from a store
 export const getAllData = async <T>(
-  dbConfig: typeof KNOWLEDGE_DB,
+  dbConfig: DBConfig,
   storeName: string
 ): Promise<T[]> => {
   const db = await openDatabase(dbConfig);
@@ -149,7 +163,7 @@ export const getAllData = async <T>(
 
 // Function to delete data
 export const deleteData = async (
-  dbConfig: typeof KNOWLEDGE_DB,
+  dbConfig: DBConfig,
   storeName: string,
   key: IDBValidKey
 ): Promise<void> => {
@@ -176,7 +190,7 @@ export const deleteData = async (
 
 // Function to clear all data from a store
 export const clearStore = async (
-  dbConfig: typeof KNOWLEDGE_DB,
+  dbConfig: DBConfig,
   storeName: string
 ): Promise<void> => {
   const db = await openDatabase(dbConfig);
@@ -222,7 +236,7 @@ export const storePendingUpdate = async (
     // Register for background sync if supported
     if ('serviceWorker' in navigator && 'SyncManager' in window) {
       const registration = await navigator.serviceWorker.ready;
-      await registration.sync.register(
+      await (registration as SyncRegistration).sync.register(
         type === 'knowledge' ? SYNC_TAGS.KNOWLEDGE : SYNC_TAGS.WORKFLOW
       );
     }
