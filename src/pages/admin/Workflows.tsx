@@ -21,12 +21,13 @@ export default function AdminWorkflows() {
   );
 
   const handleCreateWorkflow = () => {
-    // Direct navigation to workflow editor with the new=true parameter
-    navigate('/workflow-editor?new=true');
+    console.log("Navigating to workflow editor");
+    // Make sure we're explicitly going to /admin/workflow-editor
+    navigate('/admin/workflow-editor?new=true');
   };
 
   const handleEditWorkflow = (folder: string, name: string) => {
-    navigate(`/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`);
+    navigate(`/admin/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`);
   };
 
   return (
