@@ -151,22 +151,6 @@ export function ServiceHistory() {
             <CardTitle>Service History</CardTitle>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center space-x-2">
-                {viewMode === "personal" ? (
-                  <User className="h-4 w-4 text-gray-500" />
-                ) : (
-                  <Users className="h-4 w-4 text-blue-500" />
-                )}
-                <span className="text-sm">
-                  {viewMode === "personal" ? "Personal" : "System-wide"}
-                </span>
-              </div>
-              <Switch 
-                checked={viewMode === "system"}
-                onCheckedChange={(checked) => setViewMode(checked ? "system" : "personal")}
-              />
-            </div>
             <Select value={selectedAppliance} onValueChange={setSelectedAppliance}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select Appliance" />
@@ -187,6 +171,30 @@ export function ServiceHistory() {
             ? "Track your service calls and repair history" 
             : "View system-wide repair history across all technicians"}
         </CardDescription>
+        
+        {/* Improved View Mode Toggle - More Prominent */}
+        <div className="mt-4 border rounded-md p-3 bg-slate-50">
+          <div className="flex justify-between items-center">
+            <span className="font-medium">View Mode:</span>
+            <div className="flex items-center space-x-4">
+              <div className={`flex items-center space-x-2 px-3 py-1 rounded-md ${viewMode === "personal" ? "bg-blue-100" : ""}`}>
+                <User className={`h-5 w-5 ${viewMode === "personal" ? "text-blue-600" : "text-gray-500"}`} />
+                <span className={viewMode === "personal" ? "font-medium text-blue-600" : "text-gray-500"}>Personal History</span>
+              </div>
+              
+              <Switch 
+                checked={viewMode === "system"}
+                onCheckedChange={(checked) => setViewMode(checked ? "system" : "personal")}
+                className="data-[state=checked]:bg-blue-600"
+              />
+              
+              <div className={`flex items-center space-x-2 px-3 py-1 rounded-md ${viewMode === "system" ? "bg-blue-100" : ""}`}>
+                <Users className={`h-5 w-5 ${viewMode === "system" ? "text-blue-600" : "text-gray-500"}`} />
+                <span className={viewMode === "system" ? "font-medium text-blue-600" : "text-gray-500"}>System-wide History</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="all" className="w-full">
