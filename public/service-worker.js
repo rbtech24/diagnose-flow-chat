@@ -1,3 +1,4 @@
+
 // Service Worker for Repair Auto Pilot
 
 const CACHE_NAME = 'repair-auto-pilot-v2';
@@ -10,7 +11,8 @@ const STATIC_ASSETS = [
   '/index.html',
   '/manifest.json',
   '/lovable-uploads/5e12430c-6872-485e-b07a-02b835f8e3d4.png',
-  '/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png'
+  '/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png',
+  '/offline.html'
 ];
 
 // URLs that should be cached separately for knowledge base data
@@ -181,7 +183,7 @@ self.addEventListener('sync', event => {
 const syncKnowledgeUpdates = async () => {
   try {
     const dbName = 'offlineKnowledgeDb';
-    const storeName = 'pendingKnowledgeUpdates';
+    const storeName = 'pendingUpdates';
     
     // Open IndexedDB
     const db = await new Promise((resolve, reject) => {
@@ -190,7 +192,9 @@ const syncKnowledgeUpdates = async () => {
       request.onsuccess = () => resolve(request.result);
       request.onupgradeneeded = (event) => {
         const db = event.target.result;
-        db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true });
+        if (!db.objectStoreNames.contains(storeName)) {
+          db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true });
+        }
       };
     });
     
@@ -204,26 +208,70 @@ const syncKnowledgeUpdates = async () => {
     });
     
     // Process each update
+    const successfulUpdates = [];
+    
     for (const update of pendingUpdates) {
       try {
-        const response = await fetch(update.url, {
+        // Create the request options
+        const options = {
           method: update.method,
           headers: update.headers,
-          body: update.body
-        });
+        };
+        
+        if (update.body && (update.method === 'POST' || update.method === 'PUT')) {
+          options.body = update.body;
+        }
+        
+        // Make the request
+        const response = await fetch(update.url, options);
         
         if (response.ok) {
-          // Remove from pending updates if successful
-          store.delete(update.id);
+          // Add to successful updates to remove later
+          successfulUpdates.push(update.id);
+          
+          // Broadcast success message to any open clients
+          const clients = await self.clients.matchAll({ type: 'window' });
+          for (const client of clients) {
+            client.postMessage({
+              type: 'SYNC_SUCCESS',
+              tag: SYNC_KNOWLEDGE_TAG,
+              updateId: update.id
+            });
+          }
+        } else {
+          // If failed, increment attempts counter
+          const updatedRecord = { ...update, attempts: (update.attempts || 0) + 1 };
+          store.put(updatedRecord);
+          
+          console.error(`[Service Worker] Failed to sync update ${update.id}: ${response.status}`);
         }
       } catch (error) {
-        console.error('[Service Worker] Failed to sync update:', error);
+        console.error('[Service Worker] Error processing update:', error);
       }
+    }
+    
+    // Remove successful updates
+    for (const id of successfulUpdates) {
+      store.delete(id);
     }
     
     await new Promise((resolve) => {
       tx.oncomplete = resolve;
     });
+    
+    // Close the database
+    db.close();
+    
+    // Notify clients that sync is complete
+    const clients = await self.clients.matchAll({ type: 'window' });
+    for (const client of clients) {
+      client.postMessage({
+        type: 'SYNC_COMPLETE',
+        tag: SYNC_KNOWLEDGE_TAG,
+        syncedCount: successfulUpdates.length,
+        remainingCount: pendingUpdates.length - successfulUpdates.length
+      });
+    }
     
     console.log('[Service Worker] Knowledge base updates synced successfully');
     
@@ -236,7 +284,7 @@ const syncKnowledgeUpdates = async () => {
 const syncWorkflowUpdates = async () => {
   try {
     const dbName = 'offlineWorkflowDb';
-    const storeName = 'pendingWorkflowUpdates';
+    const storeName = 'pendingUpdates';
     
     // Open IndexedDB
     const db = await new Promise((resolve, reject) => {
@@ -245,7 +293,9 @@ const syncWorkflowUpdates = async () => {
       request.onsuccess = () => resolve(request.result);
       request.onupgradeneeded = (event) => {
         const db = event.target.result;
-        db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true });
+        if (!db.objectStoreNames.contains(storeName)) {
+          db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true });
+        }
       };
     });
     
@@ -259,26 +309,58 @@ const syncWorkflowUpdates = async () => {
     });
     
     // Process each update
+    const successfulUpdates = [];
+    
     for (const update of pendingUpdates) {
       try {
-        const response = await fetch(update.url, {
+        // Create the request options
+        const options = {
           method: update.method,
           headers: update.headers,
-          body: update.body
-        });
+        };
+        
+        if (update.body && (update.method === 'POST' || update.method === 'PUT')) {
+          options.body = update.body;
+        }
+        
+        // Make the request
+        const response = await fetch(update.url, options);
         
         if (response.ok) {
-          // Remove from pending updates if successful
-          store.delete(update.id);
+          // Add to successful updates to remove later
+          successfulUpdates.push(update.id);
+        } else {
+          // If failed, increment attempts counter
+          const updatedRecord = { ...update, attempts: (update.attempts || 0) + 1 };
+          store.put(updatedRecord);
         }
       } catch (error) {
         console.error('[Service Worker] Failed to sync workflow update:', error);
       }
     }
     
+    // Remove successful updates
+    for (const id of successfulUpdates) {
+      store.delete(id);
+    }
+    
     await new Promise((resolve) => {
       tx.oncomplete = resolve;
     });
+    
+    // Close the database
+    db.close();
+    
+    // Notify clients that sync is complete
+    const clients = await self.clients.matchAll({ type: 'window' });
+    for (const client of clients) {
+      client.postMessage({
+        type: 'SYNC_COMPLETE',
+        tag: SYNC_WORKFLOW_TAG,
+        syncedCount: successfulUpdates.length,
+        remainingCount: pendingUpdates.length - successfulUpdates.length
+      });
+    }
     
     console.log('[Service Worker] Workflow updates synced successfully');
     
@@ -291,5 +373,14 @@ const syncWorkflowUpdates = async () => {
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  }
+  
+  // Handle manual sync requests
+  if (event.data && event.data.type === 'MANUAL_SYNC') {
+    if (event.data.tag === SYNC_KNOWLEDGE_TAG) {
+      syncKnowledgeUpdates();
+    } else if (event.data.tag === SYNC_WORKFLOW_TAG) {
+      syncWorkflowUpdates();
+    }
   }
 });

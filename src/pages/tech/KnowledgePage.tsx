@@ -1,5 +1,6 @@
 
 import { KnowledgeBase } from "@/components/tech/KnowledgeBase";
+import { OfflineAwareKnowledgeBase } from "@/components/admin/knowledge/OfflineAwareKnowledgeBase";
 
 export default function TechKnowledgePage() {
   return (
@@ -9,7 +10,9 @@ export default function TechKnowledgePage() {
       </div>
       
       <div className="h-[calc(100vh-220px)] min-h-[500px]">
-        <KnowledgeBase />
+        <OfflineAwareKnowledgeBase>
+          <KnowledgeBase />
+        </OfflineAwareKnowledgeBase>
       </div>
     </div>
   );

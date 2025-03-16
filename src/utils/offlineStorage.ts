@@ -36,6 +36,17 @@ interface SyncRegistration extends ServiceWorkerRegistration {
   }
 }
 
+// Pending update interface
+export interface PendingUpdate {
+  id?: number;
+  url: string;
+  method: string;
+  headers: Record<string, string>;
+  body?: string;
+  timestamp: number;
+  attempts?: number;
+}
+
 // Background sync tags
 export const SYNC_TAGS = {
   KNOWLEDGE: 'sync-knowledge-updates',
@@ -61,16 +72,17 @@ const openDatabase = (dbConfig: DBConfig) => {
       // Create object stores
       Object.entries(dbConfig.stores).forEach(([storeName, keyPath]) => {
         if (!db.objectStoreNames.contains(storeName)) {
+          const keyPathString = keyPath as string;
           const storeOptions: IDBObjectStoreParameters = 
-            typeof keyPath === 'string' && keyPath.includes(',')
-              ? { keyPath: keyPath.split(',')[0], autoIncrement: true }
+            keyPathString.includes(',')
+              ? { keyPath: keyPathString.split(',')[0], autoIncrement: true }
               : { keyPath, autoIncrement: false };
           
           const store = db.createObjectStore(storeName, storeOptions);
           
           // Add indices for additional fields if keyPath contains multiple fields
-          if (typeof keyPath === 'string' && keyPath.includes(',')) {
-            const indices = keyPath.split(',').slice(1);
+          if (keyPathString.includes(',')) {
+            const indices = keyPathString.split(',').slice(1);
             indices.forEach(index => {
               store.createIndex(index.trim(), index.trim(), { unique: false });
             });
@@ -225,13 +237,15 @@ export const storePendingUpdate = async (
   }
 ): Promise<void> => {
   const dbConfig = type === 'knowledge' ? KNOWLEDGE_DB : WORKFLOW_DB;
+  const pendingUpdate: PendingUpdate = {
+    ...request,
+    timestamp: Date.now(),
+    body: request.body ? JSON.stringify(request.body) : undefined,
+    attempts: 0
+  };
   
   try {
-    await storeData(dbConfig, 'pendingUpdates', {
-      ...request,
-      timestamp: Date.now(),
-      body: request.body ? JSON.stringify(request.body) : undefined
-    });
+    await storeData(dbConfig, 'pendingUpdates', pendingUpdate);
     
     // Register for background sync if supported
     if ('serviceWorker' in navigator && 'SyncManager' in window) {
@@ -261,7 +275,13 @@ export const knowledgeStorage = {
     deleteData(KNOWLEDGE_DB, 'articles', id),
   
   storePendingUpdate: (request: Parameters<typeof storePendingUpdate>[1]) => 
-    storePendingUpdate('knowledge', request)
+    storePendingUpdate('knowledge', request),
+    
+  getPendingUpdates: () => 
+    getAllData<PendingUpdate>(KNOWLEDGE_DB, 'pendingUpdates'),
+    
+  removePendingUpdate: (id: IDBValidKey) => 
+    deleteData(KNOWLEDGE_DB, 'pendingUpdates', id)
 };
 
 // Workflow specific functions
@@ -279,7 +299,13 @@ export const workflowStorage = {
     deleteData(WORKFLOW_DB, 'workflows', id),
   
   storePendingUpdate: (request: Parameters<typeof storePendingUpdate>[1]) => 
-    storePendingUpdate('workflow', request)
+    storePendingUpdate('workflow', request),
+    
+  getPendingUpdates: () => 
+    getAllData<PendingUpdate>(WORKFLOW_DB, 'pendingUpdates'),
+    
+  removePendingUpdate: (id: IDBValidKey) => 
+    deleteData(WORKFLOW_DB, 'pendingUpdates', id)
 };
 
 // Check if the application is online
@@ -310,4 +336,17 @@ export const initNetworkStatusListeners = (
     window.removeEventListener('online', handleOnline);
     window.removeEventListener('offline', handleOffline);
   };
+};
+
+// Function to detect if there are pending changes to sync
+export const hasPendingChanges = async (): Promise<boolean> => {
+  try {
+    const knowledgePending = await knowledgeStorage.getPendingUpdates();
+    const workflowPending = await workflowStorage.getPendingUpdates();
+    
+    return knowledgePending.length > 0 || workflowPending.length > 0;
+  } catch (error) {
+    console.error('Error checking for pending changes:', error);
+    return false;
+  }
 };
