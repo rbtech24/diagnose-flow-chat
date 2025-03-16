@@ -52,7 +52,21 @@ export default function CompanyNew() {
 
   const onSubmit = async (data: CompanyFormValues) => {
     try {
-      const newCompany = await addCompany(data);
+      // Ensure we pass the required fields as non-optional
+      const newCompany = await addCompany({
+        name: data.name,
+        contactName: data.contactName,
+        email: data.email,
+        phone: data.phone,
+        address: data.address,
+        city: data.city,
+        state: data.state,
+        zipCode: data.zipCode,
+        country: data.country,
+        planId: data.planId,
+        planName: data.planName,
+        status: data.status,
+      });
       navigate(`/admin/companies/${newCompany.id}`);
     } catch (error) {
       console.error("Failed to create company:", error);

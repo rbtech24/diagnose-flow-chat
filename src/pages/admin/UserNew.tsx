@@ -42,7 +42,16 @@ export default function UserNew() {
 
   const onSubmit = async (data: UserFormValues) => {
     try {
-      const newUser = await addUser(data);
+      // Since the addUser function expects non-optional properties for name, email, and role,
+      // we ensure they are provided (they will be due to the form validation)
+      const newUser = await addUser({
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        phone: data.phone,
+        password: data.password,
+        companyId: data.companyId,
+      });
       navigate(`/admin/users/${newUser.id}`);
     } catch (error) {
       console.error("Failed to create user:", error);
