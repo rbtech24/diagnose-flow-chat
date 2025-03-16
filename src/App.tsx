@@ -1,4 +1,3 @@
-
 import {
   createBrowserRouter,
   RouterProvider,
@@ -46,6 +45,18 @@ import Workflows from "./pages/Workflows";
 import AdminSupportTicketDetail from "./pages/admin/SupportTicketDetail";
 import ForgotPassword from "./pages/ForgotPassword";
 import DiagnosticsPage from "./pages/diagnostics/DiagnosticsPage";
+import TermsOfUse from "./pages/TermsOfUse";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import About from "./pages/About";
+import Careers from "./pages/Careers";
+import Contact from "./pages/Contact";
+import Partners from "./pages/Partners";
+import HelpCenter from "./pages/HelpCenter";
+import CommunityForum from "./pages/CommunityForum";
+import Status from "./pages/Status";
+import GetStarted from "./pages/GetStarted";
+import CaseStudies from "./pages/CaseStudies";
+import Updates from "./pages/Updates";
 
 const router = createBrowserRouter([
   {
@@ -63,6 +74,54 @@ const router = createBrowserRouter([
   {
     path: "/forgot-password",
     element: <ForgotPassword />
+  },
+  {
+    path: "/terms-of-use",
+    element: <TermsOfUse />
+  },
+  {
+    path: "/privacy-policy",
+    element: <PrivacyPolicy />
+  },
+  {
+    path: "/about",
+    element: <About />
+  },
+  {
+    path: "/careers",
+    element: <Careers />
+  },
+  {
+    path: "/contact",
+    element: <Contact />
+  },
+  {
+    path: "/partners",
+    element: <Partners />
+  },
+  {
+    path: "/help-center",
+    element: <HelpCenter />
+  },
+  {
+    path: "/community-forum",
+    element: <CommunityForum />
+  },
+  {
+    path: "/status",
+    element: <Status />
+  },
+  {
+    path: "/get-started",
+    element: <GetStarted />
+  },
+  {
+    path: "/case-studies",
+    element: <CaseStudies />
+  },
+  {
+    path: "/updates",
+    element: <Updates />
   },
   {
     path: "/company",
