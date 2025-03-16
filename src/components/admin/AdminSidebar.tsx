@@ -1,131 +1,134 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { 
-  Home, Users, LifeBuoy, Settings, LogOut, 
-  FileText, Package, CreditCard, Network,
-  Building2, Workflow, MessageSquare
-} from "lucide-react";
-
-import {
-  Sidebar,
-  SidebarHeader,
-  SidebarMain,
-  SidebarNav,
-  SidebarNavItem,
-  SidebarFooter,
-  SidebarToggle,
-  SidebarNavGroup
-} from "@/components/ui/sidebar";
+import { GitPullRequest, Users, Building2, FileText, BarChart3, HeadphonesIcon, Settings, MessageSquare, Lightbulb, PiggyBank, Database, Workflow } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export function AdminSidebar() {
   const location = useLocation();
+
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <Sidebar defaultExpanded={true}>
-      <SidebarHeader className="flex items-center justify-between py-3">
-        <div className="flex items-center gap-2 px-4">
-          <span className="text-lg font-bold">Admin</span>
-        </div>
-        <SidebarToggle />
-      </SidebarHeader>
-      
-      <SidebarMain>
-        <SidebarNav>
-          <SidebarNavGroup label="DASHBOARD">
-            <SidebarNavItem 
-              icon={<Home className="w-5 h-5" />} 
-              active={isActive("/admin/dashboard")}
-            >
-              <Link to="/admin/dashboard" className="w-full h-full flex items-center">Dashboard</Link>
-            </SidebarNavItem>
-          </SidebarNavGroup>
-
-          <SidebarNavGroup label="MANAGEMENT">
-            <SidebarNavItem 
-              icon={<Building2 className="w-5 h-5" />} 
-              active={isActive("/admin/companies")}
-            >
-              <Link to="/admin/companies" className="w-full h-full flex items-center">Companies</Link>
-            </SidebarNavItem>
-            
-            <SidebarNavItem 
-              icon={<Users className="w-5 h-5" />} 
-              active={isActive("/admin/users")}
-            >
-              <Link to="/admin/users" className="w-full h-full flex items-center">Users</Link>
-            </SidebarNavItem>
-            
-            <SidebarNavItem 
-              icon={<Workflow className="w-5 h-5" />} 
-              active={isActive("/admin/workflows")}
-            >
-              <Link to="/admin/workflows" className="w-full h-full flex items-center">Workflows</Link>
-            </SidebarNavItem>
-
-            <SidebarNavItem 
-              icon={<MessageSquare className="w-5 h-5" />} 
-              active={isActive("/admin/community")}
-            >
-              <Link to="/admin/community" className="w-full h-full flex items-center">Community</Link>
-            </SidebarNavItem>
-          </SidebarNavGroup>
-
-          <SidebarNavGroup label="SUBSCRIPTION">
-            <SidebarNavItem 
-              icon={<Package className="w-5 h-5" />} 
-              active={isActive("/admin/subscription-plans")}
-            >
-              <Link to="/admin/subscription-plans" className="w-full h-full flex items-center">Subscription Plans</Link>
-            </SidebarNavItem>
-            
-            <SidebarNavItem 
-              icon={<CreditCard className="w-5 h-5" />} 
-              active={isActive("/admin/licenses")}
-            >
-              <Link to="/admin/licenses" className="w-full h-full flex items-center">Licenses</Link>
-            </SidebarNavItem>
-          </SidebarNavGroup>
-
-          <SidebarNavGroup label="SYSTEM">
-            <SidebarNavItem 
-              icon={<Network className="w-5 h-5" />} 
-              active={isActive("/admin/api-integrations")}
-            >
-              <Link to="/admin/api-integrations" className="w-full h-full flex items-center">API Integrations</Link>
-            </SidebarNavItem>
-            
-            <SidebarNavItem 
-              icon={<FileText className="w-5 h-5" />} 
-              active={isActive("/admin/feature-requests")}
-            >
-              <Link to="/admin/feature-requests" className="w-full h-full flex items-center">Feature Requests</Link>
-            </SidebarNavItem>
-          </SidebarNavGroup>
-
-          <SidebarNavGroup label="SUPPORT">
-            <SidebarNavItem 
-              icon={<LifeBuoy className="w-5 h-5" />} 
-              active={isActive("/admin/support")}
-            >
-              <Link to="/admin/support" className="w-full h-full flex items-center">Support Tickets</Link>
-            </SidebarNavItem>
-          </SidebarNavGroup>
-        </SidebarNav>
-      </SidebarMain>
-      
-      <SidebarFooter className="border-t mt-auto">
-        <div className="flex w-full items-center justify-between p-4">
-          <Link to="/admin/profile" className="flex items-center gap-2 text-sm font-medium">
-            <Settings size={20} className="text-muted-foreground" />
-            <span>Settings</span>
-          </Link>
-          <Link to="/login" className="flex items-center text-sm gap-1 text-muted-foreground hover:text-foreground transition-colors">
-            <LogOut size={18} />
-            <span>Logout</span>
+    <div className="w-64 border-r border-gray-200 h-screen bg-white overflow-y-auto">
+      <div className="flex flex-col h-full">
+        <div className="p-4">
+          <Link to="/admin">
+            <h2 className="text-xl font-bold">HVAC Admin</h2>
           </Link>
         </div>
-      </SidebarFooter>
-    </Sidebar>
+        <nav className="flex-1 p-4 space-y-1">
+          <Link to="/admin/dashboard">
+            <Button
+              variant={isActive("/admin/dashboard") || isActive("/admin") ? "secondary" : "ghost"}
+              className={cn("w-full justify-start", isActive("/admin/dashboard") || isActive("/admin") ? "bg-gray-100 text-gray-900" : "text-gray-600")}
+            >
+              <BarChart3 className="mr-2 h-4 w-4" />
+              Dashboard
+            </Button>
+          </Link>
+          <Link to="/admin/support">
+            <Button
+              variant={isActive("/admin/support") ? "secondary" : "ghost"}
+              className={cn("w-full justify-start", isActive("/admin/support") ? "bg-gray-100 text-gray-900" : "text-gray-600")}
+            >
+              <HeadphonesIcon className="mr-2 h-4 w-4" />
+              Support
+            </Button>
+          </Link>
+          <Link to="/admin/community">
+            <Button
+              variant={isActive("/admin/community") ? "secondary" : "ghost"}
+              className={cn("w-full justify-start", isActive("/admin/community") ? "bg-gray-100 text-gray-900" : "text-gray-600")}
+            >
+              <MessageSquare className="mr-2 h-4 w-4" />
+              Community
+            </Button>
+          </Link>
+          <Link to="/admin/feature-requests">
+            <Button
+              variant={isActive("/admin/feature-requests") ? "secondary" : "ghost"}
+              className={cn("w-full justify-start", isActive("/admin/feature-requests") ? "bg-gray-100 text-gray-900" : "text-gray-600")}
+            >
+              <Lightbulb className="mr-2 h-4 w-4" />
+              Feature Requests
+            </Button>
+          </Link>
+          
+          <div className="pt-2 pb-2">
+            <div className="border-t border-gray-200"></div>
+          </div>
+
+          <Link to="/admin/users">
+            <Button
+              variant={isActive("/admin/users") ? "secondary" : "ghost"}
+              className={cn("w-full justify-start", isActive("/admin/users") ? "bg-gray-100 text-gray-900" : "text-gray-600")}
+            >
+              <Users className="mr-2 h-4 w-4" />
+              Users
+            </Button>
+          </Link>
+          <Link to="/admin/companies">
+            <Button
+              variant={isActive("/admin/companies") ? "secondary" : "ghost"}
+              className={cn("w-full justify-start", isActive("/admin/companies") ? "bg-gray-100 text-gray-900" : "text-gray-600")}
+            >
+              <Building2 className="mr-2 h-4 w-4" />
+              Companies
+            </Button>
+          </Link>
+          <Link to="/admin/workflows">
+            <Button
+              variant={isActive("/admin/workflows") ? "secondary" : "ghost"}
+              className={cn("w-full justify-start", isActive("/admin/workflows") ? "bg-gray-100 text-gray-900" : "text-gray-600 hover:bg-purple-50 hover:text-purple-700")}
+            >
+              <Workflow className="mr-2 h-4 w-4" />
+              Workflows
+            </Button>
+          </Link>
+          
+          <div className="pt-2 pb-2">
+            <div className="border-t border-gray-200"></div>
+          </div>
+
+          <Link to="/admin/subscription-plans">
+            <Button
+              variant={isActive("/admin/subscription-plans") ? "secondary" : "ghost"}
+              className={cn("w-full justify-start", isActive("/admin/subscription-plans") ? "bg-gray-100 text-gray-900" : "text-gray-600")}
+            >
+              <PiggyBank className="mr-2 h-4 w-4" />
+              Subscription Plans
+            </Button>
+          </Link>
+          <Link to="/admin/licenses">
+            <Button
+              variant={isActive("/admin/licenses") ? "secondary" : "ghost"}
+              className={cn("w-full justify-start", isActive("/admin/licenses") ? "bg-gray-100 text-gray-900" : "text-gray-600")}
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Licenses
+            </Button>
+          </Link>
+          <Link to="/admin/api-integrations">
+            <Button
+              variant={isActive("/admin/api-integrations") ? "secondary" : "ghost"}
+              className={cn("w-full justify-start", isActive("/admin/api-integrations") ? "bg-gray-100 text-gray-900" : "text-gray-600")}
+            >
+              <Database className="mr-2 h-4 w-4" />
+              API Integrations
+            </Button>
+          </Link>
+          <Link to="/admin/profile">
+            <Button
+              variant={isActive("/admin/profile") ? "secondary" : "ghost"}
+              className={cn("w-full justify-start", isActive("/admin/profile") ? "bg-gray-100 text-gray-900" : "text-gray-600")}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </Button>
+          </Link>
+        </nav>
+      </div>
+    </div>
   );
 }

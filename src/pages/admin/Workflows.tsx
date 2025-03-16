@@ -1,16 +1,31 @@
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Workflow } from "lucide-react";
+import { Plus, Search, Workflow, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Link, useNavigate } from "react-router-dom";
+import { useWorkflows } from "@/hooks/useWorkflows";
+import { toast } from "@/hooks/use-toast";
 
 export default function AdminWorkflows() {
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  const { workflows } = useWorkflows();
+  
+  // Filter workflows based on search term
+  const filteredWorkflows = workflows.filter(workflow => 
+    workflow.metadata.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    workflow.metadata.folder.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleCreateWorkflow = () => {
-    navigate('/workflow-editor');
+    navigate('/workflow-editor?new=true');
+  };
+
+  const handleEditWorkflow = (folder: string, name: string) => {
+    navigate(`/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`);
   };
 
   return (
@@ -23,7 +38,12 @@ export default function AdminWorkflows() {
         <div className="flex items-center gap-3">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search workflows..." className="pl-8 w-[250px]" />
+            <Input 
+              placeholder="Search workflows..." 
+              className="pl-8 w-[250px]"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
           <Button onClick={handleCreateWorkflow}>
             <Plus className="h-4 w-4 mr-2" />
@@ -36,41 +56,54 @@ export default function AdminWorkflows() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle>All Workflows</CardTitle>
-            <CardDescription>Diagnosis workflows available in the system</CardDescription>
+            <CardDescription>
+              {filteredWorkflows.length} workflow{filteredWorkflows.length !== 1 ? 's' : ''} available in the system
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {/* Sample workflows - would be populated from API in a real app */}
-              {[
-                { id: "1", name: "Refrigerator Not Cooling", appliance: "Refrigerator", status: "published" },
-                { id: "2", name: "Dishwasher Leaking Water", appliance: "Dishwasher", status: "draft" },
-                { id: "3", name: "Oven Not Heating", appliance: "Oven", status: "published" },
-              ].map((workflow) => (
-                <div key={workflow.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                      <Workflow className="h-5 w-5 text-primary" />
+            {filteredWorkflows.length > 0 ? (
+              <div className="space-y-4">
+                {filteredWorkflows.map((workflow) => (
+                  <div key={`${workflow.metadata.folder}-${workflow.metadata.name}`} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                        <FileText className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium">{workflow.metadata.name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Folder: {workflow.metadata.folder}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-1">
+                            <div className={`h-2 w-2 rounded-full ${workflow.nodes.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                            <span className="text-xs text-gray-500">{workflow.nodes.length} steps</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-medium">{workflow.name}</h3>
-                      <p className="text-sm text-muted-foreground">{workflow.appliance}</p>
+                    <div className="flex items-center gap-3">
+                      <Badge variant={workflow.metadata.isActive ? "secondary" : "outline"}>
+                        {workflow.metadata.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleEditWorkflow(workflow.metadata.folder, workflow.metadata.name)}
+                      >
+                        Edit Workflow
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Badge variant={workflow.status === "published" ? "secondary" : "outline"}>
-                      {workflow.status}
-                    </Badge>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => navigate(`/workflow-editor?folder=${workflow.appliance}&name=${workflow.name}`)}
-                    >
-                      Edit Workflow
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                {searchTerm ? 
+                  "No workflows found matching your search." : 
+                  "No workflows available. Click 'Create Workflow' to add one."}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
