@@ -82,11 +82,11 @@ const createToastHandler = () => {
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  // Initialize with a function that returns the handler, not the handler itself
-  const [handler] = useState(createToastHandler);
+  // We need to create the handler once and store it, not store the function
+  const [handler] = useState(() => createToastHandler());
   
   return (
-    <ToastContext.Provider value={handler()}>
+    <ToastContext.Provider value={handler}>
       {children}
     </ToastContext.Provider>
   );
