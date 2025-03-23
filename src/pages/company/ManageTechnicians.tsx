@@ -128,13 +128,22 @@ export default function ManageTechnicians() {
       
       if (error) throw error;
       
-      // Convert the returned data object to our expected format
+      // Convert the returned data to our expected format with proper typing
+      // Use type assertion to tell TypeScript about the structure
+      const typedData = data as {
+        active_count: number;
+        pending_count: number;
+        max_technicians: number;
+        total_count: number;
+        is_at_limit: boolean;
+      };
+      
       setTechnicianLimits({
-        activeCount: data.active_count as number,
-        pendingCount: data.pending_count as number,
-        maxTechnicians: data.max_technicians as number,
-        totalCount: data.total_count as number,
-        isAtLimit: data.is_at_limit as boolean
+        activeCount: typedData.active_count,
+        pendingCount: typedData.pending_count,
+        maxTechnicians: typedData.max_technicians,
+        totalCount: typedData.total_count,
+        isAtLimit: typedData.is_at_limit
       });
     } catch (error) {
       console.error('Error fetching technician limits:', error);
