@@ -96,6 +96,7 @@ export function useToast() {
   
   if (context === undefined) {
     // Fallback to direct implementation if used outside provider
+    // This is where the error was occurring - we need to return the result of calling createToastHandler
     return createToastHandler();
   }
   
