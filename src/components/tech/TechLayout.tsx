@@ -19,10 +19,10 @@ export function TechLayout() {
   const { removeMessage } = useSystemMessages();
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
 
   const handleLogout = () => {
-    logout();
+    signOut();
   };
 
   return (

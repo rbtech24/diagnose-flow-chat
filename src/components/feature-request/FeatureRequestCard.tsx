@@ -8,23 +8,45 @@ import { format } from "date-fns";
 
 interface FeatureRequestCardProps {
   featureRequest: FeatureRequest;
-  onVote: (id: string) => void;
-  onViewDetails: (id: string) => void;
+  onVote?: (id: string) => void;
+  onViewDetails?: (id: string) => void;
   canVote?: boolean;
+  // For backwards compatibility
+  request?: FeatureRequest;
+  onClick?: () => void;
 }
 
 export function FeatureRequestCard({ 
-  featureRequest, 
-  onVote, 
-  onViewDetails, 
+  featureRequest,
+  request, // For backward compatibility
+  onVote = () => {}, 
+  onViewDetails = () => {},
+  onClick, // For backward compatibility
   canVote = true 
 }: FeatureRequestCardProps) {
+  // For backward compatibility
+  const currentRequest = featureRequest || request;
+  if (!currentRequest) {
+    console.error("FeatureRequestCard: No feature request provided");
+    return null;
+  }
+
+  const handleViewDetails = () => {
+    if (onClick) {
+      onClick();
+    } else if (onViewDetails) {
+      onViewDetails(currentRequest.id);
+    }
+  };
+
   const statusColors: Record<FeatureRequestStatus, string> = {
     "pending": "bg-yellow-100 text-yellow-800",
     "approved": "bg-blue-100 text-blue-800",
     "rejected": "bg-red-100 text-red-800",
     "in-progress": "bg-purple-100 text-purple-800",
-    "completed": "bg-green-100 text-green-800"
+    "completed": "bg-green-100 text-green-800",
+    "planned": "bg-blue-100 text-blue-800",
+    "under-review": "bg-yellow-100 text-yellow-800"
   };
 
   const priorityColors = {
@@ -39,28 +61,30 @@ export function FeatureRequestCard({
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div>
-            <h3 className="text-lg font-semibold">{featureRequest.title}</h3>
+            <h3 className="text-lg font-semibold">{currentRequest.title}</h3>
             <div className="text-sm text-gray-500 flex items-center mt-1">
               <Calendar className="h-3 w-3 mr-1" />
-              {format(new Date(featureRequest.createdAt), 'MMM d, yyyy')}
+              {format(new Date(currentRequest.createdAt), 'MMM d, yyyy')}
             </div>
           </div>
           <div className="flex gap-2">
-            <Badge className={statusColors[featureRequest.status]}>
-              {featureRequest.status.replace('-', ' ')}
+            <Badge className={statusColors[currentRequest.status]}>
+              {currentRequest.status.replace('-', ' ')}
             </Badge>
-            <Badge className={priorityColors[featureRequest.priority]}>
-              {featureRequest.priority}
-            </Badge>
+            {currentRequest.priority && (
+              <Badge className={priorityColors[currentRequest.priority]}>
+                {currentRequest.priority}
+              </Badge>
+            )}
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-gray-700 line-clamp-2">{featureRequest.description}</p>
+        <p className="text-sm text-gray-700 line-clamp-2">{currentRequest.description}</p>
         
         <div className="mt-3 flex items-center text-sm text-gray-500">
           <span className="font-medium">Requested by:</span>
-          <span className="ml-1">{featureRequest.createdBy.name}</span>
+          <span className="ml-1">{currentRequest.createdBy?.name || currentRequest.user?.name || "Unknown"}</span>
         </div>
       </CardContent>
       <CardFooter className="border-t pt-3 flex justify-between">
@@ -68,12 +92,12 @@ export function FeatureRequestCard({
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => onVote(featureRequest.id)}
+            onClick={() => onVote(currentRequest.id)}
             disabled={!canVote}
             className="flex items-center gap-1"
           >
             <ArrowUp className="h-4 w-4" />
-            <span>{featureRequest.score}</span>
+            <span>{currentRequest.score}</span>
           </Button>
           
           <Button 
@@ -82,14 +106,14 @@ export function FeatureRequestCard({
             className="flex items-center gap-1"
           >
             <MessageSquare className="h-4 w-4" />
-            <span>{featureRequest.comments.length}</span>
+            <span>{currentRequest.comments?.length || 0}</span>
           </Button>
         </div>
         
         <Button 
           variant="ghost" 
           size="sm"
-          onClick={() => onViewDetails(featureRequest.id)}
+          onClick={handleViewDetails}
         >
           View Details
         </Button>

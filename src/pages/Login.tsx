@@ -12,14 +12,14 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const { login, isAuthenticated, userRole } = useAuth();
+  const { signIn, isAuthenticated, userRole } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return;
     
     setIsLoggingIn(true);
-    await login(email, password);
+    await signIn(email);
     setIsLoggingIn(false);
   };
 

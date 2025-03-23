@@ -37,7 +37,8 @@ export default function WorkflowEditor() {
       // For existing workflows, check licensing
       if (folder && name) {
         const workflowId = `${folder}-${name}`;
-        const accessStatus = checkWorkflowAccess(workflowId);
+        // Use the updated checkWorkflowAccess that returns an object
+        const accessStatus = checkWorkflowAccess(folder, workflowId);
         
         if (!accessStatus.hasAccess) {
           toast({

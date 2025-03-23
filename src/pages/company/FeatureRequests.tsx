@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FeatureRequest } from "@/types/feature-request";
+import { FeatureRequest, FeatureRequestStatus } from "@/types/feature-request";
 import { FeatureRequestCard } from "@/components/feature-request/FeatureRequestCard";
 import { NewFeatureRequestForm } from "@/components/feature-request/NewFeatureRequestForm";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -18,19 +18,20 @@ export default function CompanyFeatureRequests() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const navigate = useNavigate();
 
-  const handleCreateRequest = (title: string, description: string) => {
+  const handleCreateRequest = (values: { title?: string; description?: string; priority?: "high" | "low" | "medium" | "critical" }) => {
+    if (!values.title || !values.description) return;
+    
     const newRequest: FeatureRequest = {
       id: `request-${Date.now()}`,
-      title,
-      description,
-      status: "under-review",
-      category: "General",
+      title: values.title,
+      description: values.description,
+      status: "pending" as FeatureRequestStatus,
+      priority: values.priority || "medium",
       createdAt: new Date(),
       updatedAt: new Date(),
-      score: 0,
-      userId: placeholderUser.id,
-      user: placeholderUser,
+      createdBy: placeholderUser,
       votes: [],
+      score: 0,
       comments: []
     };
     
@@ -50,7 +51,7 @@ export default function CompanyFeatureRequests() {
   const plannedRequests = filteredRequests.filter(r => r.status === "planned");
   const inProgressRequests = filteredRequests.filter(r => r.status === "in-progress");
   const completedRequests = filteredRequests.filter(r => r.status === "completed");
-  const reviewRequests = filteredRequests.filter(r => r.status === "under-review");
+  const reviewRequests = filteredRequests.filter(r => r.status === "pending");
 
   return (
     <div className="container mx-auto p-6">
@@ -82,9 +83,9 @@ export default function CompanyFeatureRequests() {
         />
       </div>
 
-      <Tabs defaultValue="under-review">
+      <Tabs defaultValue="pending">
         <TabsList className="mb-6">
-          <TabsTrigger value="under-review">
+          <TabsTrigger value="pending">
             Under Review <span className="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{reviewRequests.length}</span>
           </TabsTrigger>
           <TabsTrigger value="planned">
@@ -98,13 +99,14 @@ export default function CompanyFeatureRequests() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="under-review" className="space-y-4">
+        <TabsContent value="pending" className="space-y-4">
           {reviewRequests.length > 0 ? (
             reviewRequests.map((request) => (
               <FeatureRequestCard 
                 key={request.id} 
-                request={request} 
-                onClick={() => handleRequestClick(request.id)} 
+                featureRequest={request} 
+                onViewDetails={() => handleRequestClick(request.id)} 
+                onVote={() => {}} 
               />
             ))
           ) : (
@@ -121,8 +123,9 @@ export default function CompanyFeatureRequests() {
             plannedRequests.map((request) => (
               <FeatureRequestCard 
                 key={request.id} 
-                request={request} 
-                onClick={() => handleRequestClick(request.id)} 
+                featureRequest={request} 
+                onViewDetails={() => handleRequestClick(request.id)} 
+                onVote={() => {}} 
               />
             ))
           ) : (
@@ -139,8 +142,9 @@ export default function CompanyFeatureRequests() {
             inProgressRequests.map((request) => (
               <FeatureRequestCard 
                 key={request.id} 
-                request={request} 
-                onClick={() => handleRequestClick(request.id)} 
+                featureRequest={request} 
+                onViewDetails={() => handleRequestClick(request.id)} 
+                onVote={() => {}} 
               />
             ))
           ) : (
@@ -157,8 +161,9 @@ export default function CompanyFeatureRequests() {
             completedRequests.map((request) => (
               <FeatureRequestCard 
                 key={request.id} 
-                request={request} 
-                onClick={() => handleRequestClick(request.id)} 
+                featureRequest={request} 
+                onViewDetails={() => handleRequestClick(request.id)} 
+                onVote={() => {}} 
               />
             ))
           ) : (

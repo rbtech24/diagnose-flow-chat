@@ -16,7 +16,13 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   signUp: (email: string, password: string, name: string, role: Role) => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
-  checkWorkflowAccess: (categoryId: string, workflowId: string) => boolean;
+  checkWorkflowAccess: (categoryId: string, workflowId: string) => { hasAccess: boolean; message?: string };
+  // Add these methods to fix the missing function errors
+  login: (email: string) => Promise<void>;
+  logout: () => Promise<void>;
+  register: (userData: { name: string; email: string; password: string; role: string; companyName?: string }) => Promise<void>;
+  forgotPassword: (email: string) => Promise<boolean>;
+  resetPassword: (token: string, newPassword: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -102,15 +108,50 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const checkWorkflowAccess = (categoryId: string, workflowId: string): boolean => {
+  const checkWorkflowAccess = (categoryId: string, workflowId: string): { hasAccess: boolean; message?: string } => {
     // If user is admin, they have access to all workflows
     if (userRole === 'admin') {
-      return true;
+      return { hasAccess: true };
     }
     
     // For other roles, assume no access by default
     // In a real app, you would check against a permissions database
-    return false;
+    return { hasAccess: false, message: "You don't have permission to access this workflow" };
+  };
+  
+  // Add these methods to match the expected interface
+  const login = signIn;
+  const logout = signOut;
+  
+  const register = async (userData: { name: string; email: string; password: string; role: string; companyName?: string }): Promise<void> => {
+    try {
+      // Simulate registration
+      const newUser: User = {
+        id: `user-${Date.now()}`,
+        email: userData.email,
+        name: userData.name,
+        role: userData.role as Role,
+        avatarUrl: '',
+      };
+      
+      setUser(newUser);
+      setUserRole(newUser.role);
+      setIsAuthenticated(true);
+    } catch (error: any) {
+      console.error('Registration error:', error);
+    }
+  };
+  
+  const forgotPassword = async (email: string): Promise<boolean> => {
+    // Simulate password reset request
+    console.log(`Password reset requested for ${email}`);
+    return true;
+  };
+  
+  const resetPassword = async (token: string, newPassword: string): Promise<boolean> => {
+    // Simulate password reset
+    console.log(`Password reset with token ${token}`);
+    return true;
   };
 
   const value: AuthContextType = {
@@ -123,6 +164,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signUp,
     updateUser,
     checkWorkflowAccess,
+    login,
+    logout,
+    register,
+    forgotPassword,
+    resetPassword
   };
 
   return (
