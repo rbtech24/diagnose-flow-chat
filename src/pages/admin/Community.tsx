@@ -1,15 +1,13 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, Trash2 } from 'lucide-react';
 import { OfflineAwareCommunityForum } from '@/components/community/OfflineAwareCommunityForum';
-import { Button } from '@/components/ui/button';
 import { CommunityPost, CommunityPostType } from '@/types/community';
-import { mockPosts } from '@/data/mockCommunity';
+import { emptyPosts } from '@/utils/placeholderData';
 
 export default function AdminCommunity() {
   const navigate = useNavigate();
-  const [posts, setPosts] = useState<CommunityPost[]>(mockPosts);
+  const [posts, setPosts] = useState<CommunityPost[]>(emptyPosts);
 
   const handleCreatePost = (post: {
     title: string;
@@ -43,24 +41,14 @@ export default function AdminCommunity() {
     setPosts([newPost, ...posts]);
   };
 
-  const handleDeletePost = (postId: string) => {
-    setPosts(posts.filter(post => post.id !== postId));
-  };
-
   return (
     <div className="container mx-auto p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">Community Management</h1>
           <p className="text-muted-foreground mt-1">
-            Monitor and manage community discussions and requests
+            Monitor and moderate community discussions
           </p>
-        </div>
-        <div className="mt-4 md:mt-0">
-          <Button variant="destructive" className="gap-2">
-            <AlertTriangle className="h-4 w-4" />
-            Reported Content
-          </Button>
         </div>
       </div>
       
@@ -69,6 +57,7 @@ export default function AdminCommunity() {
         initialPosts={posts}
         onCreatePost={handleCreatePost}
         userRole="admin"
+        showModeratorControls={true}
       />
     </div>
   );

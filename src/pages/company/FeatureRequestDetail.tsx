@@ -6,6 +6,7 @@ import { FeatureRequestDetail } from "@/components/feature-request/FeatureReques
 import { FeatureRequest, FeatureRequestVote } from "@/types/feature-request";
 import { useAuth } from "@/context/AuthContext";
 import { ArrowLeft } from "lucide-react";
+import { placeholderUser } from "@/utils/placeholderData";
 
 export default function CompanyFeatureRequestDetailPage() {
   const [featureRequest, setFeatureRequest] = useState<FeatureRequest | null>(null);

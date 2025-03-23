@@ -3,11 +3,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { OfflineAwareCommunityForum } from '@/components/community/OfflineAwareCommunityForum';
 import { CommunityPost, CommunityPostType } from '@/types/community';
-import { mockPosts } from '@/data/mockCommunity';
+import { emptyPosts } from '@/utils/placeholderData';
 
 export default function TechCommunity() {
   const navigate = useNavigate();
-  const [posts, setPosts] = useState<CommunityPost[]>(mockPosts);
+  const [posts, setPosts] = useState<CommunityPost[]>(emptyPosts);
 
   const handleCreatePost = (post: {
     title: string;

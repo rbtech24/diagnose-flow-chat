@@ -1,164 +1,178 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Filter, RotateCw } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { FeatureRequest } from "@/types/feature-request";
 import { FeatureRequestCard } from "@/components/feature-request/FeatureRequestCard";
-import { FeatureRequest, FeatureRequestStatus } from "@/types/feature-request";
-import { mockFeatureRequests } from "@/data/mockFeatureRequests";
+import { NewFeatureRequestForm } from "@/components/feature-request/NewFeatureRequestForm";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Plus, Search } from "lucide-react";
+import { emptyFeatureRequests } from "@/utils/placeholderData";
 
 export default function AdminFeatureRequests() {
-  const [featureRequests, setFeatureRequests] = useState<FeatureRequest[]>(mockFeatureRequests);
+  const [requests, setRequests] = useState<FeatureRequest[]>(emptyFeatureRequests);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const navigate = useNavigate();
 
-  const handleUpdateStatus = (id: string, status: FeatureRequestStatus) => {
-    setFeatureRequests(
-      featureRequests.map((request) =>
-        request.id === id
-          ? {
-              ...request,
-              status,
-              updatedAt: new Date(),
-            }
-          : request
-      )
-    );
+  const handleCreateRequest = (title: string, description: string) => {
+    const newRequest: FeatureRequest = {
+      id: `request-${Date.now()}`,
+      title,
+      description,
+      status: "under-review",
+      category: "General",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      score: 0,
+      userId: "admin-1",
+      user: {
+        id: "admin-1",
+        name: "Admin User",
+        email: "admin@example.com",
+        role: "admin",
+        avatarUrl: ""
+      },
+      votes: [],
+      comments: []
+    };
+    
+    setRequests([newRequest, ...requests]);
+    setIsFormOpen(false);
   };
 
-  const filteredRequests = featureRequests.filter((request) => {
-    const matchesSearch =
-      searchQuery === "" ||
-      request.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      request.description.toLowerCase().includes(searchQuery.toLowerCase());
+  const handleRequestClick = (requestId: string) => {
+    navigate(`/admin/feature-requests/${requestId}`);
+  };
 
-    const matchesStatus =
-      statusFilter === "all" ||
-      request.status === statusFilter;
-
-    return matchesSearch && matchesStatus;
-  });
-
-  const pendingRequests = filteredRequests.filter((request) => request.status === "pending");
-  const inProgressRequests = filteredRequests.filter((request) => request.status === "in-progress");
-  const completedRequests = filteredRequests.filter((request) => 
-    ["completed", "approved", "rejected"].includes(request.status)
+  const filteredRequests = requests.filter(request => 
+    request.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    request.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const viewRequestDetails = (id: string) => {
-    navigate(`/admin/feature-requests/${id}`);
-  };
+  const plannedRequests = filteredRequests.filter(r => r.status === "planned");
+  const inProgressRequests = filteredRequests.filter(r => r.status === "in-progress");
+  const completedRequests = filteredRequests.filter(r => r.status === "completed");
+  const reviewRequests = filteredRequests.filter(r => r.status === "under-review");
 
   return (
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Feature Requests</h1>
-          <p className="text-gray-500">Manage feature requests from companies and technicians</p>
+          <p className="text-muted-foreground">View and manage feature requests</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon">
-            <RotateCw className="h-4 w-4" />
-          </Button>
-        </div>
+        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              New Feature Request
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <NewFeatureRequestForm onSubmit={handleCreateRequest} />
+          </DialogContent>
+        </Dialog>
       </div>
 
-      <div className="mb-6 flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search feature requests..."
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <div className="w-full sm:w-48">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger>
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filter" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Requests</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="in-progress">In Progress</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="relative mb-6">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search feature requests..."
+          className="pl-8"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
       </div>
 
-      <Tabs defaultValue="pending" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="pending">
-            Pending <span className="ml-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs text-yellow-600">{pendingRequests.length}</span>
+      <Tabs defaultValue="under-review">
+        <TabsList className="mb-6">
+          <TabsTrigger value="under-review">
+            Under Review <span className="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{reviewRequests.length}</span>
+          </TabsTrigger>
+          <TabsTrigger value="planned">
+            Planned <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-600">{plannedRequests.length}</span>
           </TabsTrigger>
           <TabsTrigger value="in-progress">
-            In Progress <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-600">{inProgressRequests.length}</span>
+            In Progress <span className="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-600">{inProgressRequests.length}</span>
           </TabsTrigger>
           <TabsTrigger value="completed">
-            Completed/Reviewed <span className="ml-1 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-600">{completedRequests.length}</span>
+            Completed <span className="ml-1 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-600">{completedRequests.length}</span>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="pending" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {pendingRequests.length > 0 ? (
-            pendingRequests.map((request) => (
-              <FeatureRequestCard
-                key={request.id}
-                featureRequest={request}
-                onVote={() => {}}
-                onViewDetails={viewRequestDetails}
-                canVote={false}
+        <TabsContent value="under-review" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {reviewRequests.length > 0 ? (
+            reviewRequests.map((request) => (
+              <FeatureRequestCard 
+                key={request.id} 
+                request={request} 
+                onClick={() => handleRequestClick(request.id)} 
               />
             ))
           ) : (
-            <div className="col-span-full p-8 text-center border rounded-lg">
-              <p className="text-gray-500">No pending feature requests</p>
-            </div>
+            <Card className="col-span-full">
+              <CardContent className="pt-6 text-center">
+                <p className="text-muted-foreground">No feature requests under review</p>
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
 
-        <TabsContent value="in-progress" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <TabsContent value="planned" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {plannedRequests.length > 0 ? (
+            plannedRequests.map((request) => (
+              <FeatureRequestCard 
+                key={request.id} 
+                request={request} 
+                onClick={() => handleRequestClick(request.id)} 
+              />
+            ))
+          ) : (
+            <Card className="col-span-full">
+              <CardContent className="pt-6 text-center">
+                <p className="text-muted-foreground">No planned feature requests</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="in-progress" className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {inProgressRequests.length > 0 ? (
             inProgressRequests.map((request) => (
-              <FeatureRequestCard
-                key={request.id}
-                featureRequest={request}
-                onVote={() => {}}
-                onViewDetails={viewRequestDetails}
-                canVote={false}
+              <FeatureRequestCard 
+                key={request.id} 
+                request={request} 
+                onClick={() => handleRequestClick(request.id)} 
               />
             ))
           ) : (
-            <div className="col-span-full p-8 text-center border rounded-lg">
-              <p className="text-gray-500">No in-progress feature requests</p>
-            </div>
+            <Card className="col-span-full">
+              <CardContent className="pt-6 text-center">
+                <p className="text-muted-foreground">No feature requests in progress</p>
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
 
-        <TabsContent value="completed" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <TabsContent value="completed" className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {completedRequests.length > 0 ? (
             completedRequests.map((request) => (
-              <FeatureRequestCard
-                key={request.id}
-                featureRequest={request}
-                onVote={() => {}}
-                onViewDetails={viewRequestDetails}
-                canVote={false}
+              <FeatureRequestCard 
+                key={request.id} 
+                request={request} 
+                onClick={() => handleRequestClick(request.id)} 
               />
             ))
           ) : (
-            <div className="col-span-full p-8 text-center border rounded-lg">
-              <p className="text-gray-500">No completed feature requests</p>
-            </div>
+            <Card className="col-span-full">
+              <CardContent className="pt-6 text-center">
+                <p className="text-muted-foreground">No completed feature requests</p>
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
       </Tabs>

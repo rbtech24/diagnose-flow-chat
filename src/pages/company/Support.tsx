@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -5,15 +6,13 @@ import { SupportTicketComponent, SupportTicket, SupportTicketStatus } from "@/co
 import { Button } from "@/components/ui/button";
 import { Plus, Search, Filter, RotateCw } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { mockTickets, currentUser } from "@/data/mockTickets";
+import { emptyTickets, placeholderUser } from "@/utils/placeholderData";
 import { NewTicketForm } from "@/components/support/NewTicketForm";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 
 export default function CompanySupport() {
-  const [tickets, setTickets] = useState<SupportTicket[]>(
-    mockTickets.filter(ticket => ticket.createdBy.id === "company1")
-  );
+  const [tickets, setTickets] = useState<SupportTicket[]>(emptyTickets);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,7 +32,7 @@ export default function CompanySupport() {
                   ticketId,
                   content,
                   createdAt: new Date(),
-                  sender: currentUser
+                  sender: placeholderUser
                 }
               ],
               updatedAt: new Date()
@@ -56,7 +55,7 @@ export default function CompanySupport() {
         priority,
         createdAt: new Date(),
         updatedAt: new Date(),
-        createdBy: currentUser,
+        createdBy: placeholderUser,
         messages: []
       };
       

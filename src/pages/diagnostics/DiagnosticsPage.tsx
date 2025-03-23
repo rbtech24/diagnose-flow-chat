@@ -1,126 +1,127 @@
 
-import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { DiagnosticSelector } from "@/components/diagnostics/DiagnosticSelector";
-import { DiagnosticSteps } from "@/components/diagnostics/DiagnosticSteps";
-import { useWorkflows } from "@/hooks/useWorkflows";
-import { useUserRole } from "@/hooks/useUserRole";
-import { SavedWorkflow } from '@/utils/flow/types';
-import { useAuth } from "@/context/AuthContext";
-import { toast } from "@/hooks/use-toast";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DiagnosticSelector } from '@/components/diagnostics/DiagnosticSelector';
+import { DiagnosticSteps } from '@/components/diagnostics/DiagnosticSteps';
+import { useOfflineStatus } from '@/hooks/useOfflineStatus';
+import { SyncStatusBadge } from '@/components/system/SyncStatusBadge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+// Mock data
+const diagCategories = [
+  { id: 'refr', name: 'Refrigeration' },
+  { id: 'dish', name: 'Dishwashers' },
+  { id: 'laun', name: 'Laundry' },
+  { id: 'rang', name: 'Ranges & Ovens' },
+  { id: 'hvac', name: 'HVAC' },
+];
+
+const diagnostics = [
+  { id: 'diag1', name: 'No Cooling Diagnostic', categoryId: 'refr', complexity: 'medium' },
+  { id: 'diag2', name: 'Not Washing Diagnostic', categoryId: 'dish', complexity: 'easy' },
+  { id: 'diag3', name: 'No Spin Diagnostic', categoryId: 'laun', complexity: 'medium' },
+  { id: 'diag4', name: 'No Heat Diagnostic', categoryId: 'rang', complexity: 'hard' },
+  { id: 'diag5', name: 'No Airflow Diagnostic', categoryId: 'hvac', complexity: 'medium' },
+];
 
 export default function DiagnosticsPage() {
-  const navigate = useNavigate();
-  const { workflows } = useWorkflows();
-  const { userRole } = useUserRole();
-  const { checkWorkflowAccess, workflowUsageStats } = useAuth();
-  const [selectedWorkflow, setSelectedWorkflow] = useState<SavedWorkflow | null>(null);
-  const [usageStats, setUsageStats] = useState<any>(null);
-  
-  // Only show active workflows
-  const activeWorkflows = workflows.filter(w => w.metadata.isActive);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedDiagnostic, setSelectedDiagnostic] = useState<string | null>(null);
+  const { isOffline } = useOfflineStatus();
 
-  useEffect(() => {
-    // Load usage statistics when component mounts
-    setUsageStats(workflowUsageStats());
-  }, [workflowUsageStats]);
-
-  const handleBackToDashboard = () => {
-    if (userRole === 'company') {
-      navigate('/company');
-    } else {
-      navigate('/tech');
-    }
-  };
-
-  const handleSelectWorkflow = (workflow: SavedWorkflow) => {
-    const workflowId = getWorkflowId(workflow);
-    const accessStatus = checkWorkflowAccess(workflowId);
+  // Filter diagnostics based on selected category
+  const filteredDiagnostics = selectedCategory 
+    ? diagnostics.filter(d => d.categoryId === selectedCategory)
+    : diagnostics;
     
-    if (accessStatus.hasAccess) {
-      setSelectedWorkflow(workflow);
-      
-      // Refresh usage stats after accessing a workflow
-      setUsageStats(workflowUsageStats());
-    } else {
-      toast({
-        title: "Access Denied",
-        description: accessStatus.message || "You don't have permission to access this workflow.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const getWorkflowId = (workflow: SavedWorkflow) => 
-    `${workflow.metadata.folder}-${workflow.metadata.name}`;
+  // Find the complete diagnostic object based on selected ID
+  const currentDiagnostic = diagnostics.find(d => d.id === selectedDiagnostic);
 
   return (
     <div className="container mx-auto p-6">
-      <div className="flex items-center justify-between mb-4">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex items-center text-slate-600 hover:text-slate-900"
-          onClick={handleBackToDashboard}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Dashboard
-        </Button>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">Diagnostic Procedures</h1>
+          <p className="text-gray-500">Step-by-step troubleshooting guides</p>
+        </div>
+        <SyncStatusBadge isOnline={!isOffline} />
       </div>
 
-      <div>
-        <h1 className="text-2xl font-bold mb-2">Diagnostic Procedures</h1>
-        <p className="text-muted-foreground mb-6">
-          Follow step-by-step diagnostic procedures to troubleshoot and repair appliances
-        </p>
+      <Tabs defaultValue="browse" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="browse">Browse Diagnostics</TabsTrigger>
+          <TabsTrigger value="recent">Recent Diagnostics</TabsTrigger>
+          <TabsTrigger value="favorites">Favorite Diagnostics</TabsTrigger>
+        </TabsList>
 
-        {/* Usage Statistics Card */}
-        {usageStats && userRole !== 'admin' && (
-          <Card className="mb-6">
+        <TabsContent value="browse">
+          {!selectedDiagnostic ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-1">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Categories</CardTitle>
+                    <CardDescription>Select a diagnostic category</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => setSelectedCategory(null)}
+                        className={`w-full text-left px-3 py-2 rounded hover:bg-gray-100 ${!selectedCategory ? 'bg-blue-50 text-blue-700' : ''}`}
+                      >
+                        All Categories
+                      </button>
+                      
+                      {diagCategories.map(category => (
+                        <button
+                          key={category.id}
+                          onClick={() => setSelectedCategory(category.id)}
+                          className={`w-full text-left px-3 py-2 rounded hover:bg-gray-100 ${selectedCategory === category.id ? 'bg-blue-50 text-blue-700' : ''}`}
+                        >
+                          {category.name}
+                        </button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="md:col-span-2">
+                <DiagnosticSelector 
+                  diagnostics={filteredDiagnostics}
+                  selectedCategory={selectedCategory}
+                  onSelect={setSelectedDiagnostic}
+                />
+              </div>
+            </div>
+          ) : (
+            <DiagnosticSteps 
+              diagnostic={currentDiagnostic}
+              onBack={() => setSelectedDiagnostic(null)}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="recent">
+          <Card>
             <CardContent className="pt-6">
-              <h2 className="text-lg font-semibold mb-2">Workflow Usage</h2>
-              <div className="flex flex-wrap gap-4">
-                <div className="flex items-center">
-                  <Badge variant="outline" className="mr-2">Today</Badge>
-                  <span>{usageStats.today} workflows</span>
-                </div>
-                <div className="flex items-center">
-                  <Badge variant="outline" className="mr-2">This Week</Badge>
-                  <span>{usageStats.weekly} workflows</span>
-                </div>
-                <div className="flex items-center">
-                  <Badge variant="outline" className="mr-2">This Month</Badge>
-                  <span>{usageStats.monthly} workflows</span>
-                </div>
+              <div className="text-center py-8 text-gray-500">
+                <p>No recent diagnostics</p>
               </div>
             </CardContent>
           </Card>
-        )}
+        </TabsContent>
 
-        {selectedWorkflow ? (
-          <div>
-            <div className="mb-4">
-              <Button 
-                variant="outline" 
-                onClick={() => setSelectedWorkflow(null)}
-              >
-                Back to Diagnostics List
-              </Button>
-            </div>
-            <DiagnosticSteps workflow={selectedWorkflow} />
-          </div>
-        ) : (
-          <DiagnosticSelector 
-            workflows={activeWorkflows} 
-            onSelect={handleSelectWorkflow}
-            selectedWorkflowId={selectedWorkflow ? getWorkflowId(selectedWorkflow) : undefined}
-          />
-        )}
-      </div>
+        <TabsContent value="favorites">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center py-8 text-gray-500">
+                <p>No favorite diagnostics</p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

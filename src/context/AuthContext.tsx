@@ -1,301 +1,222 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User } from '@/types/user';
+import { User, Role } from '@/types/user';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
-  userRole: 'admin' | 'company' | 'tech' | null;
+  userRole: Role | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
-  register: (userData: any) => Promise<boolean>;
-  updateUserProfile: (userData: Partial<User>) => Promise<boolean>;
-  forgotPassword: (email: string) => Promise<boolean>;
-  resetPassword: (token: string, newPassword: string) => Promise<boolean>;
-  checkWorkflowAccess: (workflowId: string) => { hasAccess: boolean; message?: string };
+  signIn: (email: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  signUp: (email: string, password: string, name: string, role: Role) => Promise<void>;
+  updateUser: (updates: Partial<User>) => Promise<void>;
+  checkWorkflowAccess: (categoryId: string, workflowId: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const navigate = useNavigate();
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<'admin' | 'company' | 'tech' | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  
+  const [userRole, setUserRole] = useState<Role | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (session) {
-          const userData: User = {
-            id: session.user.id,
-            email: session.user.email || '',
-            name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
-            role: (session.user.user_metadata?.role as 'admin' | 'company' | 'tech') || 'company',
-            status: 'active'
+    const session = supabase.auth.getSession();
+
+    supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.session?.user) {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select(`id, name, email, role, avatar_url`)
+          .eq('id', session.session.user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching user profile:', error);
+          setIsLoading(false);
+          return;
+        }
+
+        if (profile) {
+          const userProfile: User = {
+            id: profile.id,
+            name: profile.name || 'User',
+            email: profile.email,
+            role: profile.role as Role,
+            avatarUrl: profile.avatar_url || '',
           };
-          
-          setUser(userData);
-          setUserRole(userData.role);
+
+          setUser(userProfile);
+          setUserRole(userProfile.role);
           setIsAuthenticated(true);
         } else {
-          setUser(null);
-          setUserRole(null);
           setIsAuthenticated(false);
         }
-      }
-    );
-    
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        const userData: User = {
-          id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
-          role: (session.user.user_metadata?.role as 'admin' | 'company' | 'tech') || 'company',
-          status: 'active'
-        };
-        
-        setUser(userData);
-        setUserRole(userData.role);
-        setIsAuthenticated(true);
+      } else {
+        setUser(null);
+        setUserRole(null);
+        setIsAuthenticated(false);
       }
       setIsLoading(false);
     });
-    
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    try {
-      setIsLoading(true);
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      
-      if (error) throw error;
-      
-      if (data.user) {
-        toast({
-          title: "Login successful",
-          description: "You have been successfully logged in",
+    if (session) {
+      supabase.auth.getUser()
+        .then(async (res) => {
+          if (res?.data?.user) {
+            const { data: profile, error } = await supabase
+              .from('profiles')
+              .select(`id, name, email, role, avatar_url`)
+              .eq('id', res.data.user.id)
+              .single();
+
+            if (error) {
+              console.error('Error fetching user profile:', error);
+              setIsLoading(false);
+              return;
+            }
+
+            if (profile) {
+              const userProfile: User = {
+                id: profile.id,
+                name: profile.name || 'User',
+                email: profile.email,
+                role: profile.role as Role,
+                avatarUrl: profile.avatar_url || '',
+              };
+
+              setUser(userProfile);
+              setUserRole(userProfile.role);
+              setIsAuthenticated(true);
+            } else {
+              setIsAuthenticated(false);
+            }
+          } else {
+            setUser(null);
+            setUserRole(null);
+            setIsAuthenticated(false);
+          }
+          setIsLoading(false);
         });
-        return true;
-      }
-      
-      return false;
-    } catch (error: any) {
-      console.error('Login failed:', error);
-      toast({
-        title: "Login failed",
-        description: error.message || "Please check your credentials",
-        variant: "destructive"
-      });
-      return false;
-    } finally {
+    } else {
       setIsLoading(false);
+    }
+  }, [navigate]);
+
+  const signIn = async (email: string): Promise<void> => {
+    try {
+      const { error } = await supabase.auth.signInWithOtp({ email });
+      if (error) throw error;
+      alert('Check your email for the login link!');
+    } catch (error: any) {
+      alert(error.error_description || error.message);
     }
   };
 
-  const logout = async () => {
+  const signOut = async (): Promise<void> => {
     try {
-      setIsLoading(true);
-      await supabase.auth.signOut();
-      navigate('/login');
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out",
-      });
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setUser(null);
+      setUserRole(null);
+      setIsAuthenticated(false);
+      navigate('/');
     } catch (error: any) {
-      console.error('Logout error:', error);
-      toast({
-        title: "Error logging out",
-        description: error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
+      alert(error.error_description || error.message);
     }
   };
 
-  const register = async (userData: any): Promise<boolean> => {
+  const signUp = async (email: string, password: string, name: string, role: Role): Promise<void> => {
     try {
-      setIsLoading(true);
-      
       const { data, error } = await supabase.auth.signUp({
-        email: userData.email,
-        password: userData.password,
+        email: email,
+        password: password,
         options: {
           data: {
-            name: userData.name,
-            role: userData.role || 'company',
-            company_name: userData.companyName,
-          }
-        }
+            name: name,
+            role: role,
+          },
+        },
       });
-      
       if (error) throw error;
-      
-      toast({
-        title: "Registration successful",
-        description: "Please check your email to confirm your account",
-      });
-      return true;
+
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: data.user.id,
+              email: email,
+              name: name,
+              role: role,
+            },
+          ]);
+
+        if (profileError) throw profileError;
+      }
+
+      alert('Check your email to verify your account!');
     } catch (error: any) {
-      console.error('Registration failed:', error);
-      toast({
-        title: "Registration failed",
-        description: error.message,
-        variant: "destructive"
-      });
-      return false;
-    } finally {
-      setIsLoading(false);
+      alert(error.error_description || error.message);
     }
   };
 
-  const updateUserProfile = async (userData: Partial<User>): Promise<boolean> => {
+  const updateUser = async (updates: Partial<User>): Promise<void> => {
     try {
-      setIsLoading(true);
-      
-      const { error } = await supabase.auth.updateUser({
-        data: {
-          name: userData.name,
-          ...(userData.phone && { phone: userData.phone }),
-          ...(userData.avatarUrl && { avatar_url: userData.avatarUrl })
-        }
-      });
-      
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user?.id);
+
       if (error) throw error;
-      
-      setUser(prev => prev ? { ...prev, ...userData } : null);
-      
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been successfully updated",
-      });
-      return true;
+
+      setUser({ ...user!, ...updates });
     } catch (error: any) {
-      console.error('Profile update failed:', error);
-      toast({
-        title: "Profile update failed",
-        description: error.message,
-        variant: "destructive"
-      });
-      return false;
-    } finally {
-      setIsLoading(false);
+      alert(error.error_description || error.message);
     }
   };
 
-  const forgotPassword = async (email: string): Promise<boolean> => {
-    try {
-      setIsLoading(true);
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Password reset email sent",
-        description: "Please check your inbox for instructions",
-      });
-      return true;
-    } catch (error: any) {
-      console.error('Password reset request failed:', error);
-      toast({
-        title: "Password reset request failed",
-        description: error.message,
-        variant: "destructive"
-      });
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const resetPassword = async (token: string, newPassword: string): Promise<boolean> => {
-    try {
-      setIsLoading(true);
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Password reset successful",
-        description: "Your password has been updated successfully",
-      });
-      
-      navigate('/login');
-      return true;
-    } catch (error: any) {
-      console.error('Password reset failed:', error);
-      toast({
-        title: "Password reset failed",
-        description: error.message,
-        variant: "destructive"
-      });
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const checkWorkflowAccess = (workflowId: string) => {
-    if (!isAuthenticated) {
-      return { 
-        hasAccess: false, 
-        message: "You must be logged in to access workflows." 
-      };
-    }
-    
+  const checkWorkflowAccess = (categoryId: string, workflowId: string) => {
+    // If user is admin, they have access to all workflows
     if (userRole === 'admin') {
-      return { hasAccess: true };
+      return true;
     }
     
-    if (workflowId.includes('restricted') && userRole !== 'admin') {
-      return { 
-        hasAccess: false, 
-        message: "This workflow requires admin privileges." 
-      };
-    }
-    
-    return { hasAccess: true };
+    // For other roles, check if the workflow is in their allowed set
+    return false;
+  };
+
+  const value: AuthContextType = {
+    user,
+    userRole,
+    isAuthenticated,
+    isLoading,
+    signIn,
+    signOut,
+    signUp,
+    updateUser,
+    checkWorkflowAccess,
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        userRole,
-        isAuthenticated,
-        isLoading,
-        login,
-        logout,
-        register,
-        updateUserProfile,
-        forgotPassword,
-        resetPassword,
-        checkWorkflowAccess
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}
+};

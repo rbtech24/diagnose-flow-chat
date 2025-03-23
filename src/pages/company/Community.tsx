@@ -3,13 +3,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { OfflineAwareCommunityForum } from '@/components/community/OfflineAwareCommunityForum';
 import { CommunityPost, CommunityPostType } from '@/types/community';
-import { mockPosts } from '@/data/mockCommunity';
+import { emptyPosts } from '@/utils/placeholderData';
 import { MessageSquare, FileText, Workflow, CheckCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
 export default function CompanyCommunity() {
   const navigate = useNavigate();
-  const [posts, setPosts] = useState<CommunityPost[]>(mockPosts);
+  const [posts, setPosts] = useState<CommunityPost[]>(emptyPosts);
 
   const handleCreatePost = (post: {
     title: string;
@@ -44,14 +44,11 @@ export default function CompanyCommunity() {
     setPosts([newPost, ...posts]);
   };
 
-  // Calculate statistics
-  const questionCount = posts.filter(post => post.type === 'question').length;
-  const techSheetRequestCount = posts.filter(post => post.type === 'tech-sheet-request').length;
-  const wireDiagramRequestCount = posts.filter(post => post.type === 'wire-diagram-request').length;
-  const fulfilledRequestCount = posts.filter(post => 
-    (post.type === 'tech-sheet-request' || post.type === 'wire-diagram-request') && 
-    post.isFulfilled
-  ).length;
+  // Calculate statistics - empty initially
+  const questionCount = 0;
+  const techSheetRequestCount = 0;
+  const wireDiagramRequestCount = 0;
+  const fulfilledRequestCount = 0;
 
   return (
     <div className="container mx-auto px-0 sm:px-4">
