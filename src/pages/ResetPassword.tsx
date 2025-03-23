@@ -1,151 +1,115 @@
 
-import { useState } from "react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
-import { updateUserPassword } from "@/utils/auth";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-
-const resetPasswordSchema = z.object({
-  password: z.string().min(8, {
-    message: "Password must be at least 8 characters.",
-  }),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match.",
-  path: ["confirmPassword"],
-});
-
-type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 
 export default function ResetPassword() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [token, setToken] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [isResetting, setIsResetting] = useState(false);
   const navigate = useNavigate();
-  const [resetComplete, setResetComplete] = useState(false);
+  const location = useLocation();
   
-  const form = useForm<ResetPasswordFormValues>({
-    resolver: zodResolver(resetPasswordSchema),
-    defaultValues: {
-      password: "",
-      confirmPassword: "",
-    },
-  });
+  const { resetPassword } = useAuth();
 
-  async function handleSubmit(values: ResetPasswordFormValues) {
-    setIsSubmitting(true);
-    
-    try {
-      const { error } = await updateUserPassword(values.password);
-      
-      if (error) {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        setResetComplete(true);
-        toast({
-          title: "Password updated",
-          description: "Your password has been successfully updated.",
-        });
-        
-        // Redirect to login after 3 seconds
-        setTimeout(() => {
-          navigate("/login");
-        }, 3000);
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
+  useEffect(() => {
+    // Extract token from URL
+    const params = new URLSearchParams(location.hash.substring(1));
+    const accessToken = params.get("access_token");
+    if (accessToken) {
+      setToken(accessToken);
     }
-  }
+  }, [location]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError("");
+    
+    if (password !== confirmPassword) {
+      setPasswordError("Passwords do not match");
+      return;
+    }
+    
+    if (password.length < 6) {
+      setPasswordError("Password must be at least 6 characters");
+      return;
+    }
+    
+    if (!token) {
+      setPasswordError("Reset token is missing. Please use the link from your email.");
+      return;
+    }
+    
+    setIsResetting(true);
+    const success = await resetPassword(token, password);
+    setIsResetting(false);
+    
+    if (success) {
+      navigate("/login");
+    }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
-      <div className="w-full max-w-md">
-        <div className="flex justify-center mb-6">
-          <img 
-            src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
-            alt="Repair Auto Pilot" 
-            className="h-32"
-          />
-        </div>
-        
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle>Reset Your Password</CardTitle>
-            <CardDescription>
-              Please enter your new password below.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {resetComplete ? (
-              <div className="text-center py-4">
-                <h3 className="text-lg font-medium">Password Updated</h3>
-                <p className="mt-2 text-sm text-gray-500">
-                  Your password has been successfully reset. Redirecting to login...
-                </p>
-              </div>
-            ) : (
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>New Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Confirm Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? "Updating..." : "Update Password"}
-                  </Button>
-                </form>
-              </Form>
-            )}
+    <div className="flex min-h-screen items-center justify-center px-4 py-12">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold">Reset password</CardTitle>
+          <CardDescription>
+            Enter your new password below
+          </CardDescription>
+        </CardHeader>
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="password">New Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm New Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+              {passwordError && (
+                <p className="text-sm text-red-500">{passwordError}</p>
+              )}
+            </div>
           </CardContent>
-          <CardFooter className="justify-center">
-            {!resetComplete && (
-              <Button variant="link" onClick={() => navigate("/login")}>
-                Back to Login
-              </Button>
-            )}
+          <CardFooter className="flex flex-col space-y-4">
+            <Button 
+              type="submit" 
+              className="w-full"
+              disabled={isResetting}
+            >
+              {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Reset password
+            </Button>
+            <p className="text-center text-sm text-gray-500">
+              Remember your password?{" "}
+              <Link to="/login" className="text-primary hover:underline">
+                Sign in
+              </Link>
+            </p>
           </CardFooter>
-        </Card>
-      </div>
+        </form>
+      </Card>
     </div>
   );
 }

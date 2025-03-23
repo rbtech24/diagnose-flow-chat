@@ -4,6 +4,8 @@ import { Suspense, lazy } from "react";
 import Index from "./pages/Index";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { Loader2 } from "lucide-react";
+import { AuthProvider } from "./context/AuthContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 // Lazy load pages for better performance
 const Login = lazy(() => import("./pages/Login"));
@@ -59,72 +61,80 @@ function App() {
   return (
     <ErrorBoundary>
       <Router>
-        <Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={
-              <ErrorBoundary>
-                <Login />
-              </ErrorBoundary>
-            } />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-
-            {/* Admin routes */}
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={
+        <AuthProvider>
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={
                 <ErrorBoundary>
-                  <AdminDashboard />
+                  <Login />
                 </ErrorBoundary>
               } />
-              <Route path="users" element={<AdminUsers />} />
-              <Route path="workflows" element={<AdminWorkflows />} />
-              <Route path="support" element={<AdminSupport />} />
-              <Route path="feature-requests" element={<AdminFeatureRequests />} />
-              <Route path="community" element={<AdminCommunity />} />
-            </Route>
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
 
-            {/* Company routes */}
-            <Route path="/company" element={<CompanyLayout />}>
-              <Route index element={
-                <ErrorBoundary>
-                  <CompanyDashboard />
-                </ErrorBoundary>
-              } />
-              <Route path="technicians" element={
-                <ErrorBoundary>
-                  <ManageTechnicians />
-                </ErrorBoundary>
-              } />
-              <Route path="support" element={<CompanySupport />} />
-              <Route path="feature-requests" element={<CompanyFeatureRequests />} />
-              <Route path="community" element={<CompanyCommunity />} />
-            </Route>
+              {/* Admin routes - protected with role */}
+              <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={
+                    <ErrorBoundary>
+                      <AdminDashboard />
+                    </ErrorBoundary>
+                  } />
+                  <Route path="users" element={<AdminUsers />} />
+                  <Route path="workflows" element={<AdminWorkflows />} />
+                  <Route path="support" element={<AdminSupport />} />
+                  <Route path="feature-requests" element={<AdminFeatureRequests />} />
+                  <Route path="community" element={<AdminCommunity />} />
+                </Route>
+              </Route>
 
-            {/* Tech routes */}
-            <Route path="/tech" element={<TechLayout />}>
-              <Route index element={
-                <ErrorBoundary>
-                  <TechDashboard />
-                </ErrorBoundary>
-              } />
-              <Route path="profile" element={<TechProfile />} />
-              <Route path="tools" element={<TechTools />} />
-              <Route path="support" element={<TechSupport />} />
-              <Route path="support/:ticketId" element={<TechSupportTicketDetail />} />
-              <Route path="knowledge" element={<TechKnowledgePage />} />
-              <Route path="community" element={<TechCommunity />} />
-              <Route path="community/:postId" element={<TechCommunityPostDetail />} />
-              <Route path="feature-requests" element={<TechFeatureRequests />} />
-              <Route path="feature-requests/:id" element={<TechFeatureRequestDetail />} />
-            </Route>
+              {/* Company routes - protected with role */}
+              <Route element={<ProtectedRoute allowedRoles={['company']} />}>
+                <Route path="/company" element={<CompanyLayout />}>
+                  <Route index element={
+                    <ErrorBoundary>
+                      <CompanyDashboard />
+                    </ErrorBoundary>
+                  } />
+                  <Route path="technicians" element={
+                    <ErrorBoundary>
+                      <ManageTechnicians />
+                    </ErrorBoundary>
+                  } />
+                  <Route path="support" element={<CompanySupport />} />
+                  <Route path="feature-requests" element={<CompanyFeatureRequests />} />
+                  <Route path="community" element={<CompanyCommunity />} />
+                </Route>
+              </Route>
 
-            {/* 404 route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
+              {/* Tech routes - protected with role */}
+              <Route element={<ProtectedRoute allowedRoles={['tech']} />}>
+                <Route path="/tech" element={<TechLayout />}>
+                  <Route index element={
+                    <ErrorBoundary>
+                      <TechDashboard />
+                    </ErrorBoundary>
+                  } />
+                  <Route path="profile" element={<TechProfile />} />
+                  <Route path="tools" element={<TechTools />} />
+                  <Route path="support" element={<TechSupport />} />
+                  <Route path="support/:ticketId" element={<TechSupportTicketDetail />} />
+                  <Route path="knowledge" element={<TechKnowledgePage />} />
+                  <Route path="community" element={<TechCommunity />} />
+                  <Route path="community/:postId" element={<TechCommunityPostDetail />} />
+                  <Route path="feature-requests" element={<TechFeatureRequests />} />
+                  <Route path="feature-requests/:id" element={<TechFeatureRequestDetail />} />
+                </Route>
+              </Route>
+
+              {/* 404 route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </AuthProvider>
       </Router>
     </ErrorBoundary>
   );

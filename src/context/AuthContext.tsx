@@ -1,9 +1,9 @@
 
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User } from '@/types/user';
-import { toast } from '@/hooks/use-toast';
-import { getWorkflowUsageStats } from '@/utils/auth';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
@@ -16,13 +16,12 @@ interface AuthContextType {
   updateUserProfile: (userData: Partial<User>) => Promise<boolean>;
   forgotPassword: (email: string) => Promise<boolean>;
   resetPassword: (token: string, newPassword: string) => Promise<boolean>;
-  checkWorkflowAccess: (workflowId: string) => { hasAccess: boolean; message?: string };
-  workflowUsageStats: any;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<'admin' | 'company' | 'tech' | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -30,33 +29,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
   // Initialize auth state on mount
   useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        // Try to get session from Supabase
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error("Session error:", error);
-          setIsLoading(false);
-          return;
-        }
-        
-        // If we have a session, get the user
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
         if (session) {
-          const { data: { user: authUser }, error: userError } = await supabase.auth.getUser();
-          
-          if (userError || !authUser) {
-            console.error("User error:", userError);
-            setIsLoading(false);
-            return;
-          }
-          
-          // Format user data
           const userData: User = {
-            id: authUser.id,
-            email: authUser.email || '',
-            name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
-            role: (authUser.user_metadata?.role as 'admin' | 'company' | 'tech') || 'company',
+            id: session.user.id,
+            email: session.user.email || '',
+            name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+            role: (session.user.user_metadata?.role as 'admin' | 'company' | 'tech') || 'company',
             status: 'active'
           };
           
@@ -64,62 +45,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUserRole(userData.role);
           setIsAuthenticated(true);
         } else {
-          // For demo purposes, simulate a logged-in user if no session
-          setDemoUser();
+          setUser(null);
+          setUserRole(null);
+          setIsAuthenticated(false);
         }
-      } catch (error) {
-        console.error("Auth initialization error:", error);
-        // Fall back to demo user for demo purposes
-        setDemoUser();
-      } finally {
-        setIsLoading(false);
       }
-    };
+    );
     
-    initializeAuth();
-    
-    // Set up auth state change listener
-    const authListener = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        const authUser = session.user;
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
         const userData: User = {
-          id: authUser.id,
-          email: authUser.email || '',
-          name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
-          role: (authUser.user_metadata?.role as 'admin' | 'company' | 'tech') || 'company',
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+          role: (session.user.user_metadata?.role as 'admin' | 'company' | 'tech') || 'company',
           status: 'active'
         };
         
         setUser(userData);
         setUserRole(userData.role);
         setIsAuthenticated(true);
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        setUserRole(null);
-        setIsAuthenticated(false);
       }
+      setIsLoading(false);
     });
     
     return () => {
-      authListener.data.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, []);
-  
-  // Helper to set demo user for development/testing
-  const setDemoUser = () => {
-    const mockUser: User = {
-      id: 'user-1',
-      name: 'John Doe',
-      email: 'john@example.com',
-      role: 'admin',
-      phone: '123-456-7890',
-      status: 'active'
-    };
-    
-    setUser(mockUser);
-    setUserRole(mockUser.role);
-    setIsAuthenticated(true);
-  };
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
@@ -132,25 +86,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       
       if (data.user) {
-        const userData: User = {
-          id: data.user.id,
-          email: data.user.email || '',
-          name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
-          role: (data.user.user_metadata?.role as 'admin' | 'company' | 'tech') || 'company',
-          status: 'active'
-        };
-        
-        setUser(userData);
-        setUserRole(userData.role);
-        setIsAuthenticated(true);
-        toast.success('Successfully logged in');
+        // Navigation will happen automatically due to auth state change
+        toast({
+          title: "Login successful",
+          description: "You have been successfully logged in",
+        });
         return true;
       }
       
       return false;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login failed:', error);
-      toast.error('Login failed. Please check your credentials.');
+      toast({
+        title: "Login failed",
+        description: error.message || "Please check your credentials",
+        variant: "destructive"
+      });
       return false;
     } finally {
       setIsLoading(false);
@@ -161,13 +112,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       await supabase.auth.signOut();
-      setUser(null);
-      setUserRole(null);
-      setIsAuthenticated(false);
-      toast.success('Logged out successfully');
-    } catch (error) {
+      navigate('/login');
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out",
+      });
+    } catch (error: any) {
       console.error('Logout error:', error);
-      toast.error('Error logging out');
+      toast({
+        title: "Error logging out",
+        description: error.message,
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -176,15 +132,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (userData: any): Promise<boolean> => {
     try {
       setIsLoading(true);
-      // This is a mock implementation
-      console.log('Register user:', userData);
       
-      // Mock successful registration
-      toast.success('Registration successful. Please log in.');
+      const { data, error } = await supabase.auth.signUp({
+        email: userData.email,
+        password: userData.password,
+        options: {
+          data: {
+            name: userData.name,
+            role: userData.role || 'company',
+            company_name: userData.companyName,
+          }
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Registration successful",
+        description: "Please check your email to confirm your account",
+      });
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration failed:', error);
-      toast.error('Registration failed. Please try again.');
+      toast({
+        title: "Registration failed",
+        description: error.message,
+        variant: "destructive"
+      });
       return false;
     } finally {
       setIsLoading(false);
@@ -193,19 +167,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateUserProfile = async (userData: Partial<User>): Promise<boolean> => {
     try {
-      // This is a mock implementation
-      console.log('Update user profile:', userData);
+      setIsLoading(true);
       
-      if (user) {
-        setUser({ ...user, ...userData });
-        toast.success('Profile updated successfully');
-        return true;
-      }
-      return false;
-    } catch (error) {
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          name: userData.name,
+          ...(userData.phone && { phone: userData.phone }),
+          ...(userData.avatarUrl && { avatar_url: userData.avatarUrl })
+        }
+      });
+      
+      if (error) throw error;
+      
+      // Update local user state
+      setUser(prev => prev ? { ...prev, ...userData } : null);
+      
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been successfully updated",
+      });
+      return true;
+    } catch (error: any) {
       console.error('Profile update failed:', error);
-      toast.error('Profile update failed. Please try again.');
+      toast({
+        title: "Profile update failed",
+        description: error.message,
+        variant: "destructive"
+      });
       return false;
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -218,11 +209,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (error) throw error;
       
-      toast.success('Password reset email sent. Please check your inbox.');
+      toast({
+        title: "Password reset email sent",
+        description: "Please check your inbox for instructions",
+      });
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Password reset request failed:', error);
-      toast.error('Password reset request failed. Please try again.');
+      toast({
+        title: "Password reset request failed",
+        description: error.message,
+        variant: "destructive"
+      });
       return false;
     } finally {
       setIsLoading(false);
@@ -232,27 +230,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const resetPassword = async (token: string, newPassword: string): Promise<boolean> => {
     try {
       setIsLoading(true);
-      // This is a mock implementation
-      console.log('Reset password with token:', token);
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
       
-      toast.success('Password reset successful. Please log in with your new password.');
+      if (error) throw error;
+      
+      toast({
+        title: "Password reset successful",
+        description: "Your password has been updated successfully",
+      });
+      
+      navigate('/login');
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Password reset failed:', error);
-      toast.error('Password reset failed. Please try again.');
+      toast({
+        title: "Password reset failed",
+        description: error.message,
+        variant: "destructive"
+      });
       return false;
     } finally {
       setIsLoading(false);
     }
   };
-
-  const checkWorkflowAccess = (workflowId: string) => {
-    // This is a mock implementation for workflow access checks
-    return { hasAccess: true };
-  };
-  
-  // Add workflow usage stats
-  const workflowUsageStats = getWorkflowUsageStats();
 
   return (
     <AuthContext.Provider
@@ -266,9 +266,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         updateUserProfile,
         forgotPassword,
-        resetPassword,
-        checkWorkflowAccess,
-        workflowUsageStats
+        resetPassword
       }}
     >
       {children}
