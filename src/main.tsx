@@ -5,13 +5,16 @@ import App from './App.tsx';
 import './index.css';
 import { AuthProvider } from './context/AuthContext';
 import { Toaster } from "react-hot-toast";
+import { ToastProvider } from './hooks/use-toast';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <AuthProvider>
-      <Toaster />
-      <App />
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <Toaster />
+        <App />
+      </AuthProvider>
+    </ToastProvider>
   </React.StrictMode>,
 );
 

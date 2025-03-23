@@ -1,7 +1,7 @@
 
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { User } from '@/types/user';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { getWorkflowUsageStats } from '@/utils/auth';
 
 interface AuthContextType {
@@ -23,10 +23,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const { toast } = useToast();
   
   // For demo purposes, we'll simulate a logged-in user
-  useState(() => {
+  useEffect(() => {
     // Mock user for demo
     const mockUser: User = {
       id: 'user-1',
@@ -39,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     setUser(mockUser);
     setIsAuthenticated(true);
-  });
+  }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
