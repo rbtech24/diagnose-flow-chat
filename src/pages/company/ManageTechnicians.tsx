@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +22,6 @@ import {
   AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 
-// Mock data for technicians
 const mockTechnicians: User[] = [
   {
     id: "tech-1",
@@ -44,7 +42,6 @@ const mockTechnicians: User[] = [
   }
 ];
 
-// Mock data for pending invites
 const mockInvites: TechnicianInvite[] = [
   {
     id: "invite-1",
@@ -53,8 +50,8 @@ const mockInvites: TechnicianInvite[] = [
     phone: "555-555-5555",
     companyId: "company-2",
     status: "pending",
-    createdAt: new Date(Date.now() - 86400000), // 1 day ago
-    expiresAt: new Date(Date.now() + 86400000 * 6) // 6 days from now
+    createdAt: new Date(Date.now() - 86400000),
+    expiresAt: new Date(Date.now() + 86400000 * 6)
   }
 ];
 
@@ -70,13 +67,10 @@ export default function ManageTechnicians() {
   const [currentLicense, setCurrentLicense] = useState<License | undefined>();
   const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan | undefined>();
   
-  // New states for delete/archive confirmation
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [techToDelete, setTechToDelete] = useState<string | null>(null);
-  
-  // Load the current license and plan info
+
   useEffect(() => {
-    // In a real app, we would fetch this from an API
     const license = mockLicenses.find(l => l.companyId === "company-2");
     setCurrentLicense(license);
     
@@ -95,19 +89,16 @@ export default function ManageTechnicians() {
   };
 
   const handleAddTechnician = () => {
-    // Validation
     if (!newTechnician.name || !newTechnician.email) {
       toast.error("Name and email are required");
       return;
     }
 
-    // Check if we've reached the maximum number of technicians
     if (currentPlan && technicians.length >= currentPlan.maxTechnicians) {
       toast.error(`Your plan only allows ${currentPlan.maxTechnicians} technicians. Please upgrade to add more.`);
       return;
     }
 
-    // In a real app, this would send an invitation email
     const newInvite: TechnicianInvite = {
       id: `invite-${Date.now()}`,
       email: newTechnician.email,
@@ -116,7 +107,7 @@ export default function ManageTechnicians() {
       companyId: "company-2",
       status: "pending",
       createdAt: new Date(),
-      expiresAt: new Date(Date.now() + 86400000 * 7) // 7 days from now
+      expiresAt: new Date(Date.now() + 86400000 * 7)
     };
     
     setInvites([...invites, newInvite]);
@@ -130,13 +121,11 @@ export default function ManageTechnicians() {
     toast.success("Invitation canceled");
   };
 
-  // Show confirmation dialog before deleting
   const confirmDeleteTechnician = (techId: string) => {
     setTechToDelete(techId);
     setIsDeleteDialogOpen(true);
   };
 
-  // Actually delete the technician after confirmation
   const handleDeleteTechnician = () => {
     if (!techToDelete) return;
     
@@ -146,20 +135,16 @@ export default function ManageTechnicians() {
     toast.success("Technician removed successfully");
   };
 
-  // New archive function
   const handleArchiveTechnician = (techId: string) => {
-    // In a real app, you would update the technician's status in the database
-    // Here we'll just update our local state to simulate archiving
     setTechnicians(technicians.map(tech => {
       if (tech.id === techId) {
-        return { ...tech, status: "archived" };
+        return { ...tech, status: 'archived' as const };
       }
       return tech;
     }));
     toast.success("Technician archived successfully");
   };
 
-  // Calculate technicians usage
   const technicianLimit = currentPlan?.maxTechnicians || 0;
   const activeCount = technicians.length;
   const pendingCount = invites.filter(i => i.status === "pending").length;
@@ -338,7 +323,6 @@ export default function ManageTechnicians() {
         </Card>
       </div>
 
-      {/* Add technician dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -390,7 +374,6 @@ export default function ManageTechnicians() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete confirmation dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

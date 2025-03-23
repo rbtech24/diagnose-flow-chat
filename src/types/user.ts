@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   name: string;
@@ -12,6 +11,7 @@ export interface User {
   planId?: string;
   isMainAdmin?: boolean;
   apiKeys?: ApiKey[];
+  status?: 'active' | 'archived' | 'deleted';
 }
 
 export interface ApiKey {
