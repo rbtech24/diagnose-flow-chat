@@ -30,7 +30,7 @@ export function DiagnosticSelector({
   );
 
   const getWorkflowId = (workflow: SavedWorkflow) => 
-    workflow.id || `${workflow.metadata.folder}-${workflow.metadata.name}`;
+    `${workflow.metadata.folder}-${workflow.metadata.name}`;
 
   return (
     <Card className="w-full mb-6">

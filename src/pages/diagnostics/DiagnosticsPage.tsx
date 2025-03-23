@@ -16,6 +16,7 @@ import { SavedWorkflow } from "@/utils/flow/types";
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
 import { ArrowLeft, Search } from "lucide-react";
 import { SyncStatusBadge } from "@/components/system/SyncStatusBadge";
+import { getAllWorkflows } from "@/utils/flow/storage/workflow-operations/get-workflows";
 
 export default function DiagnosticsPage() {
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -23,6 +24,24 @@ export default function DiagnosticsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("categories");
   const { isOffline } = useOfflineStatus();
+  const [workflows, setWorkflows] = useState<SavedWorkflow[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchWorkflows = async () => {
+      setLoading(true);
+      try {
+        const allWorkflows = await getAllWorkflows();
+        setWorkflows(allWorkflows);
+      } catch (error) {
+        console.error("Error fetching workflows:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchWorkflows();
+  }, []);
   
   const handleDiagnosticSelect = (workflow: SavedWorkflow) => {
     setSelectedDiagnostic(workflow);
@@ -35,45 +54,6 @@ export default function DiagnosticsPage() {
       setSelectedCategory("");
     }
   };
-
-  // Mock data for demonstration
-  const mockDiagnostics: SavedWorkflow[] = [
-    {
-      id: "diag-1",
-      name: "Refrigerator Cooling Diagnostic",
-      categoryId: "cat-1",
-      metadata: {
-        name: "Refrigerator Cooling Diagnostic",
-        folder: "Refrigeration",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        appliance: "refrigerator",
-        tags: ["cooling", "refrigerator"],
-        description: "Diagnostic for refrigerator cooling issues"
-      },
-      nodes: [],
-      edges: [],
-      nodeCounter: 0
-    },
-    {
-      id: "diag-2",
-      name: "Dishwasher Not Draining",
-      categoryId: "cat-2",
-      metadata: {
-        name: "Dishwasher Not Draining",
-        folder: "Dishwashers",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        appliance: "dishwasher",
-        symptom: "Not draining",
-        tags: ["draining", "dishwasher"],
-        description: "Diagnostic for dishwasher drainage issues"
-      },
-      nodes: [],
-      edges: [],
-      nodeCounter: 0
-    },
-  ];
 
   return (
     <div className="container mx-auto p-4">
@@ -114,14 +94,20 @@ export default function DiagnosticsPage() {
             </TabsList>
             
             <TabsContent value="categories">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <DiagnosticSelector 
-                  workflows={mockDiagnostics} 
-                  selectedWorkflowId={selectedCategory}
-                  onSelect={handleDiagnosticSelect}
-                  searchTerm={searchQuery}
-                />
-              </div>
+              {loading ? (
+                <div className="flex justify-center p-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <DiagnosticSelector 
+                    workflows={workflows} 
+                    selectedWorkflowId={selectedCategory}
+                    onSelect={handleDiagnosticSelect}
+                    searchTerm={searchQuery}
+                  />
+                </div>
+              )}
             </TabsContent>
             
             <TabsContent value="recent">
@@ -165,7 +151,7 @@ export default function DiagnosticsPage() {
             {selectedDiagnostic.metadata.symptom && (
               <p>Symptom: {selectedDiagnostic.metadata.symptom}</p>
             )}
-            <p>Running diagnostic workflow...</p>
+            <p>{selectedDiagnostic.metadata.description || "Running diagnostic workflow..."}</p>
           </CardContent>
           <CardFooter>
             <Button onClick={handleBack} variant="outline" className="mr-2">
