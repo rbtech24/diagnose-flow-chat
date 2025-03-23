@@ -3,8 +3,8 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
-import { FeatureRequest, FeatureRequestVote, FeatureRequestStatus } from "@/types/feature-request";
-import { emptyFeatureRequests, placeholderUser } from "@/utils/placeholderData";
+import { FeatureRequest, FeatureRequestVote, FeatureRequestStatus, FeatureRequestPriority } from "@/types/feature-request";
+import { placeholderUser } from "@/utils/placeholderData";
 import { ArrowLeft } from "lucide-react";
 
 export default function AdminFeatureRequestDetailPage() {
@@ -20,7 +20,24 @@ export default function AdminFeatureRequestDetailPage() {
     // Simulate API call
     setTimeout(() => {
       // In a real app, you would fetch data from the server
-      setFeatureRequest(null);
+      const mockFeatureRequest: FeatureRequest = {
+        id: id || "fr-1",
+        title: "Sample Feature Request",
+        description: "This is a sample feature request for testing the detail page.",
+        status: "pending" as FeatureRequestStatus,
+        priority: "medium" as FeatureRequestPriority,
+        category: "UI/UX",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        score: 5,
+        userId: "user-1",
+        user: placeholderUser,
+        createdBy: placeholderUser,
+        votes: [],
+        comments: []
+      };
+      
+      setFeatureRequest(mockFeatureRequest);
       setLoading(false);
     }, 500);
   }, [id]);
@@ -70,12 +87,12 @@ export default function AdminFeatureRequestDetailPage() {
     });
   };
 
-  const handlePriorityChange = (requestId: string, priority: string) => {
+  const handlePriorityChange = (requestId: string, priority: FeatureRequestPriority) => {
     if (!featureRequest) return;
 
     setFeatureRequest({
       ...featureRequest,
-      priority: priority as FeatureRequestStatus,
+      priority,
       updatedAt: new Date()
     });
   };

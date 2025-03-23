@@ -3,10 +3,12 @@ import { useLocation, Link } from "react-router-dom";
 import { useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Home } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const NotFound = () => {
   const location = useLocation();
   const path = location.pathname;
+  const { userRole, isAuthenticated } = useAuth();
 
   useEffect(() => {
     console.error(
@@ -18,29 +20,46 @@ const NotFound = () => {
   const suggestedRoutes = useMemo(() => {
     // Extract the first part of the path to determine user role context
     const pathParts = path.split('/').filter(Boolean);
-    const userRole = pathParts[0]; // 'tech', 'company', or 'admin'
+    const pageRole = pathParts[0]; // 'tech', 'company', or 'admin'
     
-    if (!userRole || !['tech', 'company', 'admin'].includes(userRole)) {
+    // If user is authenticated, use their role for suggestions
+    const roleToUse = isAuthenticated && userRole ? userRole : pageRole;
+    
+    if (!roleToUse || !['tech', 'company', 'admin'].includes(roleToUse)) {
       return [{ label: 'Home', path: '/' }];
     }
 
     // Common pages for all user types
     const commonRoutes = [
-      { label: `${userRole.charAt(0).toUpperCase() + userRole.slice(1)} Dashboard`, path: `/${userRole}/dashboard` },
-      { label: 'Profile', path: `/${userRole}/profile` },
-      { label: 'Support', path: `/${userRole}/support` }
+      { label: `${roleToUse.charAt(0).toUpperCase() + roleToUse.slice(1)} Dashboard`, path: `/${roleToUse}` },
+      { label: 'Profile', path: `/${roleToUse}/profile` },
+      { label: 'Support', path: `/${roleToUse}/support` }
     ];
 
     // Add specific suggestions based on user role and attempted path keywords
     const lowercasePath = path.toLowerCase();
     if (lowercasePath.includes('knowledge') || lowercasePath.includes('resource')) {
-      if (userRole === 'tech') {
+      if (roleToUse === 'tech') {
         return [...commonRoutes, { label: 'Knowledge Base', path: '/tech/knowledge' }];
       }
     }
     
+    if (lowercasePath.includes('feature')) {
+      return [...commonRoutes, { label: 'Feature Requests', path: `/${roleToUse}/feature-requests` }];
+    }
+    
     return commonRoutes;
-  }, [path]);
+  }, [path, userRole, isAuthenticated]);
+
+  // Determine the home path based on user role
+  const getHomePath = () => {
+    if (isAuthenticated) {
+      if (userRole === 'admin') return '/admin';
+      if (userRole === 'company') return '/company';
+      if (userRole === 'tech') return '/tech';
+    }
+    return '/';
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -77,10 +96,10 @@ const NotFound = () => {
             <ArrowLeft size={16} />
             Go Back
           </Button>
-          <Link to="/">
+          <Link to={getHomePath()}>
             <Button variant="default" className="flex items-center justify-center gap-2 w-full sm:w-auto">
               <Home size={16} />
-              Return to Home
+              Return to Dashboard
             </Button>
           </Link>
         </div>
