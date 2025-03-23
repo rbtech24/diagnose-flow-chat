@@ -12,10 +12,10 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-// Use direct imports for components that don't have a default export
-import AdminLayout from "./components/admin/AdminLayout";
-import CompanyLayout from "./components/company/CompanyLayout";
-import TechLayout from "./components/tech/TechLayout";
+// Direct imports for layout components
+import { AdminLayout } from "./components/admin/AdminLayout";
+import { CompanyLayout } from "./components/company/CompanyLayout";
+import { TechLayout } from "./components/tech/TechLayout";
 
 // Admin pages
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
