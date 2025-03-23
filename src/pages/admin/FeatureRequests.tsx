@@ -9,7 +9,7 @@ import { FeatureRequest, FeatureRequestStatus } from "@/types/feature-request";
 import { FeatureRequestCard } from "@/components/feature-request/FeatureRequestCard";
 import { NewFeatureRequestForm } from "@/components/feature-request/NewFeatureRequestForm";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Lightbulb } from "lucide-react";
 import { emptyFeatureRequests, placeholderUser } from "@/utils/placeholderData";
 
 export default function AdminFeatureRequests() {
@@ -60,6 +60,21 @@ export default function AdminFeatureRequests() {
   const completedRequests = filteredRequests.filter(r => r.status === "completed");
   const reviewRequests = filteredRequests.filter(r => r.status === "under-review");
 
+  // Function to render empty state
+  const renderEmptyState = () => (
+    <Card className="col-span-full">
+      <CardContent className="pt-6 text-center py-12">
+        <Lightbulb className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+        <h3 className="text-lg font-medium mb-1">No Feature Requests</h3>
+        <p className="text-muted-foreground mb-4">There are no feature requests yet.</p>
+        <Button onClick={() => setIsFormOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Create Your First Feature Request
+        </Button>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
@@ -90,94 +105,98 @@ export default function AdminFeatureRequests() {
         />
       </div>
 
-      <Tabs defaultValue="under-review">
-        <TabsList className="mb-6">
-          <TabsTrigger value="under-review">
-            Under Review <span className="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{reviewRequests.length}</span>
-          </TabsTrigger>
-          <TabsTrigger value="planned">
-            Planned <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-600">{plannedRequests.length}</span>
-          </TabsTrigger>
-          <TabsTrigger value="in-progress">
-            In Progress <span className="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-600">{inProgressRequests.length}</span>
-          </TabsTrigger>
-          <TabsTrigger value="completed">
-            Completed <span className="ml-1 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-600">{completedRequests.length}</span>
-          </TabsTrigger>
-        </TabsList>
+      {requests.length === 0 ? (
+        renderEmptyState()
+      ) : (
+        <Tabs defaultValue="under-review">
+          <TabsList className="mb-6">
+            <TabsTrigger value="under-review">
+              Under Review <span className="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{reviewRequests.length}</span>
+            </TabsTrigger>
+            <TabsTrigger value="planned">
+              Planned <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-600">{plannedRequests.length}</span>
+            </TabsTrigger>
+            <TabsTrigger value="in-progress">
+              In Progress <span className="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-600">{inProgressRequests.length}</span>
+            </TabsTrigger>
+            <TabsTrigger value="completed">
+              Completed <span className="ml-1 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-600">{completedRequests.length}</span>
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="under-review" className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {reviewRequests.length > 0 ? (
-            reviewRequests.map((request) => (
-              <FeatureRequestCard 
-                key={request.id} 
-                featureRequest={request} 
-                onViewDetails={() => handleRequestClick(request.id)} 
-              />
-            ))
-          ) : (
-            <Card className="col-span-full">
-              <CardContent className="pt-6 text-center">
-                <p className="text-muted-foreground">No feature requests under review</p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
+          <TabsContent value="under-review" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {reviewRequests.length > 0 ? (
+              reviewRequests.map((request) => (
+                <FeatureRequestCard 
+                  key={request.id} 
+                  featureRequest={request} 
+                  onViewDetails={() => handleRequestClick(request.id)} 
+                />
+              ))
+            ) : (
+              <Card className="col-span-full">
+                <CardContent className="pt-6 text-center">
+                  <p className="text-muted-foreground">No feature requests under review</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
 
-        <TabsContent value="planned" className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {plannedRequests.length > 0 ? (
-            plannedRequests.map((request) => (
-              <FeatureRequestCard 
-                key={request.id} 
-                featureRequest={request} 
-                onViewDetails={() => handleRequestClick(request.id)} 
-              />
-            ))
-          ) : (
-            <Card className="col-span-full">
-              <CardContent className="pt-6 text-center">
-                <p className="text-muted-foreground">No planned feature requests</p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
+          <TabsContent value="planned" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {plannedRequests.length > 0 ? (
+              plannedRequests.map((request) => (
+                <FeatureRequestCard 
+                  key={request.id} 
+                  featureRequest={request} 
+                  onViewDetails={() => handleRequestClick(request.id)} 
+                />
+              ))
+            ) : (
+              <Card className="col-span-full">
+                <CardContent className="pt-6 text-center">
+                  <p className="text-muted-foreground">No planned feature requests</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
 
-        <TabsContent value="in-progress" className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {inProgressRequests.length > 0 ? (
-            inProgressRequests.map((request) => (
-              <FeatureRequestCard 
-                key={request.id} 
-                featureRequest={request} 
-                onViewDetails={() => handleRequestClick(request.id)} 
-              />
-            ))
-          ) : (
-            <Card className="col-span-full">
-              <CardContent className="pt-6 text-center">
-                <p className="text-muted-foreground">No feature requests in progress</p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
+          <TabsContent value="in-progress" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {inProgressRequests.length > 0 ? (
+              inProgressRequests.map((request) => (
+                <FeatureRequestCard 
+                  key={request.id} 
+                  featureRequest={request} 
+                  onViewDetails={() => handleRequestClick(request.id)} 
+                />
+              ))
+            ) : (
+              <Card className="col-span-full">
+                <CardContent className="pt-6 text-center">
+                  <p className="text-muted-foreground">No feature requests in progress</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
 
-        <TabsContent value="completed" className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {completedRequests.length > 0 ? (
-            completedRequests.map((request) => (
-              <FeatureRequestCard 
-                key={request.id} 
-                featureRequest={request} 
-                onViewDetails={() => handleRequestClick(request.id)} 
-              />
-            ))
-          ) : (
-            <Card className="col-span-full">
-              <CardContent className="pt-6 text-center">
-                <p className="text-muted-foreground">No completed feature requests</p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="completed" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {completedRequests.length > 0 ? (
+              completedRequests.map((request) => (
+                <FeatureRequestCard 
+                  key={request.id} 
+                  featureRequest={request} 
+                  onViewDetails={() => handleRequestClick(request.id)} 
+                />
+              ))
+            ) : (
+              <Card className="col-span-full">
+                <CardContent className="pt-6 text-center">
+                  <p className="text-muted-foreground">No completed feature requests</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
+      )}
     </div>
   );
 }

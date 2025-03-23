@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { 
   Users, Building2, BarChart, ShieldCheck, 
   Wrench, FileText, MessageSquare,
-  Clock, ArrowUp, ArrowDown, Play,
   Activity, LifeBuoy, Lightbulb
 } from "lucide-react";
 import { useWorkflows } from "@/hooks/useWorkflows";
@@ -65,7 +64,7 @@ export default function AdminDashboard() {
               </div>
               <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
                 <Link to="/admin/workflows" className="flex items-center text-white">
-                  <Play className="mr-2 h-4 w-4" />
+                  <Wrench className="mr-2 h-4 w-4" />
                   Manage Workflows
                 </Link>
               </Button>
