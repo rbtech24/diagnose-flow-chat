@@ -9,9 +9,19 @@ import { Separator } from "@/components/ui/separator";
 import { User, TechnicianInvite } from "@/types/user";
 import { SubscriptionPlan, License } from "@/types/subscription";
 import { mockSubscriptionPlans, mockLicenses } from "@/data/mockSubscriptions";
-import { Plus, Mail, Phone, User as UserIcon, AlertCircle, Clock, Check, X } from "lucide-react";
+import { Plus, Mail, Phone, User as UserIcon, AlertCircle, Clock, Check, X, Archive } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog";
 
 // Mock data for technicians
 const mockTechnicians: User[] = [
@@ -59,6 +69,10 @@ export default function ManageTechnicians() {
   });
   const [currentLicense, setCurrentLicense] = useState<License | undefined>();
   const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan | undefined>();
+  
+  // New states for delete/archive confirmation
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [techToDelete, setTechToDelete] = useState<string | null>(null);
   
   // Load the current license and plan info
   useEffect(() => {
@@ -116,9 +130,33 @@ export default function ManageTechnicians() {
     toast.success("Invitation canceled");
   };
 
-  const handleRemoveTechnician = (techId: string) => {
-    setTechnicians(technicians.filter(tech => tech.id !== techId));
+  // Show confirmation dialog before deleting
+  const confirmDeleteTechnician = (techId: string) => {
+    setTechToDelete(techId);
+    setIsDeleteDialogOpen(true);
+  };
+
+  // Actually delete the technician after confirmation
+  const handleDeleteTechnician = () => {
+    if (!techToDelete) return;
+    
+    setTechnicians(technicians.filter(tech => tech.id !== techToDelete));
+    setIsDeleteDialogOpen(false);
+    setTechToDelete(null);
     toast.success("Technician removed successfully");
+  };
+
+  // New archive function
+  const handleArchiveTechnician = (techId: string) => {
+    // In a real app, you would update the technician's status in the database
+    // Here we'll just update our local state to simulate archiving
+    setTechnicians(technicians.map(tech => {
+      if (tech.id === techId) {
+        return { ...tech, status: "archived" };
+      }
+      return tech;
+    }));
+    toast.success("Technician archived successfully");
   };
 
   // Calculate technicians usage
@@ -208,15 +246,41 @@ export default function ManageTechnicians() {
                             </span>
                           )}
                         </div>
+                        {tech.status === "archived" && (
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded mt-1 inline-block">
+                            Archived
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleRemoveTechnician(tech.id)}
-                    >
-                      <X className="h-4 w-4 text-red-500" />
-                    </Button>
+                    <div className="flex space-x-2">
+                      {!tech.status || tech.status !== "archived" ? (
+                        <>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleArchiveTechnician(tech.id)}
+                          >
+                            <Archive className="h-4 w-4 text-amber-500" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => confirmDeleteTechnician(tech.id)}
+                          >
+                            <X className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </>
+                      ) : (
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => confirmDeleteTechnician(tech.id)}
+                        >
+                          <X className="h-4 w-4 text-red-500" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -274,6 +338,7 @@ export default function ManageTechnicians() {
         </Card>
       </div>
 
+      {/* Add technician dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -324,6 +389,44 @@ export default function ManageTechnicians() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete this technician? This action cannot be undone.
+              Consider archiving instead to retain their data and history.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <Button 
+              variant="outline" 
+              className="border-amber-500 text-amber-600 hover:bg-amber-50"
+              onClick={() => {
+                if (techToDelete) {
+                  handleArchiveTechnician(techToDelete);
+                  setIsDeleteDialogOpen(false);
+                  setTechToDelete(null);
+                }
+              }}
+            >
+              <Archive className="h-4 w-4 mr-2" />
+              Archive Instead
+            </Button>
+            <AlertDialogAction
+              className="bg-red-500 hover:bg-red-600"
+              onClick={handleDeleteTechnician}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
