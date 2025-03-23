@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Activity, Star, Clock, Users, Award, AlertTriangle } from "lucide-react";
@@ -14,7 +13,9 @@ interface MetricsData {
   customersServed: number;
 }
 
-export function PerformanceMetrics() {
+interface PerformanceMetricsProps extends Partial<MetricsData> {}
+
+export function PerformanceMetrics(props: PerformanceMetricsProps = {}) {
   const [metrics, setMetrics] = useState<MetricsData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -22,6 +23,20 @@ export function PerformanceMetrics() {
     const fetchMetricsData = async () => {
       setLoading(true);
       try {
+        // If props were passed, use them instead of fetching
+        if (Object.keys(props).length > 0) {
+          const providedMetrics: MetricsData = {
+            completedRepairs: props.completedRepairs || 0,
+            averageTime: props.averageTime || "0 hrs",
+            customerRating: props.customerRating || 0,
+            efficiencyScore: props.efficiencyScore || 0,
+            customersServed: props.customersServed || 0
+          };
+          setMetrics(providedMetrics);
+          setLoading(false);
+          return;
+        }
+
         // In a real application, we would fetch from the database here
         // For example:
         // const { data, error } = await supabase
@@ -49,7 +64,7 @@ export function PerformanceMetrics() {
     };
     
     fetchMetricsData();
-  }, []);
+  }, [props]);
 
   if (loading) {
     return (
@@ -108,11 +123,11 @@ export function PerformanceMetrics() {
       <CardContent>
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="border rounded-lg p-4 flex flex-col items-center justify-center">
-            <div className="text-3xl font-bold text-blue-600">{metrics.completedRepairs}</div>
+            <div className="text-3xl font-bold text-blue-600">{metrics?.completedRepairs || 0}</div>
             <p className="text-sm text-muted-foreground">Completed Repairs</p>
           </div>
           <div className="border rounded-lg p-4 flex flex-col items-center justify-center">
-            <div className="text-3xl font-bold text-blue-600">{metrics.customerRating}</div>
+            <div className="text-3xl font-bold text-blue-600">{metrics?.customerRating || 0}</div>
             <div className="flex items-center gap-1">
               <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
               <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
@@ -131,7 +146,7 @@ export function PerformanceMetrics() {
                 <Clock className="h-4 w-4 text-blue-500" />
                 <span className="text-sm font-medium">Average Repair Time</span>
               </div>
-              <span className="text-sm font-semibold">{metrics.averageTime}</span>
+              <span className="text-sm font-semibold">{metrics?.averageTime || "0 hrs"}</span>
             </div>
             <Progress value={70} className="h-2" />
           </div>
@@ -142,9 +157,9 @@ export function PerformanceMetrics() {
                 <Award className="h-4 w-4 text-blue-500" />
                 <span className="text-sm font-medium">Efficiency Score</span>
               </div>
-              <span className="text-sm font-semibold">{metrics.efficiencyScore}%</span>
+              <span className="text-sm font-semibold">{metrics?.efficiencyScore || 0}%</span>
             </div>
-            <Progress value={metrics.efficiencyScore} className="h-2" />
+            <Progress value={metrics?.efficiencyScore || 0} className="h-2" />
           </div>
           
           <div className="space-y-2">
@@ -153,7 +168,7 @@ export function PerformanceMetrics() {
                 <Users className="h-4 w-4 text-blue-500" />
                 <span className="text-sm font-medium">Customers Served</span>
               </div>
-              <span className="text-sm font-semibold">{metrics.customersServed}</span>
+              <span className="text-sm font-semibold">{metrics?.customersServed || 0}</span>
             </div>
             <Progress value={75} className="h-2" />
           </div>
