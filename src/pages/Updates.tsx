@@ -17,7 +17,7 @@ interface UpdateData {
 }
 
 export default function Updates() {
-  const { userRole } = useUserRole();
+  const { role } = useUserRole();
   const [updates, setUpdates] = useState<UpdateData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

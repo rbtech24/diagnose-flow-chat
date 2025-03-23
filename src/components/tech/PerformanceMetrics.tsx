@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Activity, Star, Clock, Users, Award, AlertTriangle } from "lucide-react";
@@ -13,7 +14,7 @@ interface MetricsData {
   customersServed: number;
 }
 
-interface PerformanceMetricsProps extends Partial<MetricsData> {}
+export interface PerformanceMetricsProps extends Partial<MetricsData> {}
 
 export function PerformanceMetrics(props: PerformanceMetricsProps = {}) {
   const [metrics, setMetrics] = useState<MetricsData | null>(null);

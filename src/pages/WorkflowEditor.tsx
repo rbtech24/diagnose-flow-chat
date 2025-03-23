@@ -1,4 +1,3 @@
-
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import FlowEditor from '@/components/FlowEditor';
 import NodeConfigPanel from '@/components/NodeConfigPanel';
@@ -19,13 +18,13 @@ export default function WorkflowEditor() {
   const name = searchParams.get('name');
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [updateNodeFn, setUpdateNodeFn] = useState<((nodeId: string, newData: any) => void) | null>(null);
-  const { userRole, isLoading } = useUserRole();
+  const { role, isLoading } = useUserRole();
   const { checkWorkflowAccess } = useAuth();
 
   useEffect(() => {
     // Check if user has admin permissions
     if (!isLoading) {
-      if (userRole !== 'admin') {
+      if (role !== 'admin') {
         toast({
           title: "Access Denied",
           description: "Only administrators can edit workflows."
@@ -49,7 +48,7 @@ export default function WorkflowEditor() {
         }
       }
     }
-  }, [userRole, isLoading, navigate, folder, name, toast, checkWorkflowAccess]);
+  }, [role, isLoading, navigate, folder, name, toast, checkWorkflowAccess]);
 
   const handleNodeSelect = useCallback((node: Node, updateNode: (nodeId: string, newData: any) => void) => {
     console.log('WorkflowEditor handleNodeSelect:', node);
@@ -65,7 +64,7 @@ export default function WorkflowEditor() {
   }, [selectedNode, updateNodeFn]);
 
   const handleBackToDashboard = () => {
-    if (userRole === 'admin') {
+    if (role === 'admin') {
       navigate('/admin/workflows');
     } else {
       navigate('/workflows');

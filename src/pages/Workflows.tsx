@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppliances } from '@/hooks/useAppliances';
@@ -17,8 +16,8 @@ export default function Workflows() {
   const [editingAppliance, setEditingAppliance] = useState<{index: number, name: string} | null>(null);
   const [deletingApplianceIndex, setDeletingApplianceIndex] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const { userRole } = useUserRole();
-  const isAdmin = userRole === 'admin';
+  const { role } = useUserRole();
+  const isAdmin = role === 'admin';
 
   const {
     appliances,
@@ -98,7 +97,7 @@ export default function Workflows() {
   const handleBackToDashboard = () => {
     if (isAdmin) {
       navigate('/admin');
-    } else if (userRole === 'company') {
+    } else if (role === 'company_admin') {
       navigate('/company');
     } else {
       navigate('/tech');
