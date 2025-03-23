@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User } from '@/types/user';
@@ -292,8 +291,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { hasAccess: true };
     }
     
-    // Fix the type comparison error by checking if userRole is NOT 'admin'
-    // This ensures we're comparing compatible types
     if (workflowId.includes('restricted') && userRole !== 'admin') {
       return { 
         hasAccess: false, 
