@@ -1,39 +1,30 @@
 
-import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { CheckCircle, Wrench, Building2 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { useAuth } from "@/context/AuthContext";
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from '@/hooks/use-toast';
+import { Mail, Lock, LogIn } from 'lucide-react';
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [userRole, setUserRole] = useState<"tech" | "admin" | "company">("tech");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const { login } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const { login, user } = useAuth();
 
-  useEffect(() => {
-    // If user is already logged in, redirect to the appropriate dashboard
-    if (user) {
-      navigate(`/${user.role}`);
-    }
-  }, [user, navigate]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password) {
       toast({
-        title: "Login failed",
-        description: "Please enter both email and password.",
-        variant: "destructive",
+        title: "Validation Error",
+        description: "Please fill in all fields",
+        variant: "destructive"
       });
       return;
     }
@@ -41,68 +32,36 @@ export default function Login() {
     setIsLoading(true);
     
     try {
-      const success = await login(email, password, userRole);
-      
+      const success = await login(email, password);
       if (success) {
-        toast({
-          title: "Login successful",
-          description: `Welcome back! Redirecting to ${userRole} dashboard.`,
-        });
-        navigate(`/${userRole}`);
+        toast.success("Login successful");
+        navigate('/workflows');
       }
     } catch (error) {
-      console.error("Login error:", error);
-      toast({
-        title: "Login failed",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Login failed. Please check your credentials.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="space-y-1 text-center">
-          <div className="flex justify-center mb-3">
-            <img 
-              src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
-              alt="Repair Auto Pilot" 
-              className="h-32"
-            />
-          </div>
-          <CardDescription>
-            Sign in to your account to continue
-          </CardDescription>
+    <div className="flex justify-center items-center min-h-screen bg-slate-50 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold">Log in</CardTitle>
+          <CardDescription>Enter your email and password to access your account</CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleLogin}>
+          <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="role">Select your role</Label>
-              <ToggleGroup type="single" variant="outline" value={userRole} onValueChange={(value) => value && setUserRole(value as "tech" | "admin" | "company")} className="justify-between">
-                <ToggleGroupItem value="tech" className="flex-1 gap-1.5">
-                  <Wrench className="h-4 w-4" />
-                  Technician
-                </ToggleGroupItem>
-                <ToggleGroupItem value="company" className="flex-1 gap-1.5">
-                  <Building2 className="h-4 w-4" />
-                  Company
-                </ToggleGroupItem>
-                <ToggleGroupItem value="admin" className="flex-1 gap-1.5">
-                  <CheckCircle className="h-4 w-4" />
-                  Admin
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
+              <div className="flex items-center space-x-2">
+                <Mail className="w-4 h-4 text-gray-500" />
+                <label htmlFor="email" className="text-sm font-medium">Email</label>
+              </div>
+              <Input 
+                id="email" 
+                type="email" 
+                placeholder="your@email.com" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -110,35 +69,60 @@ export default function Login() {
             </div>
             
             <div className="space-y-2">
-              <div className="flex justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-800">
-                  Forgot password?
-                </Link>
+              <div className="flex items-center space-x-2">
+                <Lock className="w-4 h-4 text-gray-500" />
+                <label htmlFor="password" className="text-sm font-medium">Password</label>
               </div>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
+              <Input 
+                id="password" 
+                type="password" 
+                placeholder="••••••••" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
             
-            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Sign in"}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="remember" 
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                />
+                <label htmlFor="remember" className="text-sm cursor-pointer">Remember me</label>
+              </div>
+              <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
+                Forgot password?
+              </Link>
+            </div>
+          </CardContent>
+          <CardFooter className="flex flex-col">
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <span className="flex items-center space-x-2">
+                  <span className="animate-spin">◌</span>
+                  <span>Logging in...</span>
+                </span>
+              ) : (
+                <span className="flex items-center space-x-2">
+                  <LogIn className="w-4 h-4" />
+                  <span>Log in</span>
+                </span>
+              )}
             </Button>
-          </form>
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
-          <div className="text-center text-sm text-gray-500">
-            Don't have an account?{" "}
-            <Link to="/signup" className="text-blue-600 hover:text-blue-800">
-              Sign up now
-            </Link>
-          </div>
-        </CardFooter>
+            <p className="mt-4 text-sm text-center text-gray-600">
+              Don't have an account?{" "}
+              <Link to="/signup" className="text-blue-600 hover:underline">
+                Sign up
+              </Link>
+            </p>
+          </CardFooter>
+        </form>
       </Card>
     </div>
   );

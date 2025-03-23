@@ -12,8 +12,15 @@ export type ToastProps = {
 
 type ToastOptions = HotToastOptions;
 
+type ToastFunction = {
+  (props: ToastProps): void;
+  success: (message: string) => void;
+  error: (message: string) => void;
+  dismiss: (toastId?: string) => void;
+};
+
 type ToastContextType = {
-  toast: (props: ToastProps) => void;
+  toast: ToastFunction;
   toasts: any[]; // For compatibility with the toaster component
   dismiss: (toastId?: string) => void;
 };
@@ -60,12 +67,14 @@ const createToastHandler = () => {
     });
   };
 
+  // Create the toast function with attached methods
+  const toastFn = (props: ToastProps) => showToast(props);
+  toastFn.success = success;
+  toastFn.error = error;
+  toastFn.dismiss = toast.dismiss;
+
   return {
-    toast: Object.assign(showToast, { 
-      success, 
-      error,
-      dismiss: toast.dismiss 
-    }),
+    toast: toastFn as ToastFunction,
     dismiss: toast.dismiss,
     // Empty array for compatibility with toaster component
     toasts: []
@@ -94,4 +103,4 @@ export function useToast() {
 }
 
 // Export the toast directly so it can be used without the hook
-export const { toast: toast2 } = createToastHandler();
+export const { toast } = createToastHandler();

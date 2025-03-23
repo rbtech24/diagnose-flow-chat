@@ -2,9 +2,9 @@
 import { useState, useEffect } from 'react';
 import { TechnicalSpecs } from '@/types/node-config';
 import { useToast } from '@/hooks/use-toast';
-import { useNodeFields } from './node-config/hooks/useNodeFields';
-import { useNodeValidation } from './node-config/hooks/useNodeValidation';
-import { combineFieldsData } from './node-config/utils/nodeDataTransform';
+import { useNodeFields } from '@/components/node-config/hooks/useNodeFields';
+import { useNodeValidation } from '@/components/node-config/hooks/useNodeValidation';
+import { combineFieldsData } from '@/components/node-config/utils/nodeDataTransform';
 
 interface UseNodeConfigProps {
   node: any;

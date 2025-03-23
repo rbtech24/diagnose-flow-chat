@@ -1,5 +1,5 @@
 
-import { useNodeConfig } from './node-config/useNodeConfig';
+import { useNodeConfig } from '@/hooks/useNodeConfig';
 import { NodeConfigForm } from './node-config/NodeConfigForm';
 import { Alert, AlertDescription } from './ui/alert';
 import { AlertCircle } from 'lucide-react';
@@ -29,7 +29,7 @@ export default function NodeConfigPanel({ node, onUpdate, onClose }: NodeConfigP
     validationErrors
   } = useNodeConfig({ 
     node, 
-    onUpdate: (data) => {
+    onUpdate: (nodeId, data) => {
       console.log('NodeConfigPanel onUpdate:', data);
       onUpdate(data);
     }
