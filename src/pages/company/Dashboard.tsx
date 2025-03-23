@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,8 +9,43 @@ import {
   Play, Activity, Stethoscope
 } from "lucide-react";
 import { useWorkflows } from "@/hooks/useWorkflows";
+import { useUserRole } from "@/hooks/useUserRole";
+import { Navigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+
+interface DashboardMetrics {
+  activeJobs: number;
+  teamMembers: number;
+  responseTime: string;
+  avgResponseTime: string;
+  teamPerformance: number;
+}
+
+interface TeamMember {
+  id: string;
+  name: string;
+  avatar: string;
+  status: "active" | "offline";
+  jobs: number;
+}
+
+interface ActivityItem {
+  id: string;
+  type: string;
+  message: string;
+  time: string;
+}
 
 export default function CompanyDashboard() {
+  const { role, isLoading: roleLoading } = useUserRole();
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Get workflows for diagnosis
+  const { workflows, isLoading: workflowsLoading } = useWorkflows();
+  
   // Get current date
   const today = new Date();
   const dateOptions = { 
@@ -20,14 +56,62 @@ export default function CompanyDashboard() {
   };
   const formattedDate = today.toLocaleDateString('en-US', dateOptions);
   
-  // Get workflows for diagnosis
-  const { workflows, isLoading } = useWorkflows();
+  // Fetch dashboard data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      try {
+        // In a real application, we would fetch from the database
+        // For example:
+        // const { data: metricsData, error: metricsError } = await supabase
+        //   .from('company_metrics')
+        //   .select('*')
+        //   .eq('company_id', companyId)
+        //   .single();
+        
+        // if (metricsError) throw metricsError;
+        // setMetrics(metricsData);
+        
+        // For now, set empty arrays and default metrics
+        setTeamMembers([]);
+        setActivities([]);
+        setMetrics({
+          activeJobs: 0,
+          teamMembers: 0,
+          responseTime: "0 hrs",
+          avgResponseTime: "0 hrs",
+          teamPerformance: 0
+        });
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchDashboardData();
+  }, []);
+  
+  // Check if user is authorized to access this page
+  if (!roleLoading && role !== 'company_admin' && role !== 'admin') {
+    return <Navigate to="/login" />;
+  }
+  
+  if (loading || workflowsLoading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="flex justify-center items-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold">ABC Appliance Repair</h1>
+          <h1 className="text-3xl font-bold">Company Dashboard</h1>
           <p className="text-gray-500">{formattedDate}</p>
         </div>
       </div>
@@ -54,14 +138,14 @@ export default function CompanyDashboard() {
                 <Clock className="h-4 w-4 text-blue-600" />
                 <div>
                   <p className="text-sm font-medium">Avg Response Time</p>
-                  <p className="text-2xl font-bold">1.8 hrs</p>
+                  <p className="text-2xl font-bold">{metrics?.avgResponseTime || "0 hrs"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Activity className="h-4 w-4 text-green-600" />
                 <div>
                   <p className="text-sm font-medium">Team Performance</p>
-                  <p className="text-2xl font-bold">94%</p>
+                  <p className="text-2xl font-bold">{metrics?.teamPerformance || 0}%</p>
                 </div>
               </div>
             </div>
@@ -77,7 +161,7 @@ export default function CompanyDashboard() {
               <div className="bg-purple-200 text-purple-600 p-4 rounded-full mb-2">
                 <Stethoscope className="h-6 w-6" />
               </div>
-              <p className="text-sm text-center mb-1">{isLoading ? "Loading..." : `${workflows.length} available procedures`}</p>
+              <p className="text-sm text-center mb-1">{workflows.length} available procedures</p>
               <Button variant="outline" size="sm" className="mt-2">
                 <Link to="/company/diagnostics" className="text-black">View Diagnostics</Link>
               </Button>
@@ -94,7 +178,7 @@ export default function CompanyDashboard() {
           <CardContent>
             <div className="flex items-center">
               <Wrench className="h-4 w-4 text-cyan-600 mr-2" />
-              <span className="text-2xl font-bold">12</span>
+              <span className="text-2xl font-bold">{metrics?.activeJobs || 0}</span>
             </div>
           </CardContent>
         </Card>
@@ -106,7 +190,7 @@ export default function CompanyDashboard() {
           <CardContent>
             <div className="flex items-center">
               <Users className="h-4 w-4 text-green-600 mr-2" />
-              <span className="text-2xl font-bold">8</span>
+              <span className="text-2xl font-bold">{metrics?.teamMembers || 0}</span>
             </div>
           </CardContent>
         </Card>
@@ -118,7 +202,7 @@ export default function CompanyDashboard() {
           <CardContent>
             <div className="flex items-center">
               <Clock className="h-4 w-4 text-amber-600 mr-2" />
-              <span className="text-2xl font-bold">1.4 hrs</span>
+              <span className="text-2xl font-bold">{metrics?.responseTime || "0 hrs"}</span>
             </div>
           </CardContent>
         </Card>
@@ -132,53 +216,40 @@ export default function CompanyDashboard() {
               <CardDescription>Manage your technicians</CardDescription>
             </CardHeader>
             <CardContent className="mt-4">
-              <div className="flex justify-between mb-4 p-3 rounded-lg bg-green-50 border border-green-100">
-                <div className="flex items-center">
-                  <div className="relative mr-2">
-                    <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/300?img=1" alt="Technician" />
-                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500"></span>
+              {teamMembers.length > 0 ? (
+                teamMembers.map(member => (
+                  <div 
+                    key={member.id} 
+                    className={`flex justify-between mb-4 p-3 rounded-lg ${
+                      member.status === 'active' ? 'bg-green-50 border border-green-100' : 'bg-gray-50 border border-gray-100'
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      <div className="relative mr-2">
+                        <img className="h-10 w-10 rounded-full" src={member.avatar} alt={member.name} />
+                        <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white ${
+                          member.status === 'active' ? 'bg-green-500' : 'bg-gray-300'
+                        }`}></span>
+                      </div>
+                      <div>
+                        <p className="font-medium">{member.name}</p>
+                        <p className="text-xs text-gray-500">
+                          {member.status === 'active' ? 'Active' : 'Offline'} • {member.jobs} jobs
+                        </p>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <Link to="/company/technicians" className="text-black">View</Link>
+                    </Button>
                   </div>
-                  <div>
-                    <p className="font-medium">John Smith</p>
-                    <p className="text-xs text-gray-500">Active • 3 jobs</p>
-                  </div>
+                ))
+              ) : (
+                <div className="text-center py-12 border rounded-lg">
+                  <Users className="h-10 w-10 text-blue-500 mx-auto mb-3" />
+                  <h3 className="text-lg font-medium mb-1">No Team Members</h3>
+                  <p className="text-gray-500 mb-4">You don't have any team members yet.</p>
                 </div>
-                <Button variant="outline" size="sm">
-                  <Link to="/company/technicians" className="text-black">View</Link>
-                </Button>
-              </div>
-              
-              <div className="flex justify-between mb-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
-                <div className="flex items-center">
-                  <div className="relative mr-2">
-                    <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/300?img=2" alt="Technician" />
-                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500"></span>
-                  </div>
-                  <div>
-                    <p className="font-medium">Sarah Johnson</p>
-                    <p className="text-xs text-gray-500">Active • 2 jobs</p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm">
-                  <Link to="/company/technicians" className="text-black">View</Link>
-                </Button>
-              </div>
-              
-              <div className="flex justify-between p-3 rounded-lg bg-gray-50 border border-gray-100">
-                <div className="flex items-center">
-                  <div className="relative mr-2">
-                    <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/300?img=3" alt="Technician" />
-                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-gray-300"></span>
-                  </div>
-                  <div>
-                    <p className="font-medium">Mike Williams</p>
-                    <p className="text-xs text-gray-500">Offline • 0 jobs</p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm">
-                  <Link to="/company/technicians" className="text-black">View</Link>
-                </Button>
-              </div>
+              )}
               
               <div className="mt-6">
                 <Button className="w-full">
@@ -198,41 +269,47 @@ export default function CompanyDashboard() {
             <CardDescription>Latest updates</CardDescription>
           </CardHeader>
           <CardContent className="mt-4">
-            <div className="space-y-4">
-              <div className="flex items-start gap-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
-                <div className="mt-1 rounded-full bg-blue-100 p-1">
-                  <Wrench className="h-3 w-3 text-blue-600" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">New job created</p>
-                  <p className="text-xs text-gray-500">10 minutes ago</p>
-                </div>
+            {activities.length > 0 ? (
+              <div className="space-y-4">
+                {activities.map(activity => (
+                  <div 
+                    key={activity.id} 
+                    className={`flex items-start gap-4 p-3 rounded-lg ${
+                      activity.type === 'job' ? 'bg-blue-50 border border-blue-100' : 
+                      activity.type === 'tech' ? 'bg-green-50 border border-green-100' : 
+                      'bg-amber-50 border border-amber-100'
+                    }`}
+                  >
+                    <div className={`mt-1 rounded-full p-1 ${
+                      activity.type === 'job' ? 'bg-blue-100' : 
+                      activity.type === 'tech' ? 'bg-green-100' : 
+                      'bg-amber-100'
+                    }`}>
+                      {activity.type === 'job' ? (
+                        <Wrench className={`h-3 w-3 ${activity.type === 'job' ? 'text-blue-600' : ''}`} />
+                      ) : activity.type === 'tech' ? (
+                        <Users className="h-3 w-3 text-green-600" />
+                      ) : (
+                        <AlertTriangle className="h-3 w-3 text-amber-600" />
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">{activity.message}</p>
+                      <p className="text-xs text-gray-500">{activity.time}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              
-              <div className="flex items-start gap-4 p-3 rounded-lg bg-green-50 border border-green-100">
-                <div className="mt-1 rounded-full bg-green-100 p-1">
-                  <Users className="h-3 w-3 text-green-600" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Tech assigned to job #1234</p>
-                  <p className="text-xs text-gray-500">1 hour ago</p>
-                </div>
+            ) : (
+              <div className="text-center py-8">
+                <Activity className="h-8 w-8 text-purple-500 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">No recent activity</p>
               </div>
-              
-              <div className="flex items-start gap-4 p-3 rounded-lg bg-amber-50 border border-amber-100">
-                <div className="mt-1 rounded-full bg-amber-100 p-1">
-                  <AlertTriangle className="h-3 w-3 text-amber-600" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Job #1230 needs attention</p>
-                  <p className="text-xs text-gray-500">3 hours ago</p>
-                </div>
-              </div>
-              
-              <Button variant="ghost" size="sm" className="w-full mt-4">
-                <Link to="/company/activity" className="text-black w-full">View All Activity</Link>
-              </Button>
-            </div>
+            )}
+            
+            <Button variant="ghost" size="sm" className="w-full mt-4">
+              <Link to="/company/activity" className="text-black w-full">View All Activity</Link>
+            </Button>
           </CardContent>
         </Card>
       </div>

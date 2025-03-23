@@ -4,9 +4,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ServiceHistory } from "@/components/tech/ServiceHistory";
 import { PerformanceMetrics } from "@/components/tech/PerformanceMetrics";
 import { KnowledgeBase } from "@/components/tech/KnowledgeBase";
+import { useUserRole } from "@/hooks/useUserRole";
+import { Navigate } from "react-router-dom";
 
 export default function TechTools() {
   const [activeTab, setActiveTab] = useState("history");
+  const { role, isLoading } = useUserRole();
+  
+  // Check if user is authorized to access this page
+  if (!isLoading && role !== 'tech' && role !== 'admin' && role !== 'company_admin') {
+    return <Navigate to="/login" />;
+  }
 
   return (
     <div className="space-y-6">

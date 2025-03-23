@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,48 +13,42 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { useUserMessages, useSystemMessages } from "@/context/SystemMessageContext";
 import { SystemMessage } from "@/components/system/SystemMessage";
+import { useUserRole } from "@/hooks/useUserRole";
+import { Navigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Appointment {
+  id: string;
+  time: string;
+  isCurrent: boolean;
+  title: string;
+  customer: string;
+  address: string;
+  modelName: string;
+  modelNumber: string;
+  symptom: string;
+}
+
+interface DashboardMetrics {
+  activeJobs: number;
+  completedJobs: number;
+  responseTime: string;
+  openIssues: number;
+  avgResponseTime: string;
+  firstTimeFixRate: number;
+}
 
 export default function TechnicianDashboard() {
   // Get system messages for the tech user
   const userMessages = useUserMessages("tech");
   const { removeMessage } = useSystemMessages();
+  const { role, isLoading: roleLoading } = useUserRole();
   
-  // Get current date
-  const today = new Date();
-  const dateOptions = { 
-    weekday: 'long' as const, 
-    year: 'numeric' as const, 
-    month: 'long' as const, 
-    day: 'numeric' as const 
-  };
-  const formattedDate = today.toLocaleDateString('en-US', dateOptions);
+  // State for data
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const [loading, setLoading] = useState(true);
   
-  // State for upcoming appointments
-  const [appointments, setAppointments] = useState([
-    {
-      id: "1",
-      time: "10:00 AM",
-      isCurrent: true,
-      title: "Refrigerator Not Cooling",
-      customer: "Sarah Johnson",
-      address: "123 Main St",
-      modelName: "WhirlFrost XL",
-      modelNumber: "WF-2023-XL",
-      symptom: "Not cooling properly"
-    },
-    {
-      id: "2",
-      time: "1:30 PM",
-      isCurrent: false,
-      title: "Dryer Not Heating",
-      customer: "Mike Williams",
-      address: "456 Oak Dr",
-      modelName: "DryMaster Pro",
-      modelNumber: "DMP-500",
-      symptom: "No heat"
-    }
-  ]);
-
   // Form state
   const [newAppointment, setNewAppointment] = useState({
     title: "",
@@ -65,6 +59,58 @@ export default function TechnicianDashboard() {
     modelNumber: "",
     symptom: ""
   });
+
+  // Get current date
+  const today = new Date();
+  const dateOptions = { 
+    weekday: 'long' as const, 
+    year: 'numeric' as const, 
+    month: 'long' as const, 
+    day: 'numeric' as const 
+  };
+  const formattedDate = today.toLocaleDateString('en-US', dateOptions);
+  
+  // Fetch data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      try {
+        // In a real application, we would fetch from the database
+        // Example:
+        // const { data: appointmentsData, error: appointmentsError } = await supabase
+        //   .from('appointments')
+        //   .select('*')
+        //   .eq('technician_id', currentUserId)
+        //   .order('time', { ascending: true });
+        
+        // if (appointmentsError) throw appointmentsError;
+        // setAppointments(appointmentsData);
+        
+        // For now, just set empty arrays and mock metrics
+        setAppointments([]);
+        setMetrics({
+          activeJobs: 0,
+          completedJobs: 0,
+          responseTime: "0 hrs",
+          openIssues: 0,
+          avgResponseTime: "0 hrs",
+          firstTimeFixRate: 0
+        });
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+        toast.error("Failed to fetch dashboard data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchDashboardData();
+  }, []);
+
+  // Check if user is authorized to access this page
+  if (!roleLoading && role !== 'tech' && role !== 'admin' && role !== 'company_admin') {
+    return <Navigate to="/login" />;
+  }
 
   // Handle adding a new appointment
   const handleAddAppointment = () => {
@@ -99,17 +145,27 @@ export default function TechnicianDashboard() {
     toast.success("Appointment added successfully");
   };
   
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="flex justify-center items-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold">Technician Dashboard</h1>
-          <p className="text-gray-500">John Doe • ABC Appliance Repair</p>
+          <p className="text-gray-500">Welcome • {formattedDate}</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="relative w-64">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search..." className="pl-8" />
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Search..." className="pl-10" />
           </div>
         </div>
       </div>
@@ -119,11 +175,11 @@ export default function TechnicianDashboard() {
           <CardHeader>
             <div className="flex justify-between items-center">
               <div>
-                <CardTitle>Welcome Back, John</CardTitle>
+                <CardTitle>Welcome Back</CardTitle>
                 <CardDescription>{formattedDate}</CardDescription>
               </div>
               <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-                Start Diagnosis
+                <Link to="/diagnostics">Start Diagnosis</Link>
               </Button>
             </div>
           </CardHeader>
@@ -133,14 +189,14 @@ export default function TechnicianDashboard() {
                 <Timer className="h-4 w-4 text-blue-500" />
                 <div>
                   <p className="text-sm font-medium">Avg Response Time</p>
-                  <p className="text-2xl font-bold">1.8 hrs</p>
+                  <p className="text-2xl font-bold">{metrics?.avgResponseTime || "0 hrs"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Percent className="h-4 w-4 text-green-500" />
                 <div>
                   <p className="text-sm font-medium">First-Time Fix Rate</p>
-                  <p className="text-2xl font-bold">94%</p>
+                  <p className="text-2xl font-bold">{metrics?.firstTimeFixRate || 0}%</p>
                 </div>
               </div>
             </div>
@@ -156,7 +212,7 @@ export default function TechnicianDashboard() {
           <CardContent>
             <div className="flex items-center">
               <Wrench className="h-4 w-4 text-blue-500 mr-2" />
-              <span className="text-2xl font-bold">8</span>
+              <span className="text-2xl font-bold">{metrics?.activeJobs || 0}</span>
             </div>
           </CardContent>
         </Card>
@@ -168,7 +224,7 @@ export default function TechnicianDashboard() {
           <CardContent>
             <div className="flex items-center">
               <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-              <span className="text-2xl font-bold">24</span>
+              <span className="text-2xl font-bold">{metrics?.completedJobs || 0}</span>
             </div>
           </CardContent>
         </Card>
@@ -180,7 +236,7 @@ export default function TechnicianDashboard() {
           <CardContent>
             <div className="flex items-center">
               <Clock className="h-4 w-4 text-purple-500 mr-2" />
-              <span className="text-2xl font-bold">1.2 hrs</span>
+              <span className="text-2xl font-bold">{metrics?.responseTime || "0 hrs"}</span>
             </div>
           </CardContent>
         </Card>
@@ -192,7 +248,7 @@ export default function TechnicianDashboard() {
           <CardContent>
             <div className="flex items-center">
               <AlertTriangle className="h-4 w-4 text-amber-500 mr-2" />
-              <span className="text-2xl font-bold">3</span>
+              <span className="text-2xl font-bold">{metrics?.openIssues || 0}</span>
             </div>
           </CardContent>
         </Card>
@@ -331,55 +387,57 @@ export default function TechnicianDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {appointments.map(appointment => (
-                <div 
-                  key={appointment.id}
-                  className={`p-4 rounded-lg border ${
-                    appointment.isCurrent ? "bg-green-50 border-green-200" : ""
-                  }`}
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex items-center">
-                        <Clock className={`h-4 w-4 ${
-                          appointment.isCurrent ? "text-green-600" : "text-gray-500"
-                        } mr-2`} />
-                        <p className={`font-medium ${
-                          appointment.isCurrent ? "text-green-800" : ""
-                        }`}>
-                          {appointment.isCurrent ? "Current - " : ""}{appointment.time}
-                        </p>
+              {appointments.length > 0 ? (
+                appointments.map(appointment => (
+                  <div 
+                    key={appointment.id}
+                    className={`p-4 rounded-lg border ${
+                      appointment.isCurrent ? "bg-green-50 border-green-200" : ""
+                    }`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="flex items-center">
+                          <Clock className={`h-4 w-4 ${
+                            appointment.isCurrent ? "text-green-600" : "text-gray-500"
+                          } mr-2`} />
+                          <p className={`font-medium ${
+                            appointment.isCurrent ? "text-green-800" : ""
+                          }`}>
+                            {appointment.isCurrent ? "Current - " : ""}{appointment.time}
+                          </p>
+                        </div>
+                        <h3 className="text-lg font-bold mt-1">{appointment.title}</h3>
+                        <p className="text-sm text-gray-600 mt-1">{appointment.customer} • {appointment.address}</p>
+                        
+                        {/* Display model and symptom details */}
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <span className="inline-flex items-center text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
+                            <Tag className="h-3 w-3 mr-1" />
+                            {appointment.modelName}
+                          </span>
+                          <span className="inline-flex items-center text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded">
+                            <Tag className="h-3 w-3 mr-1" />
+                            {appointment.modelNumber}
+                          </span>
+                          <span className="inline-flex items-center text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded">
+                            <AlertTriangle className="h-3 w-3 mr-1" />
+                            {appointment.symptom}
+                          </span>
+                        </div>
                       </div>
-                      <h3 className="text-lg font-bold mt-1">{appointment.title}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{appointment.customer} • {appointment.address}</p>
-                      
-                      {/* Display model and symptom details */}
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        <span className="inline-flex items-center text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
-                          <Tag className="h-3 w-3 mr-1" />
-                          {appointment.modelName}
-                        </span>
-                        <span className="inline-flex items-center text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded">
-                          <Tag className="h-3 w-3 mr-1" />
-                          {appointment.modelNumber}
-                        </span>
-                        <span className="inline-flex items-center text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded">
-                          <AlertTriangle className="h-3 w-3 mr-1" />
-                          {appointment.symptom}
-                        </span>
-                      </div>
+                      <Button size="sm" variant={appointment.isCurrent ? "default" : "outline"}>
+                        View Details
+                      </Button>
                     </div>
-                    <Button size="sm" variant={appointment.isCurrent ? "default" : "outline"}>
-                      View Details
-                    </Button>
                   </div>
-                </div>
-              ))}
-
-              {appointments.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  <p>No upcoming appointments</p>
-                  <Button size="sm" className="mt-2">
+                ))
+              ) : (
+                <div className="text-center py-12 border rounded-lg">
+                  <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto mb-3" />
+                  <h3 className="text-lg font-medium mb-1">No Appointments</h3>
+                  <p className="text-gray-500 mb-4">You don't have any upcoming appointments.</p>
+                  <Button size="sm">
                     <PlusCircle className="h-4 w-4 mr-2" />
                     Add Your First Appointment
                   </Button>
