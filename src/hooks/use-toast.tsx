@@ -1,40 +1,33 @@
 
 import { useState, useContext, createContext, ReactNode } from 'react';
-import toast, { Toast, ToastOptions as HotToastOptions } from 'react-hot-toast';
+import toast as hotToast from 'react-hot-toast';
 
-type ToastProps = {
+export type ToastProps = {
   title?: string;
   description?: string;
   variant?: 'default' | 'destructive';
   action?: ReactNode;
 };
 
-type ToastOptions = HotToastOptions;
-
 type ToastContextType = {
   toast: (props: ToastProps) => void;
+  toasts: any[]; // For compatibility with the toaster component
   dismiss: (toastId?: string) => void;
 };
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
-// Extract the showToast functionality to avoid circular dependency
+// Create a toast handler with both object syntax and direct methods
 const createToastHandler = () => {
+  // Main toast function that accepts our custom props format
   const showToast = ({ title, description, variant = 'default', action }: ToastProps) => {
-    const toastOptions: ToastOptions = {
+    const toastOptions = {
       duration: 4000,
       position: 'top-right',
+      className: variant === 'destructive' ? 'bg-destructive text-destructive-foreground' : ''
     };
 
-    if (variant === 'destructive') {
-      toastOptions.style = {
-        border: '1px solid #f43f5e',
-        padding: '16px',
-        color: '#f43f5e',
-      };
-    }
-
-    return toast((t) => (
+    return hotToast((t) => (
       <div className="flex items-start">
         <div className="flex-1">
           {title && <div className="font-medium">{title}</div>}
@@ -45,18 +38,39 @@ const createToastHandler = () => {
     ), toastOptions);
   };
 
+  // Add convenience methods for success/error
+  const success = (message: string) => {
+    return showToast({ 
+      title: "Success", 
+      description: message 
+    });
+  };
+
+  const error = (message: string) => {
+    return showToast({ 
+      title: "Error", 
+      description: message, 
+      variant: "destructive" 
+    });
+  };
+
   return {
-    toast: showToast,
-    dismiss: toast.dismiss,
+    toast: Object.assign(showToast, { 
+      success, 
+      error,
+      dismiss: hotToast.dismiss 
+    }),
+    dismiss: hotToast.dismiss,
+    // Empty array for compatibility with toaster component
+    toasts: []
   };
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  // Use the handler directly instead of calling useToast() to avoid circular dependency
-  const toastHandler = createToastHandler();
+  const [handler] = useState(createToastHandler);
   
   return (
-    <ToastContext.Provider value={toastHandler}>
+    <ToastContext.Provider value={handler()}>
       {children}
     </ToastContext.Provider>
   );
@@ -73,4 +87,5 @@ export function useToast() {
   return context;
 }
 
-export { toast };
+// Export the toast directly so it can be used without the hook
+export const toast = createToastHandler().toast;

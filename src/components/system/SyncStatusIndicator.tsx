@@ -70,14 +70,14 @@ export function SyncStatusIndicator({
 
 // Function to show toast notifications for sync events
 export function showSyncNotification(type: 'success' | 'error' | 'warning', message: string) {
-  toast({
-    variant: type === 'error' ? 'destructive' : undefined,
-    title: type === 'success' 
-      ? 'Sync Complete' 
-      : type === 'error' 
-        ? 'Sync Error' 
-        : 'Sync In Progress',
-    description: message,
-    duration: type === 'error' ? 5000 : 3000,
-  });
+  if (type === 'success') {
+    toast.success(message);
+  } else if (type === 'error') {
+    toast.error(message);
+  } else {
+    toast({
+      title: 'Sync In Progress',
+      description: message
+    });
+  }
 }

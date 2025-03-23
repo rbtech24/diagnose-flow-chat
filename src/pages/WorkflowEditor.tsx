@@ -28,8 +28,7 @@ export default function WorkflowEditor() {
       if (userRole !== 'admin') {
         toast({
           title: "Access Denied",
-          description: "Only administrators can edit workflows.",
-          variant: "destructive"
+          description: "Only administrators can edit workflows."
         });
         navigate('/admin/workflows');
         return;
@@ -43,8 +42,7 @@ export default function WorkflowEditor() {
         if (!accessStatus.hasAccess) {
           toast({
             title: "License Issue",
-            description: accessStatus.message || "Your license doesn't allow editing this workflow.",
-            variant: "destructive"
+            description: accessStatus.message || "Your license doesn't allow editing this workflow."
           });
           navigate('/admin/workflows');
         }

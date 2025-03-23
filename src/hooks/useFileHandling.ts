@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { handleSaveWorkflow, handleImportWorkflow } from '@/utils/flow';
@@ -40,7 +41,7 @@ export function useFileHandling({
       toast.error("Failed to save the workflow. Please try again.");
       return Promise.reject(error);
     }
-  }, [nodes, edges, nodeCounter]);
+  }, [nodes, edges, nodeCounter, toast]);
 
   const handleFileImport = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

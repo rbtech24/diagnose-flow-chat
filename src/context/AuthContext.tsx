@@ -2,6 +2,7 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 import { User } from '@/types/user';
 import { useToast } from '@/hooks/use-toast';
+import { getWorkflowUsageStats } from '@/utils/auth';
 
 interface AuthContextType {
   user: User | null;
@@ -14,6 +15,7 @@ interface AuthContextType {
   forgotPassword: (email: string) => Promise<boolean>;
   resetPassword: (token: string, newPassword: string) => Promise<boolean>;
   checkWorkflowAccess: (workflowId: string) => { hasAccess: boolean; message?: string };
+  workflowUsageStats: any; // Add this for diagnostics
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -137,6 +139,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const userRole = user?.role || null;
+  
+  // Add workflow usage stats
+  const workflowUsageStats = getWorkflowUsageStats();
 
   return (
     <AuthContext.Provider
@@ -150,7 +155,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updateUserProfile,
         forgotPassword,
         resetPassword,
-        checkWorkflowAccess
+        checkWorkflowAccess,
+        workflowUsageStats
       }}
     >
       {children}

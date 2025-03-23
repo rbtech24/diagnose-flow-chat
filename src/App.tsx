@@ -1,9 +1,9 @@
-
 import {
   createBrowserRouter,
   RouterProvider,
   Navigate,
 } from "react-router-dom";
+import { Toaster } from 'react-hot-toast';
 import Dashboard from "./pages/company/Dashboard";
 import TechDashboard from "./pages/tech/Dashboard";
 import Support from "./pages/company/Support";
@@ -225,6 +225,7 @@ function App() {
     <SystemMessageProvider>
       <OfflineIndicator />
       <MobileOfflineIndicator />
+      <Toaster position="top-right" />
       <RouterProvider router={router} />
     </SystemMessageProvider>
   );
