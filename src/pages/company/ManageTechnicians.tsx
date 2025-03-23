@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +10,7 @@ import { User, TechnicianInvite } from "@/types/user";
 import { SubscriptionPlan, License } from "@/types/subscription";
 import { mockSubscriptionPlans, mockLicenses } from "@/data/mockSubscriptions";
 import { Plus, Mail, Phone, User as UserIcon, AlertCircle, Clock, Check, X, Archive } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { 
   AlertDialog,
