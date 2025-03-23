@@ -66,9 +66,9 @@ export default function ManageTechnicians() {
         name: tech.email.split('@')[0], // Temporary, in real app would use proper name field
         email: tech.email,
         phone: tech.phone || undefined,
-        role: tech.role,
+        role: tech.role as "admin" | "company" | "tech",
         companyId: tech.company_id,
-        status: tech.status
+        status: tech.status as "active" | "archived" | "deleted" | undefined
       }));
       
       setTechnicians(formattedUsers);
@@ -94,7 +94,7 @@ export default function ManageTechnicians() {
         name: invite.name,
         phone: invite.phone || undefined,
         companyId: invite.company_id,
-        status: invite.status,
+        status: invite.status as "pending" | "accepted" | "expired",
         createdAt: new Date(invite.created_at),
         expiresAt: new Date(invite.expires_at)
       }));
@@ -128,12 +128,13 @@ export default function ManageTechnicians() {
       
       if (error) throw error;
       
+      // Convert the returned data object to our expected format
       setTechnicianLimits({
-        activeCount: data.active_count,
-        pendingCount: data.pending_count,
-        maxTechnicians: data.max_technicians,
-        totalCount: data.total_count,
-        isAtLimit: data.is_at_limit
+        activeCount: data.active_count as number,
+        pendingCount: data.pending_count as number,
+        maxTechnicians: data.max_technicians as number,
+        totalCount: data.total_count as number,
+        isAtLimit: data.is_at_limit as boolean
       });
     } catch (error) {
       console.error('Error fetching technician limits:', error);
