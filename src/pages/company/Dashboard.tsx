@@ -93,7 +93,7 @@ export default function CompanyDashboard() {
   }, []);
   
   // Check if user is authorized to access this page
-  if (!roleLoading && role !== 'company_admin' && role !== 'admin') {
+  if (!roleLoading && role !== 'company' && role !== 'admin') { // Changed from 'company_admin' to 'company'
     return <Navigate to="/login" />;
   }
   

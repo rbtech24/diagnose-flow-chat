@@ -12,7 +12,7 @@ export default function TechTools() {
   const { role, isLoading } = useUserRole();
   
   // Check if user is authorized to access this page
-  if (!isLoading && role !== 'tech' && role !== 'admin' && role !== 'company_admin') {
+  if (!isLoading && role !== 'tech' && role !== 'admin' && role !== 'company') { // Changed from 'company_admin' to 'company'
     return <Navigate to="/login" />;
   }
 
