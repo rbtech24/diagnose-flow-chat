@@ -1,6 +1,5 @@
-
 import { useCallback } from 'react';
-import toast from 'react-hot-toast';
+import { useToast } from '@/hooks/use-toast';
 import { handleSaveWorkflow, handleImportWorkflow } from '@/utils/flow';
 import { addToHistory } from '@/utils/workflowHistory';
 import { Node } from '@xyflow/react';
@@ -28,6 +27,8 @@ export function useFileHandling({
   history,
   setHistory,
 }: UseFileHandlingProps) {
+  const { toast } = useToast();
+  
   const handleSave = useCallback(async (name: string, folder: string, appliance: string) => {
     try {
       const workflow = await handleSaveWorkflow(nodes, edges, nodeCounter, name, folder, appliance, '');

@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { TechnicalSpecs } from '@/types/node-config';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useNodeFields } from './hooks/useNodeFields';
 import { useNodeValidation } from './hooks/useNodeValidation';
 import { combineFieldsData } from './utils/nodeDataTransform';
@@ -25,6 +24,7 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
 
   const { fields, setFields, initializeFields, addField, removeField, moveField } = useNodeFields(node?.data);
   const { validationErrors, validateNode } = useNodeValidation();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (node) {

@@ -1,7 +1,7 @@
 
 import { useCallback } from 'react';
 import { Connection, Node, Edge, useReactFlow, addEdge } from '@xyflow/react';
-import toast from 'react-hot-toast';
+import { useToast } from '@/hooks/use-toast';
 import { addToHistory } from '@/utils/workflowHistory';
 import { handleQuickSave } from '@/utils/flow';
 import { SavedWorkflow } from '@/utils/flow/types';
@@ -20,6 +20,7 @@ export function useFlowActions(
   currentWorkflow?: SavedWorkflow
 ) {
   const { getViewport } = useReactFlow();
+  const { toast } = useToast();
 
   const handleConnect = useCallback(
     (params: Connection) => {
@@ -29,9 +30,12 @@ export function useFlowActions(
         setHistory(addToHistory(history, newState));
         return newEdges;
       });
-      toast.success("Nodes have been connected successfully.");
+      toast({
+        title: "Connection Success",
+        description: "Nodes have been connected successfully."
+      });
     },
-    [setEdges, nodes, nodeCounter, history, setHistory]
+    [setEdges, nodes, nodeCounter, history, setHistory, toast]
   );
 
   const handleCopySelected = useCallback(() => {

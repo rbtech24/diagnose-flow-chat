@@ -18,18 +18,8 @@ type ToastContextType = {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
-export function ToastProvider({ children }: { children: ReactNode }) {
-  const toast = useToast();
-  
-  return (
-    <ToastContext.Provider value={toast}>
-      {children}
-    </ToastContext.Provider>
-  );
-}
-
-export function useToast() {
-  // Use the existing react-hot-toast directly, don't try to use context/state here
+// Extract the showToast functionality to avoid circular dependency
+const createToastHandler = () => {
   const showToast = ({ title, description, variant = 'default', action }: ToastProps) => {
     const toastOptions: ToastOptions = {
       duration: 4000,
@@ -59,6 +49,28 @@ export function useToast() {
     toast: showToast,
     dismiss: toast.dismiss,
   };
+};
+
+export function ToastProvider({ children }: { children: ReactNode }) {
+  // Use the handler directly instead of calling useToast() to avoid circular dependency
+  const toastHandler = createToastHandler();
+  
+  return (
+    <ToastContext.Provider value={toastHandler}>
+      {children}
+    </ToastContext.Provider>
+  );
+}
+
+export function useToast() {
+  const context = useContext(ToastContext);
+  
+  if (context === undefined) {
+    // Fallback to direct implementation if used outside provider
+    return createToastHandler();
+  }
+  
+  return context;
 }
 
 export { toast };

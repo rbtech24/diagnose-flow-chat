@@ -8,7 +8,7 @@ import { ReactFlowProvider } from '@xyflow/react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useUserRole } from '@/hooks/useUserRole';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 
 export default function WorkflowEditor() {

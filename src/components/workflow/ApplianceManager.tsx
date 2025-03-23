@@ -1,7 +1,7 @@
 
 import { EditApplianceDialog } from '@/components/appliance/EditApplianceDialog';
 import { DeleteApplianceDialog } from '@/components/workflow/DeleteApplianceDialog';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface ApplianceManagerProps {
   editingAppliance: { index: number; name: string } | null;
@@ -20,6 +20,8 @@ export function ApplianceManager({
   editAppliance,
   deleteAppliance,
 }: ApplianceManagerProps) {
+  const { toast } = useToast();
+  
   const handleDeleteAppliance = (index: number) => {
     deleteAppliance(index);
     setDeletingApplianceIndex(null);
