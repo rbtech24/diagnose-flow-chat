@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User, TechnicianInvite, UserWithPassword } from '@/types/user';
@@ -57,92 +56,8 @@ interface UserManagementState {
 
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
-const initialUsers: User[] = [
-  {
-    id: "admin-1",
-    name: "Admin User",
-    email: "admin@repairautopilot.com",
-    role: "admin",
-    phone: "(555) 123-4567",
-    subscriptionStatus: "active",
-  },
-  {
-    id: "company-1",
-    name: "Sarah Smith",
-    email: "sarah@acmerepairs.com",
-    role: "company",
-    phone: "(555) 987-6543",
-    companyId: "company-acme-1",
-    subscriptionStatus: "active",
-    isMainAdmin: true,
-  },
-  {
-    id: "tech-1",
-    name: "Mike Johnson",
-    email: "mike@acmerepairs.com",
-    role: "tech",
-    phone: "(555) 456-7890",
-    companyId: "company-acme-1",
-  }
-];
-
-const initialCompanies: Company[] = [
-  {
-    id: "company-acme-1",
-    name: "Acme Repairs",
-    contactName: "Sarah Smith",
-    email: "contact@acmerepairs.com",
-    phone: "(555) 987-6543",
-    address: "123 Main St",
-    city: "Los Angeles",
-    state: "CA",
-    zipCode: "90001",
-    country: "USA",
-    planId: "plan-premium-1",
-    planName: "Premium",
-    status: "active",
-    technicianCount: 5,
-    createdAt: new Date(2023, 0, 15),
-    updatedAt: new Date(2023, 2, 10),
-  },
-  {
-    id: "company-fast-2",
-    name: "Fast Fix Solutions",
-    contactName: "John Davis",
-    email: "contact@fastfix.com",
-    phone: "(555) 123-4567",
-    address: "456 Oak Ave",
-    city: "San Francisco",
-    state: "CA",
-    zipCode: "94103",
-    country: "USA",
-    planId: "plan-basic-1",
-    planName: "Basic",
-    status: "trial",
-    trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-    technicianCount: 3,
-    createdAt: new Date(2023, 3, 5),
-    updatedAt: new Date(2023, 3, 5),
-  },
-  {
-    id: "company-expert-3",
-    name: "Expert Appliance Repair",
-    contactName: "Lisa Johnson",
-    email: "contact@expertrepair.com",
-    phone: "(555) 567-8901",
-    address: "789 Pine St",
-    city: "Seattle",
-    state: "WA",
-    zipCode: "98101",
-    country: "USA",
-    planId: "plan-enterprise-1",
-    planName: "Enterprise",
-    status: "active",
-    technicianCount: 8,
-    createdAt: new Date(2023, 1, 20),
-    updatedAt: new Date(2023, 4, 15),
-  }
-];
+const initialUsers: User[] = [];
+const initialCompanies: Company[] = [];
 
 export const useUserManagementStore = create<UserManagementState>()(
   persist(

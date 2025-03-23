@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +10,6 @@ import {
 import { useWorkflows } from "@/hooks/useWorkflows";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Navigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 
 interface DashboardMetrics {
   activeJobs: number;
@@ -93,7 +91,7 @@ export default function CompanyDashboard() {
   }, []);
   
   // Check if user is authorized to access this page
-  if (!roleLoading && role !== 'company' && role !== 'admin') { // Changed from 'company_admin' to 'company'
+  if (!roleLoading && role !== 'company' && role !== 'admin') {
     return <Navigate to="/login" />;
   }
   
@@ -334,3 +332,4 @@ export default function CompanyDashboard() {
     </div>
   );
 }
+

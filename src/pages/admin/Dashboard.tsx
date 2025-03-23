@@ -9,8 +9,11 @@ import {
   Activity, LifeBuoy, Lightbulb
 } from "lucide-react";
 import { useWorkflows } from "@/hooks/useWorkflows";
+import { useState, useEffect } from "react";
 
 export default function AdminDashboard() {
+  const [isLoading, setIsLoading] = useState(true);
+  
   // Get current date
   const today = new Date();
   const dateOptions = { 
@@ -22,7 +25,26 @@ export default function AdminDashboard() {
   const formattedDate = today.toLocaleDateString('en-US', dateOptions);
   
   // Get workflows for diagnosis
-  const { workflows, isLoading } = useWorkflows();
+  const { workflows, isLoading: workflowsLoading } = useWorkflows();
+  
+  // Simulate data loading to remove immediate appearance of zeros
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  if (isLoading || workflowsLoading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="flex justify-center items-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="container mx-auto p-6">
@@ -55,14 +77,14 @@ export default function AdminDashboard() {
                 <Building2 className="h-4 w-4 text-blue-600" />
                 <div>
                   <p className="text-sm font-medium">Total Companies</p>
-                  <p className="text-2xl font-bold">42</p>
+                  <p className="text-2xl font-bold">0</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Activity className="h-4 w-4 text-green-600" />
                 <div>
                   <p className="text-sm font-medium">System Health</p>
-                  <p className="text-2xl font-bold">98.7%</p>
+                  <p className="text-2xl font-bold">100%</p>
                 </div>
               </div>
             </div>
@@ -78,7 +100,7 @@ export default function AdminDashboard() {
               <div className="bg-blue-200 text-blue-600 p-4 rounded-full mb-2">
                 <Wrench className="h-6 w-6" />
               </div>
-              <p className="text-sm text-center mb-1">{isLoading ? "Loading..." : `${workflows.length} active workflows`}</p>
+              <p className="text-sm text-center mb-1">{workflows.length} active workflows</p>
               <Button variant="outline" size="sm" className="mt-2">
                 <Link to="/admin/workflows" className="text-black">Manage Workflows</Link>
               </Button>
@@ -95,11 +117,7 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="flex items-center">
               <Building2 className="h-4 w-4 text-green-600 mr-2" />
-              <span className="text-2xl font-bold">42</span>
-              <span className="ml-2 text-xs text-emerald-500 flex items-center">
-                <ArrowUp className="h-3 w-3 mr-1" />
-                8%
-              </span>
+              <span className="text-2xl font-bold">0</span>
             </div>
           </CardContent>
         </Card>
@@ -111,11 +129,7 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="flex items-center">
               <Users className="h-4 w-4 text-purple-600 mr-2" />
-              <span className="text-2xl font-bold">186</span>
-              <span className="ml-2 text-xs text-emerald-500 flex items-center">
-                <ArrowUp className="h-3 w-3 mr-1" />
-                12%
-              </span>
+              <span className="text-2xl font-bold">0</span>
             </div>
           </CardContent>
         </Card>
@@ -127,11 +141,7 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="flex items-center">
               <BarChart className="h-4 w-4 text-amber-600 mr-2" />
-              <span className="text-2xl font-bold">$58.2k</span>
-              <span className="ml-2 text-xs text-red-500 flex items-center">
-                <ArrowDown className="h-3 w-3 mr-1" />
-                3%
-              </span>
+              <span className="text-2xl font-bold">$0</span>
             </div>
           </CardContent>
         </Card>
@@ -143,7 +153,7 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="flex items-center">
               <ShieldCheck className="h-4 w-4 text-cyan-600 mr-2" />
-              <span className="text-2xl font-bold">99.8%</span>
+              <span className="text-2xl font-bold">100%</span>
             </div>
           </CardContent>
         </Card>
@@ -157,52 +167,10 @@ export default function AdminDashboard() {
               <CardDescription>Recently active companies</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex justify-between mb-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
-                <div className="flex items-center">
-                  <div className="relative mr-2">
-                    <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/300?img=1" alt="Company" />
-                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500"></span>
-                  </div>
-                  <div>
-                    <p className="font-medium">Acme Appliance Co.</p>
-                    <p className="text-xs text-gray-500">Active • 12 technicians</p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm">
-                  <Link to="/admin/companies/1" className="text-black">View</Link>
-                </Button>
-              </div>
-              
-              <div className="flex justify-between mb-4 p-3 rounded-lg bg-purple-50 border border-purple-100">
-                <div className="flex items-center">
-                  <div className="relative mr-2">
-                    <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/300?img=2" alt="Company" />
-                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500"></span>
-                  </div>
-                  <div>
-                    <p className="font-medium">TechFix Solutions</p>
-                    <p className="text-xs text-gray-500">Active • 8 technicians</p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm">
-                  <Link to="/admin/companies/2" className="text-black">View</Link>
-                </Button>
-              </div>
-              
-              <div className="flex justify-between p-3 rounded-lg bg-gray-50 border border-gray-100">
-                <div className="flex items-center">
-                  <div className="relative mr-2">
-                    <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/300?img=3" alt="Company" />
-                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-gray-300"></span>
-                  </div>
-                  <div>
-                    <p className="font-medium">Premier Repair Inc.</p>
-                    <p className="text-xs text-gray-500">Inactive • 0 technicians</p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm">
-                  <Link to="/admin/companies/3" className="text-black">View</Link>
-                </Button>
+              <div className="text-center py-12 border rounded-lg">
+                <Building2 className="h-10 w-10 text-blue-500 mx-auto mb-3" />
+                <h3 className="text-lg font-medium mb-1">No Companies</h3>
+                <p className="text-gray-500 mb-4">There are no companies in the system yet.</p>
               </div>
               
               <div className="mt-6">
@@ -222,41 +190,14 @@ export default function AdminDashboard() {
             <CardDescription>Latest system updates</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start gap-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
-                <div className="mt-1 rounded-full bg-blue-100 p-1">
-                  <Building2 className="h-3 w-3 text-blue-600" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">New company registered</p>
-                  <p className="text-xs text-gray-500">10 minutes ago</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-4 p-3 rounded-lg bg-green-50 border border-green-100">
-                <div className="mt-1 rounded-full bg-green-100 p-1">
-                  <Users className="h-3 w-3 text-green-600" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">5 new technicians added</p>
-                  <p className="text-xs text-gray-500">1 hour ago</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-4 p-3 rounded-lg bg-amber-50 border border-amber-100">
-                <div className="mt-1 rounded-full bg-amber-100 p-1">
-                  <Wrench className="h-3 w-3 text-amber-600" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">New workflow published</p>
-                  <p className="text-xs text-gray-500">3 hours ago</p>
-                </div>
-              </div>
-              
-              <Button variant="ghost" size="sm" className="w-full mt-4">
-                <Link to="/admin/activity" className="text-black w-full">View All Activity</Link>
-              </Button>
+            <div className="text-center py-8">
+              <Activity className="h-8 w-8 text-purple-500 mx-auto mb-2" />
+              <p className="text-sm text-gray-500">No recent activity</p>
             </div>
+            
+            <Button variant="ghost" size="sm" className="w-full mt-4">
+              <Link to="/admin/activity" className="text-black w-full">View All Activity</Link>
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -273,34 +214,9 @@ export default function AdminDashboard() {
             </Button>
           </CardHeader>
           <CardContent className="mt-4">
-            <div className="space-y-4">
-              <div className="flex justify-between border-b pb-4">
-                <div>
-                  <p className="font-medium">Login Issues on Mobile</p>
-                  <p className="text-sm text-muted-foreground">Reported by 3 users</p>
-                </div>
-                <div className="flex items-center">
-                  <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full">High</span>
-                </div>
-              </div>
-              <div className="flex justify-between border-b pb-4">
-                <div>
-                  <p className="font-medium">Workflow Export Failure</p>
-                  <p className="text-sm text-muted-foreground">Reported by 1 user</p>
-                </div>
-                <div className="flex items-center">
-                  <span className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded-full">Critical</span>
-                </div>
-              </div>
-              <div className="flex justify-between">
-                <div>
-                  <p className="font-medium">Slow Dashboard Loading</p>
-                  <p className="text-sm text-muted-foreground">Reported by 8 users</p>
-                </div>
-                <div className="flex items-center">
-                  <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">Medium</span>
-                </div>
-              </div>
+            <div className="text-center py-8">
+              <LifeBuoy className="h-8 w-8 text-red-500 mx-auto mb-2" />
+              <p className="text-sm text-gray-500">No support tickets</p>
             </div>
           </CardContent>
         </Card>
@@ -316,34 +232,9 @@ export default function AdminDashboard() {
             </Button>
           </CardHeader>
           <CardContent className="mt-4">
-            <div className="space-y-4">
-              <div className="flex justify-between border-b pb-4">
-                <div>
-                  <p className="font-medium">Best practices for refrigerator diagnostics</p>
-                  <p className="text-sm text-muted-foreground">24 replies • Active</p>
-                </div>
-                <div className="flex items-center">
-                  <MessageSquare className="h-4 w-4 text-blue-500" />
-                </div>
-              </div>
-              <div className="flex justify-between border-b pb-4">
-                <div>
-                  <p className="font-medium">Troubleshooting HVAC systems efficiently</p>
-                  <p className="text-sm text-muted-foreground">18 replies • Active</p>
-                </div>
-                <div className="flex items-center">
-                  <MessageSquare className="h-4 w-4 text-blue-500" />
-                </div>
-              </div>
-              <div className="flex justify-between">
-                <div>
-                  <p className="font-medium">Common washing machine error codes</p>
-                  <p className="text-sm text-muted-foreground">32 replies • Active</p>
-                </div>
-                <div className="flex items-center">
-                  <MessageSquare className="h-4 w-4 text-blue-500" />
-                </div>
-              </div>
+            <div className="text-center py-8">
+              <MessageSquare className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+              <p className="text-sm text-gray-500">No community discussions</p>
             </div>
           </CardContent>
         </Card>
