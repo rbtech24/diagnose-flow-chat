@@ -15,13 +15,14 @@ import { DiagnosticSteps } from "@/components/diagnostics/DiagnosticSteps";
 import { SavedWorkflow } from "@/utils/flow/types";
 import { useOfflineStatus } from "@/hooks/useOfflineStatus";
 import { ArrowLeft, Search } from "lucide-react";
+import { SyncStatusBadge } from "@/components/system/SyncStatusBadge";
 
 export default function DiagnosticsPage() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedDiagnostic, setSelectedDiagnostic] = useState<SavedWorkflow | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("categories");
-  const { isOnline } = useOfflineStatus();
+  const { isOffline } = useOfflineStatus();
   
   const handleDiagnosticSelect = (workflow: SavedWorkflow) => {
     setSelectedDiagnostic(workflow);
@@ -42,10 +43,13 @@ export default function DiagnosticsPage() {
       name: "Refrigerator Cooling Diagnostic",
       categoryId: "cat-1",
       metadata: {
-        complexity: "medium",
-        applianceType: "refrigerator",
-        created: new Date().toISOString(),
-        lastModified: new Date().toISOString(),
+        name: "Refrigerator Cooling Diagnostic",
+        folder: "Refrigeration",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        appliance: "refrigerator",
+        tags: ["cooling", "refrigerator"],
+        description: "Diagnostic for refrigerator cooling issues"
       },
       nodes: [],
       edges: [],
@@ -56,10 +60,14 @@ export default function DiagnosticsPage() {
       name: "Dishwasher Not Draining",
       categoryId: "cat-2",
       metadata: {
-        complexity: "high",
-        applianceType: "dishwasher",
-        created: new Date().toISOString(),
-        lastModified: new Date().toISOString(),
+        name: "Dishwasher Not Draining",
+        folder: "Dishwashers",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        appliance: "dishwasher",
+        symptom: "Not draining",
+        tags: ["draining", "dishwasher"],
+        description: "Diagnostic for dishwasher drainage issues"
       },
       nodes: [],
       edges: [],
@@ -82,7 +90,7 @@ export default function DiagnosticsPage() {
         
         {/* Display a syncing status indicator */}
         <div className="text-sm px-2 py-1 rounded-full border">
-          {isOnline ? "Online" : "Offline"}
+          {isOffline ? "Offline" : "Online"}
         </div>
       </div>
 
@@ -108,11 +116,10 @@ export default function DiagnosticsPage() {
             <TabsContent value="categories">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <DiagnosticSelector 
-                  diagnostics={mockDiagnostics} 
-                  selectedCategory={selectedCategory}
-                  onSelectCategory={setSelectedCategory}
-                  onSelectDiagnostic={handleDiagnosticSelect}
-                  searchQuery={searchQuery}
+                  workflows={mockDiagnostics} 
+                  selectedWorkflowId={selectedCategory}
+                  onSelect={handleDiagnosticSelect}
+                  searchTerm={searchQuery}
                 />
               </div>
             </TabsContent>
@@ -151,11 +158,13 @@ export default function DiagnosticsPage() {
       {selectedDiagnostic && (
         <Card>
           <CardHeader>
-            <CardTitle>{selectedDiagnostic.name}</CardTitle>
+            <CardTitle>{selectedDiagnostic.metadata.name}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>Complexity: {selectedDiagnostic.metadata.complexity}</p>
-            <p>Appliance Type: {selectedDiagnostic.metadata.applianceType}</p>
+            <p>Appliance Type: {selectedDiagnostic.metadata.appliance}</p>
+            {selectedDiagnostic.metadata.symptom && (
+              <p>Symptom: {selectedDiagnostic.metadata.symptom}</p>
+            )}
             <p>Running diagnostic workflow...</p>
           </CardContent>
           <CardFooter>

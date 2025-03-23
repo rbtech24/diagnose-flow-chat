@@ -6,22 +6,31 @@ import { Search, FileText, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SavedWorkflow } from '@/utils/flow/types';
 
-interface DiagnosticSelectorProps {
+export interface DiagnosticSelectorProps {
   workflows: SavedWorkflow[];
   onSelect: (workflow: SavedWorkflow) => void;
   selectedWorkflowId?: string;
+  searchTerm?: string;
 }
 
-export function DiagnosticSelector({ workflows, onSelect, selectedWorkflowId }: DiagnosticSelectorProps) {
-  const [searchTerm, setSearchTerm] = useState('');
+export function DiagnosticSelector({ 
+  workflows, 
+  onSelect, 
+  selectedWorkflowId,
+  searchTerm = '' 
+}: DiagnosticSelectorProps) {
+  const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
+  
+  // Use the external search term if provided, otherwise use the local one
+  const effectiveSearchTerm = searchTerm || localSearchTerm;
 
   const filteredWorkflows = workflows.filter(workflow => 
-    workflow.metadata.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    workflow.metadata.folder.toLowerCase().includes(searchTerm.toLowerCase())
+    workflow.metadata.name.toLowerCase().includes(effectiveSearchTerm.toLowerCase()) ||
+    workflow.metadata.folder.toLowerCase().includes(effectiveSearchTerm.toLowerCase())
   );
 
   const getWorkflowId = (workflow: SavedWorkflow) => 
-    `${workflow.metadata.folder}-${workflow.metadata.name}`;
+    workflow.id || `${workflow.metadata.folder}-${workflow.metadata.name}`;
 
   return (
     <Card className="w-full mb-6">
@@ -30,15 +39,17 @@ export function DiagnosticSelector({ workflows, onSelect, selectedWorkflowId }: 
         <CardDescription>Select a diagnostic procedure to follow</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="relative mb-4">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search diagnostics..." 
-            className="pl-8"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+        {!searchTerm && (
+          <div className="relative mb-4">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search diagnostics..." 
+              className="pl-8"
+              value={localSearchTerm}
+              onChange={(e) => setLocalSearchTerm(e.target.value)}
+            />
+          </div>
+        )}
 
         <div className="space-y-3">
           {filteredWorkflows.length > 0 ? (
@@ -68,7 +79,7 @@ export function DiagnosticSelector({ workflows, onSelect, selectedWorkflowId }: 
             ))
           ) : (
             <div className="text-center py-6 text-muted-foreground">
-              {searchTerm ? 
+              {effectiveSearchTerm ? 
                 "No diagnostic procedures found matching your search." : 
                 "No diagnostic procedures available."
               }
