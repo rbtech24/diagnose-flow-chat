@@ -18,15 +18,19 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   </React.StrictMode>,
 );
 
-// Define interface for ServiceWorkerRegistration with sync
-interface SyncRegistration extends ServiceWorkerRegistration {
-  sync: {
-    register(tag: string): Promise<void>;
+// Only register service worker in production or when not in an iframe
+// This prevents service worker conflicts in the editor environment
+if ('serviceWorker' in navigator && 
+    (process.env.NODE_ENV === 'production' || window.self === window.top)) {
+  
+  // Define interface for ServiceWorkerRegistration with sync
+  interface SyncRegistration extends ServiceWorkerRegistration {
+    sync: {
+      register(tag: string): Promise<void>;
+    }
   }
-}
 
-// Enhanced service worker registration for better offline support
-if ('serviceWorker' in navigator) {
+  // Enhanced service worker registration for better offline support
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/service-worker.js')
       .then(registration => {
