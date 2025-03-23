@@ -8,8 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { User, TechnicianInvite } from "@/types/user";
 import { SubscriptionPlan, License } from "@/types/subscription";
-import { mockSubscriptionPlans, mockLicenses } from "@/data/mockSubscriptions";
-import { Plus, Mail, Phone, User as UserIcon, AlertCircle, Clock, Check, X, Archive } from "lucide-react";
+import { Plus, Mail, Phone, User as UserIcon, AlertCircle, Clock, Check, X, Archive, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { 
@@ -22,63 +21,143 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog";
-
-const mockTechnicians: User[] = [
-  {
-    id: "tech-1",
-    name: "John Technician",
-    email: "john.tech@example.com",
-    phone: "555-123-4567",
-    role: "tech",
-    companyId: "company-2",
-    avatarUrl: "/lovable-uploads/894f58ab-c3aa-45ba-9ea3-e3a2d9ddf247.png"
-  },
-  {
-    id: "tech-2",
-    name: "Sarah Repair",
-    email: "sarah.repair@example.com",
-    phone: "555-987-6543",
-    role: "tech",
-    companyId: "company-2"
-  }
-];
-
-const mockInvites: TechnicianInvite[] = [
-  {
-    id: "invite-1",
-    email: "pending.tech@example.com",
-    name: "Pending Technician",
-    phone: "555-555-5555",
-    companyId: "company-2",
-    status: "pending",
-    createdAt: new Date(Date.now() - 86400000),
-    expiresAt: new Date(Date.now() + 86400000 * 6)
-  }
-];
+import { supabase } from "@/integrations/supabase/client";
+import { useUserRole } from "@/hooks/useUserRole";
 
 export default function ManageTechnicians() {
-  const [technicians, setTechnicians] = useState<User[]>(mockTechnicians);
-  const [invites, setInvites] = useState<TechnicianInvite[]>(mockInvites);
+  const [technicians, setTechnicians] = useState<User[]>([]);
+  const [invites, setInvites] = useState<TechnicianInvite[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newTechnician, setNewTechnician] = useState({
     name: "",
     email: "",
     phone: ""
   });
-  const [currentLicense, setCurrentLicense] = useState<License | undefined>();
-  const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan | undefined>();
-  
+  const [technicianLimits, setTechnicianLimits] = useState<{
+    activeCount: number;
+    pendingCount: number;
+    maxTechnicians: number;
+    totalCount: number;
+    isAtLimit: boolean;
+  }>({
+    activeCount: 0,
+    pendingCount: 0,
+    maxTechnicians: 0,
+    totalCount: 0,
+    isAtLimit: false
+  });
+  const [isLoading, setIsLoading] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [techToDelete, setTechToDelete] = useState<string | null>(null);
+  const { userRole } = useUserRole();
+
+  const fetchTechnicians = async () => {
+    try {
+      const { data: userData, error: userError } = await supabase
+        .from('technicians')
+        .select('*')
+        .eq('role', 'tech');
+      
+      if (userError) throw userError;
+
+      // Format data to match User type
+      const formattedUsers: User[] = userData.map(tech => ({
+        id: tech.id,
+        name: tech.email.split('@')[0], // Temporary, in real app would use proper name field
+        email: tech.email,
+        phone: tech.phone || undefined,
+        role: tech.role,
+        companyId: tech.company_id,
+        status: tech.status
+      }));
+      
+      setTechnicians(formattedUsers);
+    } catch (error) {
+      console.error('Error fetching technicians:', error);
+      toast.error('Failed to load technicians');
+    }
+  };
+
+  const fetchInvites = async () => {
+    try {
+      const { data: inviteData, error: inviteError } = await supabase
+        .from('technician_invites')
+        .select('*')
+        .eq('status', 'pending');
+      
+      if (inviteError) throw inviteError;
+      
+      // Format data to match TechnicianInvite type
+      const formattedInvites: TechnicianInvite[] = inviteData.map(invite => ({
+        id: invite.id,
+        email: invite.email,
+        name: invite.name,
+        phone: invite.phone || undefined,
+        companyId: invite.company_id,
+        status: invite.status,
+        createdAt: new Date(invite.created_at),
+        expiresAt: new Date(invite.expires_at)
+      }));
+      
+      setInvites(formattedInvites);
+    } catch (error) {
+      console.error('Error fetching invites:', error);
+      toast.error('Failed to load pending invitations');
+    }
+  };
+
+  const fetchTechnicianLimits = async () => {
+    try {
+      // Get current user's company ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { data: userData, error: userError } = await supabase
+        .from('technicians')
+        .select('company_id')
+        .eq('id', user.id)
+        .single();
+      
+      if (userError) throw userError;
+      
+      // Call the stored function to get limits
+      const { data, error } = await supabase.rpc(
+        'check_company_technician_limits',
+        { p_company_id: userData.company_id }
+      );
+      
+      if (error) throw error;
+      
+      setTechnicianLimits({
+        activeCount: data.active_count,
+        pendingCount: data.pending_count,
+        maxTechnicians: data.max_technicians,
+        totalCount: data.total_count,
+        isAtLimit: data.is_at_limit
+      });
+    } catch (error) {
+      console.error('Error fetching technician limits:', error);
+      toast.error('Failed to load subscription limits');
+    }
+  };
 
   useEffect(() => {
-    const license = mockLicenses.find(l => l.companyId === "company-2");
-    setCurrentLicense(license);
+    const loadAllData = async () => {
+      setIsLoading(true);
+      try {
+        await Promise.all([
+          fetchTechnicians(),
+          fetchInvites(),
+          fetchTechnicianLimits()
+        ]);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    if (license) {
-      const plan = mockSubscriptionPlans.find(p => p.id === license.planId);
-      setCurrentPlan(plan);
-    }
+    loadAllData();
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,37 +168,78 @@ export default function ManageTechnicians() {
     }));
   };
 
-  const handleAddTechnician = () => {
+  const handleAddTechnician = async () => {
     if (!newTechnician.name || !newTechnician.email) {
       toast.error("Name and email are required");
       return;
     }
 
-    if (currentPlan && technicians.length >= currentPlan.maxTechnicians) {
-      toast.error(`Your plan only allows ${currentPlan.maxTechnicians} technicians. Please upgrade to add more.`);
+    if (technicianLimits.isAtLimit) {
+      toast.error(`Your plan only allows ${technicianLimits.maxTechnicians} technicians. Please upgrade to add more.`);
       return;
     }
 
-    const newInvite: TechnicianInvite = {
-      id: `invite-${Date.now()}`,
-      email: newTechnician.email,
-      name: newTechnician.name,
-      phone: newTechnician.phone || undefined,
-      companyId: "company-2",
-      status: "pending",
-      createdAt: new Date(),
-      expiresAt: new Date(Date.now() + 86400000 * 7)
-    };
-    
-    setInvites([...invites, newInvite]);
-    setNewTechnician({ name: "", email: "", phone: "" });
-    setIsAddDialogOpen(false);
-    toast.success("Invitation sent successfully");
+    try {
+      // Get current user's company ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { data: userData, error: userError } = await supabase
+        .from('technicians')
+        .select('company_id')
+        .eq('id', user.id)
+        .single();
+      
+      if (userError) throw userError;
+
+      // Call the stored function to create invitation
+      const { data, error } = await supabase.rpc(
+        'invite_technician',
+        { 
+          p_email: newTechnician.email,
+          p_name: newTechnician.name,
+          p_phone: newTechnician.phone || null,
+          p_company_id: userData.company_id
+        }
+      );
+      
+      if (error) throw error;
+      
+      // Refresh invites list and limits
+      await Promise.all([
+        fetchInvites(),
+        fetchTechnicianLimits()
+      ]);
+      
+      setNewTechnician({ name: "", email: "", phone: "" });
+      setIsAddDialogOpen(false);
+      toast.success("Invitation sent successfully");
+    } catch (error) {
+      console.error('Error sending invitation:', error);
+      toast.error('Failed to send invitation');
+    }
   };
 
-  const handleCancelInvite = (inviteId: string) => {
-    setInvites(invites.filter(invite => invite.id !== inviteId));
-    toast.success("Invitation canceled");
+  const handleCancelInvite = async (inviteId: string) => {
+    try {
+      const { error } = await supabase
+        .from('technician_invites')
+        .delete()
+        .eq('id', inviteId);
+      
+      if (error) throw error;
+      
+      // Remove from local state
+      setInvites(invites.filter(invite => invite.id !== inviteId));
+      
+      // Refresh limits
+      await fetchTechnicianLimits();
+      
+      toast.success("Invitation canceled");
+    } catch (error) {
+      console.error('Error canceling invitation:', error);
+      toast.error('Failed to cancel invitation');
+    }
   };
 
   const confirmDeleteTechnician = (techId: string) => {
@@ -127,30 +247,66 @@ export default function ManageTechnicians() {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteTechnician = () => {
+  const handleDeleteTechnician = async () => {
     if (!techToDelete) return;
     
-    setTechnicians(technicians.filter(tech => tech.id !== techToDelete));
-    setIsDeleteDialogOpen(false);
-    setTechToDelete(null);
-    toast.success("Technician removed successfully");
+    try {
+      const { error } = await supabase
+        .from('technicians')
+        .delete()
+        .eq('id', techToDelete);
+      
+      if (error) throw error;
+      
+      // Remove from local state
+      setTechnicians(technicians.filter(tech => tech.id !== techToDelete));
+      
+      // Refresh limits
+      await fetchTechnicianLimits();
+      
+      setIsDeleteDialogOpen(false);
+      setTechToDelete(null);
+      toast.success("Technician removed successfully");
+    } catch (error) {
+      console.error('Error deleting technician:', error);
+      toast.error('Failed to delete technician');
+    }
   };
 
-  const handleArchiveTechnician = (techId: string) => {
-    setTechnicians(technicians.map(tech => {
-      if (tech.id === techId) {
-        return { ...tech, status: 'archived' as const };
-      }
-      return tech;
-    }));
-    toast.success("Technician archived successfully");
+  const handleArchiveTechnician = async (techId: string) => {
+    try {
+      const { error } = await supabase
+        .from('technicians')
+        .update({ status: 'archived' })
+        .eq('id', techId);
+      
+      if (error) throw error;
+      
+      // Update in local state
+      setTechnicians(technicians.map(tech => {
+        if (tech.id === techId) {
+          return { ...tech, status: 'archived' as const };
+        }
+        return tech;
+      }));
+      
+      toast.success("Technician archived successfully");
+    } catch (error) {
+      console.error('Error archiving technician:', error);
+      toast.error('Failed to archive technician');
+    }
   };
 
-  const technicianLimit = currentPlan?.maxTechnicians || 0;
-  const activeCount = technicians.length;
-  const pendingCount = invites.filter(i => i.status === "pending").length;
-  const totalCount = activeCount + pendingCount;
-  const isAtLimit = totalCount >= technicianLimit;
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-6 flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="mt-2 text-gray-500">Loading technician data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6">
@@ -161,36 +317,34 @@ export default function ManageTechnicians() {
         </div>
         <Button 
           onClick={() => setIsAddDialogOpen(true)}
-          disabled={isAtLimit}
+          disabled={technicianLimits.isAtLimit}
         >
           <Plus className="mr-2 h-4 w-4" />
           Add Technician
         </Button>
       </div>
 
-      {currentPlan && (
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-medium">Technician Usage</h3>
-                <p className="text-gray-500">
-                  {activeCount} active + {pendingCount} pending = {totalCount} total of {technicianLimit} allowed
-                </p>
-              </div>
-              {isAtLimit && (
-                <Alert className="w-auto">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Limit reached</AlertTitle>
-                  <AlertDescription>
-                    Upgrade your plan to add more technicians
-                  </AlertDescription>
-                </Alert>
-              )}
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-medium">Technician Usage</h3>
+              <p className="text-gray-500">
+                {technicianLimits.activeCount} active + {technicianLimits.pendingCount} pending = {technicianLimits.totalCount} total of {technicianLimits.maxTechnicians} allowed
+              </p>
             </div>
-          </CardContent>
-        </Card>
-      )}
+            {technicianLimits.isAtLimit && (
+              <Alert className="w-auto">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Limit reached</AlertTitle>
+                <AlertDescription>
+                  Upgrade your plan to add more technicians
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <Separator className="my-6" />
 

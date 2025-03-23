@@ -3054,6 +3054,53 @@ export type Database = {
           },
         ]
       }
+      technician_invites: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          email: string
+          expires_at: string
+          id: string
+          name: string
+          phone: string | null
+          status: string
+          token: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          email: string
+          expires_at?: string
+          id?: string
+          name: string
+          phone?: string | null
+          status?: string
+          token?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          status?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technician_invites_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       technician_schedules: {
         Row: {
           created_at: string | null
@@ -3861,6 +3908,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_company_technician_limits: {
+        Args: {
+          p_company_id: string
+        }
+        Returns: Json
+      }
       check_system_setup: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -3999,6 +4052,15 @@ export type Database = {
           p_role: string
         }
         Returns: Json
+      }
+      invite_technician: {
+        Args: {
+          p_email: string
+          p_name: string
+          p_phone: string
+          p_company_id: string
+        }
+        Returns: string
       }
       is_email_available: {
         Args: {
