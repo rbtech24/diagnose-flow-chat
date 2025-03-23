@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { History, Filter, CheckCircle2, Clock, AlertTriangle, Users, User } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -17,108 +16,21 @@ interface ServiceRecord {
   status: "completed" | "ongoing" | "scheduled";
   duration: string;
   issue: string;
-  technicianName?: string; // Added for system-wide view
-  companyName?: string; // Added for system-wide view
+  technicianName?: string;
+  companyName?: string;
 }
-
-const mockServiceHistory: ServiceRecord[] = [
-  {
-    id: "srv-001",
-    date: "2023-10-15",
-    clientName: "Johnson Residence",
-    appliance: "Refrigerator XC-5000",
-    status: "completed",
-    duration: "1h 45m",
-    issue: "Compressor failure",
-    technicianName: "Current User"
-  },
-  {
-    id: "srv-002",
-    date: "2023-10-18",
-    clientName: "Smith Apartments",
-    appliance: "HVAC System 3000",
-    status: "completed",
-    duration: "2h 30m",
-    issue: "Thermostat malfunction",
-    technicianName: "Current User"
-  },
-  {
-    id: "srv-003",
-    date: "2023-10-21",
-    clientName: "Green Family",
-    appliance: "Washing Machine WM-200",
-    status: "ongoing",
-    duration: "1h (in progress)",
-    issue: "Water leak detection",
-    technicianName: "Current User"
-  },
-  {
-    id: "srv-004",
-    date: "2023-10-24",
-    clientName: "Davis Building",
-    appliance: "Commercial Freezer F-9000",
-    status: "scheduled",
-    duration: "Not started",
-    issue: "Temperature inconsistency",
-    technicianName: "Current User"
-  },
-  // System-wide records (other technicians)
-  {
-    id: "srv-005",
-    date: "2023-10-10",
-    clientName: "Wilson Home",
-    appliance: "Refrigerator XC-5000",
-    status: "completed",
-    duration: "2h 15m",
-    issue: "Ice maker failure",
-    technicianName: "Jane Smith",
-    companyName: "ABC Repairs"
-  },
-  {
-    id: "srv-006",
-    date: "2023-10-05",
-    clientName: "Apartment Complex B",
-    appliance: "Washing Machine WM-200",
-    status: "completed",
-    duration: "1h 20m",
-    issue: "Drum not spinning",
-    technicianName: "Mike Johnson",
-    companyName: "Quick Fix Services"
-  },
-  {
-    id: "srv-007",
-    date: "2023-10-12",
-    clientName: "Restaurant Downtown",
-    appliance: "Commercial Freezer F-9000",
-    status: "completed",
-    duration: "3h 10m",
-    issue: "Not cooling properly",
-    technicianName: "Robert Williams",
-    companyName: "Pro Appliance Repairs"
-  },
-  {
-    id: "srv-008",
-    date: "2023-09-28",
-    clientName: "Community Center",
-    appliance: "HVAC System 3000",
-    status: "completed",
-    duration: "4h 45m",
-    issue: "Complete system failure",
-    technicianName: "Lisa Chen",
-    companyName: "HVAC Specialists"
-  }
-];
-
-// Extract unique appliance models for the filter
-const uniqueAppliances = Array.from(new Set(mockServiceHistory.map(record => record.appliance)));
 
 export function ServiceHistory() {
   const [filter, setFilter] = useState<"all" | "completed" | "ongoing" | "scheduled">("all");
   const [viewMode, setViewMode] = useState<"personal" | "system">("personal");
   const [selectedAppliance, setSelectedAppliance] = useState<string>("all");
+  const [serviceRecords, setServiceRecords] = useState<ServiceRecord[]>([]);
+  
+  // This would be replaced with actual data fetching in a real application
+  const uniqueAppliances: string[] = [];
   
   // Filter records based on multiple criteria
-  const filteredRecords = mockServiceHistory.filter(record => {
+  const filteredRecords = serviceRecords.filter(record => {
     // Filter by status if not "all"
     const statusMatch = filter === "all" || record.status === filter;
     

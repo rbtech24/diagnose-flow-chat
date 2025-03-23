@@ -3,22 +3,68 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from '@/context/AuthContext';
+
+interface UsageData {
+  today: number;
+  weekly: number;
+  monthly: number;
+  allData: Record<string, { count: number }>;
+}
 
 export function WorkflowUsageStats() {
-  const { workflowUsageStats } = useAuth();
-  const [usageData, setUsageData] = useState<any>(null);
+  const [usageData, setUsageData] = useState<UsageData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setUsageData(workflowUsageStats());
-  }, [workflowUsageStats]);
+    const fetchUsageStats = async () => {
+      try {
+        setIsLoading(true);
+        // In a real app, you would fetch data from an API
+        // For now, let's create empty placeholder data
+        const emptyData: UsageData = {
+          today: 0,
+          weekly: 0,
+          monthly: 0,
+          allData: {}
+        };
+        
+        // Add some dates for the empty charts
+        const today = new Date();
+        for (let i = 0; i < 30; i++) {
+          const date = new Date();
+          date.setDate(today.getDate() - i);
+          const dateString = date.toISOString().split('T')[0];
+          emptyData.allData[dateString] = { count: 0 };
+        }
+        
+        setUsageData(emptyData);
+      } catch (error) {
+        console.error("Error fetching workflow usage stats:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  if (!usageData) {
-    return <div>Loading usage statistics...</div>;
+    fetchUsageStats();
+  }, []);
+
+  if (isLoading || !usageData) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Workflow Usage Statistics</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] flex items-center justify-center">
+            <p className="text-muted-foreground">Loading usage statistics...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   // Prepare data for the charts
-  const dailyData = Object.entries(usageData.allData).map(([date, data]: [string, any]) => ({
+  const dailyData = Object.entries(usageData.allData).map(([date, data]) => ({
     date,
     count: data.count
   })).sort((a, b) => a.date.localeCompare(b.date));

@@ -4,8 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
 import { FeatureRequest, FeatureRequestVote } from "@/types/feature-request";
-import { mockFeatureRequests } from "@/data/mockFeatureRequests";
-import { currentUser } from "@/data/mockTickets";
+import { useAuth } from "@/context/AuthContext";
 import { ArrowLeft } from "lucide-react";
 
 export default function CompanyFeatureRequestDetailPage() {
@@ -13,30 +12,34 @@ export default function CompanyFeatureRequestDetailPage() {
   const [loading, setLoading] = useState(true);
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
+    // This would be replaced with a real API call
+    setLoading(true);
+    
     // Simulate API call
     setTimeout(() => {
-      const foundRequest = mockFeatureRequests.find(request => request.id === id);
-      setFeatureRequest(foundRequest || null);
+      // In a real app, you would fetch data from the server
+      setFeatureRequest(null);
       setLoading(false);
     }, 500);
   }, [id]);
 
   const handleVote = (requestId: string) => {
-    if (!featureRequest) return;
+    if (!featureRequest || !user) return;
     
     const newVote: FeatureRequestVote = {
       id: `vote-${Date.now()}`,
-      userId: currentUser.id,
+      userId: user.id,
       featureRequestId: requestId,
       createdAt: new Date(),
       user: {
-        id: currentUser.id,
-        name: currentUser.name,
-        email: currentUser.email,
-        role: currentUser.role as "admin" | "company" | "tech", // Explicitly cast to union type
-        avatarUrl: currentUser.avatarUrl,
+        id: user.id,
+        name: user.name || '',
+        email: user.email,
+        role: user.role || 'company',
+        avatarUrl: '',
       },
     };
     
@@ -48,7 +51,7 @@ export default function CompanyFeatureRequestDetailPage() {
   };
 
   const handleAddComment = (requestId: string, content: string) => {
-    if (!featureRequest) return;
+    if (!featureRequest || !user) return;
     
     const newComment = {
       id: `comment-${Date.now()}`,
@@ -56,11 +59,11 @@ export default function CompanyFeatureRequestDetailPage() {
       content,
       createdAt: new Date(),
       createdBy: {
-        id: currentUser.id,
-        name: currentUser.name,
-        email: currentUser.email,
-        role: currentUser.role as "admin" | "company" | "tech", // Explicitly cast to union type
-        avatarUrl: currentUser.avatarUrl,
+        id: user.id,
+        name: user.name || '',
+        email: user.email,
+        role: user.role || 'company',
+        avatarUrl: '',
       },
     };
     

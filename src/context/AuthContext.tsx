@@ -15,7 +15,6 @@ interface AuthContextType {
   updateUserProfile: (userData: Partial<User>) => Promise<boolean>;
   forgotPassword: (email: string) => Promise<boolean>;
   resetPassword: (token: string, newPassword: string) => Promise<boolean>;
-  workflowUsageStats: () => any;
   checkWorkflowAccess: (workflowId: string) => { hasAccess: boolean; message?: string };
 }
 
@@ -250,35 +249,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const workflowUsageStats = () => {
-    const today = new Date();
-    const mockData = {
-      today: Math.floor(Math.random() * 10) + 5,
-      weekly: Math.floor(Math.random() * 50) + 20,
-      monthly: Math.floor(Math.random() * 200) + 80,
-      allData: generateMockUsageData()
-    };
-    
-    return mockData;
-  };
-
-  const generateMockUsageData = () => {
-    const data: Record<string, { count: number }> = {};
-    const today = new Date();
-    
-    for (let i = 0; i < 60; i++) {
-      const date = new Date();
-      date.setDate(today.getDate() - i);
-      const dateString = date.toISOString().split('T')[0];
-      
-      data[dateString] = {
-        count: Math.floor(Math.random() * 15) + 1
-      };
-    }
-    
-    return data;
-  };
-
   const checkWorkflowAccess = (workflowId: string) => {
     if (!isAuthenticated) {
       return { 
@@ -314,7 +284,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updateUserProfile,
         forgotPassword,
         resetPassword,
-        workflowUsageStats,
         checkWorkflowAccess
       }}
     >
