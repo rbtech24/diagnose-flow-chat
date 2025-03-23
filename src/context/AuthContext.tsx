@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { User } from "@/types/user";
 import { useUserManagementStore } from "@/store/userManagementStore";
-import { toast } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { 
   generateSessionId, 
   updateLastActivity, 
@@ -45,10 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     broadcastChannel.onmessage = (event) => {
       if (event.data.type === 'new_login' && sessionId && event.data.sessionId !== sessionId) {
-        toast({
-          title: "Logged out",
-          description: "Your account was logged in on another device",
-        });
+        toast("Your account was logged in on another device");
         logout();
       }
     };
@@ -67,10 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     const checkTimeout = setInterval(() => {
       if (hasSessionTimedOut()) {
-        toast({
-          title: "Session expired",
-          description: "You have been logged out due to inactivity",
-        });
+        toast("You have been logged out due to inactivity");
         logout();
       }
     }, 60000);
@@ -98,10 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const licenseStatus = verifyLicense(user);
       
       if (!licenseStatus.valid) {
-        toast({
-          title: "License issue detected",
-          description: licenseStatus.message || "Your license is no longer valid.",
-        });
+        toast(licenseStatus.message || "Your license is no longer valid.");
         logout();
       }
     }, 30 * 60 * 1000);
@@ -131,10 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           } else {
             localStorage.removeItem("currentUser");
-            toast({
-              title: "License issue",
-              description: licenseStatus.message || "Your subscription has expired. Please contact support.",
-            });
+            toast(licenseStatus.message || "Your subscription has expired. Please contact support.");
           }
         } catch (error) {
           console.error("Error parsing stored user:", error);
@@ -181,10 +169,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (foundUser) {
         if (!verifyLicense(foundUser).valid) {
-          toast({
-            title: "Login failed",
-            description: "Your license has expired. Please contact support.",
-          });
+          toast("Your license has expired. Please contact support.");
           return false;
         }
         
@@ -198,18 +183,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         return true;
       } else {
-        toast({
-          title: "Login failed",
-          description: "Invalid email, password, or user role. Please try again.",
-        });
+        toast("Invalid email, password, or user role. Please try again.");
         return false;
       }
     } catch (error) {
       console.error("Login error:", error);
-      toast({
-        title: "Login failed",
-        description: "An error occurred during login. Please try again.",
-      });
+      toast("An error occurred during login. Please try again.");
       return false;
     }
   };
@@ -224,17 +203,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signup = async (userData: any) => {
     try {
-      toast({
-        title: "Signup successful",
-        description: "Your account has been created. Please sign in.",
-      });
+      toast("Your account has been created. Please sign in.");
       return true;
     } catch (error) {
       console.error("Signup error:", error);
-      toast({
-        title: "Signup failed",
-        description: "An error occurred during signup. Please try again.",
-      });
+      toast("An error occurred during signup. Please try again.");
       return false;
     }
   };
@@ -244,24 +217,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userExists = users.some(u => u.email.toLowerCase() === email.toLowerCase());
       
       if (userExists) {
-        toast({
-          title: "Password reset email sent",
-          description: "Check your email for instructions to reset your password.",
-        });
+        toast("Check your email for instructions to reset your password.");
         return true;
       } else {
-        toast({
-          title: "Email not found",
-          description: "No account found with this email address.",
-        });
+        toast("No account found with this email address.");
         return false;
       }
     } catch (error) {
       console.error("Password reset error:", error);
-      toast({
-        title: "Password reset failed",
-        description: "An error occurred. Please try again.",
-      });
+      toast("An error occurred. Please try again.");
       return false;
     }
   };
