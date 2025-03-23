@@ -33,10 +33,10 @@ type FeatureRequestFormValues = z.infer<typeof featureRequestSchema>;
 
 interface NewFeatureRequestFormProps {
   onSubmit: (values: FeatureRequestFormValues) => void;
-  isSubmitting: boolean;
+  isSubmitting?: boolean;
 }
 
-export function NewFeatureRequestForm({ onSubmit, isSubmitting }: NewFeatureRequestFormProps) {
+export function NewFeatureRequestForm({ onSubmit, isSubmitting = false }: NewFeatureRequestFormProps) {
   const form = useForm<FeatureRequestFormValues>({
     resolver: zodResolver(featureRequestSchema),
     defaultValues: {

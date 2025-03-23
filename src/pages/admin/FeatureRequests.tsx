@@ -5,43 +5,45 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FeatureRequest } from "@/types/feature-request";
+import { FeatureRequest, FeatureRequestStatus } from "@/types/feature-request";
 import { FeatureRequestCard } from "@/components/feature-request/FeatureRequestCard";
 import { NewFeatureRequestForm } from "@/components/feature-request/NewFeatureRequestForm";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Search } from "lucide-react";
-import { emptyFeatureRequests } from "@/utils/placeholderData";
+import { emptyFeatureRequests, placeholderUser } from "@/utils/placeholderData";
 
 export default function AdminFeatureRequests() {
   const [requests, setRequests] = useState<FeatureRequest[]>(emptyFeatureRequests);
   const [searchQuery, setSearchQuery] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const handleCreateRequest = (title: string, description: string) => {
+  const handleCreateRequest = (values: { title?: string; description?: string; priority?: "low" | "medium" | "high" | "critical" }) => {
+    if (!values.title || !values.description) return;
+    setIsSubmitting(true);
+    
     const newRequest: FeatureRequest = {
       id: `request-${Date.now()}`,
-      title,
-      description,
-      status: "under-review",
-      category: "General",
+      title: values.title,
+      description: values.description,
+      status: "under-review" as FeatureRequestStatus,
+      priority: values.priority || "medium",
       createdAt: new Date(),
       updatedAt: new Date(),
-      score: 0,
-      userId: "admin-1",
-      user: {
-        id: "admin-1",
-        name: "Admin User",
-        email: "admin@example.com",
-        role: "admin",
-        avatarUrl: ""
-      },
+      createdBy: placeholderUser,
       votes: [],
-      comments: []
+      score: 0,
+      comments: [],
+      category: "General"
     };
     
-    setRequests([newRequest, ...requests]);
-    setIsFormOpen(false);
+    // Simulate API call
+    setTimeout(() => {
+      setRequests([newRequest, ...requests]);
+      setIsFormOpen(false);
+      setIsSubmitting(false);
+    }, 500);
   };
 
   const handleRequestClick = (requestId: string) => {
@@ -73,7 +75,7 @@ export default function AdminFeatureRequests() {
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <NewFeatureRequestForm onSubmit={handleCreateRequest} />
+            <NewFeatureRequestForm onSubmit={handleCreateRequest} isSubmitting={isSubmitting} />
           </DialogContent>
         </Dialog>
       </div>
@@ -109,8 +111,8 @@ export default function AdminFeatureRequests() {
             reviewRequests.map((request) => (
               <FeatureRequestCard 
                 key={request.id} 
-                request={request} 
-                onClick={() => handleRequestClick(request.id)} 
+                featureRequest={request} 
+                onViewDetails={() => handleRequestClick(request.id)} 
               />
             ))
           ) : (
@@ -127,8 +129,8 @@ export default function AdminFeatureRequests() {
             plannedRequests.map((request) => (
               <FeatureRequestCard 
                 key={request.id} 
-                request={request} 
-                onClick={() => handleRequestClick(request.id)} 
+                featureRequest={request} 
+                onViewDetails={() => handleRequestClick(request.id)} 
               />
             ))
           ) : (
@@ -145,8 +147,8 @@ export default function AdminFeatureRequests() {
             inProgressRequests.map((request) => (
               <FeatureRequestCard 
                 key={request.id} 
-                request={request} 
-                onClick={() => handleRequestClick(request.id)} 
+                featureRequest={request} 
+                onViewDetails={() => handleRequestClick(request.id)} 
               />
             ))
           ) : (
@@ -163,8 +165,8 @@ export default function AdminFeatureRequests() {
             completedRequests.map((request) => (
               <FeatureRequestCard 
                 key={request.id} 
-                request={request} 
-                onClick={() => handleRequestClick(request.id)} 
+                featureRequest={request} 
+                onViewDetails={() => handleRequestClick(request.id)} 
               />
             ))
           ) : (

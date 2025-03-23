@@ -16,10 +16,12 @@ export default function CompanyFeatureRequests() {
   const [requests, setRequests] = useState<FeatureRequest[]>(emptyFeatureRequests);
   const [searchQuery, setSearchQuery] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const handleCreateRequest = (values: { title?: string; description?: string; priority?: "high" | "low" | "medium" | "critical" }) => {
+  const handleCreateRequest = (values: { title?: string; description?: string; priority?: "low" | "medium" | "high" | "critical" }) => {
     if (!values.title || !values.description) return;
+    setIsSubmitting(true);
     
     const newRequest: FeatureRequest = {
       id: `request-${Date.now()}`,
@@ -35,8 +37,12 @@ export default function CompanyFeatureRequests() {
       comments: []
     };
     
-    setRequests([newRequest, ...requests]);
-    setIsFormOpen(false);
+    // Simulate API call
+    setTimeout(() => {
+      setRequests([newRequest, ...requests]);
+      setIsFormOpen(false);
+      setIsSubmitting(false);
+    }, 500);
   };
 
   const handleRequestClick = (requestId: string) => {
@@ -68,7 +74,7 @@ export default function CompanyFeatureRequests() {
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <NewFeatureRequestForm onSubmit={handleCreateRequest} />
+            <NewFeatureRequestForm onSubmit={handleCreateRequest} isSubmitting={isSubmitting} />
           </DialogContent>
         </Dialog>
       </div>

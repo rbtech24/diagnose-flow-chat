@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ArrowLeft, Share2, Edit, Trash2, ArrowUp, MessageSquare, CheckCircle2, FileText, AlertTriangle, Ban } from "lucide-react";
-import { CommunityPost, PostComment } from "@/types/community";
+import { CommunityPost, CommunityPostComment } from "@/types/community";
 import { format } from "date-fns";
 
 export interface CommunityPostDetailProps {
@@ -178,7 +178,7 @@ export function CommunityPostDetail({
         
         {post.comments && post.comments.length > 0 ? (
           <div className="space-y-4">
-            {post.comments.map((comment: PostComment) => (
+            {post.comments.map((comment: CommunityPostComment) => (
               <Card key={comment.id} className={`${comment.isAnswer ? 'border-green-500 bg-green-50' : ''}`}>
                 <CardContent className="pt-6">
                   <div className="flex justify-between items-start">

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
-import { FeatureRequest, FeatureRequestVote } from "@/types/feature-request";
+import { FeatureRequest, FeatureRequestVote, FeatureRequestStatus } from "@/types/feature-request";
 import { emptyFeatureRequests, placeholderUser } from "@/utils/placeholderData";
 import { ArrowLeft } from "lucide-react";
 
@@ -60,12 +60,22 @@ export default function AdminFeatureRequestDetailPage() {
     });
   };
 
-  const handleStatusChange = (requestId: string, status: string) => {
+  const handleStatusChange = (requestId: string, status: FeatureRequestStatus) => {
     if (!featureRequest) return;
 
     setFeatureRequest({
       ...featureRequest,
       status,
+      updatedAt: new Date()
+    });
+  };
+
+  const handlePriorityChange = (requestId: string, priority: string) => {
+    if (!featureRequest) return;
+
+    setFeatureRequest({
+      ...featureRequest,
+      priority: priority as FeatureRequestStatus,
       updatedAt: new Date()
     });
   };
@@ -112,6 +122,7 @@ export default function AdminFeatureRequestDetailPage() {
           onAddComment={handleAddComment}
           onVote={handleVote}
           onStatusChange={handleStatusChange}
+          onUpdatePriority={handlePriorityChange}
           isAdmin={true}
         />
       )}

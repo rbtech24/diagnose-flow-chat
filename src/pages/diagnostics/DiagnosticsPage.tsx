@@ -44,7 +44,7 @@ export default function DiagnosticsPage() {
           <h1 className="text-3xl font-bold">Diagnostic Procedures</h1>
           <p className="text-gray-500">Step-by-step troubleshooting guides</p>
         </div>
-        <SyncStatusBadge isOnline={!isOffline} />
+        <SyncStatusBadge status={isOffline ? 'offline' : 'online'} />
       </div>
 
       <Tabs defaultValue="browse" className="space-y-6">
@@ -96,7 +96,7 @@ export default function DiagnosticsPage() {
             </div>
           ) : (
             <DiagnosticSteps 
-              diagnostic={currentDiagnostic}
+              workflow={currentDiagnostic}
               onBack={() => setSelectedDiagnostic(null)}
             />
           )}

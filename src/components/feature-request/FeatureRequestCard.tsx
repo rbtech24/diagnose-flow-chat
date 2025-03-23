@@ -7,7 +7,7 @@ import { ArrowUp, MessageSquare, Calendar } from "lucide-react";
 import { format } from "date-fns";
 
 interface FeatureRequestCardProps {
-  featureRequest: FeatureRequest;
+  featureRequest?: FeatureRequest;
   onVote?: (id: string) => void;
   onViewDetails?: (id: string) => void;
   canVote?: boolean;

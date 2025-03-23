@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FeatureRequest } from "@/types/feature-request";
+import { FeatureRequest, FeatureRequestStatus } from "@/types/feature-request";
 import { FeatureRequestCard } from "@/components/feature-request/FeatureRequestCard";
 import { NewFeatureRequestForm } from "@/components/feature-request/NewFeatureRequestForm";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -16,26 +16,34 @@ export default function TechFeatureRequests() {
   const [requests, setRequests] = useState<FeatureRequest[]>(emptyFeatureRequests);
   const [searchQuery, setSearchQuery] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const handleCreateRequest = (title: string, description: string) => {
+  const handleCreateRequest = (values: { title?: string; description?: string; priority?: "low" | "medium" | "high" | "critical" }) => {
+    if (!values.title || !values.description) return;
+    setIsSubmitting(true);
+    
     const newRequest: FeatureRequest = {
       id: `request-${Date.now()}`,
-      title,
-      description,
-      status: "under-review",
-      category: "General",
+      title: values.title,
+      description: values.description,
+      status: "under-review" as FeatureRequestStatus,
+      priority: values.priority || "medium",
       createdAt: new Date(),
       updatedAt: new Date(),
-      score: 0,
-      userId: placeholderUser.id,
-      user: placeholderUser,
+      createdBy: placeholderUser,
       votes: [],
-      comments: []
+      score: 0,
+      comments: [],
+      category: "General"
     };
     
-    setRequests([newRequest, ...requests]);
-    setIsFormOpen(false);
+    // Simulate API call
+    setTimeout(() => {
+      setRequests([newRequest, ...requests]);
+      setIsFormOpen(false);
+      setIsSubmitting(false);
+    }, 500);
   };
 
   const handleRequestClick = (requestId: string) => {
@@ -67,7 +75,7 @@ export default function TechFeatureRequests() {
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <NewFeatureRequestForm onSubmit={handleCreateRequest} />
+            <NewFeatureRequestForm onSubmit={handleCreateRequest} isSubmitting={isSubmitting} />
           </DialogContent>
         </Dialog>
       </div>
@@ -103,8 +111,8 @@ export default function TechFeatureRequests() {
             reviewRequests.map((request) => (
               <FeatureRequestCard 
                 key={request.id} 
-                request={request} 
-                onClick={() => handleRequestClick(request.id)} 
+                featureRequest={request} 
+                onViewDetails={() => handleRequestClick(request.id)} 
               />
             ))
           ) : (
@@ -121,8 +129,8 @@ export default function TechFeatureRequests() {
             plannedRequests.map((request) => (
               <FeatureRequestCard 
                 key={request.id} 
-                request={request} 
-                onClick={() => handleRequestClick(request.id)} 
+                featureRequest={request} 
+                onViewDetails={() => handleRequestClick(request.id)} 
               />
             ))
           ) : (
@@ -139,8 +147,8 @@ export default function TechFeatureRequests() {
             inProgressRequests.map((request) => (
               <FeatureRequestCard 
                 key={request.id} 
-                request={request} 
-                onClick={() => handleRequestClick(request.id)} 
+                featureRequest={request} 
+                onViewDetails={() => handleRequestClick(request.id)} 
               />
             ))
           ) : (
@@ -157,8 +165,8 @@ export default function TechFeatureRequests() {
             completedRequests.map((request) => (
               <FeatureRequestCard 
                 key={request.id} 
-                request={request} 
-                onClick={() => handleRequestClick(request.id)} 
+                featureRequest={request} 
+                onViewDetails={() => handleRequestClick(request.id)} 
               />
             ))
           ) : (
