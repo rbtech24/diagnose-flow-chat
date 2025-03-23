@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User } from '@/types/user';
@@ -16,6 +15,8 @@ interface AuthContextType {
   updateUserProfile: (userData: Partial<User>) => Promise<boolean>;
   forgotPassword: (email: string) => Promise<boolean>;
   resetPassword: (token: string, newPassword: string) => Promise<boolean>;
+  workflowUsageStats: () => any;
+  checkWorkflowAccess: (workflowId: string) => { hasAccess: boolean; message?: string };
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,9 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   
-  // Initialize auth state on mount
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (session) {
@@ -52,7 +51,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
     
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         const userData: User = {
@@ -86,7 +84,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       
       if (data.user) {
-        // Navigation will happen automatically due to auth state change
         toast({
           title: "Login successful",
           description: "You have been successfully logged in",
@@ -179,7 +176,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (error) throw error;
       
-      // Update local user state
       setUser(prev => prev ? { ...prev, ...userData } : null);
       
       toast({
@@ -254,6 +250,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const workflowUsageStats = () => {
+    const today = new Date();
+    const mockData = {
+      today: Math.floor(Math.random() * 10) + 5,
+      weekly: Math.floor(Math.random() * 50) + 20,
+      monthly: Math.floor(Math.random() * 200) + 80,
+      allData: generateMockUsageData()
+    };
+    
+    return mockData;
+  };
+
+  const generateMockUsageData = () => {
+    const data: Record<string, { count: number }> = {};
+    const today = new Date();
+    
+    for (let i = 0; i < 60; i++) {
+      const date = new Date();
+      date.setDate(today.getDate() - i);
+      const dateString = date.toISOString().split('T')[0];
+      
+      data[dateString] = {
+        count: Math.floor(Math.random() * 15) + 1
+      };
+    }
+    
+    return data;
+  };
+
+  const checkWorkflowAccess = (workflowId: string) => {
+    if (!isAuthenticated) {
+      return { 
+        hasAccess: false, 
+        message: "You must be logged in to access workflows." 
+      };
+    }
+    
+    if (userRole === 'admin') {
+      return { hasAccess: true };
+    }
+    
+    if (workflowId.includes('restricted') && userRole !== 'admin') {
+      return { 
+        hasAccess: false, 
+        message: "This workflow requires admin privileges." 
+      };
+    }
+    
+    return { hasAccess: true };
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -266,7 +313,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         updateUserProfile,
         forgotPassword,
-        resetPassword
+        resetPassword,
+        workflowUsageStats,
+        checkWorkflowAccess
       }}
     >
       {children}
