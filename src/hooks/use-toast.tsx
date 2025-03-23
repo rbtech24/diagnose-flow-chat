@@ -82,7 +82,7 @@ const createToastHandler = () => {
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [handler] = useState(createToastHandler);
+  const [handler] = useState(() => createToastHandler);
   
   return (
     <ToastContext.Provider value={handler()}>
@@ -96,7 +96,6 @@ export function useToast() {
   
   if (context === undefined) {
     // Fallback to direct implementation if used outside provider
-    // This is where the error was occurring - we need to return the result of calling createToastHandler
     return createToastHandler();
   }
   
