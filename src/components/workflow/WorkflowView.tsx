@@ -23,21 +23,21 @@ interface WorkflowViewProps {
 }
 
 export function WorkflowView({
-  filteredAppliances,
-  workflows,
-  isReordering,
-  selectedFolder,
-  onEdit,
-  onDelete,
-  onToggleWorkflow,
-  onMoveSymptom,
-  onMoveAppliance,
-  onOpenWorkflowEditor,
-  onAddIssue,
-  onDeleteWorkflow,
-  onMoveWorkflow,
-  onToggleWorkflowActive,
-  onMoveWorkflowToFolder,
+  filteredAppliances = [],
+  workflows = [],
+  isReordering = false,
+  selectedFolder = '',
+  onEdit = () => {},
+  onDelete = () => {},
+  onToggleWorkflow = () => {},
+  onMoveSymptom = () => {},
+  onMoveAppliance = () => {},
+  onOpenWorkflowEditor = () => {},
+  onAddIssue = () => {},
+  onDeleteWorkflow = () => {},
+  onMoveWorkflow = () => {},
+  onToggleWorkflowActive = () => {},
+  onMoveWorkflowToFolder = () => {},
   isReadOnly = false
 }: WorkflowViewProps) {
   // Generate pastel colors for item cards
@@ -59,17 +59,17 @@ export function WorkflowView({
         appliances={filteredAppliances}
         workflows={workflows}
         isReordering={isReordering}
-        onEdit={onEdit || (() => {})}
-        onDelete={onDelete || (() => {})}
-        onToggleWorkflow={onToggleWorkflow || (() => {})}
-        onMoveSymptom={onMoveSymptom || (() => {})}
-        onMoveAppliance={onMoveAppliance || (() => {})}
-        onOpenWorkflowEditor={onOpenWorkflowEditor || (() => {})}
-        onAddIssue={onAddIssue || (() => {})}
-        onDeleteWorkflow={onDeleteWorkflow || (() => {})}
-        onMoveWorkflow={onMoveWorkflow || (() => {})}
-        onToggleWorkflowActive={onToggleWorkflowActive || (() => {})}
-        onMoveWorkflowToFolder={onMoveWorkflowToFolder || (() => {})}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onToggleWorkflow={onToggleWorkflow}
+        onMoveSymptom={onMoveSymptom}
+        onMoveAppliance={onMoveAppliance}
+        onOpenWorkflowEditor={onOpenWorkflowEditor}
+        onAddIssue={onAddIssue}
+        onDeleteWorkflow={onDeleteWorkflow}
+        onMoveWorkflow={onMoveWorkflow}
+        onToggleWorkflowActive={onToggleWorkflowActive}
+        onMoveWorkflowToFolder={onMoveWorkflowToFolder}
         getSymptomCardColor={getSymptomCardColor}
         isReadOnly={isReadOnly}
       />

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { CommunityPost, CommunityPostType } from '@/types/community';
 import { CommunityFilters } from './CommunityFilters';

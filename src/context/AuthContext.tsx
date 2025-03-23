@@ -1,7 +1,11 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Role } from '@/types/user';
-import { supabase } from '@/integrations/supabase/client';
+import { User } from '@/types/user';
+import { placeholderUser } from '@/utils/placeholderData';
+
+// Define Role type here since we can't import it
+type Role = 'admin' | 'company' | 'tech';
 
 interface AuthContextType {
   user: User | null;
@@ -28,169 +32,84 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Simulate auth state change with dummy data
   useEffect(() => {
-    const session = supabase.auth.getSession();
-
-    supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.session?.user) {
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select(`id, name, email, role, avatar_url`)
-          .eq('id', session.session.user.id)
-          .single();
-
-        if (error) {
-          console.error('Error fetching user profile:', error);
-          setIsLoading(false);
-          return;
-        }
-
-        if (profile) {
-          const userProfile: User = {
-            id: profile.id,
-            name: profile.name || 'User',
-            email: profile.email,
-            role: profile.role as Role,
-            avatarUrl: profile.avatar_url || '',
-          };
-
-          setUser(userProfile);
-          setUserRole(userProfile.role);
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-        }
-      } else {
-        setUser(null);
-        setUserRole(null);
-        setIsAuthenticated(false);
-      }
+    const timer = setTimeout(() => {
+      // For development purposes, we'll use a placeholder user
+      setUser(placeholderUser);
+      setUserRole(placeholderUser.role as Role);
+      setIsAuthenticated(true);
       setIsLoading(false);
-    });
-
-    if (session) {
-      supabase.auth.getUser()
-        .then(async (res) => {
-          if (res?.data?.user) {
-            const { data: profile, error } = await supabase
-              .from('profiles')
-              .select(`id, name, email, role, avatar_url`)
-              .eq('id', res.data.user.id)
-              .single();
-
-            if (error) {
-              console.error('Error fetching user profile:', error);
-              setIsLoading(false);
-              return;
-            }
-
-            if (profile) {
-              const userProfile: User = {
-                id: profile.id,
-                name: profile.name || 'User',
-                email: profile.email,
-                role: profile.role as Role,
-                avatarUrl: profile.avatar_url || '',
-              };
-
-              setUser(userProfile);
-              setUserRole(userProfile.role);
-              setIsAuthenticated(true);
-            } else {
-              setIsAuthenticated(false);
-            }
-          } else {
-            setUser(null);
-            setUserRole(null);
-            setIsAuthenticated(false);
-          }
-          setIsLoading(false);
-        });
-    } else {
-      setIsLoading(false);
-    }
-  }, [navigate]);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const signIn = async (email: string): Promise<void> => {
     try {
-      const { error } = await supabase.auth.signInWithOtp({ email });
-      if (error) throw error;
-      alert('Check your email for the login link!');
+      // Simulate sign in
+      setUser(placeholderUser);
+      setUserRole(placeholderUser.role as Role);
+      setIsAuthenticated(true);
     } catch (error: any) {
-      alert(error.error_description || error.message);
+      console.error('Sign in error:', error);
     }
   };
 
   const signOut = async (): Promise<void> => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      // Simulate sign out
       setUser(null);
       setUserRole(null);
       setIsAuthenticated(false);
       navigate('/');
     } catch (error: any) {
-      alert(error.error_description || error.message);
+      console.error('Sign out error:', error);
     }
   };
 
   const signUp = async (email: string, password: string, name: string, role: Role): Promise<void> => {
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: email,
-        password: password,
-        options: {
-          data: {
-            name: name,
-            role: role,
-          },
-        },
-      });
-      if (error) throw error;
-
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: data.user.id,
-              email: email,
-              name: name,
-              role: role,
-            },
-          ]);
-
-        if (profileError) throw profileError;
-      }
-
-      alert('Check your email to verify your account!');
+      // Simulate sign up
+      const newUser: User = {
+        id: `user-${Date.now()}`,
+        email,
+        name,
+        role,
+        avatarUrl: '',
+      };
+      
+      setUser(newUser);
+      setUserRole(role);
+      setIsAuthenticated(true);
     } catch (error: any) {
-      alert(error.error_description || error.message);
+      console.error('Sign up error:', error);
     }
   };
 
   const updateUser = async (updates: Partial<User>): Promise<void> => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user?.id);
-
-      if (error) throw error;
-
-      setUser({ ...user!, ...updates });
+      // Simulate update user
+      if (user) {
+        const updatedUser = { ...user, ...updates };
+        setUser(updatedUser);
+        if (updates.role) {
+          setUserRole(updates.role as Role);
+        }
+      }
     } catch (error: any) {
-      alert(error.error_description || error.message);
+      console.error('Update user error:', error);
     }
   };
 
-  const checkWorkflowAccess = (categoryId: string, workflowId: string) => {
+  const checkWorkflowAccess = (categoryId: string, workflowId: string): boolean => {
     // If user is admin, they have access to all workflows
     if (userRole === 'admin') {
       return true;
     }
     
-    // For other roles, check if the workflow is in their allowed set
+    // For other roles, assume no access by default
+    // In a real app, you would check against a permissions database
     return false;
   };
 

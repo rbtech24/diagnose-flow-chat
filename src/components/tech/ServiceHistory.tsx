@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +6,7 @@ import { History, Filter, CheckCircle2, Clock, AlertTriangle, Users, User } from
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { emptyServiceRecords } from "@/utils/placeholderData";
 
 interface ServiceRecord {
   id: string;
@@ -24,7 +24,7 @@ export function ServiceHistory() {
   const [filter, setFilter] = useState<"all" | "completed" | "ongoing" | "scheduled">("all");
   const [viewMode, setViewMode] = useState<"personal" | "system">("personal");
   const [selectedAppliance, setSelectedAppliance] = useState<string>("all");
-  const [serviceRecords, setServiceRecords] = useState<ServiceRecord[]>([]);
+  const [serviceRecords, setServiceRecords] = useState<ServiceRecord[]>(emptyServiceRecords);
   
   // This would be replaced with actual data fetching in a real application
   const uniqueAppliances: string[] = [];

@@ -57,7 +57,6 @@ export default function AdminCommunity() {
         initialPosts={posts}
         onCreatePost={handleCreatePost}
         userRole="admin"
-        showModeratorControls={true}
       />
     </div>
   );

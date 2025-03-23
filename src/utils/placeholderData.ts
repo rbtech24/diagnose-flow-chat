@@ -17,3 +17,9 @@ export const placeholderUser: User = {
   role: "tech",
   avatarUrl: ""
 };
+
+// Empty service records array
+export const emptyServiceRecords: any[] = [];
+
+// Empty knowledge articles array
+export const emptyKnowledgeArticles: any[] = [];
