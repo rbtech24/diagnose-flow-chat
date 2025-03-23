@@ -1,6 +1,7 @@
 
-import { Alert, AlertCircle, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
+import { AlertCircle } from "lucide-react";
 
 interface TechnicianLimits {
   activeCount: number;
