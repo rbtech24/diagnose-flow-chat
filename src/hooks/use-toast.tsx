@@ -1,7 +1,7 @@
 
 import { useState, useContext, createContext, ReactNode } from 'react';
-import toast from 'react-hot-toast';
-import { Toast, ToastOptions as HotToastOptions } from 'react-hot-toast';
+import hotToast from 'react-hot-toast';
+import type { Toast, ToastOptions as HotToastOptions } from 'react-hot-toast';
 
 export type ToastProps = {
   title?: string;
@@ -40,7 +40,7 @@ const createToastHandler = () => {
       toastOptions.className = 'bg-destructive text-destructive-foreground';
     }
 
-    return toast((t) => (
+    return hotToast((t) => (
       <div className="flex items-start">
         <div className="flex-1">
           {title && <div className="font-medium">{title}</div>}
@@ -71,11 +71,11 @@ const createToastHandler = () => {
   const toastFn = (props: ToastProps) => showToast(props);
   toastFn.success = success;
   toastFn.error = error;
-  toastFn.dismiss = toast.dismiss;
+  toastFn.dismiss = hotToast.dismiss;
 
   return {
     toast: toastFn as ToastFunction,
-    dismiss: toast.dismiss,
+    dismiss: hotToast.dismiss,
     // Empty array for compatibility with toaster component
     toasts: []
   };
@@ -102,5 +102,6 @@ export function useToast() {
   return context;
 }
 
-// Export the toast directly so it can be used without the hook
-export const { toast } = createToastHandler();
+// Export a singleton instance for direct usage
+const toastHandler = createToastHandler();
+export const toast = toastHandler.toast;
