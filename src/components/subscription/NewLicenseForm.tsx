@@ -24,7 +24,7 @@ export function NewLicenseForm({
   const [planId, setPlanId] = useState("");
   const [activeTechnicians, setActiveTechnicians] = useState("1");
   const [trialPeriod, setTrialPeriod] = useState(
-    planId ? activePlans.find(p => p.id === planId)?.trialPeriod.toString() || "14" : "14"
+    planId ? activePlans.find(p => p.id === planId)?.trialPeriod.toString() || "30" : "30"
   );
 
   const handlePlanChange = (value: string) => {
@@ -86,9 +86,11 @@ export function NewLicenseForm({
       <div className="space-y-2">
         <Label htmlFor="plan">Subscription Plan</Label>
         <Select value={planId} onValueChange={handlePlanChange} required>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a plan" />
-          </SelectTrigger>
+          <FormControl>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a plan" />
+            </SelectTrigger>
+          </FormControl>
           <SelectContent>
             {activePlans.length > 0 ? (
               activePlans.map(plan => (

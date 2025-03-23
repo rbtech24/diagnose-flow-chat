@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -17,7 +16,6 @@ export default function CompanySubscription() {
   const { getActivePlans, licenses } = useSubscriptionStore();
   const activePlans = getActivePlans();
   
-  // For demo purposes, use the first license with companyId "company-2"
   const [currentLicense] = useState<License | undefined>(
     licenses.find(license => license.companyId === "company-2")
   );
@@ -32,12 +30,10 @@ export default function CompanySubscription() {
   };
 
   const handlePaymentComplete = () => {
-    // In a real app, this would process the payment and update the subscription
     setIsPaymentDialogOpen(false);
     setSelectedPlan(null);
   };
 
-  // Calculate days left in trial
   const daysLeft = currentLicense?.trialEndsAt ? 
     Math.max(0, Math.ceil((currentLicense.trialEndsAt.getTime() - new Date().getTime()) / (1000 * 3600 * 24))) : 0;
 
@@ -53,7 +49,7 @@ export default function CompanySubscription() {
               <Clock className="h-5 w-5 text-blue-600" />
               <AlertTitle className="text-blue-800">Trial Period</AlertTitle>
               <AlertDescription className="text-blue-700">
-                Your trial period will end in {daysLeft} days. Please select a subscription plan to continue using the service.
+                Your 30-day trial period will end in {daysLeft} days. Please select a subscription plan to continue using the service.
               </AlertDescription>
             </Alert>
           )}

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,7 +34,7 @@ export function SubscriptionPlanForm({
     "Email support"
   ]);
   const [newFeature, setNewFeature] = useState("");
-  const [trialPeriod, setTrialPeriod] = useState(initialData?.trialPeriod.toString() || "14");
+  const [trialPeriod, setTrialPeriod] = useState(initialData?.trialPeriod.toString() || "30");
   const [isActive, setIsActive] = useState(initialData?.isActive !== false);
 
   const handleAddFeature = () => {
@@ -61,7 +60,7 @@ export function SubscriptionPlanForm({
       dailyDiagnostics: parseInt(dailyDiagnostics) || 0,
       storageLimit: parseInt(storageLimit) || 0,
       features,
-      trialPeriod: parseInt(trialPeriod) || 14,
+      trialPeriod: parseInt(trialPeriod) || 30,
       isActive,
       createdAt: initialData?.createdAt || new Date(),
       updatedAt: new Date()
