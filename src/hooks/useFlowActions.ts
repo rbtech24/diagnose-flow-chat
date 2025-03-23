@@ -1,7 +1,7 @@
 
 import { useCallback } from 'react';
 import { Connection, Node, Edge, useReactFlow, addEdge } from '@xyflow/react';
-import { toast } from './use-toast';
+import toast from 'react-hot-toast';
 import { addToHistory } from '@/utils/workflowHistory';
 import { handleQuickSave } from '@/utils/flow';
 import { SavedWorkflow } from '@/utils/flow/types';
@@ -29,10 +29,7 @@ export function useFlowActions(
         setHistory(addToHistory(history, newState));
         return newEdges;
       });
-      toast({
-        title: "Connection Added",
-        description: "Nodes have been connected successfully."
-      });
+      toast.success("Nodes have been connected successfully.");
     },
     [setEdges, nodes, nodeCounter, history, setHistory]
   );
@@ -41,10 +38,7 @@ export function useFlowActions(
     const selectedNodes = nodes.filter(node => node.selected);
     if (selectedNodes.length > 0) {
       setCopiedNodes(selectedNodes);
-      toast({
-        title: "Nodes Copied",
-        description: `${selectedNodes.length} node(s) copied to clipboard`
-      });
+      toast.success(`${selectedNodes.length} node(s) copied to clipboard`);
     }
   }, [nodes, setCopiedNodes]);
 
@@ -81,25 +75,15 @@ export function useFlowActions(
 
     setNodeCounter(prev => prev + newNodes.length);
 
-    toast({
-      title: "Nodes Pasted",
-      description: `${newNodes.length} node(s) pasted`
-    });
+    toast.success(`${newNodes.length} node(s) pasted`);
   }, [copiedNodes, getViewport, edges, nodeCounter, history, setNodes, setNodeCounter, setHistory]);
 
   const handleQuickSaveClick = useCallback(() => {
     if (currentWorkflow) {
       handleQuickSave(nodes, edges, nodeCounter, currentWorkflow);
-      toast({
-        title: "Workflow Auto-saved",
-        description: "Your changes have been saved automatically."
-      });
+      toast.success("Your changes have been saved automatically.");
     } else {
-      toast({
-        title: "Cannot Quick Save",
-        description: "This is a new workflow. Please use 'Save Workflow' to save it first.",
-        variant: "destructive"
-      });
+      toast.error("This is a new workflow. Please use 'Save Workflow' to save it first.");
     }
   }, [nodes, edges, nodeCounter, currentWorkflow]);
 
@@ -135,10 +119,7 @@ export function useFlowActions(
     const newState = { nodes: [...nodes, newNode], edges, nodeCounter: nodeCounter + 1 };
     setHistory(addToHistory(history, newState));
 
-    toast({
-      title: "Node Added",
-      description: "New node has been added to the workflow."
-    });
+    toast.success("New node has been added to the workflow.");
   }, [nodes, edges, nodeCounter, setNodes, setNodeCounter, setHistory, history]);
 
   return {
