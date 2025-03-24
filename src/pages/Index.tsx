@@ -11,9 +11,10 @@ export default function Index() {
   useEffect(() => {
     // Only redirect logged-in users to their respective dashboards
     // if they have a valid role
-    if (isAuthenticated && userRole && 
-        ['admin', 'company', 'tech'].includes(userRole)) {
-      navigate(`/${userRole}`);
+    if (isAuthenticated && userRole) {
+      if (['admin', 'company', 'tech'].includes(userRole)) {
+        navigate(`/${userRole}`);
+      }
     }
   }, [isAuthenticated, userRole, navigate]);
 
