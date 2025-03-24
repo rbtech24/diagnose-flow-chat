@@ -45,6 +45,7 @@ const TechCommunity = lazy(() => import("./pages/tech/Community"));
 const TechCommunityPostDetail = lazy(() => import("./pages/tech/CommunityPostDetail"));
 const TechFeatureRequests = lazy(() => import("./pages/tech/FeatureRequests"));
 const TechFeatureRequestDetail = lazy(() => import("./pages/tech/FeatureRequestDetail"));
+const TechDiagnostics = lazy(() => import("./pages/tech/Diagnostics"));
 
 function LoadingFallback() {
   return (
@@ -127,6 +128,7 @@ function App() {
                   <Route path="community/:postId" element={<TechCommunityPostDetail />} />
                   <Route path="feature-requests" element={<TechFeatureRequests />} />
                   <Route path="feature-requests/:id" element={<TechFeatureRequestDetail />} />
+                  <Route path="diagnostics" element={<TechDiagnostics />} />
                 </Route>
               </Route>
 

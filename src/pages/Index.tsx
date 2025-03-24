@@ -20,7 +20,7 @@ export default function Index() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-20 items-center justify-between">
           <div className="flex items-center">
-            <span className="text-2xl font-bold text-blue-600">TechFlow</span>
+            <span className="text-2xl font-bold text-blue-600">Repair Auto Pilot</span>
           </div>
           <div className="flex items-center space-x-4">
             {isAuthenticated ? (
@@ -46,7 +46,7 @@ export default function Index() {
           <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
               <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-                Streamline Your Technician Workflows
+                The Ultimate Appliance Repair Solution
               </h1>
               <p className="mt-6 text-lg leading-8 text-gray-600">
                 Manage your technicians, optimize workflows, and improve customer service with our comprehensive platform.
@@ -76,7 +76,7 @@ export default function Index() {
             <div className="mx-auto max-w-2xl lg:text-center">
               <h2 className="text-base font-semibold leading-7 text-blue-600">Powerful Features</h2>
               <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                Everything you need to manage your technician workflow
+                Everything you need to manage your repair service
               </p>
             </div>
             <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
@@ -93,21 +93,21 @@ export default function Index() {
                 </div>
                 <div className="flex flex-col">
                   <dt className="text-lg font-semibold leading-7 text-gray-900">
-                    Knowledge Base
+                    Diagnostic Tools
                   </dt>
                   <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-600">
                     <p className="flex-auto">
-                      Build a comprehensive knowledge base for your technicians. Share technical documents, guides, and best practices.
+                      Access powerful diagnostic workflows to quickly identify and resolve appliance issues.
                     </p>
                   </dd>
                 </div>
                 <div className="flex flex-col">
                   <dt className="text-lg font-semibold leading-7 text-gray-900">
-                    Support System
+                    Knowledge Base
                   </dt>
                   <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-600">
                     <p className="flex-auto">
-                      Connect technicians and customers through a robust support ticket system. Resolve issues efficiently.
+                      Build a comprehensive knowledge base for your technicians. Share technical documents, guides, and best practices.
                     </p>
                   </dd>
                 </div>
@@ -133,7 +133,7 @@ export default function Index() {
             </div>
             <div className="mt-8 md:order-1 md:mt-0">
               <p className="text-center text-xs leading-5 text-gray-400">
-                &copy; {new Date().getFullYear()} TechFlow. All rights reserved.
+                &copy; {new Date().getFullYear()} Repair Auto Pilot. All rights reserved.
               </p>
             </div>
           </div>
