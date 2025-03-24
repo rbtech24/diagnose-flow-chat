@@ -8,6 +8,15 @@ import { Navigate } from "react-router-dom";
 import { Stethoscope, Wrench, ArrowRight } from "lucide-react";
 import { useWorkflows } from "@/hooks/useWorkflows";
 
+// Define a proper workflow type that matches what the hook returns
+interface DiagnosticWorkflow {
+  id: string;
+  name: string;
+  description?: string;
+  nodeCounter?: number;
+  category?: string;
+}
+
 export default function TechDiagnostics() {
   const { role, isLoading: roleLoading } = useUserRole();
   const { workflows, isLoading: workflowsLoading } = useWorkflows();
@@ -27,6 +36,9 @@ export default function TechDiagnostics() {
     );
   }
 
+  // Cast workflows to the expected type
+  const diagnosticWorkflows = workflows as unknown as DiagnosticWorkflow[];
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
@@ -37,8 +49,8 @@ export default function TechDiagnostics() {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {workflows.length > 0 ? (
-          workflows.map((workflow) => (
+        {diagnosticWorkflows.length > 0 ? (
+          diagnosticWorkflows.map((workflow) => (
             <Card 
               key={workflow.id} 
               className={`cursor-pointer transition-all hover:shadow-md ${
@@ -60,7 +72,7 @@ export default function TechDiagnostics() {
               <CardContent>
                 <div className="mt-2">
                   <p className="text-sm text-gray-600">
-                    {workflow.nodeCount || 0} steps • {workflow.category || 'General'}
+                    {workflow.nodeCounter || 0} steps • {workflow.category || 'General'}
                   </p>
                   <Button 
                     className="w-full mt-4"

@@ -9,8 +9,10 @@ export default function Index() {
   const { isAuthenticated, userRole } = useAuth();
 
   useEffect(() => {
-    // Redirect logged-in users to their respective dashboards
-    if (isAuthenticated && userRole) {
+    // Only redirect logged-in users to their respective dashboards
+    // if they have a valid role
+    if (isAuthenticated && userRole && 
+        ['admin', 'company', 'tech'].includes(userRole)) {
       navigate(`/${userRole}`);
     }
   }, [isAuthenticated, userRole, navigate]);
