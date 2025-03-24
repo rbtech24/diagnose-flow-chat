@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
 import { FeatureRequest, FeatureRequestVote, FeatureRequestStatus, FeatureRequestPriority } from "@/types/feature-request";
 import { placeholderUser } from "@/utils/placeholderData";
-import { ArrowLeft, FileX } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 export default function AdminFeatureRequestDetailPage() {
   const [featureRequest, setFeatureRequest] = useState<FeatureRequest | null>(null);
@@ -20,8 +20,24 @@ export default function AdminFeatureRequestDetailPage() {
     // Simulate API call
     setTimeout(() => {
       // In a real app, you would fetch data from the server
-      // Since we're showing empty states, just set to null after loading
-      setFeatureRequest(null);
+      const mockFeatureRequest: FeatureRequest = {
+        id: id || "fr-1",
+        title: "Sample Feature Request",
+        description: "This is a sample feature request for testing the detail page.",
+        status: "pending" as FeatureRequestStatus,
+        priority: "medium" as FeatureRequestPriority,
+        category: "UI/UX",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        score: 5,
+        userId: "user-1",
+        user: placeholderUser,
+        createdBy: placeholderUser,
+        votes: [],
+        comments: []
+      };
+      
+      setFeatureRequest(mockFeatureRequest);
       setLoading(false);
     }, 500);
   }, [id]);
@@ -96,19 +112,12 @@ export default function AdminFeatureRequestDetailPage() {
   if (!featureRequest) {
     return (
       <div className="container mx-auto p-6">
-        <div className="mb-6">
-          <Button variant="ghost" onClick={() => navigate("/admin/feature-requests")}>
+        <div className="text-center py-10">
+          <h2 className="text-2xl font-bold mb-2">Feature Request Not Found</h2>
+          <p className="text-gray-500 mb-4">The feature request you're looking for doesn't exist.</p>
+          <Button onClick={() => navigate("/admin/feature-requests")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Feature Requests
-          </Button>
-        </div>
-        
-        <div className="text-center py-16 border rounded-lg bg-gray-50">
-          <FileX className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Feature Request Not Found</h2>
-          <p className="text-gray-500 mb-6 max-w-md mx-auto">The feature request you're looking for doesn't exist or has been removed.</p>
-          <Button onClick={() => navigate("/admin/feature-requests")}>
-            View All Feature Requests
           </Button>
         </div>
       </div>
