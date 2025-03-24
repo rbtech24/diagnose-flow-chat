@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import { Star, StarHalf, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function Index() {
   const navigate = useNavigate();
@@ -74,6 +75,42 @@ export default function Index() {
           </div>
         </div>
 
+        {/* Trusted by companies section */}
+        <div className="bg-gray-50 py-16">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <h2 className="text-center text-lg font-semibold leading-8 text-gray-600">
+              Trusted by leading appliance repair companies nationwide
+            </h2>
+            <div className="mx-auto mt-10 grid grid-cols-2 items-center gap-x-8 gap-y-10 sm:grid-cols-3 md:grid-cols-5 lg:mx-0 lg:gap-x-10">
+              <div className="flex justify-center grayscale transition duration-300 hover:grayscale-0">
+                <div className="flex h-12 items-center justify-center rounded-lg bg-white px-6 py-8 shadow-sm">
+                  <span className="text-xl font-bold text-gray-700">FixMaster</span>
+                </div>
+              </div>
+              <div className="flex justify-center grayscale transition duration-300 hover:grayscale-0">
+                <div className="flex h-12 items-center justify-center rounded-lg bg-white px-6 py-8 shadow-sm">
+                  <span className="text-xl font-bold text-gray-700">AppliTech</span>
+                </div>
+              </div>
+              <div className="flex justify-center grayscale transition duration-300 hover:grayscale-0">
+                <div className="flex h-12 items-center justify-center rounded-lg bg-white px-6 py-8 shadow-sm">
+                  <span className="text-xl font-bold text-gray-700">HomeServe</span>
+                </div>
+              </div>
+              <div className="flex justify-center grayscale transition duration-300 hover:grayscale-0">
+                <div className="flex h-12 items-center justify-center rounded-lg bg-white px-6 py-8 shadow-sm">
+                  <span className="text-xl font-bold text-gray-700">RepairPro</span>
+                </div>
+              </div>
+              <div className="flex justify-center grayscale transition duration-300 hover:grayscale-0">
+                <div className="flex h-12 items-center justify-center rounded-lg bg-white px-6 py-8 shadow-sm">
+                  <span className="text-xl font-bold text-gray-700">TechFix</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-white py-24 sm:py-32">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="mx-auto max-w-2xl lg:text-center">
@@ -115,6 +152,100 @@ export default function Index() {
                   </dd>
                 </div>
               </dl>
+            </div>
+          </div>
+        </div>
+
+        {/* Testimonials section */}
+        <div className="bg-gray-50 py-24 sm:py-32">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <div className="mx-auto max-w-2xl lg:text-center">
+              <h2 className="text-base font-semibold leading-7 text-blue-600">Testimonials</h2>
+              <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                What our customers are saying
+              </p>
+            </div>
+            
+            <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 lg:max-w-none lg:grid-cols-3">
+              {/* Testimonial 1 */}
+              <div className="flex flex-col justify-between rounded-2xl bg-white p-8 shadow-sm ring-1 ring-gray-200">
+                <div>
+                  <div className="flex items-center gap-x-1 text-blue-600">
+                    <Star className="h-5 w-5 fill-current" />
+                    <Star className="h-5 w-5 fill-current" />
+                    <Star className="h-5 w-5 fill-current" />
+                    <Star className="h-5 w-5 fill-current" />
+                    <Star className="h-5 w-5 fill-current" />
+                  </div>
+                  <div className="mt-6 text-lg font-semibold text-gray-900">
+                    Revolutionized our workflow
+                  </div>
+                  <div className="mt-2 text-base text-gray-600">
+                    "Since implementing Repair Auto Pilot, our technicians are completing 30% more jobs per day. The diagnostic tools are incredibly accurate, and the mobile app works flawlessly in the field."
+                  </div>
+                </div>
+                <div className="mt-8 border-t border-gray-100 pt-6">
+                  <div className="font-semibold text-gray-900">Mark Johnson</div>
+                  <div className="text-sm text-gray-600">CEO, FixMaster Appliances</div>
+                </div>
+              </div>
+              
+              {/* Testimonial 2 */}
+              <div className="flex flex-col justify-between rounded-2xl bg-white p-8 shadow-sm ring-1 ring-gray-200">
+                <div>
+                  <div className="flex items-center gap-x-1 text-blue-600">
+                    <Star className="h-5 w-5 fill-current" />
+                    <Star className="h-5 w-5 fill-current" />
+                    <Star className="h-5 w-5 fill-current" />
+                    <Star className="h-5 w-5 fill-current" />
+                    <Star className="h-5 w-5 fill-current" />
+                  </div>
+                  <div className="mt-6 text-lg font-semibold text-gray-900">
+                    Customer satisfaction skyrocketed
+                  </div>
+                  <div className="mt-2 text-base text-gray-600">
+                    "Our customer satisfaction scores have improved by 45% since we started using Repair Auto Pilot. First-time fix rates are up, and our technicians love the knowledge base."
+                  </div>
+                </div>
+                <div className="mt-8 border-t border-gray-100 pt-6">
+                  <div className="font-semibold text-gray-900">Sarah Miller</div>
+                  <div className="text-sm text-gray-600">Operations Manager, HomeServe Plus</div>
+                </div>
+              </div>
+              
+              {/* Testimonial 3 */}
+              <div className="flex flex-col justify-between rounded-2xl bg-white p-8 shadow-sm ring-1 ring-gray-200">
+                <div>
+                  <div className="flex items-center gap-x-1 text-blue-600">
+                    <Star className="h-5 w-5 fill-current" />
+                    <Star className="h-5 w-5 fill-current" />
+                    <Star className="h-5 w-5 fill-current" />
+                    <Star className="h-5 w-5 fill-current" />
+                    <StarHalf className="h-5 w-5 fill-current" />
+                  </div>
+                  <div className="mt-6 text-lg font-semibold text-gray-900">
+                    Training time cut in half
+                  </div>
+                  <div className="mt-2 text-base text-gray-600">
+                    "We've been able to onboard new technicians in half the time thanks to the diagnostic workflows and knowledge base. The system is intuitive and has become essential to our operations."
+                  </div>
+                </div>
+                <div className="mt-8 border-t border-gray-100 pt-6">
+                  <div className="font-semibold text-gray-900">David Chen</div>
+                  <div className="text-sm text-gray-600">Technical Director, AppliTech Services</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-16 flex justify-center">
+              <Button variant="outline" size="lg" className="gap-2">
+                <ChevronLeft className="h-4 w-4" />
+                <span>Previous</span>
+              </Button>
+              <Button variant="outline" size="lg" className="gap-2 ml-4">
+                <span>Next</span>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </div>
