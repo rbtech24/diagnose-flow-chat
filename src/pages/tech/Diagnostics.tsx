@@ -7,15 +7,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { Navigate } from "react-router-dom";
 import { Stethoscope, Wrench, ArrowRight } from "lucide-react";
 import { useWorkflows } from "@/hooks/useWorkflows";
-
-// Define a proper workflow type that matches what the hook returns
-interface DiagnosticWorkflow {
-  id: string;
-  name: string;
-  description?: string;
-  nodeCounter?: number;
-  category?: string;
-}
+import { SavedWorkflow } from "@/utils/flow/types";
 
 export default function TechDiagnostics() {
   const { role, isLoading: roleLoading } = useUserRole();
@@ -36,8 +28,9 @@ export default function TechDiagnostics() {
     );
   }
 
-  // Cast workflows to the expected type
-  const diagnosticWorkflows = workflows as unknown as DiagnosticWorkflow[];
+  // Generate a unique ID for each workflow
+  const getWorkflowId = (workflow: SavedWorkflow) => 
+    `${workflow.metadata.folder}-${workflow.metadata.name}`;
 
   return (
     <div className="container mx-auto p-6">
@@ -49,20 +42,20 @@ export default function TechDiagnostics() {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {diagnosticWorkflows.length > 0 ? (
-          diagnosticWorkflows.map((workflow) => (
+        {workflows.length > 0 ? (
+          workflows.map((workflow) => (
             <Card 
-              key={workflow.id} 
+              key={getWorkflowId(workflow)} 
               className={`cursor-pointer transition-all hover:shadow-md ${
-                selectedWorkflow === workflow.id ? 'border-blue-500 ring-2 ring-blue-200' : ''
+                selectedWorkflow === getWorkflowId(workflow) ? 'border-blue-500 ring-2 ring-blue-200' : ''
               }`}
-              onClick={() => setSelectedWorkflow(workflow.id)}
+              onClick={() => setSelectedWorkflow(getWorkflowId(workflow))}
             >
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle>{workflow.name}</CardTitle>
-                    <CardDescription>{workflow.description || 'Diagnostic procedure'}</CardDescription>
+                    <CardTitle>{workflow.metadata.name}</CardTitle>
+                    <CardDescription>{workflow.metadata.description || 'Diagnostic procedure'}</CardDescription>
                   </div>
                   <div className="bg-blue-100 p-2 rounded-full">
                     <Stethoscope className="h-5 w-5 text-blue-600" />
@@ -72,14 +65,14 @@ export default function TechDiagnostics() {
               <CardContent>
                 <div className="mt-2">
                   <p className="text-sm text-gray-600">
-                    {workflow.nodeCounter || 0} steps • {workflow.category || 'General'}
+                    {workflow.nodeCounter || 0} steps • {workflow.metadata.folder || 'General'}
                   </p>
                   <Button 
                     className="w-full mt-4"
                     onClick={(e) => {
                       e.stopPropagation();
                       // In a real app, navigate to the workflow
-                      console.log(`Starting workflow: ${workflow.id}`);
+                      console.log(`Starting workflow: ${getWorkflowId(workflow)}`);
                     }}
                   >
                     Start Diagnosis <ArrowRight className="ml-2 h-4 w-4" />
