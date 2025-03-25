@@ -1,116 +1,90 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from "@/integrations/supabase/client";
+import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+
+export type MessageType = 'info' | 'warning' | 'error' | 'success';
+export type UserRole = 'admin' | 'company' | 'tech';
 
 export interface SystemMessage {
   id: string;
-  type: 'info' | 'warning' | 'error' | 'success' | 'maintenance';
+  type: MessageType;
   title: string;
   message: string;
-  audience: string;
   dismissible?: boolean;
-  active: boolean;
-  scheduled?: string;
+  audience?: UserRole[]; // Which user roles should see this message
+  expiresAt?: Date; // When should this message expire
 }
 
-interface SystemMessageContextType {
+interface SystemMessageContextValue {
   messages: SystemMessage[];
-  addMessage: (message: Omit<SystemMessage, 'id'>) => void;
+  addMessage: (message: Omit<SystemMessage, 'id'>) => string;
   removeMessage: (id: string) => void;
   clearMessages: () => void;
 }
 
-const SystemMessageContext = createContext<SystemMessageContextType | undefined>(undefined);
+const SystemMessageContext = createContext<SystemMessageContextValue | undefined>(undefined);
 
-export function SystemMessageProvider({ children }: { children: ReactNode }) {
-  const [messages, setMessages] = useState<SystemMessage[]>([]);
+export const SystemMessageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [messages, setMessages] = useState<SystemMessage[]>([
+    {
+      id: '1',
+      type: 'info',
+      title: 'Welcome to the Admin Panel',
+      message: 'You can manage all aspects of the platform from here.',
+      dismissible: true,
+      audience: ['admin']
+    },
+    {
+      id: '2',
+      type: 'info',
+      title: 'Welcome to the Company Portal',
+      message: 'You can manage your technicians and subscription from here.',
+      dismissible: true,
+      audience: ['company']
+    },
+    {
+      id: '3',
+      type: 'info',
+      title: 'Welcome to the Tech Portal',
+      message: 'You can access all your diagnostics tools from here.',
+      dismissible: true,
+      audience: ['tech']
+    }
+  ]);
 
-  useEffect(() => {
-    // Fetch messages from Supabase on component mount
-    const fetchMessages = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('system_messages')
-          .select('*')
-          .eq('active', true);
-        
-        if (error) throw error;
-        
-        // Transform the data to match our SystemMessage interface
-        const transformedMessages: SystemMessage[] = data.map(msg => ({
-          id: msg.id,
-          type: msg.type as 'info' | 'warning' | 'error' | 'success' | 'maintenance',
-          title: msg.title,
-          message: msg.message,
-          audience: msg.audience,
-          dismissible: true, // Default to true
-          active: msg.active,
-          scheduled: msg.scheduled
-        }));
-        
-        setMessages(transformedMessages);
-      } catch (error) {
-        console.error('Error fetching system messages:', error);
-      }
-    };
-    
-    fetchMessages();
-    
-    // Set up real-time subscription
-    const subscription = supabase
-      .channel('system_messages_changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'system_messages' },
-        (payload) => {
-          // Refresh messages when there's a change
-          fetchMessages();
-        }
-      )
-      .subscribe();
-    
-    return () => {
-      subscription.unsubscribe();
-    };
+  const addMessage = useCallback((message: Omit<SystemMessage, 'id'>) => {
+    const id = `msg-${Date.now()}`;
+    setMessages(prev => [...prev, { ...message, id }]);
+    return id;
   }, []);
 
-  const addMessage = (message: Omit<SystemMessage, 'id'>) => {
-    const newMessage = {
-      ...message,
-      id: crypto.randomUUID(),
-    };
-    setMessages(prev => [...prev, newMessage]);
-  };
-
-  const removeMessage = (id: string) => {
+  const removeMessage = useCallback((id: string) => {
     setMessages(prev => prev.filter(message => message.id !== id));
-  };
+  }, []);
 
-  const clearMessages = () => {
+  const clearMessages = useCallback(() => {
     setMessages([]);
-  };
+  }, []);
 
   return (
     <SystemMessageContext.Provider value={{ messages, addMessage, removeMessage, clearMessages }}>
       {children}
     </SystemMessageContext.Provider>
   );
-}
+};
 
-export function useSystemMessages() {
+export const useSystemMessages = () => {
   const context = useContext(SystemMessageContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useSystemMessages must be used within a SystemMessageProvider');
   }
   return context;
-}
+};
 
-export function useUserMessages(userRole: string = 'all') {
+export const useUserMessages = (role: UserRole) => {
   const { messages } = useSystemMessages();
   
-  // Filter messages based on user role
-  return messages.filter(message => {
-    const audience = message.audience.toLowerCase().split(',').map(a => a.trim());
-    return audience.includes('all') || audience.includes(userRole.toLowerCase());
-  });
-}
+  // Filter messages for this user role
+  return messages.filter(message => 
+    !message.audience || message.audience.includes(role)
+  );
+};

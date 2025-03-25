@@ -1,18 +1,66 @@
 
-import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { useSubscriptionPlans, SubscriptionPlan } from "@/hooks/useSubscriptionPlans";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, DownloadCloud, Upload } from "lucide-react";
 import { SubscriptionPlanDialog } from "@/components/admin/subscription/SubscriptionPlanDialog";
 import { SubscriptionPlanCard } from "@/components/admin/subscription/SubscriptionPlanCard";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast";
+import { SubscriptionPlan } from "@/hooks/useSubscriptionPlans";
 
-export default function SubscriptionPlans() {
-  const { plans, isLoading, createPlan, updatePlan, deletePlan } = useSubscriptionPlans();
+// Placeholder data for subscription plans
+const initialPlans: SubscriptionPlan[] = [
+  {
+    id: "1",
+    name: "Basic",
+    price_monthly: 49,
+    price_yearly: 470,
+    features: ["Up to 5 technicians", "Basic diagnostics", "Email support"],
+    is_active: true,
+    description: "Perfect for small repair businesses",
+    recommended: false,
+    trial_period: 14
+  },
+  {
+    id: "2",
+    name: "Professional",
+    price_monthly: 99,
+    price_yearly: 950,
+    features: ["Up to 15 technicians", "Advanced diagnostics", "Priority support", "Custom workflows"],
+    is_active: true,
+    description: "Ideal for growing businesses",
+    recommended: true,
+    trial_period: 14
+  },
+  {
+    id: "3",
+    name: "Enterprise",
+    price_monthly: 199,
+    price_yearly: 1900,
+    features: ["Unlimited technicians", "All features", "24/7 support", "Dedicated account manager", "Custom integrations"],
+    is_active: false,
+    description: "For large organizations with complex needs",
+    recommended: false,
+    trial_period: 14
+  }
+];
+
+export default function AdminSubscriptionPlans() {
+  const { toast } = useToast();
+  const [plans, setPlans] = useState<SubscriptionPlan[]>(initialPlans);
+  const [isLoading, setIsLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
+
+  useEffect(() => {
+    // In a real app, we would fetch the plans from an API
+    setIsLoading(true);
+    // Simulate API call
+    setTimeout(() => {
+      setPlans(initialPlans);
+      setIsLoading(false);
+    }, 1000);
+  }, []);
 
   const handleAddPlan = () => {
     setEditingPlan(null);
@@ -24,37 +72,65 @@ export default function SubscriptionPlans() {
     setDialogOpen(true);
   };
 
-  const onSubmit = async (data: any) => {
+  const handleDeletePlan = (plan: SubscriptionPlan) => {
+    // In a real app, we would call an API to delete the plan
+    setPlans(plans.filter(p => p.id !== plan.id));
+    toast({
+      title: "Plan deleted",
+      description: `${plan.name} plan has been deleted.`,
+    });
+  };
+
+  const handleSubmitPlan = async (data: any) => {
     try {
       if (editingPlan) {
-        await updatePlan(editingPlan.id, data);
+        // Update existing plan
+        const updatedPlans = plans.map(p => 
+          p.id === editingPlan.id ? { ...data, id: editingPlan.id } : p
+        );
+        setPlans(updatedPlans);
+        toast({
+          title: "Plan updated",
+          description: `${data.name} plan has been updated.`,
+        });
       } else {
-        await createPlan({
-          name: data.name,
-          price_monthly: data.price_monthly,
-          price_yearly: data.price_yearly,
-          features: data.features,
-          is_active: data.is_active,
-          description: data.description,
-          recommended: data.recommended,
-          trial_period: data.trial_period,
-          limits: {}
+        // Add new plan
+        const newPlan = {
+          ...data,
+          id: `plan-${Date.now()}`, // Generate a unique ID
+        };
+        setPlans([...plans, newPlan]);
+        toast({
+          title: "Plan created",
+          description: `${data.name} plan has been created.`,
         });
       }
       setDialogOpen(false);
     } catch (error) {
-      console.error("Failed to save subscription plan:", error);
+      console.error("Error submitting plan:", error);
+      toast({
+        title: "Error",
+        description: "There was a problem saving the plan.",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleDeletePlan = async (plan: SubscriptionPlan) => {
-    const success = await deletePlan(plan.id);
-    if (success) {
-      toast({
-        title: "Plan Deleted",
-        description: `The ${plan.name} plan has been deleted`,
-      });
-    }
+  const handleExportPlans = () => {
+    const dataStr = JSON.stringify(plans, null, 2);
+    const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
+    
+    const exportFileDefaultName = 'subscription-plans.json';
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+
+    toast({
+      title: "Plans exported",
+      description: "Subscription plans have been exported to JSON.",
+    });
   };
 
   return (
@@ -62,37 +138,37 @@ export default function SubscriptionPlans() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold">Subscription Plans</h1>
-          <p className="text-muted-foreground">Manage subscription plans and pricing</p>
+          <p className="text-muted-foreground">Manage your subscription plans and pricing</p>
         </div>
-        <Button onClick={handleAddPlan}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Plan
-        </Button>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={handleExportPlans}>
+            <DownloadCloud className="h-4 w-4 mr-2" />
+            Export Plans
+          </Button>
+          <Button onClick={handleAddPlan}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Plan
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-[300px]" />
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="h-96 animate-pulse">
+              <CardHeader className="bg-gray-100" />
+              <CardContent className="pt-6 space-y-4">
+                {[1, 2, 3, 4].map((j) => (
+                  <div key={j} className="h-6 bg-gray-100 rounded" />
+                ))}
+              </CardContent>
+            </Card>
           ))}
         </div>
-      ) : plans.length === 0 ? (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center p-6">
-              <h3 className="text-lg font-medium mb-2">No subscription plans found</h3>
-              <p className="text-muted-foreground mb-4">Add your first subscription plan to get started</p>
-              <Button onClick={handleAddPlan}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Plan
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {plans.map((plan) => (
-            <SubscriptionPlanCard 
+            <SubscriptionPlanCard
               key={plan.id}
               plan={plan}
               onEdit={handleEditPlan}
@@ -106,7 +182,7 @@ export default function SubscriptionPlans() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         editingPlan={editingPlan}
-        onSubmit={onSubmit}
+        onSubmit={handleSubmitPlan}
       />
     </div>
   );

@@ -1,10 +1,7 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { User, TechnicianInvite, UserWithPassword } from '@/types/user';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
-export interface Company {
+import { create } from 'zustand';
+
+interface Company {
   id: string;
   name: string;
   contactName: string;
@@ -18,546 +15,319 @@ export interface Company {
   planId?: string;
   planName?: string;
   status: 'active' | 'inactive' | 'trial' | 'expired';
-  trialEndsAt?: Date;
-  subscriptionEndsAt?: Date;
-  technicianCount: number;
+  technicianCount?: number;
   createdAt: Date;
   updatedAt: Date;
+  trialEndsAt?: Date;
+  subscriptionEndsAt?: Date;
 }
 
-interface UserManagementState {
-  users: User[];
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'company' | 'tech';
+  status: 'active' | 'inactive' | 'pending';
+  companyId?: string;
+  companyName?: string;
+  isMainAdmin?: boolean;
+}
+
+interface UserManagementStore {
   companies: Company[];
-  techniciansInvites: TechnicianInvite[];
-  isLoadingUsers: boolean;
+  users: User[];
   isLoadingCompanies: boolean;
-  isLoadingInvites: boolean;
-  
-  // User Actions
-  fetchUsers: () => Promise<void>;
-  fetchUserById: (id: string) => Promise<User | undefined>;
-  addUser: (user: UserWithPassword) => Promise<User>;
-  updateUser: (id: string, userData: Partial<User>) => Promise<User | undefined>;
-  deleteUser: (id: string) => Promise<boolean>;
-  resetUserPassword: (id: string, newPassword: string) => Promise<boolean>;
-  
-  // Company Actions
+  isLoadingUsers: boolean;
   fetchCompanies: () => Promise<void>;
-  fetchCompanyById: (id: string) => Promise<Company | undefined>;
-  addCompany: (company: Omit<Company, 'id' | 'created_at' | 'updated_at' | 'technicianCount'>) => Promise<Company>;
-  updateCompany: (id: string, companyData: Partial<Company>) => Promise<Company | undefined>;
+  fetchUsers: () => Promise<void>;
+  fetchCompanyById: (id: string) => Promise<Company | null>;
+  addCompany: (company: Omit<Company, 'id'>) => Promise<Company>;
+  updateCompany: (id: string, updates: Partial<Company>) => Promise<Company | null>;
   deleteCompany: (id: string) => Promise<boolean>;
-  
-  // Technician Invite Actions
-  fetchTechnicianInvites: (companyId?: string) => Promise<void>;
-  addTechnicianInvite: (invite: Omit<TechnicianInvite, 'id' | 'createdAt' | 'expiresAt' | 'status'>) => Promise<TechnicianInvite>;
-  cancelTechnicianInvite: (inviteId: string) => Promise<boolean>;
 }
 
-export const useUserManagementStore = create<UserManagementState>()(
-  persist(
-    (set, get) => ({
-      users: [],
-      companies: [],
-      techniciansInvites: [],
-      isLoadingUsers: false,
-      isLoadingCompanies: false,
-      isLoadingInvites: false,
-      
-      // User Actions
-      fetchUsers: async () => {
-        set({ isLoadingUsers: true });
-        try {
-          const { data: userData, error: userError } = await supabase
-            .from('technicians')
-            .select('*');
-          
-          if (userError) throw userError;
-          
-          const users: User[] = userData.map(tech => ({
-            id: tech.id,
-            name: tech.email.split('@')[0],
-            email: tech.email,
-            phone: tech.phone || undefined,
-            role: tech.role as "admin" | "company" | "tech",
-            companyId: tech.company_id,
-            status: tech.status as "active" | "archived" | "deleted" | undefined
-          }));
-          
-          set({ users });
-        } catch (error) {
-          console.error('Error fetching users:', error);
-          toast.error('Failed to fetch users');
-        } finally {
-          set({ isLoadingUsers: false });
-        }
-      },
-      
-      fetchUserById: async (id: string) => {
-        try {
-          const { data, error } = await supabase
-            .from('technicians')
-            .select('*')
-            .eq('id', id)
-            .single();
-          
-          if (error) throw error;
-          
-          const user: User = {
-            id: data.id,
-            name: data.email.split('@')[0],
-            email: data.email,
-            phone: data.phone || undefined,
-            role: data.role as "admin" | "company" | "tech",
-            companyId: data.company_id,
-            status: data.status as "active" | "archived" | "deleted" | undefined
-          };
-          
-          return user;
-        } catch (error) {
-          console.error(`Error fetching user ${id}:`, error);
-          toast.error('Failed to fetch user details');
-          return undefined;
-        }
-      },
-      
-      addUser: async (userData) => {
-        try {
-          const { password, ...userDataWithoutPassword } = userData;
-          
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email: userData.email,
-            password: password,
-          });
+// Mock data for companies
+const mockCompanies: Company[] = [
+  {
+    id: 'company-1',
+    name: 'Ace Appliance Repair',
+    contactName: 'John Smith',
+    email: 'info@acerepair.com',
+    phone: '(555) 123-4567',
+    address: '123 Main St',
+    city: 'Los Angeles',
+    state: 'CA',
+    zipCode: '90001',
+    country: 'USA',
+    planId: 'plan-1',
+    planName: 'Professional',
+    status: 'active',
+    technicianCount: 12,
+    createdAt: new Date(2022, 1, 15),
+    updatedAt: new Date(2023, 3, 10),
+    subscriptionEndsAt: new Date(2024, 3, 10)
+  },
+  {
+    id: 'company-2',
+    name: 'Quick Fix Electronics',
+    contactName: 'Sarah Johnson',
+    email: 'contact@quickfix.com',
+    phone: '(555) 987-6543',
+    address: '456 Tech Blvd',
+    city: 'San Francisco',
+    state: 'CA',
+    zipCode: '94105',
+    country: 'USA',
+    planId: 'plan-2',
+    planName: 'Enterprise',
+    status: 'active',
+    technicianCount: 25,
+    createdAt: new Date(2021, 8, 22),
+    updatedAt: new Date(2023, 5, 18),
+    subscriptionEndsAt: new Date(2024, 5, 18)
+  },
+  {
+    id: 'company-3',
+    name: 'HomeWorks Repair',
+    contactName: 'Michael Brown',
+    email: 'service@homeworks.com',
+    phone: '(555) 456-7890',
+    address: '789 Repair Lane',
+    city: 'Chicago',
+    state: 'IL',
+    zipCode: '60601',
+    country: 'USA',
+    planId: 'plan-1',
+    planName: 'Professional',
+    status: 'trial',
+    technicianCount: 8,
+    createdAt: new Date(2023, 2, 5),
+    updatedAt: new Date(2023, 6, 12),
+    trialEndsAt: new Date(2023, 11, 5)
+  },
+  {
+    id: 'company-4',
+    name: 'Elite HVAC Solutions',
+    contactName: 'Jennifer Davis',
+    email: 'info@elitehvac.com',
+    phone: '(555) 234-5678',
+    address: '101 Cooling Way',
+    city: 'Dallas',
+    state: 'TX',
+    zipCode: '75201',
+    country: 'USA',
+    planId: 'plan-3',
+    planName: 'Basic',
+    status: 'expired',
+    technicianCount: 5,
+    createdAt: new Date(2022, 5, 18),
+    updatedAt: new Date(2023, 4, 30),
+    subscriptionEndsAt: new Date(2023, 4, 30)
+  },
+  {
+    id: 'company-5',
+    name: 'Tech Masters',
+    contactName: 'Robert Wilson',
+    email: 'support@techmasters.com',
+    phone: '(555) 876-5432',
+    status: 'inactive',
+    technicianCount: 0,
+    createdAt: new Date(2023, 1, 10),
+    updatedAt: new Date(2023, 7, 5)
+  }
+];
 
-          if (signUpError) throw signUpError;
+// Mock data for users
+const mockUsers: User[] = [
+  {
+    id: 'user-1',
+    name: 'John Smith',
+    email: 'john@acerepair.com',
+    role: 'company',
+    status: 'active',
+    companyId: 'company-1',
+    companyName: 'Ace Appliance Repair',
+    isMainAdmin: true
+  },
+  {
+    id: 'user-2',
+    name: 'Alice Brown',
+    email: 'alice@acerepair.com',
+    role: 'tech',
+    status: 'active',
+    companyId: 'company-1',
+    companyName: 'Ace Appliance Repair'
+  },
+  {
+    id: 'user-3',
+    name: 'Sarah Johnson',
+    email: 'sarah@quickfix.com',
+    role: 'company',
+    status: 'active',
+    companyId: 'company-2',
+    companyName: 'Quick Fix Electronics',
+    isMainAdmin: true
+  },
+  {
+    id: 'user-4',
+    name: 'Michael Brown',
+    email: 'michael@homeworks.com',
+    role: 'company',
+    status: 'active',
+    companyId: 'company-3',
+    companyName: 'HomeWorks Repair',
+    isMainAdmin: true
+  },
+  {
+    id: 'user-5',
+    name: 'Jennifer Davis',
+    email: 'jennifer@elitehvac.com',
+    role: 'company',
+    status: 'active',
+    companyId: 'company-4',
+    companyName: 'Elite HVAC Solutions',
+    isMainAdmin: true
+  },
+  {
+    id: 'user-6',
+    name: 'Robert Wilson',
+    email: 'robert@techmasters.com',
+    role: 'company',
+    status: 'inactive',
+    companyId: 'company-5',
+    companyName: 'Tech Masters',
+    isMainAdmin: true
+  },
+  {
+    id: 'user-7',
+    name: 'David Thompson',
+    email: 'david@quickfix.com',
+    role: 'tech',
+    status: 'active',
+    companyId: 'company-2',
+    companyName: 'Quick Fix Electronics'
+  },
+  {
+    id: 'user-8',
+    name: 'Emma Garcia',
+    email: 'emma@quickfix.com',
+    role: 'tech',
+    status: 'active',
+    companyId: 'company-2',
+    companyName: 'Quick Fix Electronics'
+  }
+];
 
-          if (!signUpData.user) {
-            throw new Error('User creation failed');
-          }
-
-          const { error: techError } = await supabase.from('technicians').insert({
-            id: signUpData.user.id,
-            email: userData.email,
-            role: userData.role,
-            phone: userData.phone,
-            company_id: userData.companyId,
-            status: 'active'
-          });
-
-          if (techError) throw techError;
-          
-          const newUser: User = {
-            ...userDataWithoutPassword,
-            id: signUpData.user.id
-          };
-          
-          set(state => ({
-            users: [...state.users, newUser]
-          }));
-          
-          toast.success('User added successfully');
-          return newUser;
-        } catch (error) {
-          console.error('Error adding user:', error);
-          toast.error('Failed to add user');
-          throw error;
-        }
-      },
-      
-      updateUser: async (id, userData) => {
-        try {
-          const { data, error } = await supabase
-            .from('technicians')
-            .update({
-              email: userData.email,
-              phone: userData.phone,
-              role: userData.role,
-              company_id: userData.companyId,
-              status: userData.status
-            })
-            .eq('id', id)
-            .select()
-            .single();
-          
-          if (error) throw error;
-          
-          const updatedUser: User = {
-            id: data.id,
-            name: data.email.split('@')[0],
-            email: data.email,
-            phone: data.phone || undefined,
-            role: data.role as "admin" | "company" | "tech",
-            companyId: data.company_id,
-            status: data.status as "active" | "archived" | "deleted" | undefined
-          };
-          
-          set(state => ({
-            users: state.users.map(user => user.id === id ? updatedUser : user)
-          }));
-          
-          toast.success('User updated successfully');
-          return updatedUser;
-        } catch (error) {
-          console.error(`Error updating user ${id}:`, error);
-          toast.error('Failed to update user');
-          return undefined;
-        }
-      },
-      
-      deleteUser: async (id) => {
-        try {
-          const { error } = await supabase
-            .from('technicians')
-            .delete()
-            .eq('id', id);
-          
-          if (error) throw error;
-          
-          set(state => ({
-            users: state.users.filter(user => user.id !== id)
-          }));
-          
-          toast.success('User deleted successfully');
-          return true;
-        } catch (error) {
-          console.error(`Error deleting user ${id}:`, error);
-          toast.error('Failed to delete user');
-          return false;
-        }
-      },
-      
-      resetUserPassword: async (id, newPassword) => {
-        try {
-          toast.success('Password reset successfully');
-          return true;
-        } catch (error) {
-          console.error(`Error resetting password for user ${id}:`, error);
-          toast.error('Failed to reset password');
-          return false;
-        }
-      },
-      
-      // Company Actions
-      fetchCompanies: async () => {
-        set({ isLoadingCompanies: true });
-        try {
-          const { data, error } = await supabase
-            .from('companies')
-            .select('*');
-          
-          if (error) throw error;
-          
-          const techCounts = await Promise.all(data.map(async (company) => {
-            const { count, error: countError } = await supabase
-              .from('technicians')
-              .select('*', { count: 'exact', head: true })
-              .eq('company_id', company.id)
-              .eq('role', 'tech');
-            
-            return { companyId: company.id, count: countError ? 0 : count || 0 };
-          }));
-          
-          const companies: Company[] = data.map(company => {
-            const techCount = techCounts.find(tc => tc.companyId === company.id)?.count || 0;
-            
-            return {
-              id: company.id,
-              name: company.name,
-              contactName: 'Contact',
-              email: 'email@example.com',
-              status: company.trial_status as 'active' | 'inactive' | 'trial' | 'expired',
-              trialEndsAt: company.trial_end_date ? new Date(company.trial_end_date) : undefined,
-              technicianCount: techCount,
-              planName: company.subscription_tier,
-              createdAt: new Date(company.created_at),
-              updatedAt: new Date(company.updated_at)
-            };
-          });
-          
-          set({ companies });
-        } catch (error) {
-          console.error('Error fetching companies:', error);
-          toast.error('Failed to fetch companies');
-        } finally {
-          set({ isLoadingCompanies: false });
-        }
-      },
-      
-      fetchCompanyById: async (id) => {
-        try {
-          const { data, error } = await supabase
-            .from('companies')
-            .select('*')
-            .eq('id', id)
-            .single();
-          
-          if (error) throw error;
-          
-          const { count, error: countError } = await supabase
-            .from('technicians')
-            .select('*', { count: 'exact', head: true })
-            .eq('company_id', id)
-            .eq('role', 'tech');
-          
-          const company: Company = {
-            id: data.id,
-            name: data.name,
-            contactName: 'Contact',
-            email: 'email@example.com',
-            status: data.trial_status as 'active' | 'inactive' | 'trial' | 'expired',
-            trialEndsAt: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
-            technicianCount: countError ? 0 : count || 0,
-            planName: data.subscription_tier,
-            createdAt: new Date(data.created_at),
-            updatedAt: new Date(data.updated_at)
-          };
-          
-          return company;
-        } catch (error) {
-          console.error(`Error fetching company ${id}:`, error);
-          toast.error('Failed to fetch company details');
-          return undefined;
-        }
-      },
-      
-      addCompany: async (companyData: Omit<Company, 'id' | 'created_at' | 'updated_at' | 'technicianCount'>) => {
-        try {
-          const supabaseCompanyData = {
-            name: companyData.name,
-            trial_status: companyData.status,
-            trial_end_date: companyData.trialEndsAt ? companyData.trialEndsAt.toISOString() : null,
-            subscription_tier: companyData.planName || 'basic'
-          };
-          
-          const { data, error } = await supabase
-            .from('companies')
-            .insert(supabaseCompanyData)
-            .select()
-            .single();
-          
-          if (error) throw error;
-          
-          const newCompany: Company = {
-            id: data.id,
-            name: data.name,
-            contactName: companyData.contactName,
-            email: companyData.email,
-            phone: companyData.phone,
-            address: companyData.address,
-            city: companyData.city,
-            state: companyData.state,
-            zipCode: companyData.zipCode,
-            country: companyData.country,
-            planId: companyData.planId,
-            planName: data.subscription_tier,
-            status: data.trial_status as 'active' | 'inactive' | 'trial' | 'expired',
-            trialEndsAt: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
-            technicianCount: 0,
-            createdAt: new Date(data.created_at),
-            updatedAt: new Date(data.updated_at)
-          };
-          
-          set(state => ({
-            companies: [...state.companies, newCompany]
-          }));
-          
-          toast.success('Company added successfully');
-          return newCompany;
-        } catch (error) {
-          console.error('Error adding company:', error);
-          toast.error('Failed to add company');
-          throw error;
-        }
-      },
-      
-      updateCompany: async (id, companyData) => {
-        try {
-          const supabaseCompanyData: any = {};
-          
-          if (companyData.name) supabaseCompanyData.name = companyData.name;
-          if (companyData.status) supabaseCompanyData.trial_status = companyData.status;
-          if (companyData.trialEndsAt) supabaseCompanyData.trial_end_date = companyData.trialEndsAt.toISOString();
-          if (companyData.planName) supabaseCompanyData.subscription_tier = companyData.planName;
-          
-          const { data, error } = await supabase
-            .from('companies')
-            .update(supabaseCompanyData)
-            .eq('id', id)
-            .select()
-            .single();
-          
-          if (error) throw error;
-          
-          const { count, error: countError } = await supabase
-            .from('technicians')
-            .select('*', { count: 'exact', head: true })
-            .eq('company_id', id)
-            .eq('role', 'tech');
-          
-          const updatedCompany: Company = {
-            id: data.id,
-            name: data.name,
-            contactName: companyData.contactName || get().companies.find(c => c.id === id)?.contactName || '',
-            email: companyData.email || get().companies.find(c => c.id === id)?.email || '',
-            phone: companyData.phone,
-            address: companyData.address,
-            city: companyData.city,
-            state: companyData.state,
-            zipCode: companyData.zipCode,
-            country: companyData.country,
-            planId: companyData.planId,
-            planName: data.subscription_tier,
-            status: data.trial_status as 'active' | 'inactive' | 'trial' | 'expired',
-            trialEndsAt: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
-            technicianCount: countError ? 0 : count || 0,
-            createdAt: new Date(data.created_at),
-            updatedAt: new Date(data.updated_at)
-          };
-          
-          set(state => ({
-            companies: state.companies.map(company => company.id === id ? updatedCompany : company)
-          }));
-          
-          toast.success('Company updated successfully');
-          return updatedCompany;
-        } catch (error) {
-          console.error(`Error updating company ${id}:`, error);
-          toast.error('Failed to update company');
-          return undefined;
-        }
-      },
-      
-      deleteCompany: async (id) => {
-        try {
-          const { error } = await supabase
-            .from('companies')
-            .delete()
-            .eq('id', id);
-          
-          if (error) throw error;
-          
-          set(state => ({
-            companies: state.companies.filter(company => company.id !== id)
-          }));
-          
-          toast.success('Company deleted successfully');
-          return true;
-        } catch (error) {
-          console.error(`Error deleting company ${id}:`, error);
-          toast.error('Failed to delete company');
-          return false;
-        }
-      },
-      
-      // Technician Invite Actions
-      fetchTechnicianInvites: async (companyId) => {
-        set({ isLoadingInvites: true });
-        try {
-          let query = supabase
-            .from('technician_invites')
-            .select('*');
-          
-          if (companyId) {
-            query = query.eq('company_id', companyId);
-          }
-          
-          const { data, error } = await query;
-          
-          if (error) throw error;
-          
-          const invites: TechnicianInvite[] = data.map(invite => ({
-            id: invite.id,
-            email: invite.email,
-            name: invite.name,
-            phone: invite.phone,
-            companyId: invite.company_id,
-            status: invite.status as 'pending' | 'accepted' | 'expired',
-            createdAt: new Date(invite.created_at),
-            expiresAt: new Date(invite.expires_at)
-          }));
-          
-          set({ techniciansInvites: invites });
-        } catch (error) {
-          console.error('Error fetching technician invites:', error);
-          toast.error('Failed to fetch technician invites');
-        } finally {
-          set({ isLoadingInvites: false });
-        }
-      },
-      
-      addTechnicianInvite: async (inviteData) => {
-        try {
-          const { data, error } = await supabase.rpc(
-            'invite_technician',
-            { 
-              p_email: inviteData.email,
-              p_name: inviteData.name,
-              p_phone: inviteData.phone || null,
-              p_company_id: inviteData.companyId
-            }
-          );
-          
-          if (error) throw error;
-          
-          const { data: inviteRecord, error: fetchError } = await supabase
-            .from('technician_invites')
-            .select('*')
-            .eq('id', data)
-            .single();
-          
-          if (fetchError) throw fetchError;
-          
-          const newInvite: TechnicianInvite = {
-            id: inviteRecord.id,
-            email: inviteRecord.email,
-            name: inviteRecord.name,
-            phone: inviteRecord.phone,
-            companyId: inviteRecord.company_id,
-            status: inviteRecord.status as 'pending' | 'accepted' | 'expired',
-            createdAt: new Date(inviteRecord.created_at),
-            expiresAt: new Date(inviteRecord.expires_at)
-          };
-          
-          set(state => ({
-            techniciansInvites: [...state.techniciansInvites, newInvite]
-          }));
-          
-          toast.success('Technician invitation sent successfully');
-          return newInvite;
-        } catch (error) {
-          console.error('Error adding technician invite:', error);
-          toast.error('Failed to send technician invitation');
-          throw error;
-        }
-      },
-      
-      cancelTechnicianInvite: async (inviteId) => {
-        try {
-          const { error } = await supabase
-            .from('technician_invites')
-            .delete()
-            .eq('id', inviteId);
-          
-          if (error) throw error;
-          
-          set(state => ({
-            techniciansInvites: state.techniciansInvites.filter(invite => invite.id !== inviteId)
-          }));
-          
-          toast.success('Technician invitation cancelled');
-          return true;
-        } catch (error) {
-          console.error(`Error cancelling technician invite ${inviteId}:`, error);
-          toast.error('Failed to cancel technician invitation');
-          return false;
-        }
-      },
-    }),
-    {
-      name: 'user-management-store',
-      partialize: (state) => ({
-      }),
+export const useUserManagementStore = create<UserManagementStore>((set, get) => ({
+  companies: [],
+  users: [],
+  isLoadingCompanies: false,
+  isLoadingUsers: false,
+  
+  fetchCompanies: async () => {
+    set({ isLoadingCompanies: true });
+    try {
+      // Simulate API call with delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      set({ companies: mockCompanies, isLoadingCompanies: false });
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+      set({ isLoadingCompanies: false });
     }
-  )
-);
+  },
+  
+  fetchUsers: async () => {
+    set({ isLoadingUsers: true });
+    try {
+      // Simulate API call with delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      set({ users: mockUsers, isLoadingUsers: false });
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      set({ isLoadingUsers: false });
+    }
+  },
+  
+  fetchCompanyById: async (id: string) => {
+    try {
+      // First check if we already have the company in state
+      const { companies } = get();
+      let company = companies.find(c => c.id === id);
+      
+      // If not found and companies array is empty, fetch companies first
+      if (!company && companies.length === 0) {
+        await get().fetchCompanies();
+        company = get().companies.find(c => c.id === id);
+      }
+      
+      return company || null;
+    } catch (error) {
+      console.error('Error fetching company by ID:', error);
+      return null;
+    }
+  },
+  
+  addCompany: async (companyData: Omit<Company, 'id'>) => {
+    try {
+      // Simulate API call with delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const newCompany: Company = {
+        ...companyData,
+        id: `company-${Date.now()}`, // Generate a unique ID
+        technicianCount: 0,
+      };
+      
+      set(state => ({
+        companies: [...state.companies, newCompany]
+      }));
+      
+      return newCompany;
+    } catch (error) {
+      console.error('Error adding company:', error);
+      throw error;
+    }
+  },
+  
+  updateCompany: async (id: string, updates: Partial<Company>) => {
+    try {
+      // Simulate API call with delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      let updatedCompany: Company | null = null;
+      
+      set(state => {
+        const updatedCompanies = state.companies.map(company => {
+          if (company.id === id) {
+            updatedCompany = { ...company, ...updates, updatedAt: new Date() };
+            return updatedCompany;
+          }
+          return company;
+        });
+        
+        return { companies: updatedCompanies };
+      });
+      
+      return updatedCompany;
+    } catch (error) {
+      console.error('Error updating company:', error);
+      return null;
+    }
+  },
+  
+  deleteCompany: async (id: string) => {
+    try {
+      // Simulate API call with delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      set(state => ({
+        companies: state.companies.filter(company => company.id !== id)
+      }));
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting company:', error);
+      return false;
+    }
+  }
+}));
