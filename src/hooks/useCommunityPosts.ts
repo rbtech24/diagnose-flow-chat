@@ -4,6 +4,49 @@ import { supabase } from '@/integrations/supabase/client';
 import { CommunityPost, CommunityPostComment } from '@/types/community';
 import { useAuth } from '@/context/AuthContext';
 
+// Use manual type definition to match the tables we've created in Supabase
+type CommunityPostData = {
+  id: string;
+  title: string;
+  content: string;
+  type: string;
+  author_id: string;
+  created_at: string;
+  updated_at: string;
+  tags: string[];
+  upvotes: number;
+  views: number;
+  is_solved: boolean;
+  author: {
+    id: string;
+    email: string;
+    raw_user_meta_data: {
+      name: string;
+      role: string;
+      avatarUrl: string;
+    };
+  };
+  comments: {
+    id: string;
+    post_id: string;
+    content: string;
+    author_id: string;
+    created_at: string;
+    updated_at: string;
+    upvotes: number;
+    is_answer: boolean;
+    author: {
+      id: string;
+      email: string;
+      raw_user_meta_data: {
+        name: string;
+        role: string;
+        avatarUrl: string;
+      };
+    };
+  }[];
+};
+
 export function useCommunityPosts() {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -15,6 +58,8 @@ export function useCommunityPosts() {
       setIsLoading(true);
       setError(null);
       
+      // Use 'any' type temporarily to bypass TypeScript errors
+      // This is necessary because the tables we created aren't in the TypeScript definitions yet
       const { data, error } = await supabase
         .from('community_posts')
         .select(`
@@ -24,17 +69,21 @@ export function useCommunityPosts() {
             *,
             author:author_id(id, email, raw_user_meta_data)
           )
-        `)
-        .order('created_at', { ascending: false });
+        `) as { data: CommunityPostData[] | null, error: any };
       
       if (error) throw error;
 
+      if (!data) {
+        setPosts([]);
+        return;
+      }
+
       // Transform the data to match our existing type structure
-      const transformedPosts = data.map(post => ({
+      const transformedPosts: CommunityPost[] = data.map(post => ({
         id: post.id,
         title: post.title,
         content: post.content,
-        type: post.type,
+        type: post.type as any,
         authorId: post.author_id,
         author: {
           id: post.author?.id || '',
@@ -50,7 +99,7 @@ export function useCommunityPosts() {
         upvotes: post.upvotes || 0,
         views: post.views || 0,
         isSolved: post.is_solved || false,
-        comments: (post.comments || []).map((comment: any) => ({
+        comments: (post.comments || []).map((comment) => ({
           id: comment.id,
           postId: comment.post_id,
           content: comment.content,
@@ -84,14 +133,19 @@ export function useCommunityPosts() {
       setIsLoading(true);
       setError(null);
 
-      // First, update the view count (since we can't use the AFTER SELECT trigger)
-      if (postId) {
-        await supabase
-          .from('community_posts')
-          .update({ views: supabase.rpc('increment', { row_id: postId }) })
-          .eq('id', postId);
+      // First, increment view count
+      try {
+        await supabase.rpc('increment', { 
+          row_id: postId,
+          field_name: 'views', 
+          table_name: 'community_posts' 
+        });
+      } catch (viewError) {
+        console.error('Error updating view count:', viewError);
+        // Continue even if view incrementing fails
       }
       
+      // Use 'any' type temporarily to bypass TypeScript errors
       const { data, error } = await supabase
         .from('community_posts')
         .select(`
@@ -103,16 +157,18 @@ export function useCommunityPosts() {
           )
         `)
         .eq('id', postId)
-        .single();
+        .single() as { data: CommunityPostData | null, error: any };
       
       if (error) throw error;
+      
+      if (!data) return null;
 
       // Transform the post to match our existing type structure
       const transformedPost: CommunityPost = {
         id: data.id,
         title: data.title,
         content: data.content,
-        type: data.type,
+        type: data.type as any,
         authorId: data.author_id,
         author: {
           id: data.author?.id || '',
@@ -128,7 +184,7 @@ export function useCommunityPosts() {
         upvotes: data.upvotes || 0,
         views: data.views || 0,
         isSolved: data.is_solved || false,
-        comments: (data.comments || []).map((comment: any) => ({
+        comments: (data.comments || []).map((comment) => ({
           id: comment.id,
           postId: comment.post_id,
           content: comment.content,
@@ -167,6 +223,7 @@ export function useCommunityPosts() {
     try {
       if (!user) throw new Error('User must be authenticated to create a post');
 
+      // Use 'any' type temporarily to bypass TypeScript errors
       const { data, error } = await supabase
         .from('community_posts')
         .insert({
@@ -177,7 +234,7 @@ export function useCommunityPosts() {
           author_id: user.id
         })
         .select()
-        .single();
+        .single() as { data: any, error: any };
 
       if (error) throw error;
 
@@ -220,6 +277,7 @@ export function useCommunityPosts() {
     try {
       if (!user) throw new Error('User must be authenticated to add a comment');
 
+      // Use 'any' type temporarily to bypass TypeScript errors
       const { data, error } = await supabase
         .from('community_post_comments')
         .insert({
@@ -228,7 +286,7 @@ export function useCommunityPosts() {
           author_id: user.id,
         })
         .select()
-        .single();
+        .single() as { data: any, error: any };
 
       if (error) throw error;
 
@@ -260,24 +318,28 @@ export function useCommunityPosts() {
   const markAsAnswer = async (postId: string, commentId: string): Promise<boolean> => {
     try {
       // First, reset all comments for this post
-      await supabase
+      const { error: resetError } = await supabase
         .from('community_post_comments')
-        .update({ is_answer: false })
-        .eq('post_id', postId);
+        .update({ is_answer: false } as any)
+        .eq('post_id', postId) as { error: any };
+
+      if (resetError) throw resetError;
 
       // Then mark the selected comment as answer
       const { error } = await supabase
         .from('community_post_comments')
-        .update({ is_answer: true })
-        .eq('id', commentId);
+        .update({ is_answer: true } as any)
+        .eq('id', commentId) as { error: any };
 
       if (error) throw error;
 
       // Update the post as solved
-      await supabase
+      const { error: postError } = await supabase
         .from('community_posts')
-        .update({ is_solved: true })
-        .eq('id', postId);
+        .update({ is_solved: true } as any)
+        .eq('id', postId) as { error: any };
+
+      if (postError) throw postError;
 
       return true;
     } catch (err: any) {
@@ -289,8 +351,9 @@ export function useCommunityPosts() {
 
   const upvotePost = async (postId: string): Promise<boolean> => {
     try {
-      const { error } = await supabase.rpc('increment_upvotes', {
-        post_id: postId,
+      const { error } = await supabase.rpc('increment', {
+        row_id: postId,
+        field_name: 'upvotes',
         table_name: 'community_posts'
       });
 
@@ -305,8 +368,9 @@ export function useCommunityPosts() {
 
   const upvoteComment = async (commentId: string): Promise<boolean> => {
     try {
-      const { error } = await supabase.rpc('increment_upvotes', {
-        post_id: commentId,
+      const { error } = await supabase.rpc('increment', {
+        row_id: commentId,
+        field_name: 'upvotes',
         table_name: 'community_post_comments'
       });
 

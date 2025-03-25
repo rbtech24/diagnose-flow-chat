@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { CommunityPost, CommunityPostType } from '@/types/community';
 import { CommunityFilters } from './CommunityFilters';
@@ -45,7 +44,7 @@ export function OfflineAwareCommunityForum({
   const [selectedType, setSelectedType] = useState<CommunityPostType | 'all'>('all');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showAddNewPost, setShowAddNewPost] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingPosts, setIsLoadingPosts] = useState(true);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const isMobile = useIsMobile();
   
@@ -54,7 +53,7 @@ export function OfflineAwareCommunityForum({
   // Simulate loading
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsLoading(false);
+      setIsLoadingPosts(false);
     }, 1000);
     
     return () => clearTimeout(timer);
@@ -92,7 +91,7 @@ export function OfflineAwareCommunityForum({
     new Set(posts.flatMap(post => post.tags))
   );
   
-  if (isLoading) {
+  if (isLoading || isLoadingPosts) {
     return (
       <div className="space-y-4">
         <div className="flex justify-between">
