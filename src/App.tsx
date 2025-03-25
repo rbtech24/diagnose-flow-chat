@@ -30,6 +30,7 @@ const AdminUserNew = lazy(() => import("./pages/admin/UserNew"));
 const AdminCompanies = lazy(() => import("./pages/admin/Companies"));
 const AdminCompanyDetail = lazy(() => import("./pages/admin/CompanyDetail"));
 const AdminLicenses = lazy(() => import("./pages/admin/Licenses"));
+const AdminCommunityPostDetail = lazy(() => import("./pages/admin/CommunityPostDetail"));
 
 // Company pages
 const CompanyDashboard = lazy(() => import("./pages/company/Dashboard"));
@@ -99,6 +100,7 @@ function App() {
                   <Route path="support" element={<AdminSupport />} />
                   <Route path="feature-requests" element={<AdminFeatureRequests />} />
                   <Route path="community" element={<AdminCommunity />} />
+                  <Route path="community/:postId" element={<AdminCommunityPostDetail />} />
                 </Route>
               </Route>
 
