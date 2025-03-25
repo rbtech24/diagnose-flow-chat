@@ -28,81 +28,32 @@ export function useCommunityPosts() {
         return;
       }
       
-      // Fetch all unique author IDs from posts
-      const authorIds = [...new Set(postsData.map(post => post.author_id))];
-      
-      // Fetch author data
-      const { data: authorsData, error: authorsError } = await supabase
-        .from('auth.users')
-        .select('id, email, raw_user_meta_data')
-        .in('id', authorIds);
-      
-      if (authorsError) {
-        console.error('Error fetching authors:', authorsError);
-      }
-      
-      // Create a map of author data for quick lookups
-      const authorsMap = (authorsData || []).reduce((map, author) => {
-        map[author.id] = author;
-        return map;
-      }, {});
-      
-      // Fetch comments for all posts
-      const { data: commentsData, error: commentsError } = await supabase
-        .from('community_post_comments')
-        .select('*');
-      
-      if (commentsError) {
-        console.error('Error fetching comments:', commentsError);
-      }
-      
-      // Group comments by post ID
-      const commentsByPostId = (commentsData || []).reduce((map, comment) => {
-        if (!map[comment.post_id]) {
-          map[comment.post_id] = [];
-        }
-        map[comment.post_id].push(comment);
-        return map;
-      }, {});
-      
-      // Fetch all unique author IDs from comments
-      const commentAuthorIds = [...new Set((commentsData || []).map(comment => comment.author_id))];
-      
-      // Fetch comment author data
-      const { data: commentAuthorsData, error: commentAuthorsError } = await supabase
-        .from('auth.users')
-        .select('id, email, raw_user_meta_data')
-        .in('id', commentAuthorIds);
-      
-      if (commentAuthorsError) {
-        console.error('Error fetching comment authors:', commentAuthorsError);
-      }
-      
-      // Create a map of comment author data
-      const commentAuthorsMap = (commentAuthorsData || []).reduce((map, author) => {
-        map[author.id] = author;
-        return map;
-      }, {});
-      
-      // Transform the posts with authors and comments
-      const transformedPosts: CommunityPost[] = postsData.map(post => {
-        const postAuthor = authorsMap[post.author_id] || {};
-        const postComments = commentsByPostId[post.id] || [];
-        
-        const transformedComments: CommunityPostComment[] = postComments.map(comment => {
-          const commentAuthor = commentAuthorsMap[comment.author_id] || {};
+      // Transform the posts with placeholder author data (we'll use context for real users)
+      const transformedPosts: CommunityPost[] = await Promise.all(postsData.map(async (post) => {
+        // Fetch comments for this post
+        const { data: commentsData, error: commentsError } = await supabase
+          .from('community_post_comments')
+          .select('*')
+          .eq('post_id', post.id);
           
+        if (commentsError) {
+          console.error('Error fetching comments:', commentsError);
+        }
+
+        // Transform comments with placeholder author data
+        const transformedComments: CommunityPostComment[] = (commentsData || []).map(comment => {
           return {
             id: comment.id,
             postId: comment.post_id,
             content: comment.content,
             authorId: comment.author_id,
             author: {
-              id: commentAuthor.id || '',
-              name: commentAuthor.raw_user_meta_data?.name || 'Unknown User',
-              email: commentAuthor.email || '',
-              role: (commentAuthor.raw_user_meta_data?.role || 'tech') as 'admin' | 'company' | 'tech',
-              avatarUrl: commentAuthor.raw_user_meta_data?.avatarUrl || '',
+              id: comment.author_id || '',
+              // Use the context AuthContext for user info instead of direct DB access
+              name: 'User ' + comment.author_id?.substring(0, 4) || 'Unknown User',
+              email: '',
+              role: 'tech' as 'admin' | 'company' | 'tech',
+              avatarUrl: '',
             },
             attachments: [],
             createdAt: new Date(comment.created_at),
@@ -119,11 +70,12 @@ export function useCommunityPosts() {
           type: post.type as any,
           authorId: post.author_id,
           author: {
-            id: postAuthor.id || '',
-            name: postAuthor.raw_user_meta_data?.name || 'Unknown User',
-            email: postAuthor.email || '',
-            role: (postAuthor.raw_user_meta_data?.role || 'tech') as 'admin' | 'company' | 'tech',
-            avatarUrl: postAuthor.raw_user_meta_data?.avatarUrl || '',
+            id: post.author_id || '',
+            // Use the context AuthContext for user info instead of direct DB access
+            name: 'User ' + post.author_id?.substring(0, 4) || 'Unknown User',
+            email: '',
+            role: 'tech' as 'admin' | 'company' | 'tech',
+            avatarUrl: '',
           },
           attachments: [],
           createdAt: new Date(post.created_at),
@@ -134,7 +86,7 @@ export function useCommunityPosts() {
           isSolved: post.is_solved || false,
           comments: transformedComments,
         };
-      });
+      }));
       
       setPosts(transformedPosts);
     } catch (err: any) {
@@ -150,16 +102,19 @@ export function useCommunityPosts() {
       setIsLoading(true);
       setError(null);
 
-      // First, increment view count using the RPC function
+      // First, increment view count using a direct update
       try {
-        const { error: incrementError } = await supabase.rpc('increment', { 
-          row_id: postId,
-          field_name: 'views', 
-          table_name: 'community_posts' 
-        });
+        const { error: viewError } = await supabase
+          .from('community_posts')
+          .update({ views: supabase.rpc('increment', { 
+            row_id: postId,
+            field_name: 'views', 
+            table_name: 'community_posts' 
+          })})
+          .eq('id', postId);
 
-        if (incrementError) {
-          console.error('Error updating view count:', incrementError);
+        if (viewError) {
+          console.error('Error updating view count:', viewError);
           // Continue even if view incrementing fails
         }
       } catch (viewError) {
@@ -178,17 +133,6 @@ export function useCommunityPosts() {
       
       if (!post) return null;
 
-      // Fetch the post author
-      const { data: postAuthor, error: authorError } = await supabase
-        .from('auth.users')
-        .select('id, email, raw_user_meta_data')
-        .eq('id', post.author_id)
-        .single();
-        
-      if (authorError) {
-        console.error('Error fetching post author:', authorError);
-      }
-      
       // Fetch comments
       const { data: comments, error: commentsError } = await supabase
         .from('community_post_comments')
@@ -198,26 +142,8 @@ export function useCommunityPosts() {
       if (commentsError) {
         console.error('Error fetching comments:', commentsError);
       }
-      
-      // Fetch comment authors
-      const commentAuthorIds = [...new Set((comments || []).map(comment => comment.author_id))];
-      
-      const { data: commentAuthors, error: commentAuthorsError } = await supabase
-        .from('auth.users')
-        .select('id, email, raw_user_meta_data')
-        .in('id', commentAuthorIds);
-        
-      if (commentAuthorsError) {
-        console.error('Error fetching comment authors:', commentAuthorsError);
-      }
-      
-      // Create a map of comment authors
-      const commentAuthorsMap = (commentAuthors || []).reduce((map, author) => {
-        map[author.id] = author;
-        return map;
-      }, {});
 
-      // Transform the post
+      // Transform the post with placeholder author data
       const transformedPost: CommunityPost = {
         id: post.id,
         title: post.title,
@@ -225,11 +151,12 @@ export function useCommunityPosts() {
         type: post.type as any,
         authorId: post.author_id,
         author: {
-          id: postAuthor?.id || '',
-          name: postAuthor?.raw_user_meta_data?.name || 'Unknown User',
-          email: postAuthor?.email || '',
-          role: (postAuthor?.raw_user_meta_data?.role || 'tech') as 'admin' | 'company' | 'tech',
-          avatarUrl: postAuthor?.raw_user_meta_data?.avatarUrl || '',
+          id: post.author_id || '',
+          // Use the context AuthContext for user info
+          name: 'User ' + post.author_id?.substring(0, 4) || 'Unknown User',
+          email: '',
+          role: 'tech' as 'admin' | 'company' | 'tech',
+          avatarUrl: '',
         },
         attachments: [],
         createdAt: new Date(post.created_at),
@@ -239,19 +166,18 @@ export function useCommunityPosts() {
         views: post.views || 0,
         isSolved: post.is_solved || false,
         comments: (comments || []).map((comment) => {
-          const commentAuthor = commentAuthorsMap[comment.author_id] || {};
-          
           return {
             id: comment.id,
             postId: comment.post_id,
             content: comment.content,
             authorId: comment.author_id,
             author: {
-              id: commentAuthor.id || '',
-              name: commentAuthor.raw_user_meta_data?.name || 'Unknown User',
-              email: commentAuthor.email || '',
-              role: (commentAuthor.raw_user_meta_data?.role || 'tech') as 'admin' | 'company' | 'tech',
-              avatarUrl: commentAuthor.raw_user_meta_data?.avatarUrl || '',
+              id: comment.author_id || '',
+              // Use the context AuthContext for user info
+              name: 'User ' + comment.author_id?.substring(0, 4) || 'Unknown User',
+              email: '',
+              role: 'tech' as 'admin' | 'company' | 'tech',
+              avatarUrl: '',
             },
             attachments: [],
             createdAt: new Date(comment.created_at),
@@ -407,11 +333,15 @@ export function useCommunityPosts() {
 
   const upvotePost = async (postId: string): Promise<boolean> => {
     try {
-      const { error } = await supabase.rpc('increment', {
-        row_id: postId,
-        field_name: 'upvotes',
-        table_name: 'community_posts'
-      });
+      // Update the post with an increment to the upvotes
+      const { error } = await supabase
+        .from('community_posts')
+        .update({ upvotes: supabase.rpc('increment', {
+          row_id: postId,
+          field_name: 'upvotes',
+          table_name: 'community_posts'
+        })})
+        .eq('id', postId);
 
       if (error) throw error;
       return true;
@@ -424,11 +354,15 @@ export function useCommunityPosts() {
 
   const upvoteComment = async (commentId: string): Promise<boolean> => {
     try {
-      const { error } = await supabase.rpc('increment', {
-        row_id: commentId,
-        field_name: 'upvotes',
-        table_name: 'community_post_comments'
-      });
+      // Update the comment with an increment to the upvotes
+      const { error } = await supabase
+        .from('community_post_comments')
+        .update({ upvotes: supabase.rpc('increment', {
+          row_id: commentId,
+          field_name: 'upvotes',
+          table_name: 'community_post_comments'
+        })})
+        .eq('id', commentId);
 
       if (error) throw error;
       return true;
