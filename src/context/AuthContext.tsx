@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User } from '@/types/user';
@@ -38,12 +37,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Function to determine user role from email for testing purposes
+  const getRoleFromEmail = (email: string): Role => {
+    if (email.includes('admin')) return 'admin';
+    if (email.includes('company')) return 'company';
+    return 'tech';
+  };
+
   // Simulate auth state change with dummy data
   useEffect(() => {
     const timer = setTimeout(() => {
       // For development purposes, we'll use a placeholder user
-      setUser(placeholderUser);
-      setUserRole(placeholderUser.role as Role);
+      // but keep the default as tech role for backward compatibility
+      const storedRole = localStorage.getItem('userRole') || 'tech';
+      const updatedUser = {
+        ...placeholderUser,
+        role: storedRole as Role
+      };
+      
+      setUser(updatedUser);
+      setUserRole(updatedUser.role);
       setIsAuthenticated(true);
       setIsLoading(false);
     }, 1000);
@@ -53,10 +66,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signIn = async (email: string): Promise<void> => {
     try {
-      // Simulate sign in
-      setUser(placeholderUser);
-      setUserRole(placeholderUser.role as Role);
+      // Determine role based on email for testing purposes
+      const role = getRoleFromEmail(email);
+      
+      // Save role to localStorage for persistence
+      localStorage.setItem('userRole', role);
+      
+      // Create user object with role
+      const updatedUser = {
+        ...placeholderUser,
+        email,
+        role
+      };
+      
+      setUser(updatedUser);
+      setUserRole(role);
       setIsAuthenticated(true);
+      
+      // Navigate to the appropriate dashboard
+      navigate(`/${role}`);
     } catch (error: any) {
       console.error('Sign in error:', error);
     }
@@ -68,6 +96,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       setUserRole(null);
       setIsAuthenticated(false);
+      localStorage.removeItem('userRole');
       navigate('/');
     } catch (error: any) {
       console.error('Sign out error:', error);
@@ -126,17 +155,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (userData: { name: string; email: string; password: string; role: string; companyName?: string }): Promise<void> => {
     try {
       // Simulate registration
+      const role = userData.role as Role;
+      
+      // Save role to localStorage for persistence
+      localStorage.setItem('userRole', role);
+      
       const newUser: User = {
         id: `user-${Date.now()}`,
         email: userData.email,
         name: userData.name,
-        role: userData.role as Role,
+        role: role,
         avatarUrl: '',
       };
       
       setUser(newUser);
       setUserRole(newUser.role);
       setIsAuthenticated(true);
+      
+      // Navigate to the appropriate dashboard
+      navigate(`/${role}`);
     } catch (error: any) {
       console.error('Registration error:', error);
     }

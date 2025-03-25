@@ -27,10 +27,14 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
     return <Navigate to="/login" />;
   }
 
-  // Check for role-based authorization
+  // For admin role, allow access to all protected routes regardless of allowedRoles
+  if (userRole === 'admin') {
+    return <Outlet />;
+  }
+  
+  // Check for role-based authorization for non-admin users
   if (allowedRoles && userRole && !allowedRoles.includes(userRole)) {
     // Redirect to appropriate dashboard based on role
-    if (userRole === 'admin') return <Navigate to="/admin" />;
     if (userRole === 'company') return <Navigate to="/company" />;
     if (userRole === 'tech') return <Navigate to="/tech" />;
     return <Navigate to="/" />;

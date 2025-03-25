@@ -9,12 +9,12 @@ export const emptyPosts: CommunityPost[] = [];
 export const emptyFeatureRequests: FeatureRequest[] = [];
 export const emptyTickets: SupportTicket[] = [];
 
-// Current user placeholder
+// Current user placeholder - now with configurable role
 export const placeholderUser: User = {
   id: "current-user",
   name: "Current User",
   email: "user@example.com",
-  role: "tech",
+  role: "tech", // This will be overridden if a role is stored in localStorage
   avatarUrl: ""
 };
 

@@ -7,7 +7,17 @@ export function useUserRole() {
   // Return both 'role' and 'userRole' to maintain backward compatibility
   return { 
     role: userRole, 
-    userRole, // Keep userRole for backward compatibility
-    isLoading 
+    userRole, 
+    isLoading,
+    // Add a hasRole function to check if user has specific role
+    hasRole: (role: string | string[]) => {
+      if (!userRole) return false;
+      
+      if (Array.isArray(role)) {
+        return role.includes(userRole);
+      }
+      
+      return userRole === role;
+    }
   };
 }
