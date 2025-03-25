@@ -19,10 +19,13 @@ import { toast } from "@/components/ui/use-toast";
 
 const subscriptionFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  price: z.coerce.number().positive("Price must be positive"),
-  interval: z.string().default("month"),
+  price_monthly: z.coerce.number().positive("Monthly price must be positive"),
+  price_yearly: z.coerce.number().positive("Yearly price must be positive"),
   features: z.string().transform(value => value.split('\n').filter(Boolean)),
   is_active: z.boolean().default(true),
+  description: z.string().optional(),
+  recommended: z.boolean().default(false),
+  trial_period: z.coerce.number().positive("Trial period must be positive").default(14),
 });
 
 type SubscriptionFormValues = z.infer<typeof subscriptionFormSchema>;
@@ -36,10 +39,13 @@ export default function SubscriptionPlans() {
     resolver: zodResolver(subscriptionFormSchema),
     defaultValues: {
       name: "",
-      price: 0,
-      interval: "month",
+      price_monthly: 0,
+      price_yearly: 0,
       features: "",
       is_active: true,
+      description: "",
+      recommended: false,
+      trial_period: 14,
     },
   });
 
@@ -47,18 +53,28 @@ export default function SubscriptionPlans() {
     if (editingPlan) {
       form.reset({
         name: editingPlan.name,
-        price: editingPlan.price,
-        interval: editingPlan.interval,
-        features: editingPlan.features.join('\n'),
+        price_monthly: editingPlan.price_monthly,
+        price_yearly: editingPlan.price_yearly,
+        features: Array.isArray(editingPlan.features) 
+          ? editingPlan.features.join('\n') 
+          : typeof editingPlan.features === 'string' 
+            ? editingPlan.features 
+            : '',
         is_active: editingPlan.is_active,
+        description: editingPlan.description || '',
+        recommended: editingPlan.recommended || false,
+        trial_period: editingPlan.trial_period,
       });
     } else {
       form.reset({
         name: "",
-        price: 0,
-        interval: "month",
+        price_monthly: 0,
+        price_yearly: 0,
         features: "",
         is_active: true,
+        description: "",
+        recommended: false,
+        trial_period: 14,
       });
     }
   }, [editingPlan, form]);
@@ -170,17 +186,24 @@ export default function SubscriptionPlans() {
                   {!plan.is_active && <Badge variant="outline">Inactive</Badge>}
                 </div>
                 <CardDescription>
-                  ${plan.price}/{plan.interval}
+                  ${plan.price_monthly}/month
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
-                  {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-start">
+                  {Array.isArray(plan.features) ? (
+                    plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-start">
+                        <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                        <span>{feature}</span>
+                      </li>
+                    ))
+                  ) : typeof plan.features === 'string' ? (
+                    <li className="flex items-start">
                       <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                      <span>{feature}</span>
+                      <span>{plan.features}</span>
                     </li>
-                  ))}
+                  ) : null}
                 </ul>
               </CardContent>
             </Card>
@@ -217,10 +240,10 @@ export default function SubscriptionPlans() {
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="price"
+                  name="price_monthly"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Price</FormLabel>
+                      <FormLabel>Monthly Price</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <span className="absolute left-3 top-2">$</span>
@@ -234,24 +257,35 @@ export default function SubscriptionPlans() {
                 
                 <FormField
                   control={form.control}
-                  name="interval"
+                  name="price_yearly"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Billing Interval</FormLabel>
+                      <FormLabel>Yearly Price</FormLabel>
                       <FormControl>
-                        <select 
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          {...field}
-                        >
-                          <option value="month">Monthly</option>
-                          <option value="year">Yearly</option>
-                        </select>
+                        <div className="relative">
+                          <span className="absolute left-3 top-2">$</span>
+                          <Input type="number" min="0" step="0.01" className="pl-7" {...field} />
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
+              
+              <FormField
+                control={form.control}
+                name="trial_period"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Trial Period (days)</FormLabel>
+                    <FormControl>
+                      <Input type="number" min="0" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               
               <FormField
                 control={form.control}
@@ -276,26 +310,69 @@ export default function SubscriptionPlans() {
               
               <FormField
                 control={form.control}
-                name="is_active"
+                name="description"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">
-                        Active
-                      </FormLabel>
-                      <FormDescription>
-                        Whether this plan is available for purchase
-                      </FormDescription>
-                    </div>
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
+                      <Textarea 
+                        placeholder="Plan description"
+                        className="min-h-[80px]"
+                        {...field}
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
+              
+              <div className="flex space-x-4">
+                <FormField
+                  control={form.control}
+                  name="is_active"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 flex-1">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          Active
+                        </FormLabel>
+                        <FormDescription>
+                          Plan is available for purchase
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="recommended"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 flex-1">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          Recommended
+                        </FormLabel>
+                        <FormDescription>
+                          Highlight this plan
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
               
               <DialogFooter>
                 <Button type="submit">

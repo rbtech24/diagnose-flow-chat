@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface SystemMessage {
   id: string;
-  type: 'info' | 'warning' | 'error' | 'success';
+  type: 'info' | 'warning' | 'error' | 'success' | 'maintenance';
   title: string;
   message: string;
   audience: string;
@@ -39,7 +39,7 @@ export function SystemMessageProvider({ children }: { children: ReactNode }) {
         // Transform the data to match our SystemMessage interface
         const transformedMessages: SystemMessage[] = data.map(msg => ({
           id: msg.id,
-          type: msg.type as 'info' | 'warning' | 'error' | 'success',
+          type: msg.type as 'info' | 'warning' | 'error' | 'success' | 'maintenance',
           title: msg.title,
           message: msg.message,
           audience: msg.audience,

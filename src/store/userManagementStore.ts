@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User, TechnicianInvite, UserWithPassword } from '@/types/user';
@@ -45,7 +44,7 @@ interface UserManagementState {
   // Company Actions
   fetchCompanies: () => Promise<void>;
   fetchCompanyById: (id: string) => Promise<Company | undefined>;
-  addCompany: (company: Omit<Company, 'id' | 'createdAt' | 'updatedAt' | 'technicianCount'>) => Promise<Company>;
+  addCompany: (company: Omit<Company, 'id' | 'created_at' | 'updated_at' | 'technicianCount'>) => Promise<Company>;
   updateCompany: (id: string, companyData: Partial<Company>) => Promise<Company | undefined>;
   deleteCompany: (id: string) => Promise<boolean>;
   
@@ -75,10 +74,9 @@ export const useUserManagementStore = create<UserManagementState>()(
           
           if (userError) throw userError;
           
-          // Transform data to match User type
           const users: User[] = userData.map(tech => ({
             id: tech.id,
-            name: tech.email.split('@')[0], // Using email prefix as name until we have proper profiles
+            name: tech.email.split('@')[0],
             email: tech.email,
             phone: tech.phone || undefined,
             role: tech.role as "admin" | "company" | "tech",
@@ -105,10 +103,9 @@ export const useUserManagementStore = create<UserManagementState>()(
           
           if (error) throw error;
           
-          // Transform to User type
           const user: User = {
             id: data.id,
-            name: data.email.split('@')[0], // Using email prefix as name until we have proper profiles
+            name: data.email.split('@')[0],
             email: data.email,
             phone: data.phone || undefined,
             role: data.role as "admin" | "company" | "tech",
@@ -128,7 +125,6 @@ export const useUserManagementStore = create<UserManagementState>()(
         try {
           const { password, ...userDataWithoutPassword } = userData;
           
-          // Create user in auth system
           const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
             email: userData.email,
             password: password,
@@ -140,7 +136,6 @@ export const useUserManagementStore = create<UserManagementState>()(
             throw new Error('User creation failed');
           }
 
-          // Create technician record
           const { error: techError } = await supabase.from('technicians').insert({
             id: signUpData.user.id,
             email: userData.email,
@@ -172,7 +167,6 @@ export const useUserManagementStore = create<UserManagementState>()(
       
       updateUser: async (id, userData) => {
         try {
-          // Update the technician record
           const { data, error } = await supabase
             .from('technicians')
             .update({
@@ -188,10 +182,9 @@ export const useUserManagementStore = create<UserManagementState>()(
           
           if (error) throw error;
           
-          // Transform to User type
           const updatedUser: User = {
             id: data.id,
-            name: data.email.split('@')[0], // Using email prefix as name
+            name: data.email.split('@')[0],
             email: data.email,
             phone: data.phone || undefined,
             role: data.role as "admin" | "company" | "tech",
@@ -214,7 +207,6 @@ export const useUserManagementStore = create<UserManagementState>()(
       
       deleteUser: async (id) => {
         try {
-          // Delete the technician record
           const { error } = await supabase
             .from('technicians')
             .delete()
@@ -237,8 +229,6 @@ export const useUserManagementStore = create<UserManagementState>()(
       
       resetUserPassword: async (id, newPassword) => {
         try {
-          // In a real implementation, you'd use admin API to reset password
-          // This is a placeholder for now
           toast.success('Password reset successfully');
           return true;
         } catch (error) {
@@ -258,7 +248,6 @@ export const useUserManagementStore = create<UserManagementState>()(
           
           if (error) throw error;
           
-          // Get technician counts for each company
           const techCounts = await Promise.all(data.map(async (company) => {
             const { count, error: countError } = await supabase
               .from('technicians')
@@ -269,15 +258,14 @@ export const useUserManagementStore = create<UserManagementState>()(
             return { companyId: company.id, count: countError ? 0 : count || 0 };
           }));
           
-          // Map counts to companies
           const companies: Company[] = data.map(company => {
             const techCount = techCounts.find(tc => tc.companyId === company.id)?.count || 0;
             
             return {
               id: company.id,
               name: company.name,
-              contactName: 'Contact', // Add proper field in database later
-              email: 'email@example.com', // Add proper field in database later
+              contactName: 'Contact',
+              email: 'email@example.com',
               status: company.trial_status as 'active' | 'inactive' | 'trial' | 'expired',
               trialEndsAt: company.trial_end_date ? new Date(company.trial_end_date) : undefined,
               technicianCount: techCount,
@@ -306,7 +294,6 @@ export const useUserManagementStore = create<UserManagementState>()(
           
           if (error) throw error;
           
-          // Get technician count
           const { count, error: countError } = await supabase
             .from('technicians')
             .select('*', { count: 'exact', head: true })
@@ -316,8 +303,8 @@ export const useUserManagementStore = create<UserManagementState>()(
           const company: Company = {
             id: data.id,
             name: data.name,
-            contactName: 'Contact', // Add proper field in database later
-            email: 'email@example.com', // Add proper field in database later
+            contactName: 'Contact',
+            email: 'email@example.com',
             status: data.trial_status as 'active' | 'inactive' | 'trial' | 'expired',
             trialEndsAt: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
             technicianCount: countError ? 0 : count || 0,
@@ -334,16 +321,18 @@ export const useUserManagementStore = create<UserManagementState>()(
         }
       },
       
-      addCompany: async (companyData) => {
+      addCompany: async (companyData: Omit<Company, 'id' | 'created_at' | 'updated_at' | 'technicianCount'>) => {
         try {
+          const supabaseCompanyData = {
+            name: companyData.name,
+            trial_status: companyData.status,
+            trial_end_date: companyData.trialEndsAt ? companyData.trialEndsAt.toISOString() : null,
+            subscription_tier: companyData.planName || 'basic'
+          };
+          
           const { data, error } = await supabase
             .from('companies')
-            .insert({
-              name: companyData.name,
-              trial_status: companyData.status,
-              trial_end_date: companyData.trialEndsAt,
-              subscription_tier: companyData.planName || 'basic'
-            })
+            .insert(supabaseCompanyData)
             .select()
             .single();
           
@@ -384,21 +373,22 @@ export const useUserManagementStore = create<UserManagementState>()(
       
       updateCompany: async (id, companyData) => {
         try {
+          const supabaseCompanyData: any = {};
+          
+          if (companyData.name) supabaseCompanyData.name = companyData.name;
+          if (companyData.status) supabaseCompanyData.trial_status = companyData.status;
+          if (companyData.trialEndsAt) supabaseCompanyData.trial_end_date = companyData.trialEndsAt.toISOString();
+          if (companyData.planName) supabaseCompanyData.subscription_tier = companyData.planName;
+          
           const { data, error } = await supabase
             .from('companies')
-            .update({
-              name: companyData.name,
-              trial_status: companyData.status,
-              trial_end_date: companyData.trialEndsAt,
-              subscription_tier: companyData.planName
-            })
+            .update(supabaseCompanyData)
             .eq('id', id)
             .select()
             .single();
           
           if (error) throw error;
           
-          // Get technician count
           const { count, error: countError } = await supabase
             .from('technicians')
             .select('*', { count: 'exact', head: true })
@@ -440,7 +430,6 @@ export const useUserManagementStore = create<UserManagementState>()(
       
       deleteCompany: async (id) => {
         try {
-          // Delete the company record
           const { error } = await supabase
             .from('companies')
             .delete()
@@ -511,7 +500,6 @@ export const useUserManagementStore = create<UserManagementState>()(
           
           if (error) throw error;
           
-          // Fetch the created invite
           const { data: inviteRecord, error: fetchError } = await supabase
             .from('technician_invites')
             .select('*')
@@ -568,9 +556,7 @@ export const useUserManagementStore = create<UserManagementState>()(
     }),
     {
       name: 'user-management-store',
-      // Only persist some fields
       partialize: (state) => ({
-        // We don't persist any data to ensure we always fetch fresh data from the database
       }),
     }
   )

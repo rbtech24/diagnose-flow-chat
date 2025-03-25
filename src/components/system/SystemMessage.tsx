@@ -4,7 +4,7 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, InfoIcon, BellRing, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-type MessageType = "warning" | "info" | "maintenance" | "success";
+type MessageType = "warning" | "info" | "maintenance" | "success" | "error";
 
 interface SystemMessageProps {
   type: MessageType;
@@ -41,6 +41,14 @@ const getMessageStyles = (type: MessageType) => {
         icon: <BellRing className="h-4 w-4 text-green-600" />,
         titleColor: "text-green-900",
         textColor: "text-green-700"
+      };
+    case "error":
+      return {
+        bg: "bg-red-50",
+        border: "border-red-200",
+        icon: <AlertTriangle className="h-4 w-4 text-red-600" />,
+        titleColor: "text-red-900",
+        textColor: "text-red-700"
       };
     case "info":
     default:

@@ -10,8 +10,8 @@ export interface KnowledgeArticle {
   category?: string;
   tags?: string[];
   author_id?: string;
-  created_at: Date;
-  updated_at: Date;
+  created_at: string;
+  updated_at: string;
   is_public: boolean;
   company_id?: string;
   views: number;
@@ -81,9 +81,15 @@ export function useKnowledgeBaseData() {
 
   const updateArticle = async (id: string, articleData: Partial<KnowledgeArticle>) => {
     try {
+      // Convert Date objects to strings if necessary
+      const formattedData = Object.entries(articleData).reduce((acc, [key, value]) => {
+        acc[key] = value instanceof Date ? value.toISOString() : value;
+        return acc;
+      }, {} as Record<string, any>);
+      
       const { data, error } = await supabase
         .from('knowledge_base')
-        .update(articleData)
+        .update(formattedData)
         .eq('id', id)
         .select()
         .single();

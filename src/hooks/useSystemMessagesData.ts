@@ -10,12 +10,12 @@ export interface SystemMessage {
   type: string;
   audience: string;
   scheduled: string;
-  start_date?: Date;
-  end_date?: Date;
+  start_date?: string | null;
+  end_date?: string | null;
   active: boolean;
-  created_at: Date;
-  created_by?: string;
-  updated_at: Date;
+  created_at: string;
+  created_by?: string | null;
+  updated_at: string;
 }
 
 export function useSystemMessagesData() {
@@ -76,9 +76,15 @@ export function useSystemMessagesData() {
 
   const updateMessage = async (id: string, messageData: Partial<SystemMessage>) => {
     try {
+      // Convert Date objects to strings if necessary
+      const formattedData = Object.entries(messageData).reduce((acc, [key, value]) => {
+        acc[key] = value instanceof Date ? value.toISOString() : value;
+        return acc;
+      }, {} as Record<string, any>);
+
       const { data, error } = await supabase
         .from('system_messages')
-        .update(messageData)
+        .update(formattedData)
         .eq('id', id)
         .select()
         .single();

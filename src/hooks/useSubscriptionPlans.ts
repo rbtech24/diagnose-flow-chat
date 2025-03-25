@@ -6,12 +6,16 @@ import { toast } from "@/components/ui/use-toast";
 export interface SubscriptionPlan {
   id: string;
   name: string;
-  price: number;
-  interval: string;
+  price_monthly: number;
+  price_yearly: number;
   features: string[];
+  description?: string;
+  recommended?: boolean;
+  trial_period: number;
+  limits?: Record<string, any>;
   is_active: boolean;
-  created_at: Date;
-  updated_at: Date;
+  created_at: string;
+  updated_at: string;
 }
 
 export function useSubscriptionPlans() {
@@ -25,7 +29,7 @@ export function useSubscriptionPlans() {
         .from('subscription_plans')
         .select('*')
         .eq('is_active', true)
-        .order('price', { ascending: true });
+        .order('price_monthly', { ascending: true });
 
       if (error) throw error;
       
@@ -73,9 +77,15 @@ export function useSubscriptionPlans() {
 
   const updatePlan = async (id: string, planData: Partial<SubscriptionPlan>) => {
     try {
+      // Convert Date objects to strings if necessary
+      const formattedData = Object.entries(planData).reduce((acc, [key, value]) => {
+        acc[key] = value instanceof Date ? value.toISOString() : value;
+        return acc;
+      }, {} as Record<string, any>);
+      
       const { data, error } = await supabase
         .from('subscription_plans')
-        .update(planData)
+        .update(formattedData)
         .eq('id', id)
         .select()
         .single();
