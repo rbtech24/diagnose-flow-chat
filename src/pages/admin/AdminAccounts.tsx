@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,7 +16,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 
-// Define the admin account interface
 interface AdminAccount {
   id: string;
   name: string;
@@ -29,7 +27,6 @@ interface AdminAccount {
   companyName?: string;
 }
 
-// Form schema for adding a new admin
 const adminFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
@@ -51,7 +48,6 @@ export default function AdminAccounts() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [companies, setCompanies] = useState<{id: string, name: string}[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string>("");
-  const { user } = useAuth();
 
   const form = useForm<AdminFormValues>({
     resolver: zodResolver(adminFormSchema),
@@ -64,7 +60,6 @@ export default function AdminAccounts() {
     },
   });
 
-  // Fetch companies
   const fetchCompanies = async () => {
     try {
       const { data, error } = await supabase
@@ -81,7 +76,6 @@ export default function AdminAccounts() {
     }
   };
 
-  // Fetch admin accounts
   const fetchAdminAccounts = async () => {
     setIsLoading(true);
     try {
@@ -101,7 +95,6 @@ export default function AdminAccounts() {
         throw error;
       }
 
-      // Get company names for admins with company_id
       const companyIds = data
         .filter(admin => admin.company_id)
         .map(admin => admin.company_id);
@@ -122,11 +115,9 @@ export default function AdminAccounts() {
         }
       }
 
-      // Transform data to include name from auth.users if needed
-      // For now using email as name placeholder
       let adminAccountsData = data.map(admin => ({
         id: admin.id,
-        name: admin.email.split('@')[0] || 'Admin User', // Simple name extraction from email
+        name: admin.email.split('@')[0] || 'Admin User',
         email: admin.email,
         role: admin.role,
         lastLogin: admin.last_sign_in_at ? new Date(admin.last_sign_in_at).toLocaleString() : 'Never',
@@ -135,7 +126,6 @@ export default function AdminAccounts() {
         companyName: admin.company_id ? companyNames[admin.company_id] : undefined
       }));
 
-      // Check if our default admin exists, if not add it to the list
       if (!adminAccountsData.some(admin => admin.email === 'digitalprofits247@gmail.com')) {
         adminAccountsData.push({
           id: 'default-admin-id',
@@ -151,7 +141,6 @@ export default function AdminAccounts() {
 
       setAdminAccounts(adminAccountsData);
       
-      // Check if our default admin exists in the database, if not create it
       const adminExists = await checkUserExists('digitalprofits247@gmail.com');
       if (!adminExists) {
         await createDefaultAdmin();
@@ -186,7 +175,6 @@ export default function AdminAccounts() {
     try {
       console.log('Creating default admin user');
       
-      // Create user in auth system
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: 'digitalprofits247@gmail.com',
         password: 'Madeit99$$',
@@ -201,7 +189,6 @@ export default function AdminAccounts() {
         throw new Error('User creation failed');
       }
 
-      // Add user metadata
       const { error: updateError } = await supabase.auth.updateUser({
         data: {
           name: 'Primary Admin',
@@ -213,7 +200,6 @@ export default function AdminAccounts() {
         console.error('Error updating user metadata:', updateError);
       }
 
-      // Create technician record
       const { error: techError } = await supabase.from('technicians').insert({
         id: signUpData.user.id,
         email: 'digitalprofits247@gmail.com',
@@ -226,7 +212,6 @@ export default function AdminAccounts() {
         throw techError;
       }
 
-      // Refresh the admin list
       fetchAdminAccounts();
 
       toast({
@@ -257,7 +242,6 @@ export default function AdminAccounts() {
 
   const onSubmit = async (data: AdminFormValues) => {
     try {
-      // Check if user already exists
       const userExists = await checkUserExists(data.email);
       if (userExists) {
         toast({
@@ -268,7 +252,6 @@ export default function AdminAccounts() {
         return;
       }
 
-      // Create user in auth system
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -283,7 +266,6 @@ export default function AdminAccounts() {
         throw new Error('User creation failed');
       }
 
-      // Add user metadata
       const { error: updateError } = await supabase.auth.updateUser({
         data: {
           name: data.name,
@@ -295,7 +277,6 @@ export default function AdminAccounts() {
         console.error('Error updating user metadata:', updateError);
       }
 
-      // Create technician record
       const { error: techError } = await supabase.from('technicians').insert({
         id: signUpData.user.id,
         email: data.email,
@@ -309,14 +290,12 @@ export default function AdminAccounts() {
         throw techError;
       }
 
-      // Get company name if companyId is provided
       let companyName;
       if (data.companyId) {
         const company = companies.find(c => c.id === data.companyId);
         companyName = company?.name;
       }
 
-      // Add to the list of admins
       setAdminAccounts(prev => [
         ...prev,
         {
@@ -335,7 +314,6 @@ export default function AdminAccounts() {
         description: 'Admin account created successfully',
       });
 
-      // Reset form and close dialog
       form.reset();
       setDialogOpen(false);
     } catch (error) {
@@ -350,7 +328,6 @@ export default function AdminAccounts() {
 
   const handleRevokeAccess = async (accountId: string) => {
     try {
-      // Update the technician status to inactive
       const { error } = await supabase
         .from('technicians')
         .update({ status: 'inactive' })
@@ -358,7 +335,6 @@ export default function AdminAccounts() {
 
       if (error) throw error;
 
-      // Update local state
       setAdminAccounts(prev => 
         prev.map(account => account.id === accountId 
           ? { ...account, status: 'inactive' } 
@@ -382,7 +358,6 @@ export default function AdminAccounts() {
 
   const handleReactivateAccess = async (accountId: string) => {
     try {
-      // Update the technician status to active
       const { error } = await supabase
         .from('technicians')
         .update({ status: 'active' })
@@ -390,7 +365,6 @@ export default function AdminAccounts() {
 
       if (error) throw error;
 
-      // Update local state
       setAdminAccounts(prev => 
         prev.map(account => account.id === accountId 
           ? { ...account, status: 'active' } 
@@ -434,7 +408,7 @@ export default function AdminAccounts() {
               <SelectValue placeholder="All Companies" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Companies</SelectItem>
+              <SelectItem value="all-companies">All Companies</SelectItem>
               {companies.map(company => (
                 <SelectItem key={company.id} value={company.id}>{company.name}</SelectItem>
               ))}
@@ -517,7 +491,7 @@ export default function AdminAccounts() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Company</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <Select onValueChange={field.onChange} value={field.value || "no-company"}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select a company" />
@@ -527,6 +501,7 @@ export default function AdminAccounts() {
                               {companies.map(company => (
                                 <SelectItem key={company.id} value={company.id}>{company.name}</SelectItem>
                               ))}
+                              <SelectItem value="no-company">No Company Selected</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormDescription>
