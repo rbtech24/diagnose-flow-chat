@@ -364,6 +364,95 @@ export type Database = {
           },
         ]
       }
+      community_post_comments: {
+        Row: {
+          author_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          is_answer: boolean | null
+          post_id: string | null
+          updated_at: string | null
+          upvotes: number | null
+        }
+        Insert: {
+          author_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_answer?: boolean | null
+          post_id?: string | null
+          updated_at?: string | null
+          upvotes?: number | null
+        }
+        Update: {
+          author_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_answer?: boolean | null
+          post_id?: string | null
+          updated_at?: string | null
+          upvotes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_posts: {
+        Row: {
+          author_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          is_fulfilled: boolean | null
+          is_solved: boolean | null
+          knowledge_base_article_id: string | null
+          tags: string[] | null
+          title: string
+          type: string
+          updated_at: string | null
+          upvotes: number | null
+          views: number | null
+        }
+        Insert: {
+          author_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_fulfilled?: boolean | null
+          is_solved?: boolean | null
+          knowledge_base_article_id?: string | null
+          tags?: string[] | null
+          title: string
+          type: string
+          updated_at?: string | null
+          upvotes?: number | null
+          views?: number | null
+        }
+        Update: {
+          author_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_fulfilled?: boolean | null
+          is_solved?: boolean | null
+          knowledge_base_article_id?: string | null
+          tags?: string[] | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+          upvotes?: number | null
+          views?: number | null
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           created_at: string | null
@@ -4052,6 +4141,14 @@ export type Database = {
           p_role: string
         }
         Returns: Json
+      }
+      increment: {
+        Args: {
+          row_id: string
+          field_name?: string
+          table_name?: string
+        }
+        Returns: number
       }
       invite_technician: {
         Args: {
