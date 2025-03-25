@@ -120,47 +120,62 @@ export default function AdminAccounts() {
 
   const createDefaultAdmin = async () => {
     try {
-      // Create user in auth system - Note: This would ideally be handled by a secure edge function
-      // This is just for demo purposes
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // Create user in auth system
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: 'digitalprofits247@gmail.com',
         password: 'Madeit99$$',
-        options: {
-          data: {
-            name: 'Primary Admin',
-            role: 'admin'
-          }
+      });
+
+      if (signUpError) {
+        console.error('Error during signup:', signUpError);
+        throw signUpError;
+      }
+
+      if (!signUpData.user) {
+        throw new Error('User creation failed');
+      }
+
+      // Add user metadata
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: {
+          name: 'Primary Admin',
+          role: 'admin'
         }
       });
 
-      if (authError) throw authError;
+      if (updateError) {
+        console.error('Error updating user metadata:', updateError);
+      }
 
       // Create technician record
-      if (authData.user) {
-        await supabase.from('technicians').insert({
-          id: authData.user.id,
+      const { error: techError } = await supabase.from('technicians').insert({
+        id: signUpData.user.id,
+        email: 'digitalprofits247@gmail.com',
+        role: 'admin',
+        status: 'active'
+      });
+
+      if (techError) {
+        console.error('Error creating technician record:', techError);
+        throw techError;
+      }
+
+      // Add to the list of admins
+      setAdminAccounts(prev => [
+        ...prev,
+        {
+          id: signUpData.user.id,
+          name: 'Primary Admin',
           email: 'digitalprofits247@gmail.com',
           role: 'admin',
           status: 'active'
-        });
+        }
+      ]);
 
-        // Add to the list of admins
-        setAdminAccounts(prev => [
-          ...prev,
-          {
-            id: authData.user.id,
-            name: 'Primary Admin',
-            email: 'digitalprofits247@gmail.com',
-            role: 'admin',
-            status: 'active'
-          }
-        ]);
-
-        toast({
-          title: 'Default Admin Created',
-          description: 'The default admin account has been set up',
-        });
-      }
+      toast({
+        title: 'Default Admin Created',
+        description: 'The default admin account has been set up',
+      });
     } catch (error) {
       console.error('Error creating default admin:', error);
       toast({
@@ -194,51 +209,66 @@ export default function AdminAccounts() {
         return;
       }
 
-      // Create user in auth system - Note: This would ideally be handled by a secure edge function
-      // This is just for demo purposes
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // Create user in auth system
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
-        options: {
-          data: {
-            name: data.name,
-            role: data.role
-          }
+      });
+
+      if (signUpError) {
+        console.error('Error during signup:', signUpError);
+        throw signUpError;
+      }
+
+      if (!signUpData.user) {
+        throw new Error('User creation failed');
+      }
+
+      // Add user metadata
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: {
+          name: data.name,
+          role: data.role
         }
       });
 
-      if (authError) throw authError;
+      if (updateError) {
+        console.error('Error updating user metadata:', updateError);
+      }
 
       // Create technician record
-      if (authData.user) {
-        await supabase.from('technicians').insert({
-          id: authData.user.id,
+      const { error: techError } = await supabase.from('technicians').insert({
+        id: signUpData.user.id,
+        email: data.email,
+        role: data.role,
+        status: 'active'
+      });
+
+      if (techError) {
+        console.error('Error creating technician record:', techError);
+        throw techError;
+      }
+
+      // Add to the list of admins
+      setAdminAccounts(prev => [
+        ...prev,
+        {
+          id: signUpData.user.id,
+          name: data.name,
           email: data.email,
           role: data.role,
           status: 'active'
-        });
+        }
+      ]);
 
-        // Add to the list of admins
-        setAdminAccounts(prev => [
-          ...prev,
-          {
-            id: authData.user.id,
-            name: data.name,
-            email: data.email,
-            role: data.role,
-            status: 'active'
-          }
-        ]);
+      toast({
+        title: 'Success',
+        description: 'Admin account created successfully',
+      });
 
-        toast({
-          title: 'Success',
-          description: 'Admin account created successfully',
-        });
-
-        // Reset form and close dialog
-        form.reset();
-        setDialogOpen(false);
-      }
+      // Reset form and close dialog
+      form.reset();
+      setDialogOpen(false);
     } catch (error) {
       console.error('Error creating admin account:', error);
       toast({
@@ -359,6 +389,7 @@ export default function AdminAccounts() {
                       </FormItem>
                     )}
                   />
+                  
                   <FormField
                     control={form.control}
                     name="email"
@@ -372,6 +403,7 @@ export default function AdminAccounts() {
                       </FormItem>
                     )}
                   />
+                  
                   <FormField
                     control={form.control}
                     name="role"
@@ -396,6 +428,7 @@ export default function AdminAccounts() {
                       </FormItem>
                     )}
                   />
+                  
                   <FormField
                     control={form.control}
                     name="password"
