@@ -22,15 +22,23 @@ import { TechLayout } from "./components/tech/TechLayout";
 // Admin pages
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const AdminUsers = lazy(() => import("./pages/admin/Users"));
-const AdminWorkflows = lazy(() => import("./pages/admin/Workflows"));
-const AdminSupport = lazy(() => import("./pages/admin/Support"));
-const AdminFeatureRequests = lazy(() => import("./pages/admin/FeatureRequests"));
-const AdminCommunity = lazy(() => import("./pages/admin/Community"));
 const AdminUserNew = lazy(() => import("./pages/admin/UserNew"));
 const AdminCompanies = lazy(() => import("./pages/admin/Companies"));
 const AdminCompanyDetail = lazy(() => import("./pages/admin/CompanyDetail"));
 const AdminLicenses = lazy(() => import("./pages/admin/Licenses"));
+const AdminWorkflows = lazy(() => import("./pages/admin/Workflows"));
+const AdminSupport = lazy(() => import("./pages/admin/Support"));
+const AdminFeatureRequests = lazy(() => import("./pages/admin/FeatureRequests"));
+const AdminCommunity = lazy(() => import("./pages/admin/Community"));
 const AdminCommunityPostDetail = lazy(() => import("./pages/admin/CommunityPostDetail"));
+const AdminKnowledgeBase = lazy(() => import("./pages/admin/KnowledgeBase"));
+const AdminSystemMessages = lazy(() => import("./pages/admin/SystemMessages"));
+const AdminCRMIntegration = lazy(() => import("./pages/admin/CRMIntegration"));
+const AdminAPIIntegrations = lazy(() => import("./pages/admin/APIIntegrations"));
+const AdminAPIKeys = lazy(() => import("./pages/admin/ApiKeys"));
+const AdminProfile = lazy(() => import("./pages/admin/Profile"));
+const AdminAccounts = lazy(() => import("./pages/admin/AdminAccounts"));
+const AdminSubscriptionPlans = lazy(() => import("./pages/admin/SubscriptionPlans"));
 
 // Company pages
 const CompanyDashboard = lazy(() => import("./pages/company/Dashboard"));
@@ -94,13 +102,21 @@ function App() {
                   <Route path="users/new" element={<AdminUserNew />} />
                   <Route path="companies" element={<AdminCompanies />} />
                   <Route path="companies/:id" element={<AdminCompanyDetail />} />
+                  <Route path="admin-accounts" element={<AdminAccounts />} />
                   <Route path="licenses" element={<AdminLicenses />} />
                   <Route path="workflows" element={<AdminWorkflows />} />
                   <Route path="workflow-editor" element={<WorkflowEditor />} />
+                  <Route path="subscription-plans" element={<AdminSubscriptionPlans />} />
                   <Route path="support" element={<AdminSupport />} />
                   <Route path="feature-requests" element={<AdminFeatureRequests />} />
                   <Route path="community" element={<AdminCommunity />} />
                   <Route path="community/:postId" element={<AdminCommunityPostDetail />} />
+                  <Route path="knowledge-base" element={<AdminKnowledgeBase />} />
+                  <Route path="system-messages" element={<AdminSystemMessages />} />
+                  <Route path="crm-integration" element={<AdminCRMIntegration />} />
+                  <Route path="api-integrations" element={<AdminAPIIntegrations />} />
+                  <Route path="api-keys" element={<AdminAPIKeys />} />
+                  <Route path="profile" element={<AdminProfile />} />
                 </Route>
               </Route>
 
@@ -145,7 +161,7 @@ function App() {
                 </Route>
               </Route>
 
-              {/* Global workflow route accessible to all authenticated users */}
+              {/* Global workflow route */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/workflow-editor" element={<WorkflowEditor />} />
               </Route>

@@ -1,287 +1,160 @@
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Plus, Search, Bell, Trash2, Edit2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useSystemMessages } from "@/context/SystemMessageContext";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { BellRing, Info, AlertTriangle, Trash } from "lucide-react";
-import { SystemMessage } from "@/components/system/SystemMessage";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-export default function SystemMessagesPage() {
-  const { messages, addMessage, removeMessage } = useSystemMessages();
+export default function SystemMessages() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [messageType, setMessageType] = useState("all");
   
-  const [newMessage, setNewMessage] = useState({
-    title: "",
-    message: "",
-    type: "info" as "info" | "warning" | "maintenance" | "success",
-    targetUsers: {
-      company: true,
-      tech: true,
-      admin: false
-    },
-    dismissible: true
+  // Simulated data
+  const messages = [
+    { id: "1", title: "Scheduled Maintenance", message: "System will be down for maintenance on Saturday, 10 PM - 2 AM EST.", type: "info", audience: "all", scheduled: "Tomorrow", active: true },
+    { id: "2", title: "New Feature Release", message: "We've launched our new diagnostics module!", type: "success", audience: "admins, companies", scheduled: "Active now", active: true },
+    { id: "3", title: "Service Disruption", message: "We're experiencing issues with the workflow editor. Our team is investigating.", type: "error", audience: "all", scheduled: "Active now", active: true },
+    { id: "4", title: "Version Update Required", message: "Please update your app to the latest version to access new features.", type: "warning", audience: "techs", scheduled: "Next week", active: false },
+  ];
+  
+  const filteredMessages = messages.filter(message => {
+    const matchesSearch = message.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                           message.message.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = messageType === "all" || message.type === messageType;
+    return matchesSearch && matchesType;
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!newMessage.title || !newMessage.message) {
-      toast.error("Please provide both title and message");
-      return;
-    }
-    
-    const targetUsers = Object.entries(newMessage.targetUsers)
-      .filter(([_, value]) => value)
-      .map(([key]) => key) as ("company" | "tech" | "admin")[];
-    
-    if (targetUsers.length === 0) {
-      toast.error("Please select at least one user type");
-      return;
-    }
-    
-    addMessage({
-      title: newMessage.title,
-      message: newMessage.message,
-      type: newMessage.type,
-      targetUsers,
-      dismissible: newMessage.dismissible
-    });
-    
-    toast.success("System message added successfully");
-    
-    // Reset form
-    setNewMessage({
-      title: "",
-      message: "",
-      type: "info",
-      targetUsers: {
-        company: true,
-        tech: true,
-        admin: false
-      },
-      dismissible: true
-    });
-  };
-
-  const handleDeleteMessage = (id: string) => {
-    removeMessage(id);
-    toast.success("Message deleted successfully");
+  const handleAddMessage = () => {
+    console.log("Add new system message");
   };
 
   return (
     <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">System Messages</h1>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">System Messages</h1>
+          <p className="text-muted-foreground">Manage notifications and alerts for all users</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search messages..." 
+              className="pl-8 w-[250px]" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <Button onClick={handleAddMessage}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Message
+          </Button>
+        </div>
       </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Current System Messages</CardTitle>
-              <CardDescription>Messages displayed to users across the system</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {messages.length === 0 ? (
-                <div className="text-center py-6 text-gray-500">
-                  No active system messages
+
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>System Notifications</CardTitle>
+              <CardDescription>Manage notifications and alerts for users</CardDescription>
+            </div>
+            <Select value={messageType} onValueChange={setMessageType}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All types</SelectItem>
+                <SelectItem value="info">Information</SelectItem>
+                <SelectItem value="success">Success</SelectItem>
+                <SelectItem value="warning">Warning</SelectItem>
+                <SelectItem value="error">Error</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="active">
+            <TabsList className="mb-4">
+              <TabsTrigger value="active">Active Messages</TabsTrigger>
+              <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
+              <TabsTrigger value="archived">Archived</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="active">
+              {filteredMessages.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No active messages found
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {messages.map(msg => (
-                    <div key={msg.id} className="relative border rounded-lg p-4">
-                      <Button 
-                        variant="destructive" 
-                        size="icon" 
-                        className="absolute top-2 right-2 h-8 w-8"
-                        onClick={() => handleDeleteMessage(msg.id)}
-                        aria-label="Delete message"
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                      
-                      <SystemMessage
-                        type={msg.type}
-                        title={msg.title}
-                        message={msg.message}
-                      />
-                      
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        <p className="text-xs text-gray-500">Visible to:</p>
-                        {msg.targetUsers.map(user => (
-                          <span key={user} className="text-xs bg-gray-100 px-2 py-1 rounded">
-                            {user}
-                          </span>
-                        ))}
+                  {filteredMessages.filter(msg => msg.active).map((message) => (
+                    <div key={message.id} className={`flex items-start justify-between p-4 border rounded-lg ${
+                      message.type === 'error' ? 'border-red-200 bg-red-50' : 
+                      message.type === 'warning' ? 'border-amber-200 bg-amber-50' : 
+                      message.type === 'success' ? 'border-green-200 bg-green-50' : 
+                      'border-blue-200 bg-blue-50'
+                    }`}>
+                      <div className="flex items-start gap-3">
+                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+                          message.type === 'error' ? 'bg-red-100' : 
+                          message.type === 'warning' ? 'bg-amber-100' : 
+                          message.type === 'success' ? 'bg-green-100' : 
+                          'bg-blue-100'
+                        }`}>
+                          <Bell className={`h-5 w-5 ${
+                            message.type === 'error' ? 'text-red-600' : 
+                            message.type === 'warning' ? 'text-amber-600' : 
+                            message.type === 'success' ? 'text-green-600' : 
+                            'text-blue-600'
+                          }`} />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium">{message.title}</h3>
+                            <Badge variant="outline">{message.type}</Badge>
+                          </div>
+                          <p className="text-sm mt-1">{message.message}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <p className="text-xs text-muted-foreground">Audience: {message.audience}</p>
+                            <span>•</span>
+                            <p className="text-xs text-muted-foreground">Status: {message.scheduled}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 ml-4">
+                        <Button variant="outline" size="sm">
+                          <Edit2 className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                        <Button variant="destructive" size="sm">
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Remove
+                        </Button>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </div>
-        
-        <Card>
-          <form onSubmit={handleSubmit}>
-            <CardHeader>
-              <CardTitle>Add New Message</CardTitle>
-              <CardDescription>Create a system-wide announcement</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Message Title</Label>
-                <Input 
-                  id="title" 
-                  value={newMessage.title}
-                  onChange={e => setNewMessage({...newMessage, title: e.target.value})}
-                  placeholder="e.g. Scheduled Maintenance"
-                />
+            </TabsContent>
+            
+            <TabsContent value="scheduled">
+              <div className="text-center py-8 text-muted-foreground">
+                No scheduled messages found
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="message">Message Content</Label>
-                <Textarea 
-                  id="message"
-                  value={newMessage.message}
-                  onChange={e => setNewMessage({...newMessage, message: e.target.value})}
-                  placeholder="Details about the announcement..."
-                  rows={4}
-                />
+            </TabsContent>
+            
+            <TabsContent value="archived">
+              <div className="text-center py-8 text-muted-foreground">
+                No archived messages found
               </div>
-              
-              <div className="space-y-2">
-                <Label>Message Type</Label>
-                <RadioGroup 
-                  value={newMessage.type} 
-                  onValueChange={(value) => setNewMessage({
-                    ...newMessage, 
-                    type: value as "info" | "warning" | "maintenance" | "success"
-                  })}
-                  className="flex flex-wrap gap-4"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="info" id="info" />
-                    <Label htmlFor="info" className="flex items-center">
-                      <Info className="h-4 w-4 text-blue-500 mr-1" /> Info
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="warning" id="warning" />
-                    <Label htmlFor="warning" className="flex items-center">
-                      <AlertTriangle className="h-4 w-4 text-amber-500 mr-1" /> Warning
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="maintenance" id="maintenance" />
-                    <Label htmlFor="maintenance" className="flex items-center">
-                      <BellRing className="h-4 w-4 text-red-500 mr-1" /> Maintenance
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="success" id="success" />
-                    <Label htmlFor="success" className="flex items-center">
-                      <BellRing className="h-4 w-4 text-green-500 mr-1" /> Success
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
-              
-              <div className="space-y-3">
-                <Label>Show Message To</Label>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="company" 
-                      checked={newMessage.targetUsers.company}
-                      onCheckedChange={(checked) => 
-                        setNewMessage({
-                          ...newMessage, 
-                          targetUsers: {...newMessage.targetUsers, company: !!checked}
-                        })
-                      }
-                    />
-                    <label htmlFor="company" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Company Users
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="tech" 
-                      checked={newMessage.targetUsers.tech}
-                      onCheckedChange={(checked) => 
-                        setNewMessage({
-                          ...newMessage, 
-                          targetUsers: {...newMessage.targetUsers, tech: !!checked}
-                        })
-                      }
-                    />
-                    <label htmlFor="tech" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Technicians
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="admin" 
-                      checked={newMessage.targetUsers.admin}
-                      onCheckedChange={(checked) => 
-                        setNewMessage({
-                          ...newMessage, 
-                          targetUsers: {...newMessage.targetUsers, admin: !!checked}
-                        })
-                      }
-                    />
-                    <label htmlFor="admin" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Admin Users
-                    </label>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="dismissible" 
-                  checked={newMessage.dismissible}
-                  onCheckedChange={(checked) => 
-                    setNewMessage({
-                      ...newMessage, 
-                      dismissible: !!checked
-                    })
-                  }
-                />
-                <label htmlFor="dismissible" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Allow users to dismiss this message
-                </label>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button type="submit" className="w-full">Add System Message</Button>
-            </CardFooter>
-          </form>
-        </Card>
-      </div>
-      
-      <div className="mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>System Message Preview</CardTitle>
-            <CardDescription>This is how your message will appear to users</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SystemMessage
-              type={newMessage.type}
-              title={newMessage.title || "Message Title"}
-              message={newMessage.message || "Message content will appear here..."}
-              dismissible={newMessage.dismissible}
-            />
-          </CardContent>
-        </Card>
-      </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 }

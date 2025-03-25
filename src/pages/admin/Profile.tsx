@@ -1,131 +1,104 @@
 
-import { useState } from "react";
-import { ProfileLayout } from "@/components/profile/ProfileLayout";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/context/AuthContext";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { PasswordForm } from "@/components/profile/PasswordForm";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ShieldAlert, ShieldCheck, Key } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ProfileImageUpload } from "@/components/profile/ProfileImageUpload";
+import { ThemePreferences } from "@/components/profile/ThemePreferences";
+import { NotificationSettings } from "@/components/profile/NotificationSettings";
+import { AccountDeletion } from "@/components/profile/AccountDeletion";
 
 export default function AdminProfile() {
-  // Mock admin data - would typically come from API/context
-  const [adminData, setAdminData] = useState({
-    name: "Admin User",
-    email: "admin@repairautopilot.com",
-    phone: "555-123-4567",
-    title: "System Administrator",
-    role: "Administrator",
-    twoFactorEnabled: true,
-    adminCount: 2,
-    maxAdmins: 3
-  });
-
-  const handleProfileUpdate = (values: any) => {
-    setAdminData({
-      ...adminData,
-      ...values
+  const { user, updateUser } = useAuth();
+  
+  const handleUpdateProfile = (values: any) => {
+    updateUser({
+      name: values.name,
+      email: values.email,
+      phone: values.phone,
     });
   };
 
-  const securityCard = (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <ShieldCheck className="h-5 w-5 text-indigo-500" />
-          Security Settings
-        </CardTitle>
-        <CardDescription>
-          Manage your account security settings and two-factor authentication.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center justify-between border-b pb-4">
-          <div>
-            <h3 className="font-medium">Two-Factor Authentication</h3>
-            <p className="text-sm text-muted-foreground">
-              Add an extra layer of security to your account
-            </p>
-          </div>
-          <Button variant={adminData.twoFactorEnabled ? "outline" : "default"}>
-            {adminData.twoFactorEnabled ? "Disable" : "Enable"}
-          </Button>
-        </div>
-        
-        <div className="pt-2">
-          <Alert variant="default" className="bg-indigo-50 border-indigo-200">
-            <ShieldAlert className="h-4 w-4 text-indigo-600" />
-            <AlertTitle>Administrator Account</AlertTitle>
-            <AlertDescription>
-              This is an administrative account with system-wide permissions.
-              Currently {adminData.adminCount} of {adminData.maxAdmins} admin accounts are in use.
-              <div className="mt-2">
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/admin/admin-accounts">
-                    Manage Admin Accounts
-                  </Link>
-                </Button>
-              </div>
-            </AlertDescription>
-          </Alert>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const tabs = [
-    {
-      id: "general",
-      label: "General",
-      content: <ProfileForm defaultValues={adminData} onSubmit={handleProfileUpdate} title="Admin Profile" description="Update your administrator profile information." />
-    },
-    {
-      id: "security",
-      label: "Security",
-      content: (
-        <div className="space-y-6">
-          {securityCard}
-          <PasswordForm />
-        </div>
-      )
-    },
-    {
-      id: "api-keys",
-      label: "API Keys",
-      content: (
-        <Card>
+  return (
+    <div className="container mx-auto p-6 pb-16">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">My Profile</h1>
+        <p className="text-muted-foreground">Manage your account details and preferences</p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6">
+        <Card className="md:row-span-2 h-fit">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Key className="h-5 w-5 text-indigo-500" />
-              API Access
-            </CardTitle>
-            <CardDescription>
-              Manage your API keys for system integration.
-            </CardDescription>
+            <CardTitle>Profile Picture</CardTitle>
+            <CardDescription>Update your profile photo</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Administrator accounts can generate API keys for integrating with external systems.
-              Manage your existing keys or create new ones from the API Keys page.
-            </p>
-            <Button asChild>
-              <Link to="/admin/api-keys">
-                Manage API Keys
-              </Link>
-            </Button>
+            <ProfileImageUpload
+              imageUrl={user?.avatarUrl || 'https://i.pravatar.cc/300'}
+              onUpload={(url) => updateUser({ avatarUrl: url })}
+            />
           </CardContent>
         </Card>
-      )
-    }
-  ];
-
-  return (
-    <ProfileLayout
-      name={adminData.name}
-      email={adminData.email}
-      role={adminData.role}
-      tabs={tabs}
-    />
+        
+        <Tabs defaultValue="profile" className="flex-1">
+          <TabsList className="mb-4">
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="password">Password</TabsTrigger>
+            <TabsTrigger value="preferences">Preferences</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="profile">
+            <ProfileForm 
+              defaultValues={{
+                name: user?.name || '',
+                email: user?.email || '',
+                phone: user?.phone || '',
+                title: 'System Administrator',
+              }}
+              onSubmit={handleUpdateProfile}
+              title="Personal Information"
+              description="Update your personal details and contact information"
+            />
+          </TabsContent>
+          
+          <TabsContent value="password">
+            <PasswordForm />
+          </TabsContent>
+          
+          <TabsContent value="preferences">
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Theme Preferences</CardTitle>
+                <CardDescription>Customize the appearance of the admin dashboard</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ThemePreferences />
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Notification Settings</CardTitle>
+                <CardDescription>Manage your notification preferences</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <NotificationSettings />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+        
+        <Card className="md:col-start-2">
+          <CardHeader>
+            <CardTitle>Account Management</CardTitle>
+            <CardDescription>Critical account actions</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AccountDeletion />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }

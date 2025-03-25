@@ -10,6 +10,14 @@ import {
   MessageSquare,
   Building2,
   Key,
+  FileText,
+  Database,
+  Bell,
+  Link2,
+  Network,
+  KeyRound,
+  UserCircle,
+  UserCog,
 } from "lucide-react";
 
 export function AdminSidebar() {
@@ -21,24 +29,34 @@ export function AdminSidebar() {
       exact: true,
     },
     {
-      href: "/admin/users",
-      label: "Users",
-      icon: <Users className="h-5 w-5" />,
-    },
-    {
       href: "/admin/companies",
       label: "Companies",
       icon: <Building2 className="h-5 w-5" />,
     },
     {
-      href: "/admin/licenses",
-      label: "Licenses",
-      icon: <Key className="h-5 w-5" />,
+      href: "/admin/users",
+      label: "Users",
+      icon: <Users className="h-5 w-5" />,
+    },
+    {
+      href: "/admin/admin-accounts",
+      label: "Admin Accounts",
+      icon: <UserCog className="h-5 w-5" />,
     },
     {
       href: "/admin/workflows",
       label: "Workflows",
       icon: <Share2 className="h-5 w-5" />,
+    },
+    {
+      href: "/admin/subscription-plans",
+      label: "Subscription Plans",
+      icon: <FileText className="h-5 w-5" />,
+    },
+    {
+      href: "/admin/licenses",
+      label: "Licenses",
+      icon: <Key className="h-5 w-5" />,
     },
     {
       href: "/admin/support",
@@ -54,6 +72,36 @@ export function AdminSidebar() {
       href: "/admin/community",
       label: "Community",
       icon: <MessageSquare className="h-5 w-5" />,
+    },
+    {
+      href: "/admin/knowledge-base",
+      label: "Knowledge Base",
+      icon: <Database className="h-5 w-5" />,
+    },
+    {
+      href: "/admin/system-messages",
+      label: "System Messages",
+      icon: <Bell className="h-5 w-5" />,
+    },
+    {
+      href: "/admin/crm-integration",
+      label: "CRM Integration",
+      icon: <Link2 className="h-5 w-5" />,
+    },
+    {
+      href: "/admin/api-integrations",
+      label: "API Integrations",
+      icon: <Network className="h-5 w-5" />,
+    },
+    {
+      href: "/admin/api-keys",
+      label: "API Keys",
+      icon: <KeyRound className="h-5 w-5" />,
+    },
+    {
+      href: "/admin/profile",
+      label: "Profile",
+      icon: <UserCircle className="h-5 w-5" />,
     },
   ];
 
