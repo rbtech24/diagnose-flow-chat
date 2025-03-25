@@ -14,6 +14,7 @@ const SignUp = lazy(() => import("./pages/SignUp"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const WorkflowEditor = lazy(() => import("./pages/WorkflowEditor")); // Import the WorkflowEditor component
 
 // Direct imports for layout components
 import { AdminLayout } from "./components/admin/AdminLayout";
@@ -88,7 +89,7 @@ function App() {
                   } />
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="workflows" element={<AdminWorkflows />} />
-                  <Route path="workflow-editor" element={<Workflows />} /> {/* Add route for workflow editor */}
+                  <Route path="workflow-editor" element={<WorkflowEditor />} /> {/* Use the proper WorkflowEditor component */}
                   <Route path="support" element={<AdminSupport />} />
                   <Route path="feature-requests" element={<AdminFeatureRequests />} />
                   <Route path="community" element={<AdminCommunity />} />
@@ -138,7 +139,7 @@ function App() {
 
               {/* Global workflow route accessible to all authenticated users */}
               <Route element={<ProtectedRoute />}>
-                <Route path="/workflow-editor" element={<Workflows />} />
+                <Route path="/workflow-editor" element={<WorkflowEditor />} /> {/* Use the WorkflowEditor component here too */}
               </Route>
 
               {/* 404 route */}
