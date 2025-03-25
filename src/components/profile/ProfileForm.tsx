@@ -24,7 +24,9 @@ const profileFormSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
-  phone: z.string().optional(),
+  phone: z.string().min(10, {
+    message: "Phone number must be at least 10 characters.",
+  }).optional(),
   title: z.string().optional(),
 });
 
@@ -113,10 +115,10 @@ export function ProfileForm({
                 <FormItem>
                   <FormLabel>Phone Number</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} type="tel" />
                   </FormControl>
                   <FormDescription>
-                    Optional: Add your phone number for contact purposes.
+                    Your contact phone number.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

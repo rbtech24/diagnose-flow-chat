@@ -14,13 +14,13 @@ interface AuthContextType {
   isLoading: boolean;
   signIn: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
-  signUp: (email: string, password: string, name: string, role: Role) => Promise<void>;
+  signUp: (email: string, password: string, name: string, role: Role, phone?: string) => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
   checkWorkflowAccess: (categoryId: string, workflowId: string) => { hasAccess: boolean; message?: string };
   // Add these methods to fix the missing function errors
   login: (email: string) => Promise<void>;
   logout: () => Promise<void>;
-  register: (userData: { name: string; email: string; password: string; role: string; companyName?: string }) => Promise<void>;
+  register: (userData: { name: string; email: string; password: string; role: string; phone?: string; companyName?: string }) => Promise<void>;
   forgotPassword: (email: string) => Promise<boolean>;
   resetPassword: (token: string, newPassword: string) => Promise<boolean>;
 }
@@ -105,7 +105,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, name: string, role: Role): Promise<void> => {
+  const signUp = async (email: string, password: string, name: string, role: Role, phone?: string): Promise<void> => {
     try {
       // Simulate sign up
       const newUser: User = {
@@ -113,6 +113,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email,
         name,
         role,
+        phone,
         avatarUrl: '',
       };
       
@@ -154,7 +155,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = signIn;
   const logout = signOut;
   
-  const register = async (userData: { name: string; email: string; password: string; role: string; companyName?: string }): Promise<void> => {
+  const register = async (userData: { name: string; email: string; password: string; role: string; phone?: string; companyName?: string }): Promise<void> => {
     try {
       // Simulate registration
       const role = userData.role as Role;
@@ -167,6 +168,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email: userData.email,
         name: userData.name,
         role: role,
+        phone: userData.phone, // Add phone field
         avatarUrl: '',
         // Add company data if registering as a company
         ...(userData.companyName && { 

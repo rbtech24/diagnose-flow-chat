@@ -1,3 +1,4 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -14,7 +15,7 @@ const userFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   role: z.enum(["admin", "company", "tech"]),
-  phone: z.string().optional(),
+  phone: z.string().min(10, "Phone number must be at least 10 characters").optional(),
   password: z.string().min(8, "Password must be at least 8 characters"),
   companyId: z.string().optional(),
 });
@@ -112,10 +113,13 @@ export default function UserNew() {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone (Optional)</FormLabel>
+                    <FormLabel>Phone Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="(555) 123-4567" {...field} />
+                      <Input placeholder="(555) 123-4567" type="tel" {...field} />
                     </FormControl>
+                    <FormDescription>
+                      Contact phone number for the user
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
