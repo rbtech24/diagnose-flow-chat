@@ -35,8 +35,8 @@ export default function AdminProfile() {
           </CardHeader>
           <CardContent>
             <ProfileImageUpload
-              imageUrl={user?.avatarUrl || 'https://i.pravatar.cc/300'}
-              onUpload={(url) => updateUser({ avatarUrl: url })}
+              currentImageUrl={user?.avatarUrl || 'https://i.pravatar.cc/300'}
+              onImageUpdate={(url) => updateUser({ avatarUrl: url })}
             />
           </CardContent>
         </Card>
