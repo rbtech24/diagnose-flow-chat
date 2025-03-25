@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 
 interface Company {
@@ -44,6 +43,10 @@ interface UserManagementStore {
   addCompany: (company: Omit<Company, 'id'>) => Promise<Company>;
   updateCompany: (id: string, updates: Partial<Company>) => Promise<Company | null>;
   deleteCompany: (id: string) => Promise<boolean>;
+  fetchUserById: (id: string) => Promise<User | null>;
+  deleteUser: (id: string) => Promise<boolean>;
+  resetUserPassword: (id: string, newPassword: string) => Promise<boolean>;
+  addUser: (userData: Omit<User, 'id'>) => Promise<User | null>;
 }
 
 // Mock data for companies
@@ -328,6 +331,72 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
     } catch (error) {
       console.error('Error deleting company:', error);
       return false;
+    }
+  },
+  fetchUserById: async (id: string) => {
+    try {
+      // First check if we already have the user in state
+      const { users } = get();
+      let user = users.find(u => u.id === id);
+      
+      // If not found and users array is empty, fetch users first
+      if (!user && users.length === 0) {
+        await get().fetchUsers();
+        user = get().users.find(u => u.id === id);
+      }
+      
+      return user || null;
+    } catch (error) {
+      console.error('Error fetching user by ID:', error);
+      return null;
+    }
+  },
+  deleteUser: async (id: string) => {
+    try {
+      // Simulate API call with delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      set(state => ({
+        users: state.users.filter(user => user.id !== id)
+      }));
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return false;
+    }
+  },
+  resetUserPassword: async (id: string, newPassword: string) => {
+    try {
+      // Simulate API call with delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // In a real app, this would call an API endpoint
+      // For now, we'll just return success
+      return true;
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      return false;
+    }
+  },
+  addUser: async (userData: Omit<User, 'id'>) => {
+    try {
+      // Simulate API call with delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const newUser: User = {
+        ...userData,
+        id: `user-${Date.now()}`, // Generate a unique ID
+      };
+      
+      set(state => ({
+        users: [...state.users, newUser]
+      }));
+      
+      return newUser;
+    } catch (error) {
+      console.error('Error adding user:', error);
+      return null;
     }
   }
 }));

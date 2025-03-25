@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -93,11 +92,12 @@ export default function Updates() {
         </p>
 
         <SystemMessage 
+          id="subscribe-updates"
           type="info" 
           title="Subscribe to Updates" 
           message="Want to receive product updates via email? Sign up for our newsletter to stay informed." 
-          visible={true} 
           dismissible={true}
+          onDismiss={() => {}}
         />
         
         {isLoading ? (
