@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import Index from "./pages/Index";
@@ -6,7 +5,6 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { Loader2 } from "lucide-react";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import Workflows from "./pages/Workflows"; // Import Workflows directly
 
 // Lazy load pages for better performance
 const Login = lazy(() => import("./pages/Login"));
@@ -14,7 +12,7 @@ const SignUp = lazy(() => import("./pages/SignUp"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const WorkflowEditor = lazy(() => import("./pages/WorkflowEditor")); // Import the WorkflowEditor component
+const WorkflowEditor = lazy(() => import("./pages/WorkflowEditor"));
 
 // Direct imports for layout components
 import { AdminLayout } from "./components/admin/AdminLayout";
@@ -35,7 +33,7 @@ const ManageTechnicians = lazy(() => import("./pages/company/ManageTechnicians")
 const CompanySupport = lazy(() => import("./pages/company/Support"));
 const CompanyFeatureRequests = lazy(() => import("./pages/company/FeatureRequests"));
 const CompanyCommunity = lazy(() => import("./pages/company/Community"));
-const CompanyDiagnostics = lazy(() => import("./pages/diagnostics/DiagnosticsPage")); // Import for company diagnostics
+const CompanyDiagnostics = lazy(() => import("./pages/diagnostics/DiagnosticsPage"));
 
 // Tech pages
 const TechDashboard = lazy(() => import("./pages/tech/Dashboard"));
@@ -65,8 +63,8 @@ function App() {
   return (
     <ErrorBoundary>
       <Router>
-        <Suspense fallback={<LoadingFallback />}>
-          <AuthProvider>
+        <AuthProvider>
+          <Suspense fallback={<LoadingFallback />}>
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<Index />} />
@@ -89,7 +87,7 @@ function App() {
                   } />
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="workflows" element={<AdminWorkflows />} />
-                  <Route path="workflow-editor" element={<WorkflowEditor />} /> {/* Use the proper WorkflowEditor component */}
+                  <Route path="workflow-editor" element={<WorkflowEditor />} />
                   <Route path="support" element={<AdminSupport />} />
                   <Route path="feature-requests" element={<AdminFeatureRequests />} />
                   <Route path="community" element={<AdminCommunity />} />
@@ -109,7 +107,7 @@ function App() {
                       <ManageTechnicians />
                     </ErrorBoundary>
                   } />
-                  <Route path="diagnostics" element={<CompanyDiagnostics />} /> {/* Add route for company diagnostics */}
+                  <Route path="diagnostics" element={<CompanyDiagnostics />} />
                   <Route path="support" element={<CompanySupport />} />
                   <Route path="feature-requests" element={<CompanyFeatureRequests />} />
                   <Route path="community" element={<CompanyCommunity />} />
@@ -139,14 +137,14 @@ function App() {
 
               {/* Global workflow route accessible to all authenticated users */}
               <Route element={<ProtectedRoute />}>
-                <Route path="/workflow-editor" element={<WorkflowEditor />} /> {/* Use the WorkflowEditor component here too */}
+                <Route path="/workflow-editor" element={<WorkflowEditor />} />
               </Route>
 
               {/* 404 route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </AuthProvider>
-        </Suspense>
+          </Suspense>
+        </AuthProvider>
       </Router>
     </ErrorBoundary>
   );

@@ -25,6 +25,7 @@ interface AuthContextType {
   resetPassword: (token: string, newPassword: string) => Promise<boolean>;
 }
 
+// Create the context with a default undefined value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
