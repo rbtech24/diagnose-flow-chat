@@ -1,54 +1,36 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { OfflineAwareCommunityForum } from '@/components/community/OfflineAwareCommunityForum';
 import { CommunityPost, CommunityPostType } from '@/types/community';
-import { emptyPosts } from '@/utils/placeholderData';
+import { useCommunityPosts } from '@/hooks/useCommunityPosts';
 import { MessageSquare, FileText, Workflow, CheckCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
 export default function CompanyCommunity() {
   const navigate = useNavigate();
-  const [posts, setPosts] = useState<CommunityPost[]>(emptyPosts);
+  const { posts, isLoading, createPost } = useCommunityPosts();
 
-  const handleCreatePost = (post: {
+  const handleCreatePost = async (post: {
     title: string;
     content: string;
     type: CommunityPostType;
     tags: string[];
     attachments: File[];
   }) => {
-    const newPost: CommunityPost = {
-      id: `post-${Date.now()}`,
+    await createPost({
       title: post.title,
       content: post.content,
       type: post.type,
-      authorId: 'company-1',
-      author: {
-        id: 'company-1',
-        name: 'Company User',
-        email: 'company@example.com',
-        role: 'company',
-        avatarUrl: ''
-      },
-      attachments: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      upvotes: 0,
-      views: 0,
-      tags: post.tags,
-      comments: [],
-      isSolved: false
-    };
-    
-    setPosts([newPost, ...posts]);
+      tags: post.tags
+    });
   };
 
-  // Calculate statistics - empty initially
-  const questionCount = 0;
-  const techSheetRequestCount = 0;
-  const wireDiagramRequestCount = 0;
-  const fulfilledRequestCount = 0;
+  // Calculate statistics based on posts
+  const questionCount = posts.filter(post => post.type === 'question').length;
+  const techSheetRequestCount = posts.filter(post => post.type === 'tech-sheet-request').length;
+  const wireDiagramRequestCount = posts.filter(post => post.type === 'wire-diagram-request').length;
+  const fulfilledRequestCount = posts.filter(post => post.isSolved).length;
 
   return (
     <div className="container mx-auto px-0 sm:px-4">
@@ -102,6 +84,7 @@ export default function CompanyCommunity() {
         onCreatePost={handleCreatePost}
         userRole="company"
         showDocumentTypes={true}
+        isLoading={isLoading}
       />
     </div>
   );

@@ -2,52 +2,35 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { OfflineAwareCommunityForum } from '@/components/community/OfflineAwareCommunityForum';
-import { CommunityPost, CommunityPostType } from '@/types/community';
-import { emptyPosts } from '@/utils/placeholderData';
+import { CommunityPostType } from '@/types/community';
+import { useCommunityPosts } from '@/hooks/useCommunityPosts';
 
 export default function TechCommunity() {
   const navigate = useNavigate();
-  const [posts, setPosts] = useState<CommunityPost[]>(emptyPosts);
+  const { posts, isLoading, createPost } = useCommunityPosts();
 
-  const handleCreatePost = (post: {
+  const handleCreatePost = async (post: {
     title: string;
     content: string;
     type: CommunityPostType;
     tags: string[];
     attachments: File[];
   }) => {
-    const newPost: CommunityPost = {
-      id: `post-${Date.now()}`,
+    await createPost({
       title: post.title,
       content: post.content,
       type: post.type,
-      authorId: 'tech-1',
-      author: {
-        id: 'tech-1',
-        name: 'Tech User',
-        email: 'tech@example.com',
-        role: 'tech',
-        avatarUrl: ''
-      },
-      attachments: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      upvotes: 0,
-      views: 0,
-      tags: post.tags,
-      comments: []
-    };
-    
-    setPosts([newPost, ...posts]);
+      tags: post.tags
+    });
   };
 
   return (
     <div className="container mx-auto p-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Technician Community</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Technician Community</h1>
           <p className="text-muted-foreground mt-1">
-            Share knowledge, request technical documents, and solve problems together
+            Connect with other technicians, share knowledge, and get help
           </p>
         </div>
       </div>
@@ -57,6 +40,7 @@ export default function TechCommunity() {
         initialPosts={posts}
         onCreatePost={handleCreatePost}
         userRole="tech"
+        isLoading={isLoading}
       />
     </div>
   );

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { CommunityPost, CommunityPostType } from '@/types/community';
 import { CommunityFilters } from './CommunityFilters';
@@ -28,6 +29,7 @@ interface OfflineAwareCommunityForumProps {
     attachments: File[];
   }) => void;
   showDocumentTypes?: boolean;
+  isLoading?: boolean;
 }
 
 export function OfflineAwareCommunityForum({
@@ -36,6 +38,7 @@ export function OfflineAwareCommunityForum({
   userRole = 'tech',
   onCreatePost,
   showDocumentTypes = false,
+  isLoading = false,
 }: OfflineAwareCommunityForumProps) {
   const [posts, setPosts] = useState<CommunityPost[]>(initialPosts);
   const [searchTerm, setSearchTerm] = useState('');

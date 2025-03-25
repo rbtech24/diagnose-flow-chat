@@ -1,44 +1,27 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { OfflineAwareCommunityForum } from '@/components/community/OfflineAwareCommunityForum';
 import { CommunityPost, CommunityPostType } from '@/types/community';
-import { emptyPosts } from '@/utils/placeholderData';
+import { useCommunityPosts } from '@/hooks/useCommunityPosts';
 
 export default function AdminCommunity() {
   const navigate = useNavigate();
-  const [posts, setPosts] = useState<CommunityPost[]>(emptyPosts);
+  const { posts, isLoading, createPost } = useCommunityPosts();
 
-  const handleCreatePost = (post: {
+  const handleCreatePost = async (post: {
     title: string;
     content: string;
     type: CommunityPostType;
     tags: string[];
     attachments: File[];
   }) => {
-    const newPost: CommunityPost = {
-      id: `post-${Date.now()}`,
+    await createPost({
       title: post.title,
       content: post.content,
       type: post.type,
-      authorId: 'admin-1',
-      author: {
-        id: 'admin-1',
-        name: 'Admin User',
-        email: 'admin@example.com',
-        role: 'admin',
-        avatarUrl: ''
-      },
-      attachments: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      upvotes: 0,
-      views: 0,
-      tags: post.tags,
-      comments: []
-    };
-    
-    setPosts([newPost, ...posts]);
+      tags: post.tags
+    });
   };
 
   return (
@@ -57,6 +40,7 @@ export default function AdminCommunity() {
         initialPosts={posts}
         onCreatePost={handleCreatePost}
         userRole="admin"
+        isLoading={isLoading}
       />
     </div>
   );
