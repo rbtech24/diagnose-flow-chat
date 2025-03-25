@@ -58,3 +58,25 @@ export function safeParseJsonArray(jsonString: string | any): any[] {
     return [];
   }
 }
+
+/**
+ * Safely parses JSON to an object or returns an empty object
+ */
+export function safeParseJsonObject(jsonString: string | any): Record<string, any> {
+  if (typeof jsonString === 'object' && jsonString !== null && !Array.isArray(jsonString)) {
+    return jsonString;
+  }
+  
+  if (typeof jsonString !== 'string') {
+    return {};
+  }
+  
+  try {
+    const parsed = JSON.parse(jsonString);
+    return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed) 
+      ? parsed 
+      : {};
+  } catch (error) {
+    return {};
+  }
+}

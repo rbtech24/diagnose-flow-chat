@@ -34,19 +34,47 @@ export function useSubscriptionPlans() {
 
       if (error) throw error;
       
-      // Transform the data to ensure features is always a string array
-      const formattedData = data?.map(plan => ({
-        ...plan,
-        features: Array.isArray(plan.features) 
-          ? plan.features 
-          : typeof plan.features === 'string' 
-            ? [plan.features]
-            : typeof plan.features === 'object' && plan.features !== null
-              ? Array.isArray(JSON.parse(JSON.stringify(plan.features)))
-                ? JSON.parse(JSON.stringify(plan.features))
-                : []
-              : []
-      })) || [];
+      // Transform the data to ensure proper typing
+      const formattedData = data?.map(plan => {
+        // Ensure features is always a string array
+        let featuresArray: string[] = [];
+        
+        if (Array.isArray(plan.features)) {
+          featuresArray = plan.features;
+        } else if (typeof plan.features === 'string') {
+          try {
+            const parsed = JSON.parse(plan.features);
+            featuresArray = Array.isArray(parsed) ? parsed : [plan.features];
+          } catch {
+            featuresArray = [plan.features];
+          }
+        } else if (plan.features && typeof plan.features === 'object') {
+          featuresArray = Object.values(plan.features).map(String);
+        }
+        
+        // Ensure limits is always a Record<string, any>
+        let limitsObj: Record<string, any> = {};
+        
+        if (plan.limits && typeof plan.limits === 'object') {
+          try {
+            limitsObj = plan.limits;
+          } catch {
+            limitsObj = {};
+          }
+        } else if (typeof plan.limits === 'string') {
+          try {
+            limitsObj = JSON.parse(plan.limits);
+          } catch {
+            limitsObj = {};
+          }
+        }
+        
+        return {
+          ...plan,
+          features: featuresArray,
+          limits: limitsObj
+        } as SubscriptionPlan;
+      }) || [];
       
       setPlans(formattedData);
     } catch (error) {
@@ -63,10 +91,10 @@ export function useSubscriptionPlans() {
 
   const createPlan = async (planData: Omit<SubscriptionPlan, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      // Ensure features is an array
+      // Ensure features is properly formatted for database
       const formattedPlanData = {
         ...planData,
-        features: Array.isArray(planData.features) ? planData.features : [planData.features].filter(Boolean)
+        features: Array.isArray(planData.features) ? planData.features : []
       };
 
       const { data, error } = await supabase
@@ -77,16 +105,19 @@ export function useSubscriptionPlans() {
 
       if (error) throw error;
       
-      // Ensure the returned data has features as string array
-      const formattedResult = {
+      // Transform the returned data to ensure proper typing
+      const formattedResult: SubscriptionPlan = {
         ...data,
         features: Array.isArray(data.features) 
           ? data.features 
-          : typeof data.features === 'string' 
-            ? [data.features] 
-            : Array.isArray(JSON.parse(JSON.stringify(data.features)))
-              ? JSON.parse(JSON.stringify(data.features))
-              : []
+          : typeof data.features === 'string'
+            ? JSON.parse(data.features)
+            : [],
+        limits: data.limits && typeof data.limits === 'object'
+          ? data.limits
+          : typeof data.limits === 'string'
+            ? JSON.parse(data.limits)
+            : {}
       };
       
       setPlans(prev => [...prev, formattedResult]);
@@ -111,16 +142,17 @@ export function useSubscriptionPlans() {
   const updatePlan = async (id: string, planData: Partial<SubscriptionPlan>) => {
     try {
       // Format date objects and ensure features is an array if provided
-      const formattedData = Object.entries(planData).reduce((acc, [key, value]) => {
+      const formattedData: Record<string, any> = {};
+      
+      Object.entries(planData).forEach(([key, value]) => {
         if (key === 'features' && value) {
-          acc[key] = Array.isArray(value) ? value : [value].filter(Boolean);
+          formattedData[key] = Array.isArray(value) ? value : [];
         } else if (value instanceof Date) {
-          acc[key] = formatDateForSupabase(value);
+          formattedData[key] = formatDateForSupabase(value);
         } else {
-          acc[key] = value;
+          formattedData[key] = value;
         }
-        return acc;
-      }, {} as Record<string, any>);
+      });
       
       const { data, error } = await supabase
         .from('subscription_plans')
@@ -131,16 +163,19 @@ export function useSubscriptionPlans() {
 
       if (error) throw error;
       
-      // Ensure the returned data has features as string array
-      const formattedResult = {
+      // Transform the returned data to ensure proper typing
+      const formattedResult: SubscriptionPlan = {
         ...data,
         features: Array.isArray(data.features) 
           ? data.features 
-          : typeof data.features === 'string' 
-            ? [data.features] 
-            : Array.isArray(JSON.parse(JSON.stringify(data.features)))
-              ? JSON.parse(JSON.stringify(data.features))
-              : []
+          : typeof data.features === 'string'
+            ? JSON.parse(data.features)
+            : [],
+        limits: data.limits && typeof data.limits === 'object'
+          ? data.limits
+          : typeof data.limits === 'string'
+            ? JSON.parse(data.limits)
+            : {}
       };
       
       setPlans(prev => prev.map(plan => plan.id === id ? formattedResult : plan));

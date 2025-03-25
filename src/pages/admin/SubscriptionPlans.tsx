@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash2, Check } from "lucide-react";
 import { useSubscriptionPlans, SubscriptionPlan } from "@/hooks/useSubscriptionPlans";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
@@ -52,12 +52,12 @@ export default function SubscriptionPlans() {
 
   useEffect(() => {
     if (editingPlan) {
-      // Ensure features is handled correctly regardless of whether it's an array or string
+      // Ensure features is handled correctly regardless of type
       const featuresArray = Array.isArray(editingPlan.features) 
         ? editingPlan.features 
         : typeof editingPlan.features === 'string'
           ? [editingPlan.features]
-          : safeParseJsonArray(editingPlan.features);
+          : safeParseJsonArray(JSON.stringify(editingPlan.features));
           
       form.reset({
         name: editingPlan.name,
@@ -99,8 +99,15 @@ export default function SubscriptionPlans() {
         await updatePlan(editingPlan.id, data);
       } else {
         await createPlan({
-          ...data,
-          is_active: data.is_active
+          name: data.name,
+          price_monthly: data.price_monthly,
+          price_yearly: data.price_yearly,
+          features: data.features,
+          is_active: data.is_active,
+          description: data.description,
+          recommended: data.recommended,
+          trial_period: data.trial_period,
+          limits: {}
         });
       }
       setDialogOpen(false);

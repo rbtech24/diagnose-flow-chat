@@ -24,7 +24,7 @@ const formSchema = z.object({
   }),
   category: z.string().optional(),
   is_public: z.boolean().default(false),
-  tags: z.string().optional(),
+  tags: z.string().transform(value => value.split(',').map(tag => tag.trim()).filter(Boolean)),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -79,49 +79,44 @@ export default function KnowledgeArticleDetail() {
           ? [article.tags]
           : [];
         
-    form.reset({
-      title: article.title,
-      content: article.content,
-      category: article.category || '',
-      is_public: article.is_public,
-      tags: tagsArray.join(', ')
-    });
-  }
-}, [article, form]);
-
-const handleSubmit = async (values: FormValues) => {
-  if (!articleId) return;
-  
-  try {
-    setIsSubmitting(true);
-    
-    // Convert comma-separated tags to array
-    const tagsArray = values.tags
-      ? values.tags.split(',').map(tag => tag.trim()).filter(Boolean)
-      : [];
-    
-    const updatedArticle = await updateArticle(articleId, {
-      ...values,
-      tags: tagsArray,
-    });
-    
-    if (updatedArticle) {
-      toast({
-        title: "Success",
-        description: "Article updated successfully",
+      form.reset({
+        title: article.title,
+        content: article.content,
+        category: article.category || '',
+        is_public: article.is_public,
+        tags: tagsArray.join(', ')
       });
     }
-  } catch (error) {
-    console.error('Error updating article:', error);
-    toast({
-      title: "Error",
-      description: "Failed to update article",
-      variant: "destructive",
-    });
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  }, [article, form]);
+
+  const handleSubmit = async (values: FormValues) => {
+    if (!articleId) return;
+    
+    try {
+      setIsSubmitting(true);
+      
+      const updatedArticle = await updateArticle(articleId, {
+        ...values,
+        tags: values.tags,
+      });
+      
+      if (updatedArticle) {
+        toast({
+          title: "Success",
+          description: "Article updated successfully",
+        });
+      }
+    } catch (error) {
+      console.error('Error updating article:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update article",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (isLoading) {
     return (
