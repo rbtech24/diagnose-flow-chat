@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { Loader2 } from "lucide-react";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import Workflows from "./pages/Workflows"; // Import Workflows directly
 
 // Lazy load pages for better performance
 const Login = lazy(() => import("./pages/Login"));
@@ -33,6 +34,7 @@ const ManageTechnicians = lazy(() => import("./pages/company/ManageTechnicians")
 const CompanySupport = lazy(() => import("./pages/company/Support"));
 const CompanyFeatureRequests = lazy(() => import("./pages/company/FeatureRequests"));
 const CompanyCommunity = lazy(() => import("./pages/company/Community"));
+const CompanyDiagnostics = lazy(() => import("./pages/diagnostics/DiagnosticsPage")); // Import for company diagnostics
 
 // Tech pages
 const TechDashboard = lazy(() => import("./pages/tech/Dashboard"));
@@ -86,6 +88,7 @@ function App() {
                   } />
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="workflows" element={<AdminWorkflows />} />
+                  <Route path="workflow-editor" element={<Workflows />} /> {/* Add route for workflow editor */}
                   <Route path="support" element={<AdminSupport />} />
                   <Route path="feature-requests" element={<AdminFeatureRequests />} />
                   <Route path="community" element={<AdminCommunity />} />
@@ -105,6 +108,7 @@ function App() {
                       <ManageTechnicians />
                     </ErrorBoundary>
                   } />
+                  <Route path="diagnostics" element={<CompanyDiagnostics />} /> {/* Add route for company diagnostics */}
                   <Route path="support" element={<CompanySupport />} />
                   <Route path="feature-requests" element={<CompanyFeatureRequests />} />
                   <Route path="community" element={<CompanyCommunity />} />
@@ -130,6 +134,11 @@ function App() {
                   <Route path="feature-requests/:id" element={<TechFeatureRequestDetail />} />
                   <Route path="diagnostics" element={<TechDiagnostics />} />
                 </Route>
+              </Route>
+
+              {/* Global workflow route accessible to all authenticated users */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/workflow-editor" element={<Workflows />} />
               </Route>
 
               {/* 404 route */}
