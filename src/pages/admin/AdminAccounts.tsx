@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, UserCog, CheckCircle, XCircle, Mail, RotateCw } from "lucide-react";
+import { Plus, Search, UserCog, CheckCircle, XCircle, Mail, RotateCw, Building2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,6 +25,8 @@ interface AdminAccount {
   role: string;
   lastLogin?: string;
   status?: string;
+  companyId?: string;
+  companyName?: string;
 }
 
 // Form schema for adding a new admin
@@ -32,6 +34,7 @@ const adminFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   role: z.string().min(1, "Please select a role"),
+  companyId: z.string().optional(),
   password: z.string().min(8, "Password must be at least 8 characters")
     .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
     .regex(/[a-z]/, "Password must contain at least one lowercase letter")
@@ -46,6 +49,8 @@ export default function AdminAccounts() {
   const [searchQuery, setSearchQuery] = useState("");
   const [adminAccounts, setAdminAccounts] = useState<AdminAccount[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [companies, setCompanies] = useState<{id: string, name: string}[]>([]);
+  const [selectedCompany, setSelectedCompany] = useState<string>("");
   const { user } = useAuth();
 
   const form = useForm<AdminFormValues>({
@@ -54,22 +59,67 @@ export default function AdminAccounts() {
       name: "",
       email: "",
       role: "admin",
+      companyId: "",
       password: "",
     },
   });
+
+  // Fetch companies
+  const fetchCompanies = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('companies')
+        .select('id, name');
+
+      if (error) {
+        throw error;
+      }
+
+      setCompanies(data || []);
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+    }
+  };
 
   // Fetch admin accounts
   const fetchAdminAccounts = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('technicians')
-        .select('id, email, role, last_sign_in_at, status')
-        .in('role', ['admin', 'super_admin'])
+        .select('id, email, role, last_sign_in_at, status, company_id')
+        .in('role', ['admin', 'super_admin', 'company']);
+      
+      if (selectedCompany) {
+        query = query.eq('company_id', selectedCompany);
+      }
+
+      const { data, error } = await query
         .order('created_at', { ascending: false });
 
       if (error) {
         throw error;
+      }
+
+      // Get company names for admins with company_id
+      const companyIds = data
+        .filter(admin => admin.company_id)
+        .map(admin => admin.company_id);
+      
+      let companyNames: Record<string, string> = {};
+      
+      if (companyIds.length > 0) {
+        const { data: companiesData, error: companiesError } = await supabase
+          .from('companies')
+          .select('id, name')
+          .in('id', companyIds);
+        
+        if (!companiesError && companiesData) {
+          companyNames = companiesData.reduce((acc, company) => {
+            acc[company.id] = company.name;
+            return acc;
+          }, {} as Record<string, string>);
+        }
       }
 
       // Transform data to include name from auth.users if needed
@@ -80,7 +130,9 @@ export default function AdminAccounts() {
         email: admin.email,
         role: admin.role,
         lastLogin: admin.last_sign_in_at ? new Date(admin.last_sign_in_at).toLocaleString() : 'Never',
-        status: admin.status || 'active'
+        status: admin.status || 'active',
+        companyId: admin.company_id,
+        companyName: admin.company_id ? companyNames[admin.company_id] : undefined
       }));
 
       setAdminAccounts(adminAccountsData);
@@ -187,13 +239,15 @@ export default function AdminAccounts() {
   };
 
   useEffect(() => {
+    fetchCompanies();
     fetchAdminAccounts();
-  }, []);
+  }, [selectedCompany]);
 
   const filteredAccounts = adminAccounts.filter(account => 
-    account.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (account.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     account.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    account.role.toLowerCase().includes(searchQuery.toLowerCase())
+    account.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (account.companyName && account.companyName.toLowerCase().includes(searchQuery.toLowerCase())))
   );
 
   const onSubmit = async (data: AdminFormValues) => {
@@ -241,12 +295,20 @@ export default function AdminAccounts() {
         id: signUpData.user.id,
         email: data.email,
         role: data.role,
-        status: 'active'
+        status: 'active',
+        company_id: data.companyId || null
       });
 
       if (techError) {
         console.error('Error creating technician record:', techError);
         throw techError;
+      }
+
+      // Get company name if companyId is provided
+      let companyName;
+      if (data.companyId) {
+        const company = companies.find(c => c.id === data.companyId);
+        companyName = company?.name;
       }
 
       // Add to the list of admins
@@ -257,7 +319,9 @@ export default function AdminAccounts() {
           name: data.name,
           email: data.email,
           role: data.role,
-          status: 'active'
+          status: 'active',
+          companyId: data.companyId,
+          companyName
         }
       ]);
 
@@ -360,6 +424,17 @@ export default function AdminAccounts() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
+          <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="All Companies" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Companies</SelectItem>
+              {companies.map(company => (
+                <SelectItem key={company.id} value={company.id}>{company.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -419,6 +494,7 @@ export default function AdminAccounts() {
                           <SelectContent>
                             <SelectItem value="admin">Admin</SelectItem>
                             <SelectItem value="super_admin">Super Admin</SelectItem>
+                            <SelectItem value="company">Company Admin</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormDescription>
@@ -428,6 +504,34 @@ export default function AdminAccounts() {
                       </FormItem>
                     )}
                   />
+                  
+                  {form.watch('role') === 'company' && (
+                    <FormField
+                      control={form.control}
+                      name="companyId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Company</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value || ""}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a company" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {companies.map(company => (
+                                <SelectItem key={company.id} value={company.id}>{company.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            The company this admin will manage.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
                   
                   <FormField
                     control={form.control}
@@ -500,8 +604,14 @@ export default function AdminAccounts() {
                         <span className="hidden sm:inline">•</span>
                         <p className="text-sm text-muted-foreground">Last login: {account.lastLogin}</p>
                         <Badge variant={account.role === "super_admin" ? "destructive" : "default"}>
-                          {account.role === "super_admin" ? "Super Admin" : "Admin"}
+                          {account.role === "super_admin" ? "Super Admin" : account.role === "company" ? "Company Admin" : "Admin"}
                         </Badge>
+                        {account.companyName && (
+                          <Badge variant="outline" className="bg-blue-50">
+                            <Building2 className="h-3 w-3 mr-1 text-blue-500" />
+                            {account.companyName}
+                          </Badge>
+                        )}
                         <Badge variant={account.status === "active" ? "outline" : "secondary"}>
                           {account.status === "active" ? 
                             <CheckCircle className="h-3.5 w-3.5 mr-1 text-green-500" /> : 
