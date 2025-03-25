@@ -102,22 +102,14 @@ export function useCommunityPosts() {
       setIsLoading(true);
       setError(null);
 
-      // First, increment view count using a direct update
-      try {
-        const { error: viewError } = await supabase
-          .from('community_posts')
-          .update({ views: supabase.rpc('increment', { 
-            row_id: postId,
-            field_name: 'views', 
-            table_name: 'community_posts' 
-          })})
-          .eq('id', postId);
+      // First, increment view count using proper RPC call
+      const { error: viewError } = await supabase.rpc('increment', { 
+        row_id: postId,
+        field_name: 'views', 
+        table_name: 'community_posts' 
+      });
 
-        if (viewError) {
-          console.error('Error updating view count:', viewError);
-          // Continue even if view incrementing fails
-        }
-      } catch (viewError) {
+      if (viewError) {
         console.error('Error updating view count:', viewError);
         // Continue even if view incrementing fails
       }
@@ -333,17 +325,15 @@ export function useCommunityPosts() {
 
   const upvotePost = async (postId: string): Promise<boolean> => {
     try {
-      // Update the post with an increment to the upvotes
-      const { error } = await supabase
-        .from('community_posts')
-        .update({ upvotes: supabase.rpc('increment', {
-          row_id: postId,
-          field_name: 'upvotes',
-          table_name: 'community_posts'
-        })})
-        .eq('id', postId);
+      // Call the increment RPC function to safely increment upvotes
+      const { data, error } = await supabase.rpc('increment', {
+        row_id: postId,
+        field_name: 'upvotes',
+        table_name: 'community_posts'
+      });
 
       if (error) throw error;
+      
       return true;
     } catch (err: any) {
       console.error('Error upvoting post:', err);
@@ -354,17 +344,15 @@ export function useCommunityPosts() {
 
   const upvoteComment = async (commentId: string): Promise<boolean> => {
     try {
-      // Update the comment with an increment to the upvotes
-      const { error } = await supabase
-        .from('community_post_comments')
-        .update({ upvotes: supabase.rpc('increment', {
-          row_id: commentId,
-          field_name: 'upvotes',
-          table_name: 'community_post_comments'
-        })})
-        .eq('id', commentId);
+      // Call the increment RPC function to safely increment upvotes
+      const { data, error } = await supabase.rpc('increment', {
+        row_id: commentId,
+        field_name: 'upvotes',
+        table_name: 'community_post_comments'
+      });
 
       if (error) throw error;
+      
       return true;
     } catch (err: any) {
       console.error('Error upvoting comment:', err);
