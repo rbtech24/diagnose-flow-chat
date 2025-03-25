@@ -24,7 +24,7 @@ const formSchema = z.object({
   }),
   category: z.string().optional(),
   is_public: z.boolean().default(false),
-  tags: z.string().transform(value => value.split(',').map(tag => tag.trim()).filter(Boolean)),
+  tags: z.array(z.string()),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -44,7 +44,7 @@ export default function KnowledgeArticleDetail() {
       content: "",
       category: "",
       is_public: false,
-      tags: "",
+      tags: [],
     },
   });
 
@@ -72,19 +72,14 @@ export default function KnowledgeArticleDetail() {
 
   useEffect(() => {
     if (article) {
-      // Ensure tags are handled as an array
-      const tagsArray = Array.isArray(article.tags) 
-        ? article.tags 
-        : typeof article.tags === 'string'
-          ? [article.tags]
-          : [];
-        
+      const tags = Array.isArray(article.tags) ? article.tags : [];
+      
       form.reset({
         title: article.title,
         content: article.content,
         category: article.category || '',
         is_public: article.is_public,
-        tags: tagsArray.join(', ')
+        tags,
       });
     }
   }, [article, form]);

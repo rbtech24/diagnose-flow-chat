@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
@@ -23,6 +22,21 @@ export function useSubscriptionPlans() {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const ensureStringArray = (value: any): string[] => {
+    if (Array.isArray(value)) {
+      return value.map(String);
+    }
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed.map(String) : [value];
+      } catch {
+        return [value];
+      }
+    }
+    return [];
+  };
+
   const fetchPlans = async () => {
     setIsLoading(true);
     try {
@@ -33,48 +47,12 @@ export function useSubscriptionPlans() {
         .order('price_monthly', { ascending: true });
 
       if (error) throw error;
-      
-      // Transform the data to ensure proper typing
-      const formattedData = data?.map(plan => {
-        // Ensure features is always a string array
-        let featuresArray: string[] = [];
-        
-        if (Array.isArray(plan.features)) {
-          featuresArray = plan.features;
-        } else if (typeof plan.features === 'string') {
-          try {
-            const parsed = JSON.parse(plan.features);
-            featuresArray = Array.isArray(parsed) ? parsed : [plan.features];
-          } catch {
-            featuresArray = [plan.features];
-          }
-        } else if (plan.features && typeof plan.features === 'object') {
-          featuresArray = Object.values(plan.features).map(String);
-        }
-        
-        // Ensure limits is always a Record<string, any>
-        let limitsObj: Record<string, any> = {};
-        
-        if (plan.limits && typeof plan.limits === 'object') {
-          try {
-            limitsObj = plan.limits;
-          } catch {
-            limitsObj = {};
-          }
-        } else if (typeof plan.limits === 'string') {
-          try {
-            limitsObj = JSON.parse(plan.limits);
-          } catch {
-            limitsObj = {};
-          }
-        }
-        
-        return {
-          ...plan,
-          features: featuresArray,
-          limits: limitsObj
-        } as SubscriptionPlan;
-      }) || [];
+
+      const formattedData = (data || []).map(plan => ({
+        ...plan,
+        features: ensureStringArray(plan.features),
+        limits: typeof plan.limits === 'string' ? JSON.parse(plan.limits) : plan.limits || {}
+      }));
       
       setPlans(formattedData);
     } catch (error) {
@@ -91,7 +69,6 @@ export function useSubscriptionPlans() {
 
   const createPlan = async (planData: Omit<SubscriptionPlan, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      // Ensure features is properly formatted for database
       const formattedPlanData = {
         ...planData,
         features: Array.isArray(planData.features) ? planData.features : []
@@ -105,7 +82,6 @@ export function useSubscriptionPlans() {
 
       if (error) throw error;
       
-      // Transform the returned data to ensure proper typing
       const formattedResult: SubscriptionPlan = {
         ...data,
         features: Array.isArray(data.features) 
@@ -141,7 +117,6 @@ export function useSubscriptionPlans() {
 
   const updatePlan = async (id: string, planData: Partial<SubscriptionPlan>) => {
     try {
-      // Format date objects and ensure features is an array if provided
       const formattedData: Record<string, any> = {};
       
       Object.entries(planData).forEach(([key, value]) => {
@@ -163,7 +138,6 @@ export function useSubscriptionPlans() {
 
       if (error) throw error;
       
-      // Transform the returned data to ensure proper typing
       const formattedResult: SubscriptionPlan = {
         ...data,
         features: Array.isArray(data.features) 
@@ -199,7 +173,6 @@ export function useSubscriptionPlans() {
 
   const deletePlan = async (id: string) => {
     try {
-      // Soft delete by setting is_active to false
       const { error } = await supabase
         .from('subscription_plans')
         .update({ is_active: false })

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,7 +41,7 @@ export default function SubscriptionPlans() {
       name: "",
       price_monthly: 0,
       price_yearly: 0,
-      features: "",
+      features: [],
       is_active: true,
       description: "",
       recommended: false,
@@ -52,18 +51,11 @@ export default function SubscriptionPlans() {
 
   useEffect(() => {
     if (editingPlan) {
-      // Ensure features is handled correctly regardless of type
-      const featuresArray = Array.isArray(editingPlan.features) 
-        ? editingPlan.features 
-        : typeof editingPlan.features === 'string'
-          ? [editingPlan.features]
-          : safeParseJsonArray(JSON.stringify(editingPlan.features));
-          
       form.reset({
         name: editingPlan.name,
         price_monthly: editingPlan.price_monthly,
         price_yearly: editingPlan.price_yearly,
-        features: featuresArray.join('\n'),
+        features: editingPlan.features,
         is_active: editingPlan.is_active,
         description: editingPlan.description || '',
         recommended: editingPlan.recommended || false,
@@ -74,7 +66,7 @@ export default function SubscriptionPlans() {
         name: "",
         price_monthly: 0,
         price_yearly: 0,
-        features: "",
+        features: [],
         is_active: true,
         description: "",
         recommended: false,
