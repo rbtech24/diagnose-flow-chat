@@ -16,6 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "@/components/ui/use-toast";
+import { safeParseJsonArray } from "@/utils/dateUtils";
 
 const subscriptionFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -51,15 +52,18 @@ export default function SubscriptionPlans() {
 
   useEffect(() => {
     if (editingPlan) {
+      // Ensure features is handled correctly regardless of whether it's an array or string
+      const featuresArray = Array.isArray(editingPlan.features) 
+        ? editingPlan.features 
+        : typeof editingPlan.features === 'string'
+          ? [editingPlan.features]
+          : safeParseJsonArray(editingPlan.features);
+          
       form.reset({
         name: editingPlan.name,
         price_monthly: editingPlan.price_monthly,
         price_yearly: editingPlan.price_yearly,
-        features: Array.isArray(editingPlan.features) 
-          ? editingPlan.features.join('\n') 
-          : typeof editingPlan.features === 'string' 
-            ? editingPlan.features 
-            : '',
+        features: featuresArray.join('\n'),
         is_active: editingPlan.is_active,
         description: editingPlan.description || '',
         recommended: editingPlan.recommended || false,
@@ -94,7 +98,10 @@ export default function SubscriptionPlans() {
       if (editingPlan) {
         await updatePlan(editingPlan.id, data);
       } else {
-        await createPlan(data);
+        await createPlan({
+          ...data,
+          is_active: data.is_active
+        });
       }
       setDialogOpen(false);
     } catch (error) {

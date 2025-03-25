@@ -1,4 +1,3 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -52,7 +51,7 @@ export default function CompanyNew() {
 
   const onSubmit = async (data: CompanyFormValues) => {
     try {
-      // Ensure we pass the required fields as non-optional
+      const now = new Date();
       const newCompany = await addCompany({
         name: data.name,
         contactName: data.contactName,
@@ -66,6 +65,8 @@ export default function CompanyNew() {
         planId: data.planId,
         planName: data.planName,
         status: data.status,
+        createdAt: now,
+        updatedAt: now
       });
       navigate(`/admin/companies/${newCompany.id}`);
     } catch (error) {

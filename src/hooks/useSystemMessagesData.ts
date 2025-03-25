@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+import { parseDate, formatDateForSupabase } from "@/utils/dateUtils";
 
 export interface SystemMessage {
   id: string;
@@ -47,9 +48,16 @@ export function useSystemMessagesData() {
 
   const createMessage = async (messageData: Omit<SystemMessage, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      // Format date fields if they exist
+      const formattedData = {
+        ...messageData,
+        start_date: messageData.start_date ? formatDateForSupabase(messageData.start_date) : null,
+        end_date: messageData.end_date ? formatDateForSupabase(messageData.end_date) : null
+      };
+
       const { data, error } = await supabase
         .from('system_messages')
-        .insert([messageData])
+        .insert([formattedData])
         .select()
         .single();
 
@@ -76,9 +84,15 @@ export function useSystemMessagesData() {
 
   const updateMessage = async (id: string, messageData: Partial<SystemMessage>) => {
     try {
-      // Convert Date objects to strings if necessary
+      // Format date fields if they exist
       const formattedData = Object.entries(messageData).reduce((acc, [key, value]) => {
-        acc[key] = value instanceof Date ? value.toISOString() : value;
+        if ((key === 'start_date' || key === 'end_date') && value) {
+          acc[key] = formatDateForSupabase(value as string);
+        } else if (key === 'created_at' || key === 'updated_at') {
+          // Skip these fields
+        } else {
+          acc[key] = value;
+        }
         return acc;
       }, {} as Record<string, any>);
 

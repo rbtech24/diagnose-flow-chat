@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+import { formatDateForSupabase } from "@/utils/dateUtils";
 
 export interface SubscriptionPlan {
   id: string;
@@ -33,7 +34,21 @@ export function useSubscriptionPlans() {
 
       if (error) throw error;
       
-      setPlans(data || []);
+      // Transform the data to ensure features is always a string array
+      const formattedData = data?.map(plan => ({
+        ...plan,
+        features: Array.isArray(plan.features) 
+          ? plan.features 
+          : typeof plan.features === 'string' 
+            ? [plan.features]
+            : typeof plan.features === 'object' && plan.features !== null
+              ? Array.isArray(JSON.parse(JSON.stringify(plan.features)))
+                ? JSON.parse(JSON.stringify(plan.features))
+                : []
+              : []
+      })) || [];
+      
+      setPlans(formattedData);
     } catch (error) {
       console.error('Error fetching subscription plans:', error);
       toast({
@@ -48,22 +63,40 @@ export function useSubscriptionPlans() {
 
   const createPlan = async (planData: Omit<SubscriptionPlan, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      // Ensure features is an array
+      const formattedPlanData = {
+        ...planData,
+        features: Array.isArray(planData.features) ? planData.features : [planData.features].filter(Boolean)
+      };
+
       const { data, error } = await supabase
         .from('subscription_plans')
-        .insert([planData])
+        .insert([formattedPlanData])
         .select()
         .single();
 
       if (error) throw error;
       
-      setPlans(prev => [...prev, data]);
+      // Ensure the returned data has features as string array
+      const formattedResult = {
+        ...data,
+        features: Array.isArray(data.features) 
+          ? data.features 
+          : typeof data.features === 'string' 
+            ? [data.features] 
+            : Array.isArray(JSON.parse(JSON.stringify(data.features)))
+              ? JSON.parse(JSON.stringify(data.features))
+              : []
+      };
+      
+      setPlans(prev => [...prev, formattedResult]);
       
       toast({
         title: "Success",
         description: "Subscription plan created successfully",
       });
       
-      return data;
+      return formattedResult;
     } catch (error) {
       console.error('Error creating subscription plan:', error);
       toast({
@@ -77,9 +110,15 @@ export function useSubscriptionPlans() {
 
   const updatePlan = async (id: string, planData: Partial<SubscriptionPlan>) => {
     try {
-      // Convert Date objects to strings if necessary
+      // Format date objects and ensure features is an array if provided
       const formattedData = Object.entries(planData).reduce((acc, [key, value]) => {
-        acc[key] = value instanceof Date ? value.toISOString() : value;
+        if (key === 'features' && value) {
+          acc[key] = Array.isArray(value) ? value : [value].filter(Boolean);
+        } else if (value instanceof Date) {
+          acc[key] = formatDateForSupabase(value);
+        } else {
+          acc[key] = value;
+        }
         return acc;
       }, {} as Record<string, any>);
       
@@ -92,14 +131,26 @@ export function useSubscriptionPlans() {
 
       if (error) throw error;
       
-      setPlans(prev => prev.map(plan => plan.id === id ? data : plan));
+      // Ensure the returned data has features as string array
+      const formattedResult = {
+        ...data,
+        features: Array.isArray(data.features) 
+          ? data.features 
+          : typeof data.features === 'string' 
+            ? [data.features] 
+            : Array.isArray(JSON.parse(JSON.stringify(data.features)))
+              ? JSON.parse(JSON.stringify(data.features))
+              : []
+      };
+      
+      setPlans(prev => prev.map(plan => plan.id === id ? formattedResult : plan));
       
       toast({
         title: "Success",
         description: "Subscription plan updated successfully",
       });
       
-      return data;
+      return formattedResult;
     } catch (error) {
       console.error('Error updating subscription plan:', error);
       toast({
