@@ -62,14 +62,15 @@ serve(async (req) => {
       );
     }
 
+    // Parse URL to extract endpoint path
+    const url = new URL(req.url);
+    const pathParts = url.pathname.split('/');
+    const endpoint = pathParts[pathParts.length - 1]; // Get the last part of the URL
+
     // Handle different methods
     switch (req.method) {
       case 'GET': {
-        // Get route from URL
-        const url = new URL(req.url);
-        const path = url.pathname.split('/').pop();
-
-        if (path === 'available') {
+        if (endpoint === 'available') {
           // Get available integrations (predefined list)
           return new Response(
             JSON.stringify({
@@ -120,7 +121,7 @@ serve(async (req) => {
             }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
-        } else if (path === 'connected') {
+        } else if (endpoint === 'connected') {
           // Get connected integrations from database
           const { data, error } = await supabaseClient
             .from('api_integrations')
@@ -139,7 +140,7 @@ serve(async (req) => {
             JSON.stringify({ data }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
-        } else if (path === 'webhooks') {
+        } else if (endpoint === 'webhooks') {
           // Get webhook endpoints from database
           const { data, error } = await supabaseClient
             .from('webhook_endpoints')
@@ -169,11 +170,7 @@ serve(async (req) => {
         // Parse the request body
         const requestData = await req.json();
         
-        // Get route from URL
-        const url = new URL(req.url);
-        const path = url.pathname.split('/').pop();
-
-        if (path === 'connect') {
+        if (endpoint === 'connect') {
           // Add a new integration
           const { provider, name, description, category, config = {}, credentials = {} } = requestData;
           
@@ -212,7 +209,7 @@ serve(async (req) => {
             JSON.stringify({ data, success: true }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
-        } else if (path === 'disconnect') {
+        } else if (endpoint === 'disconnect') {
           // Disconnect an integration
           const { integrationId } = requestData;
           
@@ -243,7 +240,7 @@ serve(async (req) => {
             JSON.stringify({ data, success: true }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
-        } else if (path === 'webhook') {
+        } else if (endpoint === 'webhook') {
           // Create a new webhook endpoint
           const { name, description, url, events, integrationId } = requestData;
           

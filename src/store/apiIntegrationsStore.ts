@@ -81,10 +81,9 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
         isLoading: { ...state.isLoading, available: true }
       }));
 
-      const { data, error } = await supabase.functions.invoke('manage-integrations', {
+      const { data, error } = await supabase.functions.invoke('manage-integrations/available', {
         method: 'GET',
         body: {},
-        path: '/available',
       });
 
       if (error) {
@@ -127,10 +126,9 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
         isLoading: { ...state.isLoading, connected: true }
       }));
 
-      const { data, error } = await supabase.functions.invoke('manage-integrations', {
+      const { data, error } = await supabase.functions.invoke('manage-integrations/connected', {
         method: 'GET',
         body: {},
-        path: '/connected',
       });
 
       if (error) {
@@ -183,10 +181,9 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
         isLoading: { ...state.isLoading, webhooks: true }
       }));
 
-      const { data, error } = await supabase.functions.invoke('manage-integrations', {
+      const { data, error } = await supabase.functions.invoke('manage-integrations/webhooks', {
         method: 'GET',
         body: {},
-        path: '/webhooks',
       });
 
       if (error) {
@@ -218,7 +215,7 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
 
   connectIntegration: async (integration, config = {}, credentials = {}) => {
     try {
-      const { data, error } = await supabase.functions.invoke('manage-integrations', {
+      const { data, error } = await supabase.functions.invoke('manage-integrations/connect', {
         method: 'POST',
         body: {
           provider: integration.id,
@@ -228,7 +225,6 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
           config,
           credentials
         },
-        path: '/connect',
       });
 
       if (error) {
@@ -274,10 +270,9 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
         return false;
       }
 
-      const { data, error } = await supabase.functions.invoke('manage-integrations', {
+      const { data, error } = await supabase.functions.invoke('manage-integrations/disconnect', {
         method: 'POST',
         body: { integrationId },
-        path: '/disconnect',
       });
 
       if (error) {
@@ -312,10 +307,9 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
 
   createWebhook: async (webhook) => {
     try {
-      const { data, error } = await supabase.functions.invoke('manage-integrations', {
+      const { data, error } = await supabase.functions.invoke('manage-integrations/webhook', {
         method: 'POST',
         body: webhook,
-        path: '/webhook',
       });
 
       if (error) {
