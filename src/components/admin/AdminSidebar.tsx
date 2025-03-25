@@ -1,5 +1,5 @@
 
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 
 export function AdminSidebar() {
+  const location = useLocation();
+  
   const links = [
     {
       href: "/admin",
@@ -112,23 +114,27 @@ export function AdminSidebar() {
       </div>
       <div className="flex-1 overflow-auto py-2">
         <nav className="grid items-start px-2 text-sm">
-          {links.map((link, index) => (
-            <NavLink
-              key={index}
-              to={link.href}
-              end={link.exact}
-              className={({ isActive }) =>
-                cn(
+          {links.map((link, index) => {
+            const isActive = link.exact 
+              ? location.pathname === link.href
+              : location.pathname.startsWith(link.href);
+            
+            return (
+              <NavLink
+                key={index}
+                to={link.href}
+                end={link.exact}
+                className={cn(
                   "flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground hover:text-foreground",
                   "transition-all hover:bg-accent",
                   isActive ? "bg-accent text-foreground font-medium" : ""
-                )
-              }
-            >
-              {link.icon}
-              {link.label}
-            </NavLink>
-          ))}
+                )}
+              >
+                {link.icon}
+                {link.label}
+              </NavLink>
+            );
+          })}
         </nav>
       </div>
     </div>

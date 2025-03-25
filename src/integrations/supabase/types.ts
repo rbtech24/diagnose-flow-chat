@@ -188,6 +188,68 @@ export type Database = {
           },
         ]
       }
+      api_integrations: {
+        Row: {
+          category: string
+          company_id: string | null
+          config: Json | null
+          created_at: string | null
+          created_by: string | null
+          credentials: Json | null
+          description: string | null
+          id: string
+          is_public: boolean | null
+          last_sync: string | null
+          name: string
+          provider: string
+          status: string
+          updated_at: string | null
+          webhook_url: string | null
+        }
+        Insert: {
+          category: string
+          company_id?: string | null
+          config?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          credentials?: Json | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          last_sync?: string | null
+          name: string
+          provider: string
+          status?: string
+          updated_at?: string | null
+          webhook_url?: string | null
+        }
+        Update: {
+          category?: string
+          company_id?: string | null
+          config?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          credentials?: Json | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          last_sync?: string | null
+          name?: string
+          provider?: string
+          status?: string
+          updated_at?: string | null
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_integrations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       api_key_logs: {
         Row: {
           api_key_id: string | null
@@ -3532,6 +3594,66 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_endpoints: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          events: string[] | null
+          id: string
+          integration_id: string | null
+          name: string
+          secret_key: string | null
+          status: string
+          updated_at: string | null
+          url: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          events?: string[] | null
+          id?: string
+          integration_id?: string | null
+          name: string
+          secret_key?: string | null
+          status?: string
+          updated_at?: string | null
+          url: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          events?: string[] | null
+          id?: string
+          integration_id?: string | null
+          name?: string
+          secret_key?: string | null
+          status?: string
+          updated_at?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_endpoints_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_endpoints_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "api_integrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       widget_data_cache: {
         Row: {
           created_at: string | null
@@ -4192,6 +4314,14 @@ export type Database = {
       needs_setup: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      process_webhook_event: {
+        Args: {
+          webhook_id: string
+          event_type: string
+          payload: Json
+        }
+        Returns: Json
       }
       refresh_widget_data: {
         Args: {
