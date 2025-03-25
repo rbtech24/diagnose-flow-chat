@@ -143,7 +143,9 @@ export default function AdminAccounts() {
           email: 'digitalprofits247@gmail.com',
           role: 'admin',
           lastLogin: 'Never',
-          status: 'active'
+          status: 'active',
+          companyId: undefined,
+          companyName: undefined
         });
       }
 
