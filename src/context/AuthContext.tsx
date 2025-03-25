@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User } from '@/types/user';
@@ -166,6 +167,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         name: userData.name,
         role: role,
         avatarUrl: '',
+        // Add company data if registering as a company
+        ...(userData.companyName && { 
+          companyId: `company-${Date.now()}`,
+          // We could also store the company name if needed
+        })
       };
       
       setUser(newUser);
