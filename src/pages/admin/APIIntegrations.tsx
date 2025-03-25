@@ -216,7 +216,7 @@ export default function APIIntegrations() {
                     </p>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <ArrowRightLeft className="h-4 w-4" />
-                      <span>Last synced: {integration.last_sync ? new Date(integration.last_sync).toLocaleString() : 'Never'}</span>
+                      <span>Last synced: {integration.lastSync || integration.last_sync ? new Date(integration.lastSync || integration.last_sync).toLocaleString() : 'Never'}</span>
                     </div>
                   </CardContent>
                   <CardFooter className="flex justify-between border-t pt-4">

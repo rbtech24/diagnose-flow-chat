@@ -14,6 +14,7 @@ interface IntegrationConnectDialogProps {
     name: string;
     category: string;
     description?: string;
+    status: string; // Added this property to fix the error
   };
   isOpen: boolean;
   onClose: () => void;

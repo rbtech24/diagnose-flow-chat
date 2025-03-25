@@ -8,7 +8,7 @@ interface Integration {
   name: string;
   category: string;
   status: string;
-  description: string;
+  description?: string;
   lastSync?: string;
   provider?: string;
   config?: Record<string, any>;
@@ -16,6 +16,7 @@ interface Integration {
   company_id?: string;
   created_at?: string;
   updated_at?: string;
+  last_sync?: string; // Including both lastSync and last_sync to handle database naming
 }
 
 interface Webhook {
@@ -82,7 +83,6 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
 
       const { data, error } = await supabase.functions.invoke('manage-integrations', {
         method: 'GET',
-        responseType: 'json',
         body: {},
         path: '/available',
       });
@@ -129,7 +129,6 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
 
       const { data, error } = await supabase.functions.invoke('manage-integrations', {
         method: 'GET',
-        responseType: 'json',
         body: {},
         path: '/connected',
       });
@@ -144,14 +143,20 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
         return;
       }
 
+      // Transform data to ensure consistent property naming
+      const transformedData = (data.data || []).map((item: any) => ({
+        ...item,
+        lastSync: item.last_sync // Ensure lastSync property exists for components that use it
+      }));
+
       set({
-        connectedIntegrations: data.data || [],
+        connectedIntegrations: transformedData,
         isLoading: { ...get().isLoading, connected: false }
       });
 
       // Update available integrations status if they're loaded
       if (get().availableIntegrations.length > 0) {
-        const connectedIds = data.data?.map((i: Integration) => i.provider) || [];
+        const connectedIds = transformedData.map((i: Integration) => i.provider) || [];
         const updatedAvailable = get().availableIntegrations.map(integration => ({
           ...integration,
           status: connectedIds.includes(integration.id) ? 'Connected' : 'Not Connected'
@@ -180,7 +185,6 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
 
       const { data, error } = await supabase.functions.invoke('manage-integrations', {
         method: 'GET',
-        responseType: 'json',
         body: {},
         path: '/webhooks',
       });
@@ -216,7 +220,6 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
     try {
       const { data, error } = await supabase.functions.invoke('manage-integrations', {
         method: 'POST',
-        responseType: 'json',
         body: {
           provider: integration.id,
           name: integration.name,
@@ -273,7 +276,6 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
 
       const { data, error } = await supabase.functions.invoke('manage-integrations', {
         method: 'POST',
-        responseType: 'json',
         body: { integrationId },
         path: '/disconnect',
       });
@@ -312,7 +314,6 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
     try {
       const { data, error } = await supabase.functions.invoke('manage-integrations', {
         method: 'POST',
-        responseType: 'json',
         body: webhook,
         path: '/webhook',
       });
