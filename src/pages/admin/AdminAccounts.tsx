@@ -124,7 +124,7 @@ export default function AdminAccounts() {
 
       // Transform data to include name from auth.users if needed
       // For now using email as name placeholder
-      const adminAccountsData = data.map(admin => ({
+      let adminAccountsData = data.map(admin => ({
         id: admin.id,
         name: admin.email.split('@')[0] || 'Admin User', // Simple name extraction from email
         email: admin.email,
@@ -135,14 +135,24 @@ export default function AdminAccounts() {
         companyName: admin.company_id ? companyNames[admin.company_id] : undefined
       }));
 
+      // Check if our default admin exists, if not add it to the list
+      if (!adminAccountsData.some(admin => admin.email === 'digitalprofits247@gmail.com')) {
+        adminAccountsData.push({
+          id: 'default-admin-id',
+          name: 'Primary Admin',
+          email: 'digitalprofits247@gmail.com',
+          role: 'admin',
+          lastLogin: 'Never',
+          status: 'active'
+        });
+      }
+
       setAdminAccounts(adminAccountsData);
       
-      // Check if our default admin exists, if not create it
-      if (!adminAccountsData.some(admin => admin.email === 'digitalprofits247@gmail.com')) {
-        const adminExists = await checkUserExists('digitalprofits247@gmail.com');
-        if (!adminExists) {
-          await createDefaultAdmin();
-        }
+      // Check if our default admin exists in the database, if not create it
+      const adminExists = await checkUserExists('digitalprofits247@gmail.com');
+      if (!adminExists) {
+        await createDefaultAdmin();
       }
     } catch (error) {
       console.error('Error fetching admin accounts:', error);
@@ -172,6 +182,8 @@ export default function AdminAccounts() {
 
   const createDefaultAdmin = async () => {
     try {
+      console.log('Creating default admin user');
+      
       // Create user in auth system
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: 'digitalprofits247@gmail.com',
@@ -212,17 +224,8 @@ export default function AdminAccounts() {
         throw techError;
       }
 
-      // Add to the list of admins
-      setAdminAccounts(prev => [
-        ...prev,
-        {
-          id: signUpData.user.id,
-          name: 'Primary Admin',
-          email: 'digitalprofits247@gmail.com',
-          role: 'admin',
-          status: 'active'
-        }
-      ]);
+      // Refresh the admin list
+      fetchAdminAccounts();
 
       toast({
         title: 'Default Admin Created',
@@ -233,7 +236,7 @@ export default function AdminAccounts() {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to create default admin account',
+        description: 'Failed to create default admin account. Please check console for details.',
       });
     }
   };
