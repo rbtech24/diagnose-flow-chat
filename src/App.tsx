@@ -62,8 +62,8 @@ function App() {
   return (
     <ErrorBoundary>
       <Router>
-        <AuthProvider>
-          <Suspense fallback={<LoadingFallback />}>
+        <Suspense fallback={<LoadingFallback />}>
+          <AuthProvider>
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<Index />} />
@@ -135,8 +135,8 @@ function App() {
               {/* 404 route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </Suspense>
-        </AuthProvider>
+          </AuthProvider>
+        </Suspense>
       </Router>
     </ErrorBoundary>
   );

@@ -4,20 +4,22 @@ import { useAuth } from '@/context/AuthContext';
 export function useUserRole() {
   const { userRole, isLoading } = useAuth();
   
-  // Return both 'role' and 'userRole' to maintain backward compatibility
   return { 
     role: userRole, 
     userRole, 
     isLoading,
-    // Add a hasRole function to check if user has specific role
-    hasRole: (role: string | string[]) => {
+    // Improved hasRole function with better type checking
+    hasRole: (targetRole: string | string[]) => {
       if (!userRole) return false;
       
-      if (Array.isArray(role)) {
-        return role.includes(userRole);
+      // Special case: admin role has access to everything
+      if (userRole === 'admin') return true;
+      
+      if (Array.isArray(targetRole)) {
+        return targetRole.includes(userRole);
       }
       
-      return userRole === role;
+      return userRole === targetRole;
     }
   };
 }
