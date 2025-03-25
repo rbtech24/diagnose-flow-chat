@@ -43,7 +43,7 @@ export function SubscriptionPlanDialog({
       name: "",
       price_monthly: 0,
       price_yearly: 0,
-      features: [],
+      features: "",
       is_active: true,
       description: "",
       recommended: false,

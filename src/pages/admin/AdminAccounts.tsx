@@ -60,6 +60,8 @@ export default function AdminAccounts() {
     },
   });
 
+  const { user } = useAuth();
+
   const fetchCompanies = async () => {
     try {
       const { data, error } = await supabase
