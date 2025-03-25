@@ -4,13 +4,17 @@ import { FeatureRequest } from "@/types/feature-request";
 import { SupportTicket } from "@/components/support/SupportTicket";
 import { User } from "@/types/user";
 
-// Empty arrays instead of mock data
+// Empty arrays for mock data
 export const emptyPosts: CommunityPost[] = [];
 export const emptyFeatureRequests: FeatureRequest[] = [];
 export const emptyTickets: SupportTicket[] = [];
+export const emptyServiceRecords: any[] = [];
+export const emptyKnowledgeArticles: any[] = [];
 
 // Get role from localStorage if available, otherwise default to 'tech'
 const getUserRoleFromStorage = (): 'admin' | 'company' | 'tech' => {
+  if (typeof window === 'undefined') return 'tech'; // For SSR
+
   const storedRole = localStorage.getItem('userRole');
   if (storedRole === 'admin' || storedRole === 'company' || storedRole === 'tech') {
     return storedRole;
@@ -26,9 +30,3 @@ export const placeholderUser: User = {
   role: getUserRoleFromStorage(),
   avatarUrl: ""
 };
-
-// Empty service records array
-export const emptyServiceRecords: any[] = [];
-
-// Empty knowledge articles array
-export const emptyKnowledgeArticles: any[] = [];

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BarChartIcon } from 'lucide-react';
 
 interface UsageData {
   today: number;
@@ -93,6 +94,28 @@ export function WorkflowUsageStats() {
     return weeks;
   }, []);
 
+  // Check if we have any non-zero data
+  const hasData = Object.values(usageData.allData).some(item => item.count > 0);
+
+  if (!hasData) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Workflow Usage Statistics</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] flex flex-col items-center justify-center">
+            <BarChartIcon className="h-12 w-12 mb-4 text-gray-300" />
+            <p className="text-muted-foreground text-center">No usage data available yet</p>
+            <p className="text-sm text-muted-foreground text-center mt-2">
+              Statistics will appear here once workflows are used
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -122,9 +145,9 @@ export function WorkflowUsageStats() {
             <div className="mt-4 text-sm text-muted-foreground">
               <p>Daily Usage Summary</p>
               <ul className="mt-2">
-                <li>Total workflows used today: {usageData.today}</li>
-                <li>Weekly total: {usageData.weekly}</li>
-                <li>Monthly total: {usageData.monthly}</li>
+                <li>Total workflows used today: {usageData.today || 0}</li>
+                <li>Weekly total: {usageData.weekly || 0}</li>
+                <li>Monthly total: {usageData.monthly || 0}</li>
               </ul>
             </div>
           </TabsContent>
