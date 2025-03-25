@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import Index from "./pages/Index";
@@ -30,6 +29,7 @@ const AdminCommunity = lazy(() => import("./pages/admin/Community"));
 const AdminUserNew = lazy(() => import("./pages/admin/UserNew"));
 const AdminCompanies = lazy(() => import("./pages/admin/Companies"));
 const AdminCompanyDetail = lazy(() => import("./pages/admin/CompanyDetail"));
+const AdminLicenses = lazy(() => import("./pages/admin/Licenses"));
 
 // Company pages
 const CompanyDashboard = lazy(() => import("./pages/company/Dashboard"));
@@ -93,6 +93,7 @@ function App() {
                   <Route path="users/new" element={<AdminUserNew />} />
                   <Route path="companies" element={<AdminCompanies />} />
                   <Route path="companies/:id" element={<AdminCompanyDetail />} />
+                  <Route path="licenses" element={<AdminLicenses />} />
                   <Route path="workflows" element={<AdminWorkflows />} />
                   <Route path="workflow-editor" element={<WorkflowEditor />} />
                   <Route path="support" element={<AdminSupport />} />

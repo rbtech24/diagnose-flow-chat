@@ -9,6 +9,7 @@ import {
   Lightbulb,
   MessageSquare,
   Building2,
+  Key,
 } from "lucide-react";
 
 export function AdminSidebar() {
@@ -28,6 +29,11 @@ export function AdminSidebar() {
       href: "/admin/companies",
       label: "Companies",
       icon: <Building2 className="h-5 w-5" />,
+    },
+    {
+      href: "/admin/licenses",
+      label: "Licenses",
+      icon: <Key className="h-5 w-5" />,
     },
     {
       href: "/admin/workflows",
