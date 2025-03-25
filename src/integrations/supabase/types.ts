@@ -1461,6 +1461,56 @@ export type Database = {
           },
         ]
       }
+      knowledge_base: {
+        Row: {
+          author_id: string | null
+          category: string | null
+          company_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          is_public: boolean | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+          views: number | null
+        }
+        Insert: {
+          author_id?: string | null
+          category?: string | null
+          company_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_public?: boolean | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+          views?: number | null
+        }
+        Update: {
+          author_id?: string | null
+          category?: string | null
+          company_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_public?: boolean | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_base_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kpi_definitions: {
         Row: {
           calculation_query: string
@@ -2560,6 +2610,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      system_messages: {
+        Row: {
+          active: boolean | null
+          audience: string
+          created_at: string | null
+          created_by: string | null
+          end_date: string | null
+          id: string
+          message: string
+          scheduled: string | null
+          start_date: string | null
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          audience: string
+          created_at?: string | null
+          created_by?: string | null
+          end_date?: string | null
+          id?: string
+          message: string
+          scheduled?: string | null
+          start_date?: string | null
+          title: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          audience?: string
+          created_at?: string | null
+          created_by?: string | null
+          end_date?: string | null
+          id?: string
+          message?: string
+          scheduled?: string | null
+          start_date?: string | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       tech_billing: {
         Row: {

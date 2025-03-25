@@ -55,100 +55,11 @@ interface UserManagementState {
   cancelTechnicianInvite: (inviteId: string) => Promise<boolean>;
 }
 
-const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-
-const initialUsers: User[] = [
-  {
-    id: "admin-1",
-    name: "Admin User",
-    email: "admin@repairautopilot.com",
-    role: "admin",
-    phone: "(555) 123-4567",
-    subscriptionStatus: "active",
-  },
-  {
-    id: "company-1",
-    name: "Sarah Smith",
-    email: "sarah@acmerepairs.com",
-    role: "company",
-    phone: "(555) 987-6543",
-    companyId: "company-acme-1",
-    subscriptionStatus: "active",
-    isMainAdmin: true,
-  },
-  {
-    id: "tech-1",
-    name: "Mike Johnson",
-    email: "mike@acmerepairs.com",
-    role: "tech",
-    phone: "(555) 456-7890",
-    companyId: "company-acme-1",
-  }
-];
-
-const initialCompanies: Company[] = [
-  {
-    id: "company-acme-1",
-    name: "Acme Repairs",
-    contactName: "Sarah Smith",
-    email: "contact@acmerepairs.com",
-    phone: "(555) 987-6543",
-    address: "123 Main St",
-    city: "Los Angeles",
-    state: "CA",
-    zipCode: "90001",
-    country: "USA",
-    planId: "plan-premium-1",
-    planName: "Premium",
-    status: "active",
-    technicianCount: 5,
-    createdAt: new Date(2023, 0, 15),
-    updatedAt: new Date(2023, 2, 10),
-  },
-  {
-    id: "company-fast-2",
-    name: "Fast Fix Solutions",
-    contactName: "John Davis",
-    email: "contact@fastfix.com",
-    phone: "(555) 123-4567",
-    address: "456 Oak Ave",
-    city: "San Francisco",
-    state: "CA",
-    zipCode: "94103",
-    country: "USA",
-    planId: "plan-basic-1",
-    planName: "Basic",
-    status: "trial",
-    trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-    technicianCount: 3,
-    createdAt: new Date(2023, 3, 5),
-    updatedAt: new Date(2023, 3, 5),
-  },
-  {
-    id: "company-expert-3",
-    name: "Expert Appliance Repair",
-    contactName: "Lisa Johnson",
-    email: "contact@expertrepair.com",
-    phone: "(555) 567-8901",
-    address: "789 Pine St",
-    city: "Seattle",
-    state: "WA",
-    zipCode: "98101",
-    country: "USA",
-    planId: "plan-enterprise-1",
-    planName: "Enterprise",
-    status: "active",
-    technicianCount: 8,
-    createdAt: new Date(2023, 1, 20),
-    updatedAt: new Date(2023, 4, 15),
-  }
-];
-
 export const useUserManagementStore = create<UserManagementState>()(
   persist(
     (set, get) => ({
-      users: initialUsers,
-      companies: initialCompanies,
+      users: [],
+      companies: [],
       techniciansInvites: [],
       isLoadingUsers: false,
       isLoadingCompanies: false,
@@ -158,15 +69,24 @@ export const useUserManagementStore = create<UserManagementState>()(
       fetchUsers: async () => {
         set({ isLoadingUsers: true });
         try {
-          // In a real app, this would be an API call to fetch users
-          // For now, we'll just use the mock data
-          // const { data, error } = await supabase.from('users').select('*');
-          // if (error) throw error;
-          // set({ users: data });
+          const { data: userData, error: userError } = await supabase
+            .from('technicians')
+            .select('*');
           
-          // We'll simulate a delay to mimic an API call
-          await new Promise(resolve => setTimeout(resolve, 500));
-          // We're already setting the initial users in the store
+          if (userError) throw userError;
+          
+          // Transform data to match User type
+          const users: User[] = userData.map(tech => ({
+            id: tech.id,
+            name: tech.email.split('@')[0], // Using email prefix as name until we have proper profiles
+            email: tech.email,
+            phone: tech.phone || undefined,
+            role: tech.role as "admin" | "company" | "tech",
+            companyId: tech.company_id,
+            status: tech.status as "active" | "archived" | "deleted" | undefined
+          }));
+          
+          set({ users });
         } catch (error) {
           console.error('Error fetching users:', error);
           toast.error('Failed to fetch users');
@@ -177,13 +97,26 @@ export const useUserManagementStore = create<UserManagementState>()(
       
       fetchUserById: async (id: string) => {
         try {
-          // In a real app, this would be an API call to fetch a user by ID
-          // For now, we'll just find the user in our store
-          // const { data, error } = await supabase.from('users').select('*').eq('id', id).single();
-          // if (error) throw error;
-          // return data;
+          const { data, error } = await supabase
+            .from('technicians')
+            .select('*')
+            .eq('id', id)
+            .single();
           
-          return get().users.find(user => user.id === id);
+          if (error) throw error;
+          
+          // Transform to User type
+          const user: User = {
+            id: data.id,
+            name: data.email.split('@')[0], // Using email prefix as name until we have proper profiles
+            email: data.email,
+            phone: data.phone || undefined,
+            role: data.role as "admin" | "company" | "tech",
+            companyId: data.company_id,
+            status: data.status as "active" | "archived" | "deleted" | undefined
+          };
+          
+          return user;
         } catch (error) {
           console.error(`Error fetching user ${id}:`, error);
           toast.error('Failed to fetch user details');
@@ -193,16 +126,35 @@ export const useUserManagementStore = create<UserManagementState>()(
       
       addUser: async (userData) => {
         try {
-          // In a real app, this would be an API call to add a user
-          // For now, we'll just add the user to our store
-          // const { data, error } = await supabase.from('users').insert([userData]).select().single();
-          // if (error) throw error;
-          
           const { password, ...userDataWithoutPassword } = userData;
+          
+          // Create user in auth system
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email: userData.email,
+            password: password,
+          });
+
+          if (signUpError) throw signUpError;
+
+          if (!signUpData.user) {
+            throw new Error('User creation failed');
+          }
+
+          // Create technician record
+          const { error: techError } = await supabase.from('technicians').insert({
+            id: signUpData.user.id,
+            email: userData.email,
+            role: userData.role,
+            phone: userData.phone,
+            company_id: userData.companyId,
+            status: 'active'
+          });
+
+          if (techError) throw techError;
           
           const newUser: User = {
             ...userDataWithoutPassword,
-            id: generateId()
+            id: signUpData.user.id
           };
           
           set(state => ({
@@ -220,32 +172,39 @@ export const useUserManagementStore = create<UserManagementState>()(
       
       updateUser: async (id, userData) => {
         try {
-          // In a real app, this would be an API call to update a user
-          // For now, we'll just update the user in our store
-          // const { data, error } = await supabase.from('users').update(userData).eq('id', id).select().single();
-          // if (error) throw error;
+          // Update the technician record
+          const { data, error } = await supabase
+            .from('technicians')
+            .update({
+              email: userData.email,
+              phone: userData.phone,
+              role: userData.role,
+              company_id: userData.companyId,
+              status: userData.status
+            })
+            .eq('id', id)
+            .select()
+            .single();
           
-          let updatedUser: User | undefined;
+          if (error) throw error;
           
-          set(state => {
-            const updatedUsers = state.users.map(user => {
-              if (user.id === id) {
-                updatedUser = { ...user, ...userData };
-                return updatedUser;
-              }
-              return user;
-            });
-            
-            return { users: updatedUsers };
-          });
+          // Transform to User type
+          const updatedUser: User = {
+            id: data.id,
+            name: data.email.split('@')[0], // Using email prefix as name
+            email: data.email,
+            phone: data.phone || undefined,
+            role: data.role as "admin" | "company" | "tech",
+            companyId: data.company_id,
+            status: data.status as "active" | "archived" | "deleted" | undefined
+          };
           
-          if (updatedUser) {
-            toast.success('User updated successfully');
-            return updatedUser;
-          }
+          set(state => ({
+            users: state.users.map(user => user.id === id ? updatedUser : user)
+          }));
           
-          toast.error('User not found');
-          return undefined;
+          toast.success('User updated successfully');
+          return updatedUser;
         } catch (error) {
           console.error(`Error updating user ${id}:`, error);
           toast.error('Failed to update user');
@@ -255,10 +214,13 @@ export const useUserManagementStore = create<UserManagementState>()(
       
       deleteUser: async (id) => {
         try {
-          // In a real app, this would be an API call to delete a user
-          // For now, we'll just remove the user from our store
-          // const { error } = await supabase.from('users').delete().eq('id', id);
-          // if (error) throw error;
+          // Delete the technician record
+          const { error } = await supabase
+            .from('technicians')
+            .delete()
+            .eq('id', id);
+          
+          if (error) throw error;
           
           set(state => ({
             users: state.users.filter(user => user.id !== id)
@@ -275,15 +237,8 @@ export const useUserManagementStore = create<UserManagementState>()(
       
       resetUserPassword: async (id, newPassword) => {
         try {
-          // In a real app, this would be an API call to reset a user's password
-          // For now, we'll just simulate success
-          // In production, you'd typically send a reset link or set a temporary password
-          
-          // const { error } = await supabase.auth.admin.updateUserById(id, {
-          //   password: newPassword,
-          // });
-          // if (error) throw error;
-          
+          // In a real implementation, you'd use admin API to reset password
+          // This is a placeholder for now
           toast.success('Password reset successfully');
           return true;
         } catch (error) {
@@ -297,15 +252,42 @@ export const useUserManagementStore = create<UserManagementState>()(
       fetchCompanies: async () => {
         set({ isLoadingCompanies: true });
         try {
-          // In a real app, this would be an API call to fetch companies
-          // For now, we'll just use the mock data
-          // const { data, error } = await supabase.from('companies').select('*');
-          // if (error) throw error;
-          // set({ companies: data });
+          const { data, error } = await supabase
+            .from('companies')
+            .select('*');
           
-          // We'll simulate a delay to mimic an API call
-          await new Promise(resolve => setTimeout(resolve, 500));
-          // We're already setting the initial companies in the store
+          if (error) throw error;
+          
+          // Get technician counts for each company
+          const techCounts = await Promise.all(data.map(async (company) => {
+            const { count, error: countError } = await supabase
+              .from('technicians')
+              .select('*', { count: 'exact', head: true })
+              .eq('company_id', company.id)
+              .eq('role', 'tech');
+            
+            return { companyId: company.id, count: countError ? 0 : count || 0 };
+          }));
+          
+          // Map counts to companies
+          const companies: Company[] = data.map(company => {
+            const techCount = techCounts.find(tc => tc.companyId === company.id)?.count || 0;
+            
+            return {
+              id: company.id,
+              name: company.name,
+              contactName: 'Contact', // Add proper field in database later
+              email: 'email@example.com', // Add proper field in database later
+              status: company.trial_status as 'active' | 'inactive' | 'trial' | 'expired',
+              trialEndsAt: company.trial_end_date ? new Date(company.trial_end_date) : undefined,
+              technicianCount: techCount,
+              planName: company.subscription_tier,
+              createdAt: new Date(company.created_at),
+              updatedAt: new Date(company.updated_at)
+            };
+          });
+          
+          set({ companies });
         } catch (error) {
           console.error('Error fetching companies:', error);
           toast.error('Failed to fetch companies');
@@ -316,13 +298,35 @@ export const useUserManagementStore = create<UserManagementState>()(
       
       fetchCompanyById: async (id) => {
         try {
-          // In a real app, this would be an API call to fetch a company by ID
-          // For now, we'll just find the company in our store
-          // const { data, error } = await supabase.from('companies').select('*').eq('id', id).single();
-          // if (error) throw error;
-          // return data;
+          const { data, error } = await supabase
+            .from('companies')
+            .select('*')
+            .eq('id', id)
+            .single();
           
-          return get().companies.find(company => company.id === id);
+          if (error) throw error;
+          
+          // Get technician count
+          const { count, error: countError } = await supabase
+            .from('technicians')
+            .select('*', { count: 'exact', head: true })
+            .eq('company_id', id)
+            .eq('role', 'tech');
+          
+          const company: Company = {
+            id: data.id,
+            name: data.name,
+            contactName: 'Contact', // Add proper field in database later
+            email: 'email@example.com', // Add proper field in database later
+            status: data.trial_status as 'active' | 'inactive' | 'trial' | 'expired',
+            trialEndsAt: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
+            technicianCount: countError ? 0 : count || 0,
+            planName: data.subscription_tier,
+            createdAt: new Date(data.created_at),
+            updatedAt: new Date(data.updated_at)
+          };
+          
+          return company;
         } catch (error) {
           console.error(`Error fetching company ${id}:`, error);
           toast.error('Failed to fetch company details');
@@ -332,17 +336,37 @@ export const useUserManagementStore = create<UserManagementState>()(
       
       addCompany: async (companyData) => {
         try {
-          // In a real app, this would be an API call to add a company
-          // For now, we'll just add the company to our store
-          // const { data, error } = await supabase.from('companies').insert([companyData]).select().single();
-          // if (error) throw error;
+          const { data, error } = await supabase
+            .from('companies')
+            .insert({
+              name: companyData.name,
+              trial_status: companyData.status,
+              trial_end_date: companyData.trialEndsAt,
+              subscription_tier: companyData.planName || 'basic'
+            })
+            .select()
+            .single();
+          
+          if (error) throw error;
           
           const newCompany: Company = {
-            ...companyData,
-            id: generateId(),
+            id: data.id,
+            name: data.name,
+            contactName: companyData.contactName,
+            email: companyData.email,
+            phone: companyData.phone,
+            address: companyData.address,
+            city: companyData.city,
+            state: companyData.state,
+            zipCode: companyData.zipCode,
+            country: companyData.country,
+            planId: companyData.planId,
+            planName: data.subscription_tier,
+            status: data.trial_status as 'active' | 'inactive' | 'trial' | 'expired',
+            trialEndsAt: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
             technicianCount: 0,
-            createdAt: new Date(),
-            updatedAt: new Date()
+            createdAt: new Date(data.created_at),
+            updatedAt: new Date(data.updated_at)
           };
           
           set(state => ({
@@ -360,36 +384,53 @@ export const useUserManagementStore = create<UserManagementState>()(
       
       updateCompany: async (id, companyData) => {
         try {
-          // In a real app, this would be an API call to update a company
-          // For now, we'll just update the company in our store
-          // const { data, error } = await supabase.from('companies').update(companyData).eq('id', id).select().single();
-          // if (error) throw error;
+          const { data, error } = await supabase
+            .from('companies')
+            .update({
+              name: companyData.name,
+              trial_status: companyData.status,
+              trial_end_date: companyData.trialEndsAt,
+              subscription_tier: companyData.planName
+            })
+            .eq('id', id)
+            .select()
+            .single();
           
-          let updatedCompany: Company | undefined;
+          if (error) throw error;
           
-          set(state => {
-            const updatedCompanies = state.companies.map(company => {
-              if (company.id === id) {
-                updatedCompany = { 
-                  ...company, 
-                  ...companyData,
-                  updatedAt: new Date()
-                };
-                return updatedCompany;
-              }
-              return company;
-            });
-            
-            return { companies: updatedCompanies };
-          });
+          // Get technician count
+          const { count, error: countError } = await supabase
+            .from('technicians')
+            .select('*', { count: 'exact', head: true })
+            .eq('company_id', id)
+            .eq('role', 'tech');
           
-          if (updatedCompany) {
-            toast.success('Company updated successfully');
-            return updatedCompany;
-          }
+          const updatedCompany: Company = {
+            id: data.id,
+            name: data.name,
+            contactName: companyData.contactName || get().companies.find(c => c.id === id)?.contactName || '',
+            email: companyData.email || get().companies.find(c => c.id === id)?.email || '',
+            phone: companyData.phone,
+            address: companyData.address,
+            city: companyData.city,
+            state: companyData.state,
+            zipCode: companyData.zipCode,
+            country: companyData.country,
+            planId: companyData.planId,
+            planName: data.subscription_tier,
+            status: data.trial_status as 'active' | 'inactive' | 'trial' | 'expired',
+            trialEndsAt: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
+            technicianCount: countError ? 0 : count || 0,
+            createdAt: new Date(data.created_at),
+            updatedAt: new Date(data.updated_at)
+          };
           
-          toast.error('Company not found');
-          return undefined;
+          set(state => ({
+            companies: state.companies.map(company => company.id === id ? updatedCompany : company)
+          }));
+          
+          toast.success('Company updated successfully');
+          return updatedCompany;
         } catch (error) {
           console.error(`Error updating company ${id}:`, error);
           toast.error('Failed to update company');
@@ -399,15 +440,16 @@ export const useUserManagementStore = create<UserManagementState>()(
       
       deleteCompany: async (id) => {
         try {
-          // In a real app, this would be an API call to delete a company
-          // For now, we'll just remove the company from our store
-          // const { error } = await supabase.from('companies').delete().eq('id', id);
-          // if (error) throw error;
+          // Delete the company record
+          const { error } = await supabase
+            .from('companies')
+            .delete()
+            .eq('id', id);
+          
+          if (error) throw error;
           
           set(state => ({
-            companies: state.companies.filter(company => company.id !== id),
-            // Also remove all users associated with this company
-            users: state.users.filter(user => user.companyId !== id)
+            companies: state.companies.filter(company => company.id !== id)
           }));
           
           toast.success('Company deleted successfully');
@@ -423,19 +465,30 @@ export const useUserManagementStore = create<UserManagementState>()(
       fetchTechnicianInvites: async (companyId) => {
         set({ isLoadingInvites: true });
         try {
-          // In a real app, this would be an API call to fetch technician invites
-          // For now, we'll just simulate fetching invites
+          let query = supabase
+            .from('technician_invites')
+            .select('*');
           
-          // let query = supabase.from('technician_invites').select('*');
-          // if (companyId) {
-          //   query = query.eq('companyId', companyId);
-          // }
-          // const { data, error } = await query;
-          // if (error) throw error;
-          // set({ techniciansInvites: data });
+          if (companyId) {
+            query = query.eq('company_id', companyId);
+          }
           
-          // For now, we'll just return the technician invites in the store
-          await new Promise(resolve => setTimeout(resolve, 500));
+          const { data, error } = await query;
+          
+          if (error) throw error;
+          
+          const invites: TechnicianInvite[] = data.map(invite => ({
+            id: invite.id,
+            email: invite.email,
+            name: invite.name,
+            phone: invite.phone,
+            companyId: invite.company_id,
+            status: invite.status as 'pending' | 'accepted' | 'expired',
+            createdAt: new Date(invite.created_at),
+            expiresAt: new Date(invite.expires_at)
+          }));
+          
+          set({ techniciansInvites: invites });
         } catch (error) {
           console.error('Error fetching technician invites:', error);
           toast.error('Failed to fetch technician invites');
@@ -446,27 +499,41 @@ export const useUserManagementStore = create<UserManagementState>()(
       
       addTechnicianInvite: async (inviteData) => {
         try {
-          // In a real app, this would be an API call to add a technician invite
-          // For now, we'll just add the invite to our store
-          // const { data, error } = await supabase.from('technician_invites').insert([inviteData]).select().single();
-          // if (error) throw error;
+          const { data, error } = await supabase.rpc(
+            'invite_technician',
+            { 
+              p_email: inviteData.email,
+              p_name: inviteData.name,
+              p_phone: inviteData.phone || null,
+              p_company_id: inviteData.companyId
+            }
+          );
+          
+          if (error) throw error;
+          
+          // Fetch the created invite
+          const { data: inviteRecord, error: fetchError } = await supabase
+            .from('technician_invites')
+            .select('*')
+            .eq('id', data)
+            .single();
+          
+          if (fetchError) throw fetchError;
           
           const newInvite: TechnicianInvite = {
-            ...inviteData,
-            id: generateId(),
-            status: 'pending',
-            createdAt: new Date(),
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+            id: inviteRecord.id,
+            email: inviteRecord.email,
+            name: inviteRecord.name,
+            phone: inviteRecord.phone,
+            companyId: inviteRecord.company_id,
+            status: inviteRecord.status as 'pending' | 'accepted' | 'expired',
+            createdAt: new Date(inviteRecord.created_at),
+            expiresAt: new Date(inviteRecord.expires_at)
           };
           
           set(state => ({
             techniciansInvites: [...state.techniciansInvites, newInvite]
           }));
-          
-          // Update technician count for the company
-          get().updateCompany(inviteData.companyId, {
-            technicianCount: get().companies.find(c => c.id === inviteData.companyId)?.technicianCount! + 1
-          });
           
           toast.success('Technician invitation sent successfully');
           return newInvite;
@@ -479,23 +546,16 @@ export const useUserManagementStore = create<UserManagementState>()(
       
       cancelTechnicianInvite: async (inviteId) => {
         try {
-          // In a real app, this would be an API call to cancel a technician invite
-          // For now, we'll just remove the invite from our store
-          // const { error } = await supabase.from('technician_invites').delete().eq('id', inviteId);
-          // if (error) throw error;
+          const { error } = await supabase
+            .from('technician_invites')
+            .delete()
+            .eq('id', inviteId);
           
-          const invite = get().techniciansInvites.find(i => i.id === inviteId);
+          if (error) throw error;
           
-          if (invite) {
-            set(state => ({
-              techniciansInvites: state.techniciansInvites.filter(invite => invite.id !== inviteId)
-            }));
-            
-            // Update technician count for the company
-            get().updateCompany(invite.companyId, {
-              technicianCount: Math.max(0, get().companies.find(c => c.id === invite.companyId)?.technicianCount! - 1)
-            });
-          }
+          set(state => ({
+            techniciansInvites: state.techniciansInvites.filter(invite => invite.id !== inviteId)
+          }));
           
           toast.success('Technician invitation cancelled');
           return true;
@@ -508,11 +568,9 @@ export const useUserManagementStore = create<UserManagementState>()(
     }),
     {
       name: 'user-management-store',
-      // Only persist the users and companies arrays, not the loading states
+      // Only persist some fields
       partialize: (state) => ({
-        users: state.users,
-        companies: state.companies,
-        techniciansInvites: state.techniciansInvites,
+        // We don't persist any data to ensure we always fetch fresh data from the database
       }),
     }
   )
