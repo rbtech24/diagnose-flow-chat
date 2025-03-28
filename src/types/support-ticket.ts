@@ -26,4 +26,18 @@ export interface SupportTicket {
       name: string;
     };
   }>;
+  // Add the messages property required by the SupportTicketComponent
+  messages: Array<{
+    id: string;
+    ticketId: string;
+    content: string;
+    createdAt: Date;
+    sender: {
+      id: string;
+      name: string;
+      email: string;
+      role: string;
+      avatarUrl?: string;
+    };
+  }>;
 }

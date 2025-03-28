@@ -19,21 +19,12 @@ import {
   FileQuestion
 } from "lucide-react";
 import { KnowledgeArticleType } from "@/types/knowledge";
-import { emptyKnowledgeArticles } from "@/utils/placeholderData";
-
-interface KnowledgeArticle {
-  id: string;
-  title: string;
-  category: string;
-  type: KnowledgeArticleType;
-  excerpt: string;
-  fromCommunityPost?: string;
-}
+import { emptyKnowledgeArticles, CompanyKnowledgeBaseArticle } from "@/utils/placeholderData";
 
 export function CompanyKnowledgeBase() {
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<KnowledgeArticleType | "all">("all");
-  const [knowledgeArticles] = useState<KnowledgeArticle[]>(emptyKnowledgeArticles);
+  const [knowledgeArticles] = useState<CompanyKnowledgeBaseArticle[]>(emptyKnowledgeArticles);
   
   const filteredArticles = knowledgeArticles.filter(article => {
     // Apply search filter

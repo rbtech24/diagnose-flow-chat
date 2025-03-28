@@ -17,8 +17,18 @@ export const placeholderUser: User = {
 // Add empty arrays for feature requests
 export const emptyFeatureRequests: FeatureRequest[] = [];
 
-// Add empty arrays for knowledge articles
-export const emptyKnowledgeArticles: KnowledgeArticle[] = [];
+// Define knowledge article type that matches the CompanyKnowledgeBase component's expectations
+export interface CompanyKnowledgeBaseArticle {
+  id: string;
+  title: string;
+  category: string;
+  type: 'guide' | 'manual' | 'faq' | 'link' | 'troubleshooting' | 'tech-sheet' | 'service-manual' | 'wire-diagram' | 'technical-alert' | 'misc-document';
+  excerpt: string;
+  fromCommunityPost?: string;
+}
 
-// Add empty arrays for support tickets
+// Add empty arrays for knowledge articles
+export const emptyKnowledgeArticles: CompanyKnowledgeBaseArticle[] = [];
+
+// Add empty arrays for support tickets with the required messages array
 export const emptyTickets: SupportTicket[] = [];
