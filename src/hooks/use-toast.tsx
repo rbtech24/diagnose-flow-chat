@@ -1,6 +1,6 @@
 
-import { ReactNode, createContext, useContext, useState } from 'react';
-import toast, { Toast as HotToast } from 'react-hot-toast';
+import { ReactNode, createContext, useContext } from 'react';
+import toast from 'react-hot-toast';
 
 // Define types that match shadcn/ui toast types for compatibility
 export type ToastProps = {
@@ -30,8 +30,6 @@ type ToastContextType = {
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [toasts, setToasts] = useState<Toast[]>([]);
-
   // Simple functions that map to react-hot-toast
   const showToast = (props: ToastProps | string): string => {
     if (typeof props === 'string') {
@@ -65,7 +63,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     success: showSuccess,
     error: showError,
     dismiss: toast.dismiss,
-    toasts: toasts // Even though we use react-hot-toast, we maintain this for shadcn compatibility
+    toasts: [] // Empty array as we're using react-hot-toast
   };
 
   return (
