@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -19,11 +20,29 @@ export default function ForgotPassword() {
     if (!email) return;
     
     setIsSubmitting(true);
-    const success = await forgotPassword(email);
-    setIsSubmitting(false);
-    
-    if (success) {
-      setIsSubmitted(true);
+    try {
+      const success = await forgotPassword(email);
+      if (success) {
+        setIsSubmitted(true);
+        toast({
+          title: "Reset link sent",
+          description: "Check your email for a link to reset your password."
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to send reset link. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

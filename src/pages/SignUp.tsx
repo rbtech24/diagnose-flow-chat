@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, User, Mail, Building, Lock, EyeOff, Eye, Phone } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "@/components/ui/use-toast";
 
 export default function SignUp() {
   const [name, setName] = useState("");
@@ -45,15 +46,30 @@ export default function SignUp() {
     }
     
     setIsRegistering(true);
-    await register({
-      name,
-      email,
-      password,
-      role: accountType === "company" ? "company" : "tech",
-      phone, // Include phone number
-      companyName: accountType === "company" ? companyName : undefined
-    });
-    setIsRegistering(false);
+    try {
+      await register({
+        name,
+        email,
+        password,
+        role: accountType === "company" ? "company" : "tech",
+        phone,
+        companyName: accountType === "company" ? companyName : undefined
+      });
+      
+      toast({
+        title: "Account created successfully",
+        description: "You have been registered and logged in.",
+      });
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      toast({
+        title: "Registration failed",
+        description: error.message || "Failed to create account.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRegistering(false);
+    }
   };
 
   // Redirect if already authenticated
