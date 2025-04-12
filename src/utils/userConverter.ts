@@ -12,7 +12,7 @@ export function convertToFeatureRequestUser(user: AppUser): FeatureRequestUser {
     email: user.email,
     role: user.role,
     avatarUrl: user.avatarUrl || '',
-    status: user.status as 'active' | 'inactive' | 'pending'
+    status: (user.status || 'active') as 'active' | 'inactive' | 'pending'
   };
 }
 
@@ -27,5 +27,18 @@ export function ensureFeatureRequestUser(user: any): FeatureRequestUser {
     role: user.role || 'company',
     avatarUrl: user.avatarUrl || '',
     status: (user.status || 'active') as 'active' | 'inactive' | 'pending'
+  };
+}
+
+/**
+ * Helper function to ensure a user object has avatarUrl property
+ * This is useful for fixing type compatibility issues
+ */
+export function ensureUserWithAvatar(user: any): any {
+  if (!user) return null;
+  
+  return {
+    ...user,
+    avatarUrl: user.avatarUrl || '',
   };
 }

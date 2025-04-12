@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { FeatureRequest, FeatureRequestStatus } from "@/types/feature-request";
+import { FeatureRequest, FeatureRequestStatus, convertToFeatureRequestUser } from "@/types/feature-request";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

@@ -16,7 +16,7 @@ import {
   FormMessage 
 } from '@/components/ui/form';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ExclamationTriangle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 
 const FormSchema = z.object({
   email: z.string().email({
@@ -72,7 +72,7 @@ export default function SignUp() {
         
         {error && (
           <Alert variant="destructive">
-            <ExclamationTriangle className="h-4 w-4" />
+            <AlertTriangle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}

@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { convertSupabaseDates, formatDateForSupabase, safeParseJsonArray } from "@/utils/dateUtils";
 
 export interface KnowledgeArticle {
@@ -20,6 +20,7 @@ export interface KnowledgeArticle {
 
 export function useKnowledgeArticles() {
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const getArticle = async (id: string): Promise<KnowledgeArticle | null> => {
     setIsLoading(true);
@@ -51,7 +52,6 @@ export function useKnowledgeArticles() {
     } catch (error) {
       console.error('Error fetching knowledge article:', error);
       toast({
-        title: "Error",
         description: "Failed to fetch knowledge article",
         variant: "destructive",
       });
@@ -102,7 +102,6 @@ export function useKnowledgeArticles() {
       };
       
       toast({
-        title: "Success",
         description: "Knowledge article updated successfully",
       });
       
@@ -110,7 +109,6 @@ export function useKnowledgeArticles() {
     } catch (error) {
       console.error('Error updating knowledge article:', error);
       toast({
-        title: "Error",
         description: "Failed to update knowledge article",
         variant: "destructive",
       });

@@ -1,21 +1,13 @@
 
-export type UserRole = 'admin' | 'company' | 'tech';
+import { User as AppUser } from './user';
 
 export interface User {
   id: string;
   name: string;
   email: string;
-  role: UserRole;
+  role: string;
   avatarUrl: string;
   status: 'active' | 'inactive' | 'pending';
-}
-
-export interface FeatureRequestVote {
-  id: string;
-  userId: string;
-  featureRequestId: string;
-  createdAt: Date;
-  user: User;
 }
 
 export interface FeatureRequestComment {
@@ -26,14 +18,20 @@ export interface FeatureRequestComment {
   createdBy: User;
 }
 
+export interface FeatureRequestVote {
+  id: string;
+  featureRequestId: string;
+  userId: string;
+}
+
 export type FeatureRequestStatus = 
-  | 'pending' 
-  | 'approved' 
-  | 'rejected' 
-  | 'implemented'
-  | 'planned'
+  | 'pending'
+  | 'approved'
+  | 'rejected'
   | 'in-progress'
   | 'completed'
+  | 'planned'
+  | 'implemented'
   | 'under-review';
 
 export type FeatureRequestPriority = 'low' | 'medium' | 'high' | 'critical';
@@ -42,15 +40,26 @@ export interface FeatureRequest {
   id: string;
   title: string;
   description: string;
-  createdAt: Date;
-  updatedAt?: Date;
-  createdBy: User;
-  user?: User; // Added for backward compatibility
   status: FeatureRequestStatus;
-  score: number;
-  votes: FeatureRequestVote[];
-  comments: FeatureRequestComment[];
   priority: FeatureRequestPriority;
+  score: number;
+  createdAt: Date;
+  updatedAt: Date;
+  createdBy: User;
+  comments: FeatureRequestComment[];
+  votes: FeatureRequestVote[];
   category?: string;
-  userId?: string;
+  assignedTo?: User;
+}
+
+// Helper function to convert AppUser to FeatureRequest User
+export function convertToFeatureRequestUser(user: AppUser): User {
+  return {
+    id: user.id,
+    name: user.name || '',
+    email: user.email,
+    role: user.role,
+    avatarUrl: user.avatarUrl || '',
+    status: (user.status || 'active') as 'active' | 'inactive' | 'pending'
+  };
 }
