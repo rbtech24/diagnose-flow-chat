@@ -1,6 +1,6 @@
 
 import { ReactNode, createContext, useContext, useState } from 'react';
-import toast, { Toast } from 'react-hot-toast';
+import toast, { Toast, ToastPosition } from 'react-hot-toast';
 
 export type ToastProps = {
   title?: string;
@@ -10,7 +10,13 @@ export type ToastProps = {
 };
 
 type ToastContextType = {
-  toast: (props: ToastProps) => void;
+  toast: ((props: ToastProps) => void) & {
+    success: (message: string) => void;
+    error: (message: string) => void;
+    loading: (message: string) => void;
+    custom: (jsx: ReactNode) => void;
+    dismiss: (toastId?: string) => void;
+  };
   dismiss: (toastId?: string) => void;
   toasts: any[]; // For compatibility with the shadcn/ui Toaster component
 };
@@ -44,7 +50,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   showToast.success = (message: string) => toast.success(message);
   showToast.error = (message: string) => toast.error(message);
   showToast.loading = (message: string) => toast.loading(message);
-  showToast.custom = (jsx: ReactNode) => toast.custom(jsx);
+  showToast.custom = (jsx: ReactNode) => toast.custom(jsx as any);
   showToast.dismiss = toast.dismiss;
 
   const contextValue = {

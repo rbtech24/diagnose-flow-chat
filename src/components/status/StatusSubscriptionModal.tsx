@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Mail } from "lucide-react";
 
 interface StatusSubscriptionModalProps {
@@ -15,6 +15,7 @@ interface StatusSubscriptionModalProps {
 export function StatusSubscriptionModal({ open, onOpenChange }: StatusSubscriptionModalProps) {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();

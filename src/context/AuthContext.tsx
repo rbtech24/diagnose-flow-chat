@@ -24,6 +24,8 @@ export interface AuthContextType {
   resetPassword: (token: string, newPassword: string) => Promise<boolean>;
   signOut: () => void;
   updateUser: (userData: Partial<User>) => void;
+  register?: (email: string, password: string, userData: Partial<User>) => Promise<void>;
+  checkWorkflowAccess?: (workflowId: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -75,6 +77,35 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const register = async (email: string, password: string, userData: Partial<User>) => {
+    setIsLoading(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const role = userData.role || 'tech';
+      
+      const mockUser: User = {
+        id: `user-${Date.now()}`,
+        email,
+        name: userData.name || email.split('@')[0],
+        role,
+        avatarUrl: userData.avatarUrl || 'https://i.pravatar.cc/300',
+        status: 'active'
+      };
+      
+      setUser(mockUser);
+      setUserRole(role);
+      setIsAuthenticated(true);
+      localStorage.setItem('auth', JSON.stringify({ user: mockUser, role }));
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      throw new Error(error.message || 'Failed to register');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const forgotPassword = async (email: string): Promise<boolean> => {
     // Mock forgot password functionality
     try {
@@ -117,6 +148,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const checkWorkflowAccess = async (workflowId: string): Promise<boolean> => {
+    // Mock implementation
+    return Promise.resolve(true);
+  };
+
   // Check for existing session on mount
   useEffect(() => {
     const checkAuth = () => {
@@ -151,7 +187,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         forgotPassword,
         resetPassword,
         signOut,
-        updateUser
+        updateUser,
+        register,
+        checkWorkflowAccess
       }}
     >
       {children}

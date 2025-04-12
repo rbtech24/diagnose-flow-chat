@@ -42,9 +42,12 @@ export function useFlowActions(
     const selectedNodes = nodes.filter(node => node.selected);
     if (selectedNodes.length > 0) {
       setCopiedNodes(selectedNodes);
-      toast.success(`${selectedNodes.length} node(s) copied to clipboard`);
+      toast({
+        title: "Copied",
+        description: `${selectedNodes.length} node(s) copied to clipboard`
+      });
     }
-  }, [nodes, setCopiedNodes]);
+  }, [nodes, setCopiedNodes, toast]);
 
   const handlePaste = useCallback(() => {
     if (copiedNodes.length === 0) return;
@@ -79,17 +82,27 @@ export function useFlowActions(
 
     setNodeCounter(prev => prev + newNodes.length);
 
-    toast.success(`${newNodes.length} node(s) pasted`);
-  }, [copiedNodes, getViewport, edges, nodeCounter, history, setNodes, setNodeCounter, setHistory]);
+    toast({
+      title: "Pasted",
+      description: `${newNodes.length} node(s) pasted`
+    });
+  }, [copiedNodes, getViewport, edges, nodeCounter, history, setNodes, setNodeCounter, setHistory, toast]);
 
   const handleQuickSaveClick = useCallback(() => {
     if (currentWorkflow) {
       handleQuickSave(nodes, edges, nodeCounter, currentWorkflow);
-      toast.success("Your changes have been saved automatically.");
+      toast({
+        title: "Saved",
+        description: "Your changes have been saved automatically."
+      });
     } else {
-      toast.error("This is a new workflow. Please use 'Save Workflow' to save it first.");
+      toast({
+        title: "Error",
+        description: "This is a new workflow. Please use 'Save Workflow' to save it first.",
+        variant: "destructive"
+      });
     }
-  }, [nodes, edges, nodeCounter, currentWorkflow]);
+  }, [nodes, edges, nodeCounter, currentWorkflow, toast]);
 
   const handleAddNode = useCallback(() => {
     const newNodeId = `node-${nodeCounter}`;
@@ -123,8 +136,11 @@ export function useFlowActions(
     const newState = { nodes: [...nodes, newNode], edges, nodeCounter: nodeCounter + 1 };
     setHistory(addToHistory(history, newState));
 
-    toast.success("New node has been added to the workflow.");
-  }, [nodes, edges, nodeCounter, setNodes, setNodeCounter, setHistory, history]);
+    toast({
+      title: "Node Added", 
+      description: "New node has been added to the workflow."
+    });
+  }, [nodes, edges, nodeCounter, setNodes, setNodeCounter, setHistory, history, toast]);
 
   return {
     handleConnect,

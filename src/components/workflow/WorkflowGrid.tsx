@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowUpRight, Trash, GripVertical, FileText, Edit, Eye } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface WorkflowGridProps {
   appliances: Appliance[];
@@ -45,6 +45,8 @@ export function WorkflowGrid({
   getSymptomCardColor,
   isReadOnly = false
 }: WorkflowGridProps) {
+  const { toast } = useToast();
+  
   if (appliances.length === 0 && workflows.length === 0) {
     return (
       <div className="text-center py-12">

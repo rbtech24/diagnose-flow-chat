@@ -8,7 +8,7 @@ import { Save } from 'lucide-react';
 import { useAppliances } from '@/hooks/useAppliances';
 import { getFolders } from '@/utils/flow';
 import { useLocation } from 'react-router-dom';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface SaveWorkflowDialogProps {
   onSave: (name: string, folder: string, appliance: string) => Promise<void>;
@@ -22,6 +22,7 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
   const [appliances, setAppliances] = useState<string[]>([]);
   const { appliances: appliancesList } = useAppliances();
   const location = useLocation();
+  const { toast } = useToast();
   
   const isWorkflowsPage = location.pathname === '/workflows';
   
@@ -48,7 +49,7 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
       };
       loadFolders();
     }
-  }, [isOpen, isWorkflowsPage, appliancesList]);
+  }, [isOpen, isWorkflowsPage, appliancesList, toast]);
 
   const handleSave = async () => {
     if (!workflowName) {

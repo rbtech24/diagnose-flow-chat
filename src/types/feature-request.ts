@@ -26,15 +26,31 @@ export interface FeatureRequestComment {
   createdBy: User;
 }
 
+export type FeatureRequestStatus = 
+  | 'pending' 
+  | 'approved' 
+  | 'rejected' 
+  | 'implemented'
+  | 'planned'
+  | 'in-progress'
+  | 'completed'
+  | 'under-review';
+
+export type FeatureRequestPriority = 'low' | 'medium' | 'high' | 'critical';
+
 export interface FeatureRequest {
   id: string;
   title: string;
   description: string;
   createdAt: Date;
+  updatedAt?: Date;
   createdBy: User;
-  status: 'pending' | 'approved' | 'rejected' | 'implemented';
+  user?: User; // Added for backward compatibility
+  status: FeatureRequestStatus;
   score: number;
   votes: FeatureRequestVote[];
   comments: FeatureRequestComment[];
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  priority: FeatureRequestPriority;
+  category?: string;
+  userId?: string;
 }
