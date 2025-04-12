@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 export interface KnowledgeArticle {
   id: string;
@@ -20,6 +20,7 @@ export interface KnowledgeArticle {
 export function useKnowledgeBaseData() {
   const [articles, setArticles] = useState<KnowledgeArticle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   const fetchArticles = async () => {
     setIsLoading(true);
@@ -35,7 +36,6 @@ export function useKnowledgeBaseData() {
     } catch (error) {
       console.error('Error fetching knowledge base articles:', error);
       toast({
-        title: "Error",
         description: "Failed to load knowledge base articles",
         variant: "destructive",
       });
@@ -63,7 +63,6 @@ export function useKnowledgeBaseData() {
       setArticles(prev => [data, ...prev]);
       
       toast({
-        title: "Success",
         description: "Knowledge article created successfully",
       });
       
@@ -71,7 +70,6 @@ export function useKnowledgeBaseData() {
     } catch (error) {
       console.error('Error creating knowledge article:', error);
       toast({
-        title: "Error",
         description: "Failed to create knowledge article",
         variant: "destructive",
       });
@@ -99,7 +97,6 @@ export function useKnowledgeBaseData() {
       setArticles(prev => prev.map(article => article.id === id ? data : article));
       
       toast({
-        title: "Success",
         description: "Knowledge article updated successfully",
       });
       
@@ -107,7 +104,6 @@ export function useKnowledgeBaseData() {
     } catch (error) {
       console.error('Error updating knowledge article:', error);
       toast({
-        title: "Error",
         description: "Failed to update knowledge article",
         variant: "destructive",
       });
@@ -127,7 +123,6 @@ export function useKnowledgeBaseData() {
       setArticles(prev => prev.filter(article => article.id !== id));
       
       toast({
-        title: "Success",
         description: "Knowledge article deleted successfully",
       });
       
@@ -135,7 +130,6 @@ export function useKnowledgeBaseData() {
     } catch (error) {
       console.error('Error deleting knowledge article:', error);
       toast({
-        title: "Error",
         description: "Failed to delete knowledge article",
         variant: "destructive",
       });

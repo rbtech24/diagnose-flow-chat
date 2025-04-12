@@ -12,7 +12,8 @@ export function convertToFeatureRequestUser(user: AppUser): FeatureRequestUser {
     email: user.email,
     role: user.role,
     avatarUrl: user.avatarUrl || '',
-    status: (user.status || 'active') as 'active' | 'inactive' | 'pending'
+    status: (user.status === 'archived' || user.status === 'deleted') ? 
+      'inactive' : (user.status || 'active') as 'active' | 'inactive' | 'pending'
   };
 }
 
@@ -26,7 +27,8 @@ export function ensureFeatureRequestUser(user: any): FeatureRequestUser {
     email: user.email,
     role: user.role || 'company',
     avatarUrl: user.avatarUrl || '',
-    status: (user.status || 'active') as 'active' | 'inactive' | 'pending'
+    status: (user.status === 'archived' || user.status === 'deleted') ? 
+      'inactive' : (user.status || 'active') as 'active' | 'inactive' | 'pending'
   };
 }
 

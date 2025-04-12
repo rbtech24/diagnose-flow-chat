@@ -85,7 +85,7 @@ export function FeatureRequestCard({
         
         <div className="mt-3 flex items-center text-sm text-gray-500">
           <span className="font-medium">Requested by:</span>
-          <span className="ml-1">{currentRequest.createdBy?.name || currentRequest.user?.name || "Unknown"}</span>
+          <span className="ml-1">{currentRequest.createdBy?.name || "Unknown"}</span>
         </div>
       </CardContent>
       <CardFooter className="border-t pt-3 flex justify-between">

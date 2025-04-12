@@ -44,8 +44,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       return toast.error(content as any);
     }
     
-    return toast.success(content as any);
-  }) as ((props: ToastProps) => void) & {
+    return toast(content as any);
+  }) as unknown as ((props: ToastProps) => void) & {
     success: (message: string) => void;
     error: (message: string) => void;
     loading: (message: string) => void;

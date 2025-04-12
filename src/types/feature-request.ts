@@ -22,6 +22,8 @@ export interface FeatureRequestVote {
   id: string;
   featureRequestId: string;
   userId: string;
+  createdAt?: Date;
+  user?: User;
 }
 
 export type FeatureRequestStatus = 
@@ -46,6 +48,8 @@ export interface FeatureRequest {
   createdAt: Date;
   updatedAt: Date;
   createdBy: User;
+  user?: User; // Adding this for backward compatibility
+  userId?: string; // Some components might use this
   comments: FeatureRequestComment[];
   votes: FeatureRequestVote[];
   category?: string;

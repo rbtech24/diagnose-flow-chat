@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { parseDate, formatDateForSupabase } from "@/utils/dateUtils";
 
 export interface SystemMessage {
@@ -22,6 +22,7 @@ export interface SystemMessage {
 export function useSystemMessagesData() {
   const [messages, setMessages] = useState<SystemMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   const fetchMessages = async () => {
     setIsLoading(true);
@@ -37,7 +38,6 @@ export function useSystemMessagesData() {
     } catch (error) {
       console.error('Error fetching system messages:', error);
       toast({
-        title: "Error",
         description: "Failed to load system messages",
         variant: "destructive",
       });
@@ -66,7 +66,6 @@ export function useSystemMessagesData() {
       setMessages(prev => [data, ...prev]);
       
       toast({
-        title: "Success",
         description: "System message created successfully",
       });
       
@@ -74,7 +73,6 @@ export function useSystemMessagesData() {
     } catch (error) {
       console.error('Error creating system message:', error);
       toast({
-        title: "Error",
         description: "Failed to create system message",
         variant: "destructive",
       });
@@ -108,7 +106,6 @@ export function useSystemMessagesData() {
       setMessages(prev => prev.map(msg => msg.id === id ? data : msg));
       
       toast({
-        title: "Success",
         description: "System message updated successfully",
       });
       
@@ -116,7 +113,6 @@ export function useSystemMessagesData() {
     } catch (error) {
       console.error('Error updating system message:', error);
       toast({
-        title: "Error",
         description: "Failed to update system message",
         variant: "destructive",
       });
@@ -136,7 +132,6 @@ export function useSystemMessagesData() {
       setMessages(prev => prev.filter(msg => msg.id !== id));
       
       toast({
-        title: "Success",
         description: "System message deleted successfully",
       });
       
@@ -144,7 +139,6 @@ export function useSystemMessagesData() {
     } catch (error) {
       console.error('Error deleting system message:', error);
       toast({
-        title: "Error",
         description: "Failed to delete system message",
         variant: "destructive",
       });
