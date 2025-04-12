@@ -11,6 +11,7 @@ export interface SupportTicket {
     id: string;
     name: string;
     email: string;
+    role: string;
   };
   assignedTo?: {
     id: string;

@@ -50,6 +50,7 @@ export default function UserNew() {
         phone: data.phone,
         password: data.password,
         companyId: data.companyId,
+        status: "active" // Set a default status that exists in both interfaces
       };
       
       const newUser = await addUser(userData);
