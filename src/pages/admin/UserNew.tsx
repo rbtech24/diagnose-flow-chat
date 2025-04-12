@@ -50,7 +50,7 @@ export default function UserNew() {
         phone: data.phone,
         password: data.password,
         companyId: data.companyId,
-        status: "active" // This status value exists in both interfaces
+        status: "active" // Status is now required in UserWithPassword
       };
       
       const newUser = await addUser(userData);

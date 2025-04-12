@@ -12,7 +12,7 @@ export interface User {
   planId?: string;
   isMainAdmin?: boolean;
   apiKeys?: ApiKey[];
-  status?: 'active' | 'inactive' | 'pending' | 'archived' | 'deleted';
+  status: 'active' | 'inactive' | 'pending' | 'archived' | 'deleted';
 }
 
 export interface ApiKey {
