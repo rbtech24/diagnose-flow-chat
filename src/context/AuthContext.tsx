@@ -147,7 +147,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (data.user) {
         const technicianData: any = {
           id: data.user.id,
-          name,
           role,
           phone,
           status: 'active',
@@ -158,7 +157,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const { data: companyData, error: companyError } = await supabase
             .from('companies')
             .insert({
-              name: phone,
+              name,
               trial_status: 'active',
               subscription_tier: 'basic'
             })
@@ -257,7 +256,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (data.user) {
         const technicianData: any = {
           id: data.user.id,
-          name: userData.name,
           email: userData.email,
           role: userData.role,
           phone: userData.phone,

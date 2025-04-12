@@ -24,19 +24,18 @@ export async function fetchUserProfile(userId: string): Promise<User | null> {
 
     const sessionUser = await supabase.auth.getUser();
     const email = sessionUser.data.user?.email || '';
+    
+    // Create a name from email if name doesn't exist
+    const name = email.split('@')[0] || '';
 
     return {
       id: userId,
       email,
-      // Since 'name' doesn't exist directly, we need to provide a default value
-      name: data.name || '', 
-      // Cast role to the expected union type
+      name, // Use the derived name since technicians table doesn't have a name field
       role: data.role as 'admin' | 'company' | 'tech',
-      // Cast status to the expected union type
       status: data.status as 'active' | 'inactive' | 'pending' | 'archived' | 'deleted',
       phone: data.phone,
-      // avatar_url doesn't exist, so provide undefined
-      avatarUrl: undefined,
+      avatarUrl: undefined, // avatar_url doesn't exist in technicians table
       companyId: data.company_id,
       trialEndsAt: undefined, // These fields don't exist in technicians table
       subscriptionStatus: undefined,
@@ -57,10 +56,9 @@ export async function updateUserProfile(userId: string, updates: Partial<User>):
     // Convert from camelCase to snake_case for Supabase
     const profileUpdates: any = {};
     
-    if (updates.name) profileUpdates.name = updates.name;
+    // Don't try to update name as it doesn't exist in technicians table
     if (updates.phone) profileUpdates.phone = updates.phone;
     if (updates.role) profileUpdates.role = updates.role;
-    if (updates.avatarUrl) profileUpdates.avatar_url = updates.avatarUrl;
     if (updates.status) profileUpdates.status = updates.status;
     if (updates.companyId) profileUpdates.company_id = updates.companyId;
     
