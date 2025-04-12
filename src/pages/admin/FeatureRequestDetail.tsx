@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -32,8 +31,6 @@ export default function AdminFeatureRequestDetailPage() {
         createdAt: new Date(),
         updatedAt: new Date(),
         score: 5,
-        userId: "user-1",
-        user: frUser,
         createdBy: frUser,
         votes: [],
         comments: []

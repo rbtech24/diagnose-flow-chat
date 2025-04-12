@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import toast from 'react-hot-toast'; 
 
@@ -11,7 +10,7 @@ type User = {
   avatarUrl?: string;
   phone?: string;
   companyId?: string;
-  status?: 'active' | 'inactive' | 'pending' | 'archived' | 'deleted';
+  status: 'active' | 'inactive' | 'pending' | 'archived' | 'deleted';
   trialEndsAt?: Date;
   subscriptionStatus?: 'trial' | 'active' | 'expired' | 'canceled';
 };

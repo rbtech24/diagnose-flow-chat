@@ -51,7 +51,8 @@ export interface FeatureRequest {
   createdBy: FeatureRequestUser;
   votes: FeatureRequestVote[];
   comments: FeatureRequestComment[];
-  category?: string; // Add the category property
+  category?: string;
+  userId?: string; // Add the userId property as optional
 }
 
 // Helper function to convert a User to a FeatureRequestUser

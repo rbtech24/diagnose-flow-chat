@@ -1,11 +1,13 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
-import { FeatureRequest, FeatureRequestVote, FeatureRequestComment, convertToFeatureRequestUser } from "@/types/feature-request";
+import { FeatureRequest, FeatureRequestVote, FeatureRequestComment } from "@/types/feature-request";
 import { useAuth } from "@/context/AuthContext";
 import { ArrowLeft } from "lucide-react";
 import { placeholderUser } from "@/utils/placeholderData";
+import { convertToFeatureRequestUser } from "@/utils/userConverter";
 
 export default function CompanyFeatureRequestDetailPage() {
   const [featureRequest, setFeatureRequest] = useState<FeatureRequest | null>(null);
@@ -29,12 +31,18 @@ export default function CompanyFeatureRequestDetailPage() {
   const handleVote = (requestId: string) => {
     if (!featureRequest || !user) return;
     
+    // Ensure user has all required properties
+    const userWithRequiredProps = {
+      ...user,
+      status: user.status || 'active'
+    };
+    
     const newVote: FeatureRequestVote = {
       id: `vote-${Date.now()}`,
-      userId: user.id,
+      userId: userWithRequiredProps.id,
       featureRequestId: requestId,
       createdAt: new Date(),
-      user: convertToFeatureRequestUser(user),
+      user: convertToFeatureRequestUser(userWithRequiredProps),
     };
     
     setFeatureRequest({
@@ -47,12 +55,18 @@ export default function CompanyFeatureRequestDetailPage() {
   const handleAddComment = (requestId: string, content: string) => {
     if (!featureRequest || !user) return;
     
+    // Ensure user has all required properties
+    const userWithRequiredProps = {
+      ...user,
+      status: user.status || 'active'
+    };
+    
     const newComment: FeatureRequestComment = {
       id: `comment-${Date.now()}`,
       featureRequestId: requestId,
       content,
       createdAt: new Date(),
-      createdBy: convertToFeatureRequestUser(user),
+      createdBy: convertToFeatureRequestUser(userWithRequiredProps),
     };
     
     setFeatureRequest({
