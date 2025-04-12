@@ -1,15 +1,15 @@
+
 import { memo } from 'react';
 import { useStore, useReactFlow } from '@xyflow/react';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
-import { useToast } from '@/hooks/use-toast';
+import toast from 'react-hot-toast';
 import { NodeHandles } from './diagnosis/NodeHandles';
 import { TechnicalContent } from './diagnosis/TechnicalContent';
 import { MediaContent } from './diagnosis/MediaContent';
 
 function DiagnosisNode({ id, data }) {
   const { setEdges } = useReactFlow();
-  const { toast } = useToast();
   
   const connected = useStore((store) => {
     const edges = store.edges;

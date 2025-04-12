@@ -73,3 +73,4 @@ showToast.titleDescriptionVariant("Warning", "This action cannot be undone", "de
 2. Prefer using the direct toast import when possible for simplicity
 3. Only use the useToast hook when you need context access
 4. For components using shadcn/ui patterns, the adapter will handle the translation
+```

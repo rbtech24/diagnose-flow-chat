@@ -11,11 +11,21 @@ export type ToastProps = {
   action?: ReactNode;
 };
 
+// This type is needed for shadcn/ui Toaster compatibility
+export type Toast = {
+  id: string;
+  title?: string;
+  description?: string;
+  action?: ReactNode;
+  variant?: 'default' | 'destructive';
+};
+
 type ToastContextType = {
   toast: (props: ToastProps | string) => void;
   success: (message: string) => void;
   error: (message: string) => void;
   dismiss: (toastId?: string) => void;
+  toasts: Toast[]; // Add this for shadcn/ui Toaster compatibility
 };
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -26,7 +36,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     toast: adaptToast.toast,
     success: adaptToast.success,
     error: adaptToast.error,
-    dismiss: adaptToast.dismiss
+    dismiss: adaptToast.dismiss,
+    toasts: [] // Empty array as we're using react-hot-toast for actual rendering
   };
 
   return (
