@@ -1,12 +1,12 @@
 
-// This custom hook for displaying toast notifications works with react-hot-toast
+import { ReactNode } from 'react';
 import toast from 'react-hot-toast';
 
 export type ToastProps = {
   title?: string;
   description?: string;
   variant?: 'default' | 'destructive';
-  action?: React.ReactNode;
+  action?: ReactNode;
 };
 
 type ToastContextType = {
@@ -47,6 +47,6 @@ export function useToast(): ToastContextType {
 export { toast };
 
 // Re-export ToastProvider as a React component to maintain compatibility
-export function ToastProvider({ children }: { children: React.ReactNode }) {
+export function ToastProvider({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
