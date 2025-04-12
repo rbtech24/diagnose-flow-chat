@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "react-hot-toast";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -45,11 +45,7 @@ export default function ResetPassword() {
     
     if (!token) {
       setPasswordError("Reset token is missing. Please use the link from your email.");
-      toast({
-        title: "Error",
-        description: "Reset token is missing. Please use the link from your email.",
-        variant: "destructive"
-      });
+      toast.error("Reset token is missing. Please use the link from your email.");
       return;
     }
     
@@ -58,24 +54,13 @@ export default function ResetPassword() {
       const success = await resetPassword(token, password);
       
       if (success) {
-        toast({
-          title: "Password reset successful",
-          description: "Your password has been reset. You can now log in."
-        });
+        toast.success("Your password has been reset. You can now log in.");
         navigate("/login");
       } else {
-        toast({
-          title: "Error",
-          description: "Failed to reset password. Please try again.",
-          variant: "destructive"
-        });
+        toast.error("Failed to reset password. Please try again.");
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive"
-      });
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsResetting(false);
     }

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "react-hot-toast";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -22,17 +22,10 @@ export default function Login() {
     setIsLoggingIn(true);
     try {
       await login(email, password);
-      toast({
-        title: "Login successful",
-        description: "You have been successfully logged in.",
-      });
+      toast.success("You have been successfully logged in.");
     } catch (error: any) {
       console.error("Login error:", error);
-      toast({
-        title: "Login failed",
-        description: error.message || "Failed to sign in. Please check your credentials.",
-        variant: "destructive"
-      });
+      toast.error(error.message || "Failed to sign in. Please check your credentials.");
     } finally {
       setIsLoggingIn(false);
     }

@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, User, Mail, Building, Lock, EyeOff, Eye, Phone } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "react-hot-toast";
 
 export default function SignUp() {
   const [name, setName] = useState("");
@@ -55,17 +55,10 @@ export default function SignUp() {
         companyName: accountType === "company" ? companyName : undefined
       });
       
-      toast({
-        title: "Account created successfully",
-        description: "You have been registered and logged in.",
-      });
+      toast.success("You have been registered and logged in.");
     } catch (error: any) {
       console.error("Registration error:", error);
-      toast({
-        title: "Registration failed",
-        description: error.message || "Failed to create account.",
-        variant: "destructive"
-      });
+      toast.error(error.message || "Failed to create account.");
     } finally {
       setIsRegistering(false);
     }
