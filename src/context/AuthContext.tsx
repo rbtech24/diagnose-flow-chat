@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User } from '@/types/user';
@@ -74,12 +73,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Save role to localStorage for persistence
       localStorage.setItem('userRole', role);
       
-      // Create user object with role
+      // Create user object with role - use the specific status type from the User interface
       const updatedUser = {
         ...placeholderUser,
         email,
         role,
-        status: 'active' // Add required status property
+        status: 'active' as const // Specify literal type 'active' to match User interface
       };
       
       setUser(updatedUser);
@@ -116,7 +115,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         role,
         phone,
         avatarUrl: '',
-        status: 'active' // Add required status property
+        status: 'active' // This already matches the User interface type
       };
       
       setUser(newUser);
@@ -170,13 +169,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email: userData.email,
         name: userData.name,
         role: role,
-        phone: userData.phone, // Add phone field
+        phone: userData.phone,
         avatarUrl: '',
-        status: 'active', // Add required status property
+        status: 'active', // This already matches the User interface type
         // Add company data if registering as a company
         ...(userData.companyName && { 
           companyId: `company-${Date.now()}`,
-          // We could also store the company name if needed
         })
       };
       
