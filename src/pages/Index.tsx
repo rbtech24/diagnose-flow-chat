@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -86,7 +85,7 @@ export default function Index() {
                     )}
                   </div>
                   <div className="mt-6 text-sm text-gray-500">
-                    No credit card required • 14-day free trial • Cancel anytime
+                    No credit card required • 30-day free trial • Cancel anytime
                   </div>
                 </div>
               </div>
@@ -263,7 +262,7 @@ export default function Index() {
                 Plans for businesses of all sizes
               </p>
               <p className="mt-6 text-lg leading-8 text-gray-600">
-                Choose the plan that's right for your business. All plans include a 14-day free trial.
+                Choose the plan that's right for your business. All plans include a 30-day free trial.
               </p>
             </div>
             <div className="mx-auto mt-16 grid max-w-lg grid-cols-1 items-center gap-y-6 sm:mt-20 sm:gap-y-0 lg:max-w-4xl lg:grid-cols-2">
