@@ -39,18 +39,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     );
     
     if (variant === 'destructive') {
-      toast.error(content as any);
-      return;
+      return toast.error(content as any);
     }
     
-    toast(content as any);
-  }) as unknown as ((props: ToastProps) => void) & {
-    success: (message: string) => void;
-    error: (message: string) => void;
-    loading: (message: string) => void;
-    custom: (jsx: ReactNode) => void;
-    dismiss: (toastId?: string) => void;
-  };
+    return toast(content as any);
+  }) as any;
 
   // Add convenience methods
   showToast.success = toast.success;

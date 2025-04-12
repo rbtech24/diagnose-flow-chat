@@ -1,4 +1,3 @@
-
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import FlowEditor from '@/components/FlowEditor';
 import NodeConfigPanel from '@/components/NodeConfigPanel';
@@ -8,13 +7,12 @@ import { ReactFlowProvider } from '@xyflow/react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useUserRole } from '@/hooks/useUserRole';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
 
 export default function WorkflowEditor() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const folder = searchParams.get('folder');
   const name = searchParams.get('name');
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
@@ -26,9 +24,7 @@ export default function WorkflowEditor() {
     // Check if user has admin permissions
     if (!isLoading) {
       if (role !== 'admin') {
-        toast({
-          description: "Only administrators can edit workflows."
-        });
+        toast("Only administrators can edit workflows.");
         navigate('/admin/workflows');
         return;
       }
@@ -43,17 +39,12 @@ export default function WorkflowEditor() {
             const hasAccess = await checkWorkflowAccess(workflowId);
             
             if (!hasAccess) {
-              toast({
-                description: "Your license doesn't allow editing this workflow."
-              });
+              toast("Your license doesn't allow editing this workflow.");
               navigate('/admin/workflows');
             }
           } catch (error) {
             console.error("Error checking workflow access:", error);
-            toast({
-              description: "Could not verify workflow access. Please try again.",
-              variant: "destructive"
-            });
+            toast.error("Could not verify workflow access. Please try again.");
             navigate('/admin/workflows');
           }
         };
@@ -61,7 +52,7 @@ export default function WorkflowEditor() {
         checkAccess();
       }
     }
-  }, [role, isLoading, navigate, folder, name, toast, checkWorkflowAccess]);
+  }, [role, isLoading, navigate, folder, name, checkWorkflowAccess]);
 
   const handleNodeSelect = useCallback((node: Node, updateNode: (nodeId: string, newData: any) => void) => {
     console.log('WorkflowEditor handleNodeSelect:', node);

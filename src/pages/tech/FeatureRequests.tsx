@@ -1,18 +1,18 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FeatureRequest, FeatureRequestStatus } from "@/types/feature-request";
+import { FeatureRequest, FeatureRequestStatus, convertToFeatureRequestUser } from "@/types/feature-request";
 import { FeatureRequestCard } from "@/components/feature-request/FeatureRequestCard";
 import { NewFeatureRequestForm } from "@/components/feature-request/NewFeatureRequestForm";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Search } from "lucide-react";
 import { emptyFeatureRequests } from "@/utils/placeholderData";
-import { convertToFeatureRequestUser } from "@/utils/userConverter";
 import { placeholderUser } from "@/utils/placeholderData";
+import { toast } from "react-hot-toast";
 
 export default function TechFeatureRequests() {
   const [requests, setRequests] = useState<FeatureRequest[]>(emptyFeatureRequests);
@@ -47,6 +47,7 @@ export default function TechFeatureRequests() {
       setRequests([newRequest, ...requests]);
       setIsFormOpen(false);
       setIsSubmitting(false);
+      toast.success("Feature request created successfully!");
     }, 500);
   };
 

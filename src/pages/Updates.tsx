@@ -5,7 +5,7 @@ import { ArrowLeft, Info, RefreshCw } from "lucide-react";
 import { SystemMessage } from "@/components/system/SystemMessage";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "react-hot-toast";
 
 interface UpdateData {
   id: string;
@@ -35,11 +35,7 @@ export default function Updates() {
     } catch (err) {
       console.error("Error fetching updates:", err);
       setError("Failed to load product updates. Please try again later.");
-      toast({
-        title: "Error",
-        description: "Failed to load product updates",
-        variant: "destructive",
-      });
+      toast.error("Failed to load product updates");
     } finally {
       setIsLoading(false);
     }
