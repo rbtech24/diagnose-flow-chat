@@ -3,7 +3,6 @@ import { Suspense, lazy } from "react";
 import Index from "./pages/Index";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { Loader2 } from "lucide-react";
-import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 // Lazy load pages for better performance
@@ -29,6 +28,7 @@ const AdminLicenses = lazy(() => import("./pages/admin/Licenses"));
 const AdminWorkflows = lazy(() => import("./pages/admin/Workflows"));
 const AdminSupport = lazy(() => import("./pages/admin/Support"));
 const AdminFeatureRequests = lazy(() => import("./pages/admin/FeatureRequests"));
+const AdminFeatureRequestDetail = lazy(() => import("./pages/admin/FeatureRequestDetail"));
 const AdminCommunity = lazy(() => import("./pages/admin/Community"));
 const AdminCommunityPostDetail = lazy(() => import("./pages/admin/CommunityPostDetail"));
 const AdminKnowledgeBase = lazy(() => import("./pages/admin/KnowledgeBase"));
@@ -45,6 +45,7 @@ const CompanyDashboard = lazy(() => import("./pages/company/Dashboard"));
 const ManageTechnicians = lazy(() => import("./pages/company/ManageTechnicians"));
 const CompanySupport = lazy(() => import("./pages/company/Support"));
 const CompanyFeatureRequests = lazy(() => import("./pages/company/FeatureRequests"));
+const CompanyFeatureRequestDetail = lazy(() => import("./pages/company/FeatureRequestDetail"));
 const CompanyCommunity = lazy(() => import("./pages/company/Community"));
 const CompanyDiagnostics = lazy(() => import("./pages/diagnostics/DiagnosticsPage"));
 
@@ -76,7 +77,6 @@ function App() {
   return (
     <ErrorBoundary>
       <Router>
-        <AuthProvider>
           <Suspense fallback={<LoadingFallback />}>
             <Routes>
               {/* Public routes */}
@@ -109,6 +109,7 @@ function App() {
                   <Route path="subscription-plans" element={<AdminSubscriptionPlans />} />
                   <Route path="support" element={<AdminSupport />} />
                   <Route path="feature-requests" element={<AdminFeatureRequests />} />
+                  <Route path="feature-requests/:id" element={<AdminFeatureRequestDetail />} />
                   <Route path="community" element={<AdminCommunity />} />
                   <Route path="community/:postId" element={<AdminCommunityPostDetail />} />
                   <Route path="knowledge-base" element={<AdminKnowledgeBase />} />
@@ -136,6 +137,7 @@ function App() {
                   <Route path="diagnostics" element={<CompanyDiagnostics />} />
                   <Route path="support" element={<CompanySupport />} />
                   <Route path="feature-requests" element={<CompanyFeatureRequests />} />
+                  <Route path="feature-requests/:id" element={<CompanyFeatureRequestDetail />} />
                   <Route path="community" element={<CompanyCommunity />} />
                 </Route>
               </Route>
@@ -170,7 +172,6 @@ function App() {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
-        </AuthProvider>
       </Router>
     </ErrorBoundary>
   );
