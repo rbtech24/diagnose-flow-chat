@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { toast } from "react-hot-toast";
+import { toast } from "@/hooks/use-toast";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -24,12 +24,23 @@ export default function ForgotPassword() {
       const success = await forgotPassword(email);
       if (success) {
         setIsSubmitted(true);
-        toast.success("Check your email for a link to reset your password.");
+        toast({
+          title: "Success",
+          description: "Check your email for a link to reset your password."
+        });
       } else {
-        toast.error("Failed to send reset link. Please try again.");
+        toast({
+          title: "Error",
+          description: "Failed to send reset link. Please try again.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
-      toast.error("An unexpected error occurred. Please try again.");
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsSubmitting(false);
     }

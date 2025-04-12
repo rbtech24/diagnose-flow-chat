@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/utils/supabaseClient';
 import { Session, User } from '@supabase/supabase-js';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -15,6 +15,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   forgotPassword: (email: string) => Promise<boolean>;
   resetPassword: (token: string, newPassword: string) => Promise<boolean>;
+  checkWorkflowAccess: (folder: string, workflowId: string) => { hasAccess: boolean, message?: string };
 }
 
 interface RegisterData {
@@ -37,6 +38,7 @@ const AuthContext = createContext<AuthContextType>({
   logout: async () => {},
   forgotPassword: async () => false,
   resetPassword: async () => false,
+  checkWorkflowAccess: () => ({ hasAccess: false })
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -141,7 +143,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (error) throw error;
       
-      toast.success('Signup successful! Check your email for confirmation.');
+      toast({
+        title: "Success", 
+        description: "Signup successful! Check your email for confirmation."
+      });
     } catch (error: any) {
       console.error('Signup error:', error.message);
       throw error;
@@ -177,7 +182,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // if (profileError) throw profileError;
       
-      toast.success('Account created successfully!');
+      toast({
+        title: "Success",
+        description: "Account created successfully!"
+      });
     } catch (error: any) {
       console.error('Registration error:', error.message);
       throw error;
@@ -188,7 +196,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await supabase.auth.signOut();
       setUserRole(null);
-      toast.success('Logged out successfully');
+      toast({
+        title: "Success",
+        description: "Logged out successfully"
+      });
     } catch (error: any) {
       console.error('Logout error:', error.message);
       throw error;
@@ -205,7 +216,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return true;
     } catch (error: any) {
       console.error('Forgot password error:', error.message);
-      toast.error(error.message);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
       return false;
     }
   };
@@ -222,9 +237,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return true;
     } catch (error: any) {
       console.error('Reset password error:', error.message);
-      toast.error(error.message);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
       return false;
     }
+  };
+  
+  const checkWorkflowAccess = (folder: string, workflowId: string) => {
+    // In a real app, this would check against subscription data
+    // For demo purposes, we'll just return true
+    return { hasAccess: true };
   };
 
   return (
@@ -240,6 +265,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         logout,
         forgotPassword,
         resetPassword,
+        checkWorkflowAccess,
       }}
     >
       {children}

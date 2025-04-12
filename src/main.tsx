@@ -3,15 +3,16 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
-import { Toaster } from "react-hot-toast";
+import { ToastProvider } from "@/hooks/use-toast";
 import { SystemMessageProvider } from './context/SystemMessageContext';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <SystemMessageProvider>
-      <Toaster />
-      <App />
-    </SystemMessageProvider>
+    <ToastProvider>
+      <SystemMessageProvider>
+        <App />
+      </SystemMessageProvider>
+    </ToastProvider>
   </React.StrictMode>,
 );
 
