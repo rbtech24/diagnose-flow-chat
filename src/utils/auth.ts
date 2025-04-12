@@ -89,9 +89,23 @@ export function trackWorkflowUsage(workflowId: string): boolean {
   
   // Check against daily limits based on subscription plan
   if (user.role === 'tech' || user.role === 'company') {
-    // This is where you'd check against the user's plan limit
-    // For demo purposes, we'll use a hardcoded limit of 20
-    const dailyLimit = 20;
+    // Define limits based on user's subscription tier
+    const dailyLimits = {
+      basic: 10,
+      professional: 25,
+      enterprise: 100,
+      trial: 5 // Lower limit for trial users
+    };
+    
+    // Check if user is on trial
+    const isOnTrial = user.subscriptionStatus === 'trial';
+    
+    // Determine limit based on subscription or trial
+    const userPlan = user.planId || 'basic';
+    const dailyLimit = isOnTrial ? 
+                      dailyLimits.trial : 
+                      dailyLimits[userPlan as keyof typeof dailyLimits] || 20;
+    
     return usageData[today].count <= dailyLimit;
   }
   
@@ -178,7 +192,23 @@ export function verifyLicense(user: User | null): {valid: boolean, message?: str
     
     // Check if user has exceeded workflow usage limits
     const usage = getWorkflowUsageStats();
-    const dailyLimit = 20; // This would come from the user's plan in a real implementation
+    
+    // Define limits based on user's subscription tier or trial
+    const dailyLimits = {
+      basic: 10,
+      professional: 25,
+      enterprise: 100,
+      trial: 5
+    };
+    
+    // Check if user is on trial
+    const isOnTrial = user.subscriptionStatus === 'trial';
+    
+    // Get the appropriate daily limit
+    const userPlan = user.planId || 'basic';
+    const dailyLimit = isOnTrial ? 
+                     dailyLimits.trial : 
+                     dailyLimits[userPlan as keyof typeof dailyLimits] || 10;
     
     if (usage.today >= dailyLimit) {
       return {

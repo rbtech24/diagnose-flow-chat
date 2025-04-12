@@ -19,7 +19,7 @@ const initialPlans: SubscriptionPlan[] = [
     is_active: true,
     description: "Perfect for small repair businesses",
     recommended: false,
-    trial_period: 14
+    trial_period: 30
   },
   {
     id: "2",
@@ -30,7 +30,7 @@ const initialPlans: SubscriptionPlan[] = [
     is_active: true,
     description: "Ideal for growing businesses",
     recommended: true,
-    trial_period: 14
+    trial_period: 30
   },
   {
     id: "3",
@@ -41,7 +41,7 @@ const initialPlans: SubscriptionPlan[] = [
     is_active: false,
     description: "For large organizations with complex needs",
     recommended: false,
-    trial_period: 14
+    trial_period: 30
   }
 ];
 

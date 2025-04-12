@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -19,22 +18,20 @@ const subscriptionFormSchema = z.object({
   is_active: z.boolean().default(true),
   description: z.string().optional(),
   recommended: z.boolean().default(false),
-  trial_period: z.coerce.number().positive("Trial period must be positive").default(14),
+  trial_period: z.coerce.number().positive("Trial period must be positive").default(30),
 });
 
-// Create a type for the form values *before* Zod transformations
 type SubscriptionFormInput = {
   name: string;
   price_monthly: number;
   price_yearly: number;
-  features: string; // This is a string in the form
+  features: string;
   is_active: boolean;
   description?: string;
   recommended: boolean;
   trial_period: number;
 };
 
-// This type is for the transformed values after Zod processing
 type SubscriptionFormValues = z.infer<typeof subscriptionFormSchema>;
 
 interface SubscriptionPlanDialogProps {
@@ -50,18 +47,17 @@ export function SubscriptionPlanDialog({
   editingPlan,
   onSubmit
 }: SubscriptionPlanDialogProps) {
-  // Use the SubscriptionFormInput type for the form
   const form = useForm<SubscriptionFormInput>({
     resolver: zodResolver(subscriptionFormSchema),
     defaultValues: {
       name: "",
       price_monthly: 0,
       price_yearly: 0,
-      features: "", // Now this is correct as we're using a string type
+      features: "",
       is_active: true,
       description: "",
       recommended: false,
-      trial_period: 14,
+      trial_period: 30,
     },
   });
 
@@ -75,7 +71,7 @@ export function SubscriptionPlanDialog({
         name: editingPlan.name,
         price_monthly: editingPlan.price_monthly,
         price_yearly: editingPlan.price_yearly,
-        features: featuresString, // Now this is correct as we're using a string type
+        features: featuresString,
         is_active: editingPlan.is_active,
         description: editingPlan.description || '',
         recommended: editingPlan.recommended || false,
@@ -86,17 +82,16 @@ export function SubscriptionPlanDialog({
         name: "",
         price_monthly: 0,
         price_yearly: 0,
-        features: "", // Now this is correct as we're using a string type
+        features: "",
         is_active: true,
         description: "",
         recommended: false,
-        trial_period: 14,
+        trial_period: 30,
       });
     }
   }, [editingPlan, form]);
 
   const handleSubmit = async (data: SubscriptionFormInput) => {
-    // The Zod schema will transform the features string to array
     await onSubmit(data as unknown as SubscriptionFormValues);
   };
 

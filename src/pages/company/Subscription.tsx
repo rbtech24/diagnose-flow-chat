@@ -26,33 +26,33 @@ const plans: SubscriptionPlan[] = [
     name: "Basic",
     price_monthly: 49,
     price_yearly: 470,
-    features: ["Up to 5 technicians", "Basic diagnostics", "Email support"],
+    features: ["Up to 5 technicians", "Basic diagnostics (10/day)", "Email support", "5GB Storage"],
     is_active: true,
     description: "Perfect for small repair businesses",
     recommended: false,
-    trial_period: 14
+    trial_period: 30
   },
   {
     id: "2",
     name: "Professional",
     price_monthly: 99,
     price_yearly: 950,
-    features: ["Up to 15 technicians", "Advanced diagnostics", "Priority support", "Custom workflows"],
+    features: ["Up to 15 technicians", "Advanced diagnostics (25/day)", "Priority support", "Custom workflows", "20GB Storage"],
     is_active: true,
     description: "Ideal for growing businesses",
     recommended: true,
-    trial_period: 14
+    trial_period: 30
   },
   {
     id: "3",
     name: "Enterprise",
     price_monthly: 199,
     price_yearly: 1900,
-    features: ["Unlimited technicians", "All features", "24/7 support", "Dedicated account manager", "Custom integrations"],
+    features: ["Unlimited technicians", "All features", "Unlimited diagnostics", "24/7 support", "Dedicated account manager", "Custom integrations", "100GB Storage"],
     is_active: true,
     description: "For large organizations with complex needs",
     recommended: false,
-    trial_period: 14
+    trial_period: 30
   }
 ];
 

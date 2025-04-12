@@ -11,6 +11,11 @@ export interface SubscriptionPlan {
   description?: string;
   recommended?: boolean;
   trial_period: number;
+  usage_limits?: {
+    diagnostics_per_day: number;
+    technicians: number;
+    storage_gb: number;
+  };
 }
 
 const initialPlans: SubscriptionPlan[] = [
@@ -23,7 +28,12 @@ const initialPlans: SubscriptionPlan[] = [
     is_active: true,
     description: "Perfect for small repair businesses",
     recommended: false,
-    trial_period: 14
+    trial_period: 30,
+    usage_limits: {
+      diagnostics_per_day: 10,
+      technicians: 5,
+      storage_gb: 5
+    }
   },
   {
     id: "2",
@@ -34,7 +44,12 @@ const initialPlans: SubscriptionPlan[] = [
     is_active: true,
     description: "Ideal for growing businesses",
     recommended: true,
-    trial_period: 14
+    trial_period: 30,
+    usage_limits: {
+      diagnostics_per_day: 25,
+      technicians: 15,
+      storage_gb: 20
+    }
   },
   {
     id: "3",
@@ -45,7 +60,12 @@ const initialPlans: SubscriptionPlan[] = [
     is_active: false,
     description: "For large organizations with complex needs",
     recommended: false,
-    trial_period: 14
+    trial_period: 30,
+    usage_limits: {
+      diagnostics_per_day: 100,
+      technicians: 50,
+      storage_gb: 100
+    }
   }
 ];
 

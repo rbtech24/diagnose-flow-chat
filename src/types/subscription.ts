@@ -1,4 +1,3 @@
-
 export interface SubscriptionPlan {
   id: string;
   name: string;
@@ -31,6 +30,11 @@ export interface License {
   nextPayment?: Date;
   createdAt: Date;
   updatedAt: Date;
+  usageLimits?: {
+    diagnosticsPerDay: number;
+    maxTechnicians: number;
+    storageGB: number;
+  };
 }
 
 export interface Payment {
