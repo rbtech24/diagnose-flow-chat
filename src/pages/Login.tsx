@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Wrench, Building, LayoutDashboard } from "lucide-react";
-import { toast } from "react-hot-toast";
+import toast from 'react-hot-toast';
 
 export default function Login() {
   const [email, setEmail] = useState("");
