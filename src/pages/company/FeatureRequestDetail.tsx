@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
-import { FeatureRequest, FeatureRequestVote, FeatureRequestComment } from "@/types/feature-request";
+import { FeatureRequest, FeatureRequestVote, FeatureRequestComment, convertToFeatureRequestUser } from "@/types/feature-request";
 import { useAuth } from "@/context/AuthContext";
 import { ArrowLeft } from "lucide-react";
 import { placeholderUser } from "@/utils/placeholderData";
@@ -35,14 +34,7 @@ export default function CompanyFeatureRequestDetailPage() {
       userId: user.id,
       featureRequestId: requestId,
       createdAt: new Date(),
-      user: {
-        id: user.id,
-        name: user.name || '',
-        email: user.email,
-        role: user.role || 'company',
-        avatarUrl: '',
-        status: user.status || 'active',
-      },
+      user: convertToFeatureRequestUser(user),
     };
     
     setFeatureRequest({
@@ -60,14 +52,7 @@ export default function CompanyFeatureRequestDetailPage() {
       featureRequestId: requestId,
       content,
       createdAt: new Date(),
-      createdBy: {
-        id: user.id,
-        name: user.name || '',
-        email: user.email,
-        role: user.role || 'company',
-        avatarUrl: '',
-        status: user.status || 'active',
-      },
+      createdBy: convertToFeatureRequestUser(user),
     };
     
     setFeatureRequest({

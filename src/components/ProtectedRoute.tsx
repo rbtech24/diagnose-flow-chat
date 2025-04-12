@@ -35,7 +35,7 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
   }
   
   // Check for role-based authorization for non-admin users
-  if (allowedRoles && userRole && !allowedRoles.includes(userRole)) {
+  if (allowedRoles && userRole && !allowedRoles.includes(userRole as 'admin' | 'company' | 'tech')) {
     console.log(`User role ${userRole} not in allowed roles: ${allowedRoles.join(', ')}`);
     // Redirect to appropriate dashboard based on role
     if (userRole === 'company') return <Navigate to="/company" />;

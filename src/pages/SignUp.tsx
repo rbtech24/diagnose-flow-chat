@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -32,7 +31,7 @@ const FormSchema = z.object({
 });
 
 export default function SignUp() {
-  const { register: registerUser } = useAuth();
+  const { register } = useAuth();
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -51,8 +50,7 @@ export default function SignUp() {
     setError('');
     
     try {
-      // Fix: pass null as the third argument if you don't have options
-      await registerUser(data.email, data.password, null);
+      await register(data.email, data.password, null);
       navigate('/verify-email');
     } catch (err: any) {
       console.error('Sign up error:', err);
