@@ -1,9 +1,11 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User } from '@/types/user';
 import { supabase } from '@/integrations/supabase/client';
 import { Session } from '@supabase/supabase-js';
 import { fetchUserProfile, updateUserProfile } from '@/utils/supabaseClient';
+import { toast } from "@/components/ui/use-toast";
 
 type Role = 'admin' | 'company' | 'tech';
 
