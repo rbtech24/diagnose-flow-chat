@@ -3,21 +3,21 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
-import { ToastProvider } from "@/hooks/use-toast";
 import { Toaster } from 'react-hot-toast';
 import { SystemMessageProvider } from './context/SystemMessageContext';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from "@/hooks/use-toast";
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <AuthProvider>
-      <ToastProvider>
-        <Toaster position="bottom-right" />
+    <ToastProvider>
+      <Toaster position="bottom-right" />
+      <AuthProvider>
         <SystemMessageProvider>
           <App />
         </SystemMessageProvider>
-      </ToastProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </ToastProvider>
   </React.StrictMode>,
 );
 
