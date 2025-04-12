@@ -1,3 +1,4 @@
+
 // This is a custom hook for displaying toast notifications
 import * as React from "react";
 import {
@@ -191,7 +192,7 @@ function useToast() {
 
 export { useToast, toast };
 
-interface ToastProviderProps {
+export interface ToastProviderProps {
   children: React.ReactNode;
 }
 
