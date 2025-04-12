@@ -23,7 +23,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 export type SupportTicketStatus = "open" | "in-progress" | "resolved" | "closed";
-export type TicketPriority = "low" | "medium" | "high" | "urgent";
+export type TicketPriority = "low" | "medium" | "high" | "critical" | "urgent";
 
 export interface User {
   id: string;
@@ -31,6 +31,7 @@ export interface User {
   email: string;
   role: string;
   avatarUrl?: string;
+  phone?: string;
 }
 
 export interface Message {
