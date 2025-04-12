@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Cloud, CloudOff, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { toast as hotToast } from 'react-hot-toast';
 
 interface SyncStatusIndicatorProps {
   syncItems?: number;
@@ -70,15 +71,11 @@ export function SyncStatusIndicator({
 
 // Function to show toast notifications for sync events
 export function showSyncNotification(type: 'success' | 'error' | 'warning', message: string) {
-  const { toast } = useToast();
-  
   if (type === 'success') {
-    toast.success(message);
+    hotToast.success(message);
   } else if (type === 'error') {
-    toast.error(message);
+    hotToast.error(message);
   } else {
-    toast({
-      description: message
-    });
+    hotToast(message);
   }
 }

@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from 'react-hot-toast';
@@ -16,7 +15,7 @@ interface Integration {
   company_id?: string;
   created_at?: string;
   updated_at?: string;
-  last_sync?: string; // Including both lastSync and last_sync to handle database naming
+  last_sync?: string;
 }
 
 interface Webhook {
@@ -65,7 +64,6 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
   setActiveTab: (tab) => {
     set({ activeTab: tab });
     
-    // Load data for the selected tab if not loaded yet
     if (tab === 'available' && get().availableIntegrations.length === 0) {
       get().fetchAvailableIntegrations();
     } else if (tab === 'connected' && get().connectedIntegrations.length === 0) {
@@ -92,7 +90,6 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
         return;
       }
 
-      // Mark integrations that are already connected
       const connectedIds = get().connectedIntegrations.map(i => i.provider);
       const availableWithStatus = data.data.map((integration: Integration) => ({
         ...integration,
@@ -129,10 +126,9 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
         return;
       }
 
-      // Transform data to ensure consistent property naming
       const transformedData = (data.data || []).map((item: any) => ({
         ...item,
-        lastSync: item.last_sync // Ensure lastSync property exists for components that use it
+        lastSync: item.last_sync
       }));
 
       set({
@@ -140,7 +136,6 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
         isLoading: { ...get().isLoading, connected: false }
       });
 
-      // Update available integrations status if they're loaded
       if (get().availableIntegrations.length > 0) {
         const connectedIds = transformedData.map((i: Integration) => i.provider) || [];
         const updatedAvailable = get().availableIntegrations.map(integration => ({
@@ -209,7 +204,6 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
         return false;
       }
 
-      // Refresh connected integrations
       await get().fetchConnectedIntegrations();
 
       toast.success(`${integration.name} has been connected successfully`);
@@ -242,11 +236,10 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
         return false;
       }
 
-      // Refresh connected integrations
       await get().fetchConnectedIntegrations();
 
-      toast.success(`${integration.name} has been disconnected`);
-
+      toast.success(`${integration.name} has been disconnected successfully`);
+      
       return true;
     } catch (error) {
       console.error('Error in disconnectIntegration:', error);
@@ -268,11 +261,10 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
         return false;
       }
 
-      // Refresh webhooks
       await get().fetchWebhooks();
 
-      toast.success('Webhook created successfully');
-
+      toast.success(`Webhook "${webhook.name}" has been created successfully`);
+      
       return true;
     } catch (error) {
       console.error('Error in createWebhook:', error);

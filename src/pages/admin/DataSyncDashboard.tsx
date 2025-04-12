@@ -14,7 +14,7 @@ import {
   BarChart4, ChevronRight, ArrowUpDown, Clock, Download
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'react-hot-toast';
 import { useCommunitySync } from '@/hooks/useCommunitySync';
 import { useKnowledgeSync } from '@/hooks/useKnowledgeSync';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -135,11 +135,7 @@ export default function DataSyncDashboard() {
   
   const syncAllChanges = async () => {
     if (isOffline) {
-      toast({
-        title: "Sync Failed",
-        description: "Cannot sync while offline. Please check your connection.",
-        variant: "destructive"
-      });
+      toast.error("Cannot sync while offline. Please check your connection.");
       return;
     }
     
@@ -149,30 +145,21 @@ export default function DataSyncDashboard() {
     try {
       // Start with knowledge
       if (pendingUpdates.knowledge.length > 0) {
-        toast({
-          title: "Syncing Knowledge Base",
-          description: `Synchronizing ${pendingUpdates.knowledge.length} knowledge base updates`
-        });
+        toast("Synchronizing knowledge base updates");
         await syncKnowledge();
         setSyncProgress(33);
       }
       
       // Then workflow (would need to implement this)
       if (pendingUpdates.workflow.length > 0) {
-        toast({
-          title: "Syncing Workflows",
-          description: `Synchronizing ${pendingUpdates.workflow.length} workflow updates`
-        });
+        toast("Synchronizing workflow updates");
         // await syncWorkflow();
         setSyncProgress(66);
       }
       
       // Finally community
       if (pendingUpdates.community.length > 0) {
-        toast({
-          title: "Syncing Community Posts",
-          description: `Synchronizing ${pendingUpdates.community.length} community updates`
-        });
+        toast("Synchronizing community updates");
         await syncCommunity();
         setSyncProgress(100);
       }
@@ -181,18 +168,10 @@ export default function DataSyncDashboard() {
       const updates = await getAllPendingUpdates();
       setPendingUpdates(updates);
       
-      toast({
-        title: "Sync Complete",
-        description: "All changes have been synchronized",
-        variant: "default"
-      });
+      toast.success("All changes have been synchronized");
     } catch (error) {
       console.error('Error syncing all changes:', error);
-      toast({
-        title: "Sync Error",
-        description: "There was an error synchronizing all changes",
-        variant: "destructive"
-      });
+      toast.error("There was an error synchronizing all changes");
     } finally {
       setSyncingAll(false);
     }

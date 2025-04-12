@@ -29,7 +29,6 @@ export default function APIIntegrations() {
   const [showWebhookDialog, setShowWebhookDialog] = useState(false);
   const [selectedWebhookIntegrationId, setSelectedWebhookIntegrationId] = useState<string | null>(null);
 
-  // Initial data loading
   useEffect(() => {
     fetchAvailableIntegrations();
     fetchConnectedIntegrations();
@@ -317,7 +316,6 @@ export default function APIIntegrations() {
         </TabsContent>
       </Tabs>
 
-      {/* Connect Integration Dialog */}
       {selectedIntegration && (
         <IntegrationConnectDialog
           integration={selectedIntegration}
@@ -329,7 +327,6 @@ export default function APIIntegrations() {
         />
       )}
 
-      {/* Create Webhook Dialog */}
       {selectedWebhookIntegrationId && (
         <WebhookCreateDialog
           isOpen={showWebhookDialog}

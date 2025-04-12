@@ -10,7 +10,13 @@ export type ToastProps = {
 };
 
 type ToastContextType = {
-  toast: (props: ToastProps | string) => void;
+  toast: ((props: ToastProps | string) => void) & {
+    success: (message: string) => void;
+    error: (message: string) => void;
+    loading: (message: string) => void;
+    custom: typeof toast;
+    dismiss: typeof toast.dismiss;
+  };
   dismiss: (toastId?: string) => void;
   toasts: any[]; // For compatibility with the shadcn/ui Toaster component
 };
@@ -21,7 +27,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<any[]>([]);
 
   // Main toast function that handles both object and string inputs
-  const showToast = (props: ToastProps | string) => {
+  const showToast = ((props: ToastProps | string) => {
     if (typeof props === 'string') {
       // If a string is passed, use it as a simple message
       return toast(props);
@@ -43,7 +49,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     }
     
     return toast(content as any);
-  };
+  }) as ToastContextType['toast'];
 
   // Add direct access to toast methods
   showToast.success = toast.success;
