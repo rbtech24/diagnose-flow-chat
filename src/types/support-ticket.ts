@@ -4,9 +4,9 @@ export interface SupportTicket {
   title: string;
   description: string;
   status: 'open' | 'in-progress' | 'resolved' | 'closed';
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  createdAt: Date | string;
-  updatedAt: Date | string;
+  priority: 'low' | 'medium' | 'high' | 'critical' | 'urgent';
+  createdAt: Date;
+  updatedAt: Date;
   createdBy: {
     id: string;
     name: string;
@@ -20,13 +20,12 @@ export interface SupportTicket {
   comments?: Array<{
     id: string;
     content: string;
-    createdAt: Date | string;
+    createdAt: Date;
     createdBy: {
       id: string;
       name: string;
     };
   }>;
-  // Add the messages property required by the SupportTicketComponent
   messages: Array<{
     id: string;
     ticketId: string;

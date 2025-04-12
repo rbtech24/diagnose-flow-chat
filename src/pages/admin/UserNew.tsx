@@ -10,6 +10,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUserManagementStore } from "@/store/userManagementStore";
+import { UserWithPassword } from "@/types/user";
 
 const userFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -42,14 +43,16 @@ export default function UserNew() {
 
   const onSubmit = async (data: UserFormValues) => {
     try {
-      const newUser = await addUser({
+      const userData: UserWithPassword = {
         name: data.name,
         email: data.email,
         role: data.role,
         phone: data.phone,
         password: data.password,
         companyId: data.companyId,
-      });
+      };
+      
+      const newUser = await addUser(userData);
       navigate(`/admin/users/${newUser.id}`);
     } catch (error) {
       console.error("Failed to create user:", error);

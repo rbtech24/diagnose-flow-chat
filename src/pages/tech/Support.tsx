@@ -1,8 +1,7 @@
-
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SupportTicketComponent, SupportTicket, SupportTicketStatus } from "@/components/support/SupportTicket";
+import { SupportTicketComponent, SupportTicket as ComponentSupportTicket, SupportTicketStatus } from "@/components/support/SupportTicket";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, Filter, RotateCw } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,9 +9,18 @@ import { emptyTickets, placeholderUser } from "@/utils/placeholderData";
 import { NewTicketForm } from "@/components/support/NewTicketForm";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
+import { SupportTicket } from "@/types/support-ticket";
 
 export default function TechSupport() {
-  const [tickets, setTickets] = useState<SupportTicket[]>(emptyTickets);
+  const [tickets, setTickets] = useState<ComponentSupportTicket[]>(() => 
+    // Convert any ticket data to the correct format expected by the component
+    emptyTickets.map(ticket => ({
+      ...ticket,
+      createdAt: new Date(ticket.createdAt),
+      updatedAt: new Date(ticket.updatedAt),
+      messages: ticket.messages || []
+    }))
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isSubmitting, setIsSubmitting] = useState(false);
