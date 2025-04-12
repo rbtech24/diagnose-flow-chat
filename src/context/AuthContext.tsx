@@ -219,8 +219,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
   
   // Add these methods to match the expected interface
-  const login = signIn;
-  const logout = signOut;
+  const login = async (email: string, password: string): Promise<void> => {
+    return signIn(email, password);
+  }
+
+  const logout = async (): Promise<void> => {
+    return signOut();
+  }
   
   const register = async (userData: { name: string; email: string; password: string; role: string; phone?: string; companyName?: string }): Promise<void> => {
     try {

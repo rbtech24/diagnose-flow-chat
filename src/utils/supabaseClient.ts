@@ -28,16 +28,16 @@ export async function fetchUserProfile(userId: string): Promise<User | null> {
     return {
       id: userId,
       email,
-      name: data.name || '',
-      role: data.role,
-      status: data.status,
+      name: data.name || '', // Map name or provide default
+      role: data.role as 'admin' | 'company' | 'tech',
+      status: data.status as 'active' | 'inactive' | 'pending' | 'archived' | 'deleted',
       phone: data.phone,
       avatarUrl: data.avatar_url,
       companyId: data.company_id,
-      trialEndsAt: data.trial_ends_at ? new Date(data.trial_ends_at) : undefined,
-      subscriptionStatus: data.subscription_status,
-      planId: data.plan_id,
-      isMainAdmin: data.is_main_admin
+      trialEndsAt: undefined, // These fields don't exist in technicians table
+      subscriptionStatus: undefined,
+      planId: undefined,
+      isMainAdmin: false // Default value since it doesn't exist in technicians
     };
   } catch (error) {
     console.error('Error in fetchUserProfile:', error);
@@ -59,10 +59,6 @@ export async function updateUserProfile(userId: string, updates: Partial<User>):
     if (updates.avatarUrl) profileUpdates.avatar_url = updates.avatarUrl;
     if (updates.status) profileUpdates.status = updates.status;
     if (updates.companyId) profileUpdates.company_id = updates.companyId;
-    if (updates.trialEndsAt) profileUpdates.trial_ends_at = updates.trialEndsAt;
-    if (updates.subscriptionStatus) profileUpdates.subscription_status = updates.subscriptionStatus;
-    if (updates.planId) profileUpdates.plan_id = updates.planId;
-    if (updates.isMainAdmin !== undefined) profileUpdates.is_main_admin = updates.isMainAdmin;
     
     const { error } = await supabase
       .from('technicians')
