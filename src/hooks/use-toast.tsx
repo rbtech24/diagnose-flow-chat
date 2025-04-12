@@ -1,6 +1,6 @@
 
 import { ReactNode, createContext, useContext, useState } from 'react';
-import toast from 'react-hot-toast';
+import toast, { Toast } from 'react-hot-toast';
 
 export type ToastProps = {
   title?: string;
@@ -39,6 +39,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       </div>
     );
   };
+
+  // Add convenience methods that match react-hot-toast API
+  showToast.success = (message: string) => toast.success(message);
+  showToast.error = (message: string) => toast.error(message);
+  showToast.loading = (message: string) => toast.loading(message);
+  showToast.custom = (jsx: ReactNode) => toast.custom(jsx);
+  showToast.dismiss = toast.dismiss;
 
   const contextValue = {
     toast: showToast,

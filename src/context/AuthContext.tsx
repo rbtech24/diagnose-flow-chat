@@ -1,219 +1,170 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '@/utils/supabaseClient';
-import { Session, User } from '@supabase/supabase-js';
-import { toast } from 'react-hot-toast';
 
-interface AuthContextType {
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/utils/supabaseClient';
+
+// Enhanced User type with additional properties
+export interface User {
+  id: string;
+  email: string;
+  name?: string;
+  role?: 'admin' | 'company' | 'tech';
+  avatarUrl?: string;
+  phone?: string;
+  status?: 'active' | 'inactive' | 'pending';
+  companyId?: string;
+}
+
+export interface AuthContextType {
   isAuthenticated: boolean;
+  isLoading: boolean;
   user: User | null;
   userRole: 'admin' | 'company' | 'tech' | null;
-  isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
-  logout: () => Promise<void>;
   forgotPassword: (email: string) => Promise<boolean>;
   resetPassword: (token: string, newPassword: string) => Promise<boolean>;
-  checkWorkflowAccess: (folder: string, workflowId: string) => { hasAccess: boolean, message?: string };
+  signOut: () => void;
+  updateUser: (userData: Partial<User>) => void;
 }
 
-interface RegisterData {
-  email: string;
-  password: string;
-  name: string;
-  role: string;
-  phone?: string;
-  companyName?: string;
-}
-
-const AuthContext = createContext<AuthContextType>({
-  isAuthenticated: false,
-  user: null,
-  userRole: null,
-  isLoading: true,
-  login: async () => {},
-  signup: async () => {},
-  register: async () => {},
-  logout: async () => {},
-  forgotPassword: async () => false,
-  resetPassword: async () => false,
-  checkWorkflowAccess: () => ({ hasAccess: false })
-});
-
-export const useAuth = () => useContext(AuthContext);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+export const AuthProvider = ({ children }: AuthProviderProps) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<'admin' | 'company' | 'tech' | null>(null);
 
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          setTimeout(() => {
-            fetchUserRole(session.user.id);
-          }, 0);
-        } else {
-          setUserRole(null);
-        }
-      }
-    );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchUserRole(session.user.id);
-      }
-      
-      setIsLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const fetchUserRole = async (userId: string) => {
-    try {
-      if (user?.email?.includes('admin')) {
-        setUserRole('admin');
-      } else if (user?.email?.includes('company')) {
-        setUserRole('company');
-      } else {
-        setUserRole('tech');
-      }
-    } catch (error) {
-      console.error('Error getting user role:', error);
-    }
-  };
-
+  // Mock authentication functions - replace with real ones when connecting to backend
   const login = async (email: string, password: string) => {
+    setIsLoading(true);
+    // Mock login - in real app, this would be a call to your authentication service
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-    } catch (error: any) {
-      console.error('Login error:', error.message);
-      throw error;
-    }
-  };
-
-  const signup = async (email: string, password: string) => {
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (error) throw error;
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      toast.success("Signup successful! Check your email for confirmation.");
+      // Mock different user roles based on email
+      let role: 'admin' | 'company' | 'tech' = 'tech';
+      if (email.includes('admin')) {
+        role = 'admin';
+      } else if (email.includes('company')) {
+        role = 'company';
+      }
+      
+      const mockUser: User = {
+        id: '123456',
+        email,
+        name: email.split('@')[0],
+        role,
+        avatarUrl: 'https://i.pravatar.cc/300',
+        status: 'active'
+      };
+      
+      setUser(mockUser);
+      setUserRole(role);
+      setIsAuthenticated(true);
+      localStorage.setItem('auth', JSON.stringify({ user: mockUser, role }));
     } catch (error: any) {
-      console.error('Signup error:', error.message);
-      throw error;
-    }
-  };
-
-  const register = async (data: RegisterData) => {
-    try {
-      const { error: signUpError } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          data: {
-            name: data.name,
-            role: data.role,
-            phone: data.phone,
-            company_name: data.companyName,
-          },
-        },
-      });
-
-      if (signUpError) throw signUpError;
-
-      toast.success("Account created successfully!");
-    } catch (error: any) {
-      console.error('Registration error:', error.message);
-      throw error;
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await supabase.auth.signOut();
-      setUserRole(null);
-      toast.success("Logged out successfully");
-    } catch (error: any) {
-      console.error('Logout error:', error.message);
-      throw error;
+      console.error('Login error:', error);
+      throw new Error(error.message || 'Failed to sign in');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const forgotPassword = async (email: string): Promise<boolean> => {
+    // Mock forgot password functionality
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-
-      if (error) throw error;
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
       return true;
-    } catch (error: any) {
-      console.error('Forgot password error:', error.message);
-      toast.error(error.message);
+    } catch (error) {
+      console.error('Forgot password error:', error);
       return false;
     }
   };
 
   const resetPassword = async (token: string, newPassword: string): Promise<boolean> => {
+    // Mock reset password functionality
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-
-      if (error) throw error;
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
       return true;
-    } catch (error: any) {
-      console.error('Reset password error:', error.message);
-      toast.error(error.message);
+    } catch (error) {
+      console.error('Reset password error:', error);
       return false;
     }
   };
 
-  const checkWorkflowAccess = (folder: string, workflowId: string) => {
-    return { hasAccess: true };
+  const signOut = () => {
+    setUser(null);
+    setUserRole(null);
+    setIsAuthenticated(false);
+    localStorage.removeItem('auth');
   };
+
+  const updateUser = (userData: Partial<User>) => {
+    if (user) {
+      const updatedUser = { ...user, ...userData };
+      setUser(updatedUser);
+      
+      // Update local storage
+      const authData = JSON.parse(localStorage.getItem('auth') || '{}');
+      localStorage.setItem('auth', JSON.stringify({ ...authData, user: updatedUser }));
+    }
+  };
+
+  // Check for existing session on mount
+  useEffect(() => {
+    const checkAuth = () => {
+      const savedAuth = localStorage.getItem('auth');
+      
+      if (savedAuth) {
+        try {
+          const { user, role } = JSON.parse(savedAuth);
+          setUser(user);
+          setUserRole(role);
+          setIsAuthenticated(true);
+        } catch (e) {
+          console.error('Error parsing auth data', e);
+          localStorage.removeItem('auth');
+        }
+      }
+      
+      setIsLoading(false);
+    };
+    
+    checkAuth();
+  }, []);
 
   return (
     <AuthContext.Provider
       value={{
-        isAuthenticated: !!user,
+        isAuthenticated,
+        isLoading,
         user,
         userRole,
-        isLoading,
         login,
-        signup,
-        register,
-        logout,
         forgotPassword,
         resetPassword,
-        checkWorkflowAccess,
+        signOut,
+        updateUser
       }}
     >
       {children}
     </AuthContext.Provider>
   );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  
+  return context;
 };

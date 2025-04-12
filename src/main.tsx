@@ -6,15 +6,18 @@ import './index.css';
 import { ToastProvider } from "@/hooks/use-toast";
 import { Toaster } from 'react-hot-toast';
 import { SystemMessageProvider } from './context/SystemMessageContext';
+import { AuthProvider } from './context/AuthContext';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ToastProvider>
-      <Toaster position="bottom-right" />
-      <SystemMessageProvider>
-        <App />
-      </SystemMessageProvider>
-    </ToastProvider>
+    <AuthProvider>
+      <ToastProvider>
+        <Toaster position="bottom-right" />
+        <SystemMessageProvider>
+          <App />
+        </SystemMessageProvider>
+      </ToastProvider>
+    </AuthProvider>
   </React.StrictMode>,
 );
 

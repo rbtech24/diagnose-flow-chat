@@ -1,9 +1,14 @@
 
-import { User } from "./user";
+export type UserRole = 'admin' | 'company' | 'tech';
 
-export type FeatureRequestStatus = "pending" | "approved" | "rejected" | "in-progress" | "completed" | "planned" | "under-review";
-
-export type FeatureRequestPriority = "low" | "medium" | "high" | "critical";
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  avatarUrl: string;
+  status: 'active' | 'inactive' | 'pending';
+}
 
 export interface FeatureRequestVote {
   id: string;
@@ -25,15 +30,11 @@ export interface FeatureRequest {
   id: string;
   title: string;
   description: string;
-  status: FeatureRequestStatus;
-  priority: FeatureRequestPriority;
   createdAt: Date;
-  updatedAt: Date;
   createdBy: User;
-  votes: FeatureRequestVote[];
+  status: 'pending' | 'approved' | 'rejected' | 'implemented';
   score: number;
+  votes: FeatureRequestVote[];
   comments: FeatureRequestComment[];
-  category?: string;
-  userId?: string;
-  user?: User;
+  priority: 'low' | 'medium' | 'high' | 'critical';
 }

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
-import { FeatureRequest, FeatureRequestVote } from "@/types/feature-request";
+import { FeatureRequest, FeatureRequestVote, FeatureRequestComment } from "@/types/feature-request";
 import { useAuth } from "@/context/AuthContext";
 import { ArrowLeft } from "lucide-react";
 import { placeholderUser } from "@/utils/placeholderData";
@@ -41,7 +41,7 @@ export default function CompanyFeatureRequestDetailPage() {
         email: user.email,
         role: user.role || 'company',
         avatarUrl: '',
-        status: user.status || 'active', // Add required status property
+        status: user.status || 'active',
       },
     };
     
@@ -55,7 +55,7 @@ export default function CompanyFeatureRequestDetailPage() {
   const handleAddComment = (requestId: string, content: string) => {
     if (!featureRequest || !user) return;
     
-    const newComment = {
+    const newComment: FeatureRequestComment = {
       id: `comment-${Date.now()}`,
       featureRequestId: requestId,
       content,
@@ -66,7 +66,7 @@ export default function CompanyFeatureRequestDetailPage() {
         email: user.email,
         role: user.role || 'company',
         avatarUrl: '',
-        status: user.status || 'active', // Add required status property
+        status: user.status || 'active',
       },
     };
     
