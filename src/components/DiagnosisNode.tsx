@@ -1,4 +1,3 @@
-
 import { memo } from 'react';
 import { useStore, useReactFlow } from '@xyflow/react';
 import { Card } from './ui/card';
@@ -44,9 +43,7 @@ function DiagnosisNode({ id, data }) {
       )
     );
     
-    toast({
-      description: "The connection has been removed successfully."
-    });
+    toast("The connection has been removed successfully.");
   };
 
   return (

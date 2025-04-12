@@ -1,7 +1,7 @@
 
 import { EditApplianceDialog } from '@/components/appliance/EditApplianceDialog';
 import { DeleteApplianceDialog } from '@/components/workflow/DeleteApplianceDialog';
-import { useToast } from '@/hooks/use-toast';
+import toast from 'react-hot-toast';
 
 interface ApplianceManagerProps {
   editingAppliance: { index: number; name: string } | null;
@@ -20,15 +20,11 @@ export function ApplianceManager({
   editAppliance,
   deleteAppliance,
 }: ApplianceManagerProps) {
-  const { toast } = useToast();
   
   const handleDeleteAppliance = (index: number) => {
     deleteAppliance(index);
     setDeletingApplianceIndex(null);
-    toast({
-      title: "Appliance Deleted",
-      description: "The appliance and its workflows have been deleted."
-    });
+    toast.success("The appliance and its workflows have been deleted.");
   };
 
   return (

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '../ui/dialog';
@@ -8,7 +7,7 @@ import { Save } from 'lucide-react';
 import { useAppliances } from '@/hooks/useAppliances';
 import { getFolders } from '@/utils/flow';
 import { useLocation } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import toast from 'react-hot-toast';
 
 interface SaveWorkflowDialogProps {
   onSave: (name: string, folder: string, appliance: string) => Promise<void>;
@@ -22,7 +21,6 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
   const [appliances, setAppliances] = useState<string[]>([]);
   const { appliances: appliancesList } = useAppliances();
   const location = useLocation();
-  const { toast } = useToast();
   
   const isWorkflowsPage = location.pathname === '/workflows';
   
@@ -40,34 +38,22 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
           }
         } catch (error) {
           console.error('Error loading folders:', error);
-          toast({
-            title: "Error",
-            description: "Failed to load folders",
-            variant: "destructive"
-          });
+          toast.error("Failed to load folders");
         }
       };
       loadFolders();
     }
-  }, [isOpen, isWorkflowsPage, appliancesList, toast]);
+  }, [isOpen, isWorkflowsPage, appliancesList]);
 
   const handleSave = async () => {
     if (!workflowName) {
-      toast({
-        title: "Validation Error",
-        description: "Please provide a workflow name",
-        variant: "destructive"
-      });
+      toast.error("Please provide a workflow name");
       return;
     }
 
     const targetAppliance = newAppliance || selectedAppliance;
     if (!targetAppliance) {
-      toast({
-        title: "Validation Error",
-        description: "Please select or create an appliance category",
-        variant: "destructive"
-      });
+      toast.error("Please select or create an appliance category");
       return;
     }
 
@@ -79,11 +65,7 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
       setSelectedAppliance(appliances[0] || '');
     } catch (error) {
       console.error('Error saving workflow:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save the workflow. Please try again.",
-        variant: "destructive"
-      });
+      toast.error("Failed to save the workflow. Please try again.");
     }
   };
 

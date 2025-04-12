@@ -1,6 +1,7 @@
 
-import { ReactNode, createContext, useContext, useState } from 'react';
+import { ReactNode, createContext, useContext } from 'react';
 import toast, { Toast as HotToast } from 'react-hot-toast';
+import { adaptToast } from '@/components/ui/toast-adapter';
 
 // Define types that match shadcn/ui toast types for compatibility
 export type ToastProps = {
@@ -11,20 +12,21 @@ export type ToastProps = {
 };
 
 type ToastContextType = {
-  toast: typeof toast;
+  toast: (props: ToastProps | string) => void;
+  success: (message: string) => void;
+  error: (message: string) => void;
   dismiss: (toastId?: string) => void;
-  toasts: any[]; // For compatibility with the shadcn/ui Toaster component
 };
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [toasts, setToasts] = useState<any[]>([]);
-
+  // Use the adapter to provide shadcn/ui style toast API
   const contextValue: ToastContextType = {
-    toast,
-    dismiss: toast.dismiss,
-    toasts
+    toast: adaptToast.toast,
+    success: adaptToast.success,
+    error: adaptToast.error,
+    dismiss: adaptToast.dismiss
   };
 
   return (
@@ -43,34 +45,6 @@ export function useToast() {
   
   return context;
 }
-
-// Helper functions to adapt shadcn/ui toast props to react-hot-toast
-export const shadcnToast = {
-  // Converts shadcn toast props to react-hot-toast
-  toast: (props: ToastProps | string) => {
-    if (typeof props === 'string') {
-      return toast(props);
-    }
-    
-    const { title, description, variant } = props;
-    const message = title 
-      ? description 
-        ? `${title}: ${description}` 
-        : title
-      : description || '';
-    
-    if (variant === 'destructive') {
-      return toast.error(message);
-    }
-    
-    return toast(message);
-  },
-  
-  // For direct usage
-  success: (message: string) => toast.success(message),
-  error: (message: string) => toast.error(message),
-  dismiss: toast.dismiss
-};
 
 // For direct usage without the hook
 export { toast };
