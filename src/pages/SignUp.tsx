@@ -175,6 +175,13 @@ export default function SignUp() {
                     />
                   </div>
                 </div>
+                
+                <div className="rounded-lg border p-4 bg-blue-50 border-blue-100">
+                  <h3 className="font-medium text-blue-700">Free 30-day Trial</h3>
+                  <p className="text-sm text-blue-600 mt-1">
+                    Companies get a 30-day trial with limited diagnostics per day and technician seats. Upgrade anytime for full access.
+                  </p>
+                </div>
               </TabsContent>
               
               <div className="space-y-2">
