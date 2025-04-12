@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { Loader2, ChevronLeft } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -24,34 +24,36 @@ export default function ForgotPassword() {
       const success = await forgotPassword(email);
       if (success) {
         setIsSubmitted(true);
-        toast({
-          title: "Success",
-          description: "Check your email for a link to reset your password."
-        });
+        toast.success("Check your email for a link to reset your password.");
       } else {
-        toast({
-          title: "Error",
-          description: "Failed to send reset link. Please try again.",
-          variant: "destructive"
-        });
+        toast.error("Failed to send reset link. Please try again.");
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive"
-      });
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-md">
+    <div className="flex min-h-screen items-center justify-center bg-blue-50 px-4 py-12">
+      <Card className="w-full max-w-md shadow-lg border-0">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Forgot password</CardTitle>
-          <CardDescription>
+          <Link to="/login" className="flex items-center text-blue-600 hover:underline mb-4">
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back to login
+          </Link>
+          
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/public/lovable-uploads/626e46ce-b31c-4656-8873-f950a140763f.png" 
+              alt="Repair Autopilot" 
+              className="h-16 w-auto" 
+            />
+          </div>
+          
+          <CardTitle className="text-2xl font-bold text-center">Forgot password</CardTitle>
+          <CardDescription className="text-center">
             Enter your email address and we'll send you a link to reset your password
           </CardDescription>
         </CardHeader>
@@ -60,11 +62,6 @@ export default function ForgotPassword() {
           <CardContent className="space-y-4">
             <div className="rounded-md bg-green-50 p-4">
               <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                </div>
                 <div className="ml-3">
                   <p className="text-sm font-medium text-green-800">
                     Reset link has been sent to your email address.
@@ -73,7 +70,7 @@ export default function ForgotPassword() {
               </div>
             </div>
             <div className="text-center">
-              <Link to="/login" className="text-primary hover:underline">
+              <Link to="/login" className="text-blue-600 hover:underline font-medium">
                 Return to login
               </Link>
             </div>
@@ -89,6 +86,7 @@ export default function ForgotPassword() {
                   placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="bg-gray-50"
                   required
                 />
               </div>
@@ -96,18 +94,12 @@ export default function ForgotPassword() {
             <CardFooter className="flex flex-col space-y-4">
               <Button 
                 type="submit" 
-                className="w-full"
+                className="w-full bg-blue-600 hover:bg-blue-700"
                 disabled={isSubmitting}
               >
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Send reset link
               </Button>
-              <p className="text-center text-sm text-gray-500">
-                Remember your password?{" "}
-                <Link to="/login" className="text-primary hover:underline">
-                  Sign in
-                </Link>
-              </p>
             </CardFooter>
           </form>
         )}

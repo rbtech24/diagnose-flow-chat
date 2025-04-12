@@ -5,13 +5,13 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { Loader2, Wrench, Building, LayoutDashboard } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("tech"); // Default role: tech
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { login, isAuthenticated, userRole } = useAuth();
 
@@ -22,17 +22,10 @@ export default function Login() {
     setIsLoggingIn(true);
     try {
       await login(email, password);
-      toast({
-        title: "Success", 
-        description: "You have been successfully logged in."
-      });
+      toast.success("You have been successfully logged in.");
     } catch (error: any) {
       console.error("Login error:", error);
-      toast({
-        title: "Error", 
-        description: error.message || "Failed to sign in. Please check your credentials.",
-        variant: "destructive"
-      });
+      toast.error(error.message || "Failed to sign in. Please check your credentials.");
     } finally {
       setIsLoggingIn(false);
     }
@@ -47,33 +40,85 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Login</CardTitle>
-          <CardDescription>
-            Enter your credentials to access your account
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
+    <div className="flex min-h-screen items-center justify-center bg-blue-50 px-4 py-12">
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-lg shadow-md p-8">
+          <div className="flex justify-center mb-6">
+            <img 
+              src="/public/lovable-uploads/626e46ce-b31c-4656-8873-f950a140763f.png" 
+              alt="Repair Autopilot" 
+              className="h-16 w-auto" 
+            />
+          </div>
+          
+          <h1 className="text-center text-lg font-medium mb-6">
+            Sign in to your account to continue
+          </h1>
+          
+          <div className="mb-6">
+            <div className="text-sm font-medium mb-2">Select your role</div>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setRole("tech")}
+                className={`flex items-center justify-center gap-2 p-3 rounded border ${
+                  role === "tech" 
+                    ? "bg-blue-50 border-blue-500 text-blue-700" 
+                    : "border-gray-200 hover:bg-gray-50"
+                }`}
+              >
+                <Wrench className="h-4 w-4" />
+                <span>Technician</span>
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setRole("company")}
+                className={`flex items-center justify-center gap-2 p-3 rounded border ${
+                  role === "company" 
+                    ? "bg-blue-50 border-blue-500 text-blue-700" 
+                    : "border-gray-200 hover:bg-gray-50"
+                }`}
+              >
+                <Building className="h-4 w-4" />
+                <span>Company</span>
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setRole("admin")}
+                className={`flex items-center justify-center gap-2 p-3 rounded border ${
+                  role === "admin" 
+                    ? "bg-blue-50 border-blue-500 text-blue-700" 
+                    : "border-gray-200 hover:bg-gray-50"
+                }`}
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                <span>Admin</span>
+              </button>
+            </div>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@example.com"
+                className="bg-gray-50"
                 required
               />
             </div>
+            
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
                 <Link
                   to="/forgot-password"
-                  className="text-sm text-primary hover:underline"
+                  className="text-sm text-blue-600 hover:underline"
                 >
                   Forgot password?
                 </Link>
@@ -83,28 +128,31 @@ export default function Login() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="bg-gray-50"
                 required
               />
             </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
+            
             <Button 
               type="submit" 
-              className="w-full"
+              className="w-full bg-blue-600 hover:bg-blue-700"
               disabled={isLoggingIn}
             >
               {isLoggingIn && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Sign in
             </Button>
-            <p className="text-center text-sm text-gray-500">
+          </form>
+          
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
               Don't have an account?{" "}
-              <Link to="/signup" className="text-primary hover:underline">
-                Sign up
+              <Link to="/signup" className="text-blue-600 hover:underline font-medium">
+                Sign up now
               </Link>
             </p>
-          </CardFooter>
-        </form>
-      </Card>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

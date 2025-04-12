@@ -1,13 +1,11 @@
+
 import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, User, Mail, Building, Lock, EyeOff, Eye, Phone } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, ChevronLeft, Wrench, Building, CheckCircle2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 export default function SignUp() {
@@ -16,13 +14,9 @@ export default function SignUp() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState("tech");
-  const [accountType, setAccountType] = useState("tech"); // "tech" or "company"
-  const [companyName, setCompanyName] = useState("");
+  const [accountType, setAccountType] = useState("tech");
   const [passwordError, setPasswordError] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const { register, isAuthenticated, userRole } = useAuth();
 
@@ -40,22 +34,18 @@ export default function SignUp() {
       return;
     }
     
-    if (accountType === "company" && !companyName) {
-      return; // Form validation will handle this
-    }
-    
     setIsRegistering(true);
     try {
       await register({
         name,
         email,
         password,
-        role: accountType === "company" ? "company" : "tech",
+        role: accountType,
         phone,
-        companyName: accountType === "company" ? companyName : undefined
+        companyName: undefined
       });
       
-      toast.success("You have been registered and logged in.");
+      toast.success("Your account has been created successfully!");
     } catch (error: any) {
       console.error("Registration error:", error);
       toast.error(error.message || "Failed to create account.");
@@ -72,183 +62,204 @@ export default function SignUp() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center px-4 py-12">
-      <div className="absolute top-0 left-0 w-full h-32 bg-blue-600 z-0"></div>
-      
-      <Card className="w-full max-w-md relative z-10 shadow-xl border-blue-100">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400 to-blue-600 rounded-bl-full opacity-10"></div>
+    <div className="min-h-screen bg-blue-50 flex">
+      {/* Left side - Info section */}
+      <div className="w-1/2 p-10 flex flex-col">
+        <Link to="/" className="flex items-center text-blue-600 hover:underline mb-8">
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Back to home
+        </Link>
         
-        <CardHeader className="space-y-1 pb-6">
-          <div className="flex justify-center mb-2">
-            <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-              <User className="h-6 w-6 text-blue-600" />
+        <div className="flex justify-center mb-8">
+          <img 
+            src="/public/lovable-uploads/626e46ce-b31c-4656-8873-f950a140763f.png" 
+            alt="Repair Autopilot" 
+            className="h-16 w-auto" 
+          />
+        </div>
+        
+        <div className="mb-8">
+          <h2 className="text-xl font-medium mb-2">
+            Get immediate access to powerful diagnostic workflows for appliance repair professionals.
+          </h2>
+        </div>
+        
+        <div className="bg-white p-6 rounded-lg mb-8">
+          <ul className="space-y-4">
+            <li className="flex items-start">
+              <CheckCircle2 className="h-5 w-5 text-blue-600 mr-2 mt-0.5" />
+              <span>Start with a 14-day free trial</span>
+            </li>
+            <li className="flex items-start">
+              <CheckCircle2 className="h-5 w-5 text-blue-600 mr-2 mt-0.5" />
+              <span>Full access to all features</span>
+            </li>
+            <li className="flex items-start">
+              <CheckCircle2 className="h-5 w-5 text-blue-600 mr-2 mt-0.5" />
+              <span>No credit card required</span>
+            </li>
+            <li className="flex items-start">
+              <CheckCircle2 className="h-5 w-5 text-blue-600 mr-2 mt-0.5" />
+              <span>Choose a subscription plan later</span>
+            </li>
+          </ul>
+        </div>
+        
+        <div className="space-y-6">
+          <div className="flex items-start">
+            <div className="bg-blue-100 rounded-full p-2 mr-4">
+              <Wrench className="h-5 w-5 text-blue-700" />
+            </div>
+            <div>
+              <h3 className="font-medium">Individual Technician</h3>
+              <p className="text-sm text-gray-600">
+                Access to diagnostic workflows, repair guides, and tracking tools.
+              </p>
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
-          <CardDescription className="text-center">
-            Choose your account type to get started
-          </CardDescription>
-        </CardHeader>
-        
-        <Tabs defaultValue="tech" value={accountType} onValueChange={setAccountType} className="px-6">
-          <TabsList className="grid grid-cols-2 w-full mb-6">
-            <TabsTrigger value="tech" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Technician
-            </TabsTrigger>
-            <TabsTrigger value="company" className="flex items-center gap-2">
-              <Building className="h-4 w-4" />
-              Company
-            </TabsTrigger>
-          </TabsList>
           
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="name"
-                    placeholder="John Doe"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="name@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="(555) 123-4567"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <TabsContent value="company" className="space-y-4 mt-0 p-0">
-                <div className="space-y-2">
-                  <Label htmlFor="companyName">Company Name</Label>
-                  <div className="relative">
-                    <Building className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="companyName"
-                      placeholder="ACME Inc."
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="rounded-lg border p-4 bg-blue-50 border-blue-100">
-                  <h3 className="font-medium text-blue-700">Free 30-day Trial</h3>
-                  <p className="text-sm text-blue-600 mt-1">
-                    Companies get a 30-day trial with limited diagnostics per day and technician seats. Upgrade anytime for full access.
-                  </p>
-                </div>
-              </TabsContent>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10"
-                    required
-                  />
-                  <button 
-                    type="button"
-                    className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10 pr-10"
-                    required
-                  />
-                  <button 
-                    type="button"
-                    className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-                {passwordError && (
-                  <p className="text-sm text-red-500">{passwordError}</p>
-                )}
-              </div>
-            </CardContent>
+          <div className="flex items-start">
+            <div className="bg-blue-100 rounded-full p-2 mr-4">
+              <Building className="h-5 w-5 text-blue-700" />
+            </div>
+            <div>
+              <h3 className="font-medium">Affordable Plan</h3>
+              <p className="text-sm text-gray-600">
+                Low monthly fee with access to all features.
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="mt-auto text-center">
+          <p className="text-sm">
+            Already have an account?{" "}
+            <Link to="/login" className="text-blue-600 hover:underline font-medium">
+              Sign in
+            </Link>
+          </p>
+        </div>
+      </div>
+      
+      {/* Right side - Signup form */}
+      <div className="w-1/2 bg-white p-10">
+        <div className="max-w-md mx-auto">
+          <h1 className="text-2xl font-bold mb-2">Join Repair Auto Pilot</h1>
+          
+          <div className="mb-8">
+            <h2 className="text-xl font-medium mb-1">Create Your Account</h2>
+            <p className="text-sm text-gray-600">Choose your account type below</p>
             
-            <CardFooter className="flex flex-col space-y-4 pb-6">
-              <Button 
-                type="submit" 
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                disabled={isRegistering}
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <button
+                type="button"
+                onClick={() => setAccountType("tech")}
+                className={`flex items-center justify-center gap-2 p-3 rounded border ${
+                  accountType === "tech" 
+                    ? "bg-blue-50 border-blue-500 text-blue-700" 
+                    : "border-gray-200 hover:bg-gray-50"
+                }`}
               >
-                {isRegistering && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {accountType === "company" ? "Create Company Account" : "Create Technician Account"}
-              </Button>
+                <Wrench className="h-4 w-4" />
+                <span>Technician</span>
+              </button>
               
-              <div className="relative w-full text-center">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200"></div>
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-white px-2 text-sm text-gray-500">Already have an account?</span>
-                </div>
-              </div>
-              
-              <Link to="/login" className="w-full text-center text-blue-600 hover:text-blue-700 hover:underline">
-                Sign in
-              </Link>
-            </CardFooter>
+              <button
+                type="button"
+                onClick={() => setAccountType("company")}
+                className={`flex items-center justify-center gap-2 p-3 rounded border ${
+                  accountType === "company" 
+                    ? "bg-blue-50 border-blue-500 text-blue-700" 
+                    : "border-gray-200 hover:bg-gray-50"
+                }`}
+              >
+                <Building className="h-4 w-4" />
+                <span>Company</span>
+              </button>
+            </div>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="John Doe"
+                className="bg-gray-50"
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@example.com"
+                className="bg-gray-50"
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="(555) 123-4567"
+                className="bg-gray-50"
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="bg-gray-50"
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="bg-gray-50"
+                required
+              />
+              {passwordError && (
+                <p className="text-sm text-red-500">{passwordError}</p>
+              )}
+            </div>
+            
+            <Button 
+              type="submit" 
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              disabled={isRegistering}
+            >
+              {isRegistering && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Create {accountType === "tech" ? "Technician" : "Company"} Account
+            </Button>
+            
+            <p className="text-xs text-gray-500 text-center mt-4">
+              By signing up, you agree to our Terms of Service and Privacy Policy.
+            </p>
           </form>
-        </Tabs>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
