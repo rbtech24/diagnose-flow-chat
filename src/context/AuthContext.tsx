@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import toast from 'react-hot-toast'; 
 
@@ -26,7 +27,8 @@ type AuthContextType = {
   resetPassword: (token: string, newPassword: string) => Promise<boolean>;
   forgotPassword: (email: string) => Promise<boolean>;
   updateUser: (data: Partial<User>) => void;
-  checkWorkflowAccess?: () => boolean;
+  signOut: () => void;
+  checkWorkflowAccess: () => boolean;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

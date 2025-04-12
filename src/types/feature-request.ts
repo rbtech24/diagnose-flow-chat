@@ -51,6 +51,7 @@ export interface FeatureRequest {
   createdBy: FeatureRequestUser;
   votes: FeatureRequestVote[];
   comments: FeatureRequestComment[];
+  category?: string; // Add the category property
 }
 
 // Helper function to convert a User to a FeatureRequestUser
@@ -62,6 +63,6 @@ export function convertToFeatureRequestUser(user: User): FeatureRequestUser {
     role: user.role,
     avatarUrl: user.avatarUrl || '',
     status: (user.status === 'archived' || user.status === 'deleted') ? 
-      'inactive' : (user.status as 'active' | 'inactive' | 'pending')
+      'inactive' : ((user.status || 'active') as 'active' | 'inactive' | 'pending')
   };
 }

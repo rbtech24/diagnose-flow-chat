@@ -1,5 +1,5 @@
 
-import { User as FeatureRequestUser } from '@/types/feature-request';
+import { FeatureRequestUser } from '@/types/feature-request';
 import { User as AppUser } from '@/types/user';
 
 /**
@@ -13,7 +13,7 @@ export function convertToFeatureRequestUser(user: AppUser): FeatureRequestUser {
     role: user.role,
     avatarUrl: user.avatarUrl || '',
     status: (user.status === 'archived' || user.status === 'deleted') ? 
-      'inactive' : (user.status || 'active') as 'active' | 'inactive' | 'pending'
+      'inactive' : ((user.status || 'active') as 'active' | 'inactive' | 'pending')
   };
 }
 
@@ -28,7 +28,7 @@ export function ensureFeatureRequestUser(user: any): FeatureRequestUser {
     role: user.role || 'company',
     avatarUrl: user.avatarUrl || '',
     status: (user.status === 'archived' || user.status === 'deleted') ? 
-      'inactive' : (user.status || 'active') as 'active' | 'inactive' | 'pending'
+      'inactive' : ((user.status || 'active') as 'active' | 'inactive' | 'pending')
   };
 }
 

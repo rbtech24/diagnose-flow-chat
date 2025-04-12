@@ -34,10 +34,10 @@ export default function WorkflowEditor() {
       if (folder && name) {
         const workflowId = `${folder}-${name}`;
         
-        // Check access - assuming checkWorkflowAccess now returns a boolean
+        // Check access - removed the argument since checkWorkflowAccess doesn't take any
         const checkAccess = async () => {
           try {
-            const hasAccess = await checkWorkflowAccess(workflowId);
+            const hasAccess = checkWorkflowAccess();
             
             if (!hasAccess) {
               toast("Your license doesn't allow editing this workflow.");
