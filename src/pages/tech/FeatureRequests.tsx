@@ -10,7 +10,9 @@ import { FeatureRequestCard } from "@/components/feature-request/FeatureRequestC
 import { NewFeatureRequestForm } from "@/components/feature-request/NewFeatureRequestForm";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Search } from "lucide-react";
-import { emptyFeatureRequests, placeholderUser } from "@/utils/placeholderData";
+import { emptyFeatureRequests } from "@/utils/placeholderData";
+import { convertToFeatureRequestUser } from "@/utils/userConverter";
+import { placeholderUser } from "@/utils/placeholderData";
 
 export default function TechFeatureRequests() {
   const [requests, setRequests] = useState<FeatureRequest[]>(emptyFeatureRequests);
@@ -23,6 +25,8 @@ export default function TechFeatureRequests() {
     if (!values.title || !values.description) return;
     setIsSubmitting(true);
     
+    const frUser = convertToFeatureRequestUser(placeholderUser);
+    
     const newRequest: FeatureRequest = {
       id: `request-${Date.now()}`,
       title: values.title,
@@ -31,7 +35,7 @@ export default function TechFeatureRequests() {
       priority: values.priority || "medium",
       createdAt: new Date(),
       updatedAt: new Date(),
-      createdBy: placeholderUser,
+      createdBy: frUser,
       votes: [],
       score: 0,
       comments: [],

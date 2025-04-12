@@ -9,8 +9,6 @@ export type ToastProps = {
   action?: ReactNode;
 };
 
-type ToastHandler = (message: string) => string;
-
 type ToastContextType = {
   toast: ((props: ToastProps) => void) & {
     success: (message: string) => void;
@@ -41,10 +39,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     );
     
     if (variant === 'destructive') {
-      return toast.error(content as any);
+      toast.error(content as any);
+      return;
     }
     
-    return toast(content as any);
+    toast(content as any);
   }) as unknown as ((props: ToastProps) => void) & {
     success: (message: string) => void;
     error: (message: string) => void;

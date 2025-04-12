@@ -6,6 +6,7 @@ import { FeatureRequestDetail } from "@/components/feature-request/FeatureReques
 import { FeatureRequest, FeatureRequestVote, FeatureRequestStatus, FeatureRequestPriority } from "@/types/feature-request";
 import { placeholderUser } from "@/utils/placeholderData";
 import { ArrowLeft } from "lucide-react";
+import { convertToFeatureRequestUser } from "@/utils/userConverter";
 
 export default function AdminFeatureRequestDetailPage() {
   const [featureRequest, setFeatureRequest] = useState<FeatureRequest | null>(null);
@@ -20,6 +21,8 @@ export default function AdminFeatureRequestDetailPage() {
     // Simulate API call
     setTimeout(() => {
       // In a real app, you would fetch data from the server
+      const frUser = convertToFeatureRequestUser(placeholderUser);
+      
       const mockFeatureRequest: FeatureRequest = {
         id: id || "fr-1",
         title: "Sample Feature Request",
@@ -31,8 +34,8 @@ export default function AdminFeatureRequestDetailPage() {
         updatedAt: new Date(),
         score: 5,
         userId: "user-1",
-        user: placeholderUser,
-        createdBy: placeholderUser,
+        user: frUser,
+        createdBy: frUser,
         votes: [],
         comments: []
       };
@@ -45,12 +48,14 @@ export default function AdminFeatureRequestDetailPage() {
   const handleVote = (requestId: string) => {
     if (!featureRequest) return;
     
+    const frUser = convertToFeatureRequestUser(placeholderUser);
+    
     const newVote: FeatureRequestVote = {
       id: `vote-${Date.now()}`,
-      userId: placeholderUser.id,
+      userId: frUser.id,
       featureRequestId: requestId,
       createdAt: new Date(),
-      user: placeholderUser
+      user: frUser
     };
     
     setFeatureRequest({
@@ -63,12 +68,14 @@ export default function AdminFeatureRequestDetailPage() {
   const handleAddComment = (requestId: string, content: string) => {
     if (!featureRequest) return;
     
+    const frUser = convertToFeatureRequestUser(placeholderUser);
+    
     const newComment = {
       id: `comment-${Date.now()}`,
       featureRequestId: requestId,
       content,
       createdAt: new Date(),
-      createdBy: placeholderUser
+      createdBy: frUser
     };
     
     setFeatureRequest({

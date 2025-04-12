@@ -6,7 +6,7 @@ export interface User {
   name: string;
   email: string;
   role: string;
-  avatarUrl: string;
+  avatarUrl?: string; // Changed to optional to match the main User type
   status: 'active' | 'inactive' | 'pending';
 }
 

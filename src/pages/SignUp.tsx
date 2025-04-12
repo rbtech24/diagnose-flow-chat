@@ -51,8 +51,8 @@ export default function SignUp() {
     setError('');
     
     try {
-      // Email and password are passed separately
-      await registerUser(data.email, data.password);
+      // Fix: pass null as the third argument if you don't have options
+      await registerUser(data.email, data.password, null);
       navigate('/verify-email');
     } catch (err: any) {
       console.error('Sign up error:', err);
