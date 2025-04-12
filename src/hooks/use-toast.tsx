@@ -26,31 +26,30 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<any[]>([]);
 
+  // The main toast function that accepts our custom ToastProps
   const showToast = (props: ToastProps) => {
     const { title, description, variant } = props;
     
-    if (variant === 'destructive') {
-      return toast.error(
-        <div>
-          {title && <div className="font-medium">{title}</div>}
-          {description && <div className="text-sm">{description}</div>}
-        </div>
-      );
-    }
-    
-    return toast.success(
+    // Create the content for the toast
+    const content = (
       <div>
         {title && <div className="font-medium">{title}</div>}
         {description && <div className="text-sm">{description}</div>}
       </div>
     );
+    
+    if (variant === 'destructive') {
+      return toast.error(content);
+    }
+    
+    return toast.success(content);
   };
 
-  // Add convenience methods that match react-hot-toast API
-  showToast.success = (message: string) => toast.success(message);
-  showToast.error = (message: string) => toast.error(message);
-  showToast.loading = (message: string) => toast.loading(message);
-  showToast.custom = (jsx: ReactNode) => toast.custom(jsx as any);
+  // Add convenience methods
+  showToast.success = toast.success;
+  showToast.error = toast.error;
+  showToast.loading = toast.loading;
+  showToast.custom = toast.custom;
   showToast.dismiss = toast.dismiss;
 
   const contextValue = {

@@ -4,7 +4,7 @@ import { useOfflineStatus } from '@/hooks/useOfflineStatus';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Cloud, CloudOff, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface SyncStatusIndicatorProps {
   syncItems?: number;
@@ -70,6 +70,8 @@ export function SyncStatusIndicator({
 
 // Function to show toast notifications for sync events
 export function showSyncNotification(type: 'success' | 'error' | 'warning', message: string) {
+  const { toast } = useToast();
+  
   if (type === 'success') {
     toast.success(message);
   } else if (type === 'error') {

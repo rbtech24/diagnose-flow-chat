@@ -43,6 +43,7 @@ export function FeatureRequestDetail({
     "in-progress": "bg-purple-100 text-purple-800",
     "completed": "bg-green-100 text-green-800",
     "planned": "bg-blue-100 text-blue-800",
+    "implemented": "bg-green-100 text-green-800",
     "under-review": "bg-yellow-100 text-yellow-800"
   };
 
@@ -93,6 +94,7 @@ export function FeatureRequestDetail({
                     <SelectItem value="in-progress">In Progress</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
                     <SelectItem value="planned">Planned</SelectItem>
+                    <SelectItem value="implemented">Implemented</SelectItem>
                     <SelectItem value="under-review">Under Review</SelectItem>
                   </SelectContent>
                 </Select>

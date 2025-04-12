@@ -1,3 +1,4 @@
+
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import FlowEditor from '@/components/FlowEditor';
 import NodeConfigPanel from '@/components/NodeConfigPanel';
@@ -36,13 +37,14 @@ export default function WorkflowEditor() {
       // For existing workflows, check licensing
       if (folder && name) {
         const workflowId = `${folder}-${name}`;
-        // Use the updated checkWorkflowAccess that returns an object
-        const accessStatus = checkWorkflowAccess(folder, workflowId);
         
-        if (!accessStatus.hasAccess) {
+        // Check access
+        const hasAccess = checkWorkflowAccess(workflowId);
+        
+        if (!hasAccess) {
           toast({
             title: "License Issue",
-            description: accessStatus.message || "Your license doesn't allow editing this workflow."
+            description: "Your license doesn't allow editing this workflow."
           });
           navigate('/admin/workflows');
         }

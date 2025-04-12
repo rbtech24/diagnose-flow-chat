@@ -6,6 +6,7 @@ import { FeatureRequestDetail } from "@/components/feature-request/FeatureReques
 import { FeatureRequest, FeatureRequestVote } from "@/types/feature-request";
 import { emptyFeatureRequests, placeholderUser } from "@/utils/placeholderData";
 import { ArrowLeft } from "lucide-react";
+import { ensureFeatureRequestUser } from "@/utils/userConverter";
 
 export default function TechFeatureRequestDetailPage() {
   const [featureRequest, setFeatureRequest] = useState<FeatureRequest | null>(null);
@@ -30,7 +31,7 @@ export default function TechFeatureRequestDetailPage() {
       userId: placeholderUser.id,
       featureRequestId: requestId,
       createdAt: new Date(),
-      user: placeholderUser,
+      user: ensureFeatureRequestUser(placeholderUser),
     };
     
     setFeatureRequest({
@@ -48,7 +49,7 @@ export default function TechFeatureRequestDetailPage() {
       featureRequestId: requestId,
       content,
       createdAt: new Date(),
-      createdBy: placeholderUser,
+      createdBy: ensureFeatureRequestUser(placeholderUser),
     };
     
     setFeatureRequest({
