@@ -78,7 +78,6 @@ export function showSyncNotification(type: 'success' | 'error' | 'warning', mess
     toast.error(message);
   } else {
     toast({
-      title: 'Sync In Progress',
       description: message
     });
   }

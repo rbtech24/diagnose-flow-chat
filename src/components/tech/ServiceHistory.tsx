@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface ServiceRecord {
   id: string;
@@ -29,6 +28,7 @@ export function ServiceHistory() {
   const [serviceRecords, setServiceRecords] = useState<ServiceRecord[]>([]);
   const [uniqueAppliances, setUniqueAppliances] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
   
   useEffect(() => {
     const fetchServiceRecords = async () => {
@@ -49,8 +49,7 @@ export function ServiceHistory() {
       } catch (error) {
         console.error("Error fetching service records:", error);
         toast({
-          title: "Failed to load service records",
-          description: "Please try again later",
+          description: "Failed to load service records. Please try again later",
           variant: "destructive"
         });
       } finally {
@@ -59,7 +58,7 @@ export function ServiceHistory() {
     };
     
     fetchServiceRecords();
-  }, []);
+  }, [toast]);
   
   // Filter records based on multiple criteria
   const filteredRecords = serviceRecords.filter(record => {

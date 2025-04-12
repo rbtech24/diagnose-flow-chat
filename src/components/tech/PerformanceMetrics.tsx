@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Activity, Star, Clock, Users, Award, AlertTriangle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface MetricsData {
   completedRepairs: number;
@@ -19,6 +18,7 @@ export interface PerformanceMetricsProps extends Partial<MetricsData> {}
 export function PerformanceMetrics(props: PerformanceMetricsProps = {}) {
   const [metrics, setMetrics] = useState<MetricsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchMetricsData = async () => {
@@ -56,8 +56,7 @@ export function PerformanceMetrics(props: PerformanceMetricsProps = {}) {
       } catch (error) {
         console.error("Error fetching performance metrics:", error);
         toast({
-          title: "Failed to load metrics",
-          description: "Please try again later",
+          description: "Failed to load metrics. Please try again later",
           variant: "destructive"
         });
         setLoading(false);
@@ -65,7 +64,7 @@ export function PerformanceMetrics(props: PerformanceMetricsProps = {}) {
     };
     
     fetchMetricsData();
-  }, [props]);
+  }, [props, toast]);
 
   if (loading) {
     return (

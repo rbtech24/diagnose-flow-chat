@@ -27,7 +27,6 @@ export default function WorkflowEditor() {
     if (!isLoading) {
       if (role !== 'admin') {
         toast({
-          title: "Access Denied",
           description: "Only administrators can edit workflows."
         });
         navigate('/admin/workflows');
@@ -38,16 +37,28 @@ export default function WorkflowEditor() {
       if (folder && name) {
         const workflowId = `${folder}-${name}`;
         
-        // Check access
-        const hasAccess = checkWorkflowAccess(workflowId);
+        // Check access - assuming checkWorkflowAccess now returns a boolean
+        const checkAccess = async () => {
+          try {
+            const hasAccess = await checkWorkflowAccess(workflowId);
+            
+            if (!hasAccess) {
+              toast({
+                description: "Your license doesn't allow editing this workflow."
+              });
+              navigate('/admin/workflows');
+            }
+          } catch (error) {
+            console.error("Error checking workflow access:", error);
+            toast({
+              description: "Could not verify workflow access. Please try again.",
+              variant: "destructive"
+            });
+            navigate('/admin/workflows');
+          }
+        };
         
-        if (!hasAccess) {
-          toast({
-            title: "License Issue",
-            description: "Your license doesn't allow editing this workflow."
-          });
-          navigate('/admin/workflows');
-        }
+        checkAccess();
       }
     }
   }, [role, isLoading, navigate, folder, name, toast, checkWorkflowAccess]);

@@ -16,7 +16,7 @@ import {
   FormMessage 
 } from '@/components/ui/form';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { ExclamationTriangle } from 'lucide-react';
 
 const FormSchema = z.object({
   email: z.string().email({
@@ -52,7 +52,7 @@ export default function SignUp() {
     
     try {
       // Email and password are passed separately
-      await registerUser(data.email, data.password, { redirectTo: '/dashboard' });
+      await registerUser(data.email, data.password);
       navigate('/verify-email');
     } catch (err: any) {
       console.error('Sign up error:', err);
@@ -72,7 +72,7 @@ export default function SignUp() {
         
         {error && (
           <Alert variant="destructive">
-            <ExclamationTriangleIcon className="h-4 w-4" />
+            <ExclamationTriangle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}

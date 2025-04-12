@@ -3,13 +3,14 @@ import { memo } from 'react';
 import { useStore, useReactFlow } from '@xyflow/react';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { NodeHandles } from './diagnosis/NodeHandles';
 import { TechnicalContent } from './diagnosis/TechnicalContent';
 import { MediaContent } from './diagnosis/MediaContent';
 
 function DiagnosisNode({ id, data }) {
   const { setEdges } = useReactFlow();
+  const { toast } = useToast();
   
   const connected = useStore((store) => {
     const edges = store.edges;
@@ -42,8 +43,8 @@ function DiagnosisNode({ id, data }) {
         )
       )
     );
+    
     toast({
-      title: "Connection Removed",
       description: "The connection has been removed successfully."
     });
   };

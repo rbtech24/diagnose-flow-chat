@@ -1,6 +1,6 @@
 
 import { ReactNode, createContext, useContext, useState } from 'react';
-import toast, { Toast, ToastPosition } from 'react-hot-toast';
+import toast, { Toast } from 'react-hot-toast';
 
 export type ToastProps = {
   title?: string;
@@ -8,6 +8,8 @@ export type ToastProps = {
   variant?: 'default' | 'destructive';
   action?: ReactNode;
 };
+
+type ToastHandler = (message: string) => string;
 
 type ToastContextType = {
   toast: ((props: ToastProps) => void) & {
@@ -27,7 +29,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<any[]>([]);
 
   // The main toast function that accepts our custom ToastProps
-  const showToast = (props: ToastProps) => {
+  const showToast = ((props: ToastProps) => {
     const { title, description, variant } = props;
     
     // Create the content for the toast
@@ -43,16 +45,22 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     }
     
     return toast.success(content);
+  }) as ((props: ToastProps) => void) & {
+    success: (message: string) => void;
+    error: (message: string) => void;
+    loading: (message: string) => void;
+    custom: (jsx: ReactNode) => void;
+    dismiss: (toastId?: string) => void;
   };
 
   // Add convenience methods
   showToast.success = toast.success;
   showToast.error = toast.error;
   showToast.loading = toast.loading;
-  showToast.custom = toast.custom;
+  showToast.custom = (jsx: ReactNode) => toast(jsx as any);
   showToast.dismiss = toast.dismiss;
 
-  const contextValue = {
+  const contextValue: ToastContextType = {
     toast: showToast,
     dismiss: toast.dismiss,
     toasts

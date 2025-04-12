@@ -35,14 +35,12 @@ export function useFileHandling({
       const workflow = await handleSaveWorkflow(nodes, edges, nodeCounter, name, folder, appliance, '');
       if (workflow) {
         toast({
-          title: "Success",
           description: `Successfully saved "${name}" to folder "${folder}"`
         });
       }
       return Promise.resolve();
     } catch (error) {
       toast({
-        title: "Error",
         description: "Failed to save the workflow. Please try again.",
         variant: "destructive"
       });
