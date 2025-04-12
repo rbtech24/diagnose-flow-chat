@@ -1,55 +1,42 @@
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '@/utils/supabaseClient';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import toast from 'react-hot-toast'; 
 
-// Enhanced User type with additional properties
-export interface User {
+// User type definition
+type User = {
   id: string;
+  name: string;
   email: string;
-  name?: string;
-  role?: 'admin' | 'company' | 'tech';
+  role: 'admin' | 'company' | 'tech';
   avatarUrl?: string;
-  phone?: string;
-  status?: 'active' | 'inactive' | 'pending';
-  companyId?: string;
-}
+};
 
-export interface AuthContextType {
-  isAuthenticated: boolean;
-  isLoading: boolean;
+type AuthContextType = {
   user: User | null;
-  userRole: 'admin' | 'company' | 'tech' | null;
-  login: (email: string, password: string) => Promise<void>;
-  forgotPassword: (email: string) => Promise<boolean>;
-  resetPassword: (token: string, newPassword: string) => Promise<boolean>;
+  isAuthenticated: boolean;
+  userRole: string | null;
+  signIn: (email: string, password: string) => Promise<void>;
   signOut: () => void;
-  updateUser: (userData: Partial<User>) => void;
-  register?: (email: string, password: string, userData: Partial<User>) => Promise<void>;
-  checkWorkflowAccess?: (workflowId: string) => Promise<boolean>;
-}
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<'admin' | 'company' | 'tech' | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
-  // Mock authentication functions - replace with real ones when connecting to backend
-  const login = async (email: string, password: string) => {
-    setIsLoading(true);
-    // Mock login - in real app, this would be a call to your authentication service
+  // Mock sign-in function
+  const signIn = async (email: string, password: string) => {
     try {
-      // Simulate API call
+      // This is a mock implementation
+      // In a real app, you would validate credentials with your backend
+      
+      // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Mock different user roles based on email
+      // Mock user data based on email domain
       let role: 'admin' | 'company' | 'tech' = 'tech';
+      
       if (email.includes('admin')) {
         role = 'admin';
       } else if (email.includes('company')) {
@@ -58,138 +45,56 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       const mockUser: User = {
         id: '123456',
-        email,
         name: email.split('@')[0],
-        role,
-        avatarUrl: 'https://i.pravatar.cc/300',
-        status: 'active'
-      };
-      
-      setUser(mockUser);
-      setUserRole(role);
-      setIsAuthenticated(true);
-      localStorage.setItem('auth', JSON.stringify({ user: mockUser, role }));
-    } catch (error: any) {
-      console.error('Login error:', error);
-      throw new Error(error.message || 'Failed to sign in');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const register = async (email: string, password: string, userData: Partial<User>) => {
-    setIsLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const role = userData.role || 'tech';
-      
-      const mockUser: User = {
-        id: `user-${Date.now()}`,
         email,
-        name: userData.name || email.split('@')[0],
         role,
-        avatarUrl: userData.avatarUrl || 'https://i.pravatar.cc/300',
-        status: 'active'
+        avatarUrl: 'https://i.pravatar.cc/150?u=' + email,
       };
       
+      // Save user in state
       setUser(mockUser);
-      setUserRole(role);
       setIsAuthenticated(true);
-      localStorage.setItem('auth', JSON.stringify({ user: mockUser, role }));
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      throw new Error(error.message || 'Failed to register');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const forgotPassword = async (email: string): Promise<boolean> => {
-    // Mock forgot password functionality
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return true;
+      
+      // Store in localStorage
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      toast.success('Signed in successfully');
     } catch (error) {
-      console.error('Forgot password error:', error);
-      return false;
-    }
-  };
-
-  const resetPassword = async (token: string, newPassword: string): Promise<boolean> => {
-    // Mock reset password functionality
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return true;
-    } catch (error) {
-      console.error('Reset password error:', error);
-      return false;
+      toast.error('Failed to sign in');
+      console.error('Sign in error:', error);
     }
   };
 
   const signOut = () => {
     setUser(null);
-    setUserRole(null);
     setIsAuthenticated(false);
-    localStorage.removeItem('auth');
+    localStorage.removeItem('user');
+    toast.success('Signed out successfully');
   };
 
-  const updateUser = (userData: Partial<User>) => {
-    if (user) {
-      const updatedUser = { ...user, ...userData };
-      setUser(updatedUser);
-      
-      // Update local storage
-      const authData = JSON.parse(localStorage.getItem('auth') || '{}');
-      localStorage.setItem('auth', JSON.stringify({ ...authData, user: updatedUser }));
-    }
-  };
-
-  const checkWorkflowAccess = async (workflowId: string): Promise<boolean> => {
-    // Mock implementation
-    return Promise.resolve(true);
-  };
-
-  // Check for existing session on mount
+  // Check for stored user on initial load
   useEffect(() => {
-    const checkAuth = () => {
-      const savedAuth = localStorage.getItem('auth');
-      
-      if (savedAuth) {
-        try {
-          const { user, role } = JSON.parse(savedAuth);
-          setUser(user);
-          setUserRole(role);
-          setIsAuthenticated(true);
-        } catch (e) {
-          console.error('Error parsing auth data', e);
-          localStorage.removeItem('auth');
-        }
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser) as User;
+        setUser(parsedUser);
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error('Error parsing stored user:', error);
+        localStorage.removeItem('user');
       }
-      
-      setIsLoading(false);
-    };
-    
-    checkAuth();
+    }
   }, []);
 
   return (
     <AuthContext.Provider
       value={{
-        isAuthenticated,
-        isLoading,
         user,
-        userRole,
-        login,
-        forgotPassword,
-        resetPassword,
+        isAuthenticated,
+        userRole: user?.role || null,
+        signIn,
         signOut,
-        updateUser,
-        register,
-        checkWorkflowAccess
       }}
     >
       {children}
@@ -199,10 +104,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
-  
   return context;
 };
