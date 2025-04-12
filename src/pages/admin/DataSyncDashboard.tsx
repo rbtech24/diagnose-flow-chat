@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { SyncStatusIndicator } from '@/components/system/SyncStatusIndicator';
 import { SyncStatusBadge } from '@/components/system/SyncStatusBadge';
@@ -595,11 +596,7 @@ export default function DataSyncDashboard() {
                 size="sm" 
                 disabled={pendingUpdates.workflow.length === 0 || isOffline}
                 onClick={() => {
-                  toast({
-                    title: "Not Implemented",
-                    description: "Workflow sync is not yet implemented",
-                    variant: "destructive"
-                  });
+                  toast.error("Workflow sync is not yet implemented");
                 }}
               >
                 <RefreshCw className="mr-2 h-4 w-4" />

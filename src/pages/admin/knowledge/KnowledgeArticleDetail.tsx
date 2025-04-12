@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useKnowledgeArticles } from "@/hooks/useKnowledgeArticles";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "react-hot-toast";
 import { ArticleForm, ArticleFormValues } from "@/components/admin/knowledge/ArticleForm";
 
 export default function KnowledgeArticleDetail() {
@@ -26,11 +26,7 @@ export default function KnowledgeArticleDetail() {
         setArticle(fetchedArticle);
       } catch (error) {
         console.error("Failed to fetch article:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load article",
-          variant: "destructive",
-        });
+        toast.error("Failed to load article");
       } finally {
         setIsLoading(false);
       }
@@ -73,18 +69,11 @@ export default function KnowledgeArticleDetail() {
       });
       
       if (updatedArticle) {
-        toast({
-          title: "Success",
-          description: "Article updated successfully",
-        });
+        toast.success("Article updated successfully");
       }
     } catch (error) {
       console.error('Error updating article:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update article",
-        variant: "destructive",
-      });
+      toast.error("Failed to update article");
     } finally {
       setIsSubmitting(false);
     }
