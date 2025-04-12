@@ -26,7 +26,7 @@ interface User {
   name: string;
   email: string;
   role: 'admin' | 'company' | 'tech';
-  status: 'active' | 'inactive' | 'pending';
+  status: 'active' | 'inactive' | 'pending' | 'archived' | 'deleted';
   companyId?: string;
   companyName?: string;
   isMainAdmin?: boolean;

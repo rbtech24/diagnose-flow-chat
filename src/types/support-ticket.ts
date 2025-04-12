@@ -17,6 +17,7 @@ export interface SupportTicket {
     id: string;
     name: string;
     email: string;
+    role: string;
   };
   comments?: Array<{
     id: string;
