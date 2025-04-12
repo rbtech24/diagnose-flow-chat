@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Plus, DownloadCloud, Upload } from "lucide-react";
 import { SubscriptionPlanDialog } from "@/components/admin/subscription/SubscriptionPlanDialog";
 import { SubscriptionPlanCard } from "@/components/admin/subscription/SubscriptionPlanCard";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { SubscriptionPlan } from "@/hooks/useSubscriptionPlans";
 
 // Placeholder data for subscription plans

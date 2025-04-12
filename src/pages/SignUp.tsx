@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -9,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, User, Mail, Building, Lock, EyeOff, Eye, Phone } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 export default function SignUp() {
   const [name, setName] = useState("");
@@ -72,7 +71,6 @@ export default function SignUp() {
     }
   };
 
-  // Redirect if already authenticated
   if (isAuthenticated) {
     if (userRole === "admin") return <Navigate to="/admin" />;
     if (userRole === "company") return <Navigate to="/company" />;
