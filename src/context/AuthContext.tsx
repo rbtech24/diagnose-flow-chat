@@ -5,7 +5,7 @@ import { User } from '@/types/user';
 import { supabase } from '@/integrations/supabase/client';
 import { Session } from '@supabase/supabase-js';
 import { fetchUserProfile, updateUserProfile } from '@/utils/supabaseClient';
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 type Role = 'admin' | 'company' | 'tech';
 
@@ -41,20 +41,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Set up the auth state change listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           if (session?.user) {
-            fetchUserProfile(session.user.id).then(userData => {
-              if (userData) {
-                setUser(userData);
-                setUserRole(userData.role as Role);
-                setIsAuthenticated(true);
-              }
-              setIsLoading(false);
-            });
+            // Using setTimeout to prevent deadlocks
+            setTimeout(() => {
+              fetchUserProfile(session.user.id).then(userData => {
+                if (userData) {
+                  setUser(userData);
+                  setUserRole(userData.role as Role);
+                  setIsAuthenticated(true);
+                }
+                setIsLoading(false);
+              });
+            }, 0);
           }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
@@ -65,6 +69,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     );
 
+    // Then check for an existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       
