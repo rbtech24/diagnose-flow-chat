@@ -5,7 +5,7 @@ import { User } from '@/types/user';
 import { supabase } from '@/integrations/supabase/client';
 import { Session } from '@supabase/supabase-js';
 import { fetchUserProfile, updateUserProfile } from '@/utils/supabaseClient';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 type Role = 'admin' | 'company' | 'tech';
 
