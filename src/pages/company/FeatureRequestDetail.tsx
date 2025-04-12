@@ -41,6 +41,7 @@ export default function CompanyFeatureRequestDetailPage() {
         email: user.email,
         role: user.role || 'company',
         avatarUrl: '',
+        status: user.status || 'active', // Add required status property
       },
     };
     
@@ -65,6 +66,7 @@ export default function CompanyFeatureRequestDetailPage() {
         email: user.email,
         role: user.role || 'company',
         avatarUrl: '',
+        status: user.status || 'active', // Add required status property
       },
     };
     

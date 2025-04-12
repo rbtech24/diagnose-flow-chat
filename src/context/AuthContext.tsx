@@ -78,7 +78,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const updatedUser = {
         ...placeholderUser,
         email,
-        role
+        role,
+        status: 'active' // Add required status property
       };
       
       setUser(updatedUser);
@@ -115,6 +116,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         role,
         phone,
         avatarUrl: '',
+        status: 'active' // Add required status property
       };
       
       setUser(newUser);
@@ -170,6 +172,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         role: role,
         phone: userData.phone, // Add phone field
         avatarUrl: '',
+        status: 'active', // Add required status property
         // Add company data if registering as a company
         ...(userData.companyName && { 
           companyId: `company-${Date.now()}`,
