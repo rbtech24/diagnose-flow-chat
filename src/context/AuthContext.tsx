@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { User } from '@/types/user';
 import { supabase } from '@/integrations/supabase/client';
 import { Session } from '@supabase/supabase-js';
+import { fetchUserProfile, updateUserProfile } from '@/utils/supabaseClient';
 
 // Define Role type here since we can't import it
 type Role = 'admin' | 'company' | 'tech';
@@ -50,12 +51,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           // Fetch user profile data after setting basic session info
           if (session?.user) {
-            fetchUserProfile(session.user.id);
+            fetchUserProfile(session.user.id).then(userData => {
+              if (userData) {
+                setUser(userData);
+                setUserRole(userData.role as Role);
+                setIsAuthenticated(true);
+              }
+              setIsLoading(false);
+            });
           }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
           setUserRole(null);
           setIsAuthenticated(false);
+          setIsLoading(false);
         }
       }
     );
@@ -65,7 +74,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setSession(session);
       
       if (session?.user) {
-        fetchUserProfile(session.user.id);
+        fetchUserProfile(session.user.id).then(userData => {
+          if (userData) {
+            setUser(userData);
+            setUserRole(userData.role as Role);
+            setIsAuthenticated(true);
+          }
+          setIsLoading(false);
+        });
       } else {
         setIsLoading(false);
       }
@@ -75,49 +91,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       subscription.unsubscribe();
     };
   }, []);
-
-  // Fetch user profile from the database
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching user profile:', error);
-        setIsLoading(false);
-        return;
-      }
-
-      if (data) {
-        const userData: User = {
-          id: userId,
-          email: session?.user?.email || '',
-          name: data.name || '',
-          role: data.role as Role,
-          status: data.status,
-          phone: data.phone,
-          avatarUrl: data.avatar_url,
-          companyId: data.company_id,
-          trialEndsAt: data.trial_ends_at ? new Date(data.trial_ends_at) : undefined,
-          subscriptionStatus: data.subscription_status,
-          planId: data.plan_id,
-          isMainAdmin: data.is_main_admin
-        };
-
-        setUser(userData);
-        setUserRole(userData.role);
-        setIsAuthenticated(true);
-      }
-      
-      setIsLoading(false);
-    } catch (error: any) {
-      console.error('Error in fetchUserProfile:', error);
-      setIsLoading(false);
-    }
-  };
 
   const signIn = async (email: string, password: string): Promise<void> => {
     try {
@@ -182,20 +155,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw error;
       }
 
-      // Update the profile with additional data
+      // Create or update the technician record
       if (data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
-            name,
-            role,
-            phone,
-            status: 'active'
-          })
-          .eq('id', data.user.id);
+        const technicianData = {
+          id: data.user.id,
+          name,
+          role,
+          phone,
+          status: 'active',
+          email
+        };
+      
+        const { error: techError } = await supabase
+          .from('technicians')
+          .upsert(technicianData);
 
-        if (profileError) {
-          console.error('Error updating profile:', profileError);
+        if (techError) {
+          console.error('Error creating technician record:', techError);
         }
       }
       
@@ -212,44 +188,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!user) return;
     
     try {
-      setIsLoading(true);
+      const success = await updateUserProfile(user.id, updates);
       
-      // Convert from camelCase to snake_case for Supabase
-      const profileUpdates: any = {};
-      
-      if (updates.name) profileUpdates.name = updates.name;
-      if (updates.phone) profileUpdates.phone = updates.phone;
-      if (updates.role) profileUpdates.role = updates.role;
-      if (updates.avatarUrl) profileUpdates.avatar_url = updates.avatarUrl;
-      if (updates.status) profileUpdates.status = updates.status;
-      if (updates.companyId) profileUpdates.company_id = updates.companyId;
-      if (updates.trialEndsAt) profileUpdates.trial_ends_at = updates.trialEndsAt;
-      if (updates.subscriptionStatus) profileUpdates.subscription_status = updates.subscriptionStatus;
-      if (updates.planId) profileUpdates.plan_id = updates.planId;
-      if (updates.isMainAdmin !== undefined) profileUpdates.is_main_admin = updates.isMainAdmin;
-      
-      // Update profile in Supabase
-      const { error } = await supabase
-        .from('profiles')
-        .update(profileUpdates)
-        .eq('id', user.id);
-
-      if (error) {
-        throw error;
+      if (!success) {
+        throw new Error('Failed to update user profile');
       }
-
+      
       // Update local user state
       const updatedUser = { ...user, ...updates };
       setUser(updatedUser);
       
       if (updates.role) {
-        setUserRole(updates.role);
+        setUserRole(updates.role as Role);
       }
     } catch (error: any) {
       console.error('Update user error:', error);
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -299,19 +253,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw error;
       }
 
-      // Additional company setup if registering as a company
-      if (role === 'company' && userData.companyName && data.user) {
-        // Here you would create a company record
-        // For now we'll just update the profile
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({
-            role: 'company'
-          })
-          .eq('id', data.user.id);
-
-        if (updateError) {
-          console.error('Error updating profile for company:', updateError);
+      // Create technician record
+      if (data.user) {
+        const technicianData = {
+          id: data.user.id,
+          name: userData.name,
+          email: userData.email,
+          role: userData.role,
+          phone: userData.phone,
+          status: 'active'
+        };
+        
+        // Add company data if it's a company registration
+        if (role === 'company' && userData.companyName) {
+          // Create a company record
+          const { data: companyData, error: companyError } = await supabase
+            .from('companies')
+            .insert({
+              name: userData.companyName,
+              trial_status: 'active',
+              subscription_tier: 'basic'
+            })
+            .select()
+            .single();
+          
+          if (companyError) {
+            console.error('Error creating company:', companyError);
+          } else if (companyData) {
+            // Add company ID to technician data
+            technicianData.company_id = companyData.id;
+          }
+        }
+        
+        // Insert technician record
+        const { error: techError } = await supabase
+          .from('technicians')
+          .upsert(technicianData);
+          
+        if (techError) {
+          console.error('Error creating technician record:', techError);
         }
       }
       

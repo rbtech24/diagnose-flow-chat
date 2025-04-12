@@ -8,7 +8,7 @@ import { User } from '@/types/user';
 export async function fetchUserProfile(userId: string): Promise<User | null> {
   try {
     const { data, error } = await supabase
-      .from('profiles')
+      .from('technicians')
       .select('*')
       .eq('id', userId)
       .single();
@@ -65,7 +65,7 @@ export async function updateUserProfile(userId: string, updates: Partial<User>):
     if (updates.isMainAdmin !== undefined) profileUpdates.is_main_admin = updates.isMainAdmin;
     
     const { error } = await supabase
-      .from('profiles')
+      .from('technicians')
       .update(profileUpdates)
       .eq('id', userId);
 
@@ -87,7 +87,7 @@ export async function updateUserProfile(userId: string, updates: Partial<User>):
 export async function checkUserRole(userId: string, role: string): Promise<boolean> {
   try {
     const { data, error } = await supabase
-      .from('profiles')
+      .from('technicians')
       .select('role')
       .eq('id', userId)
       .single();
