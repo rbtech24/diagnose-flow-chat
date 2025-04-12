@@ -10,13 +10,7 @@ export type ToastProps = {
 };
 
 type ToastContextType = {
-  toast: ((props: ToastProps | string) => void) & {
-    success: (message: string) => void;
-    error: (message: string) => void;
-    loading: (message: string) => void;
-    custom: typeof toast;
-    dismiss: typeof toast.dismiss;
-  };
+  toast: (props: ToastProps | string) => void;
   dismiss: (toastId?: string) => void;
   toasts: any[]; // For compatibility with the shadcn/ui Toaster component
 };
@@ -27,7 +21,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<any[]>([]);
 
   // Main toast function that handles both object and string inputs
-  const showToast = ((props: ToastProps | string) => {
+  const showToast = (props: ToastProps | string) => {
     if (typeof props === 'string') {
       // If a string is passed, use it as a simple message
       return toast(props);
@@ -35,28 +29,20 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     
     const { title, description, variant } = props;
     
-    // Create content based on title and description
-    const content = (
-      <div>
-        {title && <div className="font-medium">{title}</div>}
-        {description && <div className="text-sm">{description}</div>}
-      </div>
-    );
+    // Create combined message
+    const message = title 
+      ? description 
+        ? `${title}: ${description}` 
+        : title
+      : description || '';
     
     // Use the appropriate toast variant
     if (variant === 'destructive') {
-      return toast.error(content as any);
+      return toast.error(message);
     }
     
-    return toast(content as any);
-  }) as ToastContextType['toast'];
-
-  // Add direct access to toast methods
-  showToast.success = toast.success;
-  showToast.error = toast.error;
-  showToast.loading = toast.loading;
-  showToast.custom = toast;
-  showToast.dismiss = toast.dismiss;
+    return toast(message);
+  };
 
   const contextValue: ToastContextType = {
     toast: showToast,

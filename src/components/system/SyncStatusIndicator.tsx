@@ -4,8 +4,7 @@ import { useOfflineStatus } from '@/hooks/useOfflineStatus';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Cloud, CloudOff, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { toast as hotToast } from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 interface SyncStatusIndicatorProps {
   syncItems?: number;
@@ -72,10 +71,10 @@ export function SyncStatusIndicator({
 // Function to show toast notifications for sync events
 export function showSyncNotification(type: 'success' | 'error' | 'warning', message: string) {
   if (type === 'success') {
-    hotToast.success(message);
+    toast.success(message);
   } else if (type === 'error') {
-    hotToast.error(message);
+    toast.error(message);
   } else {
-    hotToast(message);
+    toast(message);
   }
 }

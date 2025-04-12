@@ -295,11 +295,7 @@ export default function APIIntegrations() {
                   if (connectedIntegrations.length > 0) {
                     handleCreateWebhook(connectedIntegrations[0].id);
                   } else {
-                    toast({
-                      title: "No integrations",
-                      description: "You need to connect an integration first",
-                      variant: "destructive"
-                    });
+                    toast.error("You need to connect an integration first");
                   }
                 }}>
                   <Plus className="h-4 w-4 mr-2" />

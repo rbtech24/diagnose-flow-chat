@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -149,11 +149,7 @@ export default function AdminAccounts() {
       }
     } catch (error) {
       console.error('Error fetching admin accounts:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to load admin accounts',
-      });
+      toast.error('Failed to load admin accounts');
     } finally {
       setIsLoading(false);
     }
@@ -216,17 +212,10 @@ export default function AdminAccounts() {
 
       fetchAdminAccounts();
 
-      toast({
-        title: 'Default Admin Created',
-        description: 'The default admin account has been set up',
-      });
+      toast.success('The default admin account has been set up');
     } catch (error) {
       console.error('Error creating default admin:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to create default admin account. Please check console for details.',
-      });
+      toast.error('Failed to create default admin account. Please check console for details.');
     }
   };
 
@@ -246,11 +235,7 @@ export default function AdminAccounts() {
     try {
       const userExists = await checkUserExists(data.email);
       if (userExists) {
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'An account with this email already exists',
-        });
+        toast.error('An account with this email already exists');
         return;
       }
 
@@ -311,20 +296,13 @@ export default function AdminAccounts() {
         }
       ]);
 
-      toast({
-        title: 'Success',
-        description: 'Admin account created successfully',
-      });
+      toast.success('Admin account created successfully');
 
       form.reset();
       setDialogOpen(false);
     } catch (error) {
       console.error('Error creating admin account:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to create admin account',
-      });
+      toast.error('Failed to create admin account');
     }
   };
 
@@ -344,17 +322,10 @@ export default function AdminAccounts() {
         )
       );
 
-      toast({
-        title: 'Success',
-        description: 'Admin access revoked successfully',
-      });
+      toast.success('Admin access revoked successfully');
     } catch (error) {
       console.error('Error revoking admin access:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to revoke admin access',
-      });
+      toast.error('Failed to revoke admin access');
     }
   };
 
@@ -374,17 +345,10 @@ export default function AdminAccounts() {
         )
       );
 
-      toast({
-        title: 'Success',
-        description: 'Admin access reactivated successfully',
-      });
+      toast.success('Admin access reactivated successfully');
     } catch (error) {
       console.error('Error reactivating admin access:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to reactivate admin access',
-      });
+      toast.error('Failed to reactivate admin access');
     }
   };
 

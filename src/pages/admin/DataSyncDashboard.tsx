@@ -64,7 +64,6 @@ export default function DataSyncDashboard() {
     
     loadPendingUpdates();
     
-    // Set up interval to refresh data
     const interval = setInterval(loadPendingUpdates, 10000);
     return () => clearInterval(interval);
   }, []);
@@ -104,10 +103,8 @@ export default function DataSyncDashboard() {
   
   const handleSort = (column: string) => {
     if (sortColumn === column) {
-      // Toggle direction
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
-      // New column, set to desc by default
       setSortColumn(column);
       setSortDirection('desc');
     }
@@ -143,28 +140,24 @@ export default function DataSyncDashboard() {
     setSyncProgress(0);
     
     try {
-      // Start with knowledge
       if (pendingUpdates.knowledge.length > 0) {
         toast("Synchronizing knowledge base updates");
         await syncKnowledge();
         setSyncProgress(33);
       }
       
-      // Then workflow (would need to implement this)
       if (pendingUpdates.workflow.length > 0) {
         toast("Synchronizing workflow updates");
         // await syncWorkflow();
         setSyncProgress(66);
       }
       
-      // Finally community
       if (pendingUpdates.community.length > 0) {
         toast("Synchronizing community updates");
         await syncCommunity();
         setSyncProgress(100);
       }
       
-      // Reload the data
       const updates = await getAllPendingUpdates();
       setPendingUpdates(updates);
       
@@ -244,10 +237,7 @@ export default function DataSyncDashboard() {
             <DropdownMenuItem onClick={() => {
               if (type === 'knowledge') syncKnowledge();
               if (type === 'community') syncCommunity();
-              toast({
-                title: "Syncing Update",
-                description: `Attempting to sync ${type} update`,
-              });
+              toast(`Attempting to sync ${type} update`);
             }}>
               <RefreshCw className="mr-2 h-4 w-4" />
               <span>Sync Now</span>
@@ -258,10 +248,7 @@ export default function DataSyncDashboard() {
                 ...update,
                 bodyParsed: bodyObj
               });
-              toast({
-                title: "Update Details",
-                description: "Update details logged to console",
-              });
+              toast("Update details logged to console");
             }}>
               <Download className="mr-2 h-4 w-4" />
               <span>View Details</span>
