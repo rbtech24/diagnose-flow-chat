@@ -1,7 +1,6 @@
 
-import { ReactNode, createContext, useContext } from 'react';
+import { ReactNode, createContext, useContext, useState } from 'react';
 import toast, { Toast as HotToast } from 'react-hot-toast';
-import { adaptToast } from '@/components/ui/toast-adapter';
 
 // Define types that match shadcn/ui toast types for compatibility
 export type ToastProps = {
@@ -21,23 +20,52 @@ export type Toast = {
 };
 
 type ToastContextType = {
-  toast: (props: ToastProps | string) => void;
-  success: (message: string) => void;
-  error: (message: string) => void;
+  toast: (props: ToastProps | string) => string;
+  success: (message: string) => string;
+  error: (message: string) => string;
   dismiss: (toastId?: string) => void;
-  toasts: Toast[]; // Add this for shadcn/ui Toaster compatibility
+  toasts: Toast[];
 };
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  // Use the adapter to provide shadcn/ui style toast API
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  // Simple functions that map to react-hot-toast
+  const showToast = (props: ToastProps | string): string => {
+    if (typeof props === 'string') {
+      return toast(props);
+    }
+
+    const { title, description, variant } = props;
+    const message = title 
+      ? description 
+        ? `${title}: ${description}` 
+        : title
+      : description || '';
+    
+    if (variant === 'destructive') {
+      return toast.error(message);
+    }
+    
+    return toast(message);
+  };
+
+  const showSuccess = (message: string): string => {
+    return toast.success(message);
+  };
+
+  const showError = (message: string): string => {
+    return toast.error(message);
+  };
+
   const contextValue: ToastContextType = {
-    toast: adaptToast.toast,
-    success: adaptToast.success,
-    error: adaptToast.error,
-    dismiss: adaptToast.dismiss,
-    toasts: [] // Empty array as we're using react-hot-toast for actual rendering
+    toast: showToast,
+    success: showSuccess,
+    error: showError,
+    dismiss: toast.dismiss,
+    toasts: toasts // Even though we use react-hot-toast, we maintain this for shadcn compatibility
   };
 
   return (

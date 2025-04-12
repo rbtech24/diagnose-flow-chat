@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 // This adapter helps transition between shadcn/ui toast API and react-hot-toast API
 export const adaptToast = {
   // Main toast function that handles both string messages and shadcn/ui style objects
-  toast: (props: ToastProps | string) => {
+  toast: (props: ToastProps | string): string => {
     if (typeof props === 'string') {
       return toast(props);
     }
@@ -25,8 +25,8 @@ export const adaptToast = {
   },
   
   // Variant methods
-  success: (message: string) => toast.success(message),
-  error: (message: string) => toast.error(message),
+  success: (message: string): string => toast.success(message),
+  error: (message: string): string => toast.error(message),
   
   // Control methods
   dismiss: toast.dismiss
