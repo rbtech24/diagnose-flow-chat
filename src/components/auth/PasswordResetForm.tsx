@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "react-hot-toast";
 import { sendPasswordResetEmail } from "@/utils/auth";
 
 const passwordResetSchema = z.object({
@@ -21,7 +21,6 @@ type PasswordResetFormValues = z.infer<typeof passwordResetSchema>;
 export function PasswordResetForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
-  const { toast } = useToast();
   
   const form = useForm<PasswordResetFormValues>({
     resolver: zodResolver(passwordResetSchema),
@@ -37,24 +36,13 @@ export function PasswordResetForm() {
       const { error } = await sendPasswordResetEmail(values.email);
       
       if (error) {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
+        toast.error(error.message);
       } else {
         setEmailSent(true);
-        toast({
-          title: "Password reset email sent",
-          description: "Check your email for a link to reset your password.",
-        });
+        toast.success("Check your email for a link to reset your password.");
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

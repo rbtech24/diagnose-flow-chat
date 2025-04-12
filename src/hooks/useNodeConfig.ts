@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { TechnicalSpecs } from '@/types/node-config';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from "react-hot-toast";
 import { useNodeFields } from '@/components/node-config/hooks/useNodeFields';
 import { useNodeValidation } from '@/components/node-config/hooks/useNodeValidation';
 import { combineFieldsData } from '@/components/node-config/utils/nodeDataTransform';
@@ -25,7 +25,6 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
 
   const { fields, setFields, initializeFields, addField, removeField, moveField } = useNodeFields(node?.data);
   const { validationErrors, validateNode } = useNodeValidation();
-  const { toast } = useToast();
 
   useEffect(() => {
     if (node) {
@@ -52,10 +51,7 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
     if (!node) return;
     
     if (!validateNode({ label, fields, showTechnicalFields, technicalSpecs })) {
-      toast({
-        title: "Validation Error",
-        description: "Please fix the errors before applying changes."
-      });
+      toast.error("Please fix the errors before applying changes.");
       return;
     }
 
