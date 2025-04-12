@@ -28,11 +28,15 @@ export async function fetchUserProfile(userId: string): Promise<User | null> {
     return {
       id: userId,
       email,
-      name: data.name || '', // Map name or provide default
+      // Since 'name' doesn't exist directly, we need to provide a default value
+      name: data.name || '', 
+      // Cast role to the expected union type
       role: data.role as 'admin' | 'company' | 'tech',
+      // Cast status to the expected union type
       status: data.status as 'active' | 'inactive' | 'pending' | 'archived' | 'deleted',
       phone: data.phone,
-      avatarUrl: data.avatar_url,
+      // avatar_url doesn't exist, so provide undefined
+      avatarUrl: undefined,
       companyId: data.company_id,
       trialEndsAt: undefined, // These fields don't exist in technicians table
       subscriptionStatus: undefined,
