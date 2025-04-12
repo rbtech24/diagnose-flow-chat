@@ -10,13 +10,7 @@ export type ToastProps = {
 };
 
 type ToastContextType = {
-  toast: ((props: ToastProps) => void) & {
-    success: (message: string) => void;
-    error: (message: string) => void;
-    loading: (message: string) => void;
-    custom: (jsx: ReactNode) => void;
-    dismiss: (toastId?: string) => void;
-  };
+  toast: (props: ToastProps | string) => void;
   dismiss: (toastId?: string) => void;
   toasts: any[]; // For compatibility with the shadcn/ui Toaster component
 };
@@ -26,11 +20,16 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<any[]>([]);
 
-  // The main toast function that accepts our custom ToastProps
-  const showToast = ((props: ToastProps) => {
+  // Main toast function that handles both object and string inputs
+  const showToast = (props: ToastProps | string) => {
+    if (typeof props === 'string') {
+      // If a string is passed, use it as a simple message
+      return toast(props);
+    }
+    
     const { title, description, variant } = props;
     
-    // Create the content for the toast
+    // Create content based on title and description
     const content = (
       <div>
         {title && <div className="font-medium">{title}</div>}
@@ -38,18 +37,19 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       </div>
     );
     
+    // Use the appropriate toast variant
     if (variant === 'destructive') {
       return toast.error(content as any);
     }
     
     return toast(content as any);
-  }) as any;
+  };
 
-  // Add convenience methods
+  // Add direct access to toast methods
   showToast.success = toast.success;
   showToast.error = toast.error;
   showToast.loading = toast.loading;
-  showToast.custom = (jsx: ReactNode) => toast(jsx as any);
+  showToast.custom = toast;
   showToast.dismiss = toast.dismiss;
 
   const contextValue: ToastContextType = {

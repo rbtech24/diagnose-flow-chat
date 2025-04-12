@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'react-hot-toast';
 
 interface Integration {
   id: string;
@@ -88,11 +88,7 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
 
       if (error) {
         console.error('Error fetching available integrations:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Failed to load available integrations',
-        });
+        toast.error('Failed to load available integrations');
         return;
       }
 
@@ -109,11 +105,7 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
       });
     } catch (error) {
       console.error('Error in fetchAvailableIntegrations:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to load available integrations',
-      });
+      toast.error('Failed to load available integrations');
       set((state) => ({
         isLoading: { ...state.isLoading, available: false }
       }));
@@ -133,11 +125,7 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
 
       if (error) {
         console.error('Error fetching connected integrations:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Failed to load connected integrations',
-        });
+        toast.error('Failed to load connected integrations');
         return;
       }
 
@@ -164,11 +152,7 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
       }
     } catch (error) {
       console.error('Error in fetchConnectedIntegrations:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to load connected integrations',
-      });
+      toast.error('Failed to load connected integrations');
       set((state) => ({
         isLoading: { ...state.isLoading, connected: false }
       }));
@@ -188,11 +172,7 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
 
       if (error) {
         console.error('Error fetching webhooks:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Failed to load webhooks',
-        });
+        toast.error('Failed to load webhooks');
         return;
       }
 
@@ -202,11 +182,7 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
       });
     } catch (error) {
       console.error('Error in fetchWebhooks:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to load webhooks',
-      });
+      toast.error('Failed to load webhooks');
       set((state) => ({
         isLoading: { ...state.isLoading, webhooks: false }
       }));
@@ -229,30 +205,19 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
 
       if (error) {
         console.error('Error connecting integration:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: `Failed to connect ${integration.name}`,
-        });
+        toast.error(`Failed to connect ${integration.name}`);
         return false;
       }
 
       // Refresh connected integrations
       await get().fetchConnectedIntegrations();
 
-      toast({
-        title: 'Success',
-        description: `${integration.name} has been connected successfully`,
-      });
+      toast.success(`${integration.name} has been connected successfully`);
 
       return true;
     } catch (error) {
       console.error('Error in connectIntegration:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: `Failed to connect ${integration.name}`,
-      });
+      toast.error(`Failed to connect ${integration.name}`);
       return false;
     }
   },
@@ -262,11 +227,7 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
       const integration = get().connectedIntegrations.find(i => i.id === integrationId);
       
       if (!integration) {
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Integration not found',
-        });
+        toast.error('Integration not found');
         return false;
       }
 
@@ -277,30 +238,19 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
 
       if (error) {
         console.error('Error disconnecting integration:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: `Failed to disconnect ${integration.name}`,
-        });
+        toast.error(`Failed to disconnect ${integration.name}`);
         return false;
       }
 
       // Refresh connected integrations
       await get().fetchConnectedIntegrations();
 
-      toast({
-        title: 'Success',
-        description: `${integration.name} has been disconnected`,
-      });
+      toast.success(`${integration.name} has been disconnected`);
 
       return true;
     } catch (error) {
       console.error('Error in disconnectIntegration:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to disconnect integration',
-      });
+      toast.error('Failed to disconnect integration');
       return false;
     }
   },
@@ -314,30 +264,19 @@ export const useApiIntegrationsStore = create<ApiIntegrationsState>((set, get) =
 
       if (error) {
         console.error('Error creating webhook:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Failed to create webhook',
-        });
+        toast.error('Failed to create webhook');
         return false;
       }
 
       // Refresh webhooks
       await get().fetchWebhooks();
 
-      toast({
-        title: 'Success',
-        description: 'Webhook created successfully',
-      });
+      toast.success('Webhook created successfully');
 
       return true;
     } catch (error) {
       console.error('Error in createWebhook:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to create webhook',
-      });
+      toast.error('Failed to create webhook');
       return false;
     }
   }

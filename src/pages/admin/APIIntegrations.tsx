@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useApiIntegrationsStore } from "@/store/apiIntegrationsStore";
 import { IntegrationConnectDialog } from "@/components/admin/integrations/IntegrationConnectDialog";
 import { WebhookCreateDialog } from "@/components/admin/integrations/WebhookCreateDialog";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "react-hot-toast";
 
 export default function APIIntegrations() {
   const { 
@@ -55,10 +54,7 @@ export default function APIIntegrations() {
   const handleCopyWebhookUrl = () => {
     const url = `${window.location.origin}/api/webhooks/inbound`;
     navigator.clipboard.writeText(url);
-    toast({
-      title: "URL Copied",
-      description: "Webhook URL has been copied to clipboard",
-    });
+    toast("Webhook URL has been copied to clipboard");
   };
 
   return (

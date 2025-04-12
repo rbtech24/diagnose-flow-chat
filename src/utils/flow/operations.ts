@@ -1,6 +1,6 @@
 
 import { Node, Edge } from '@xyflow/react';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'react-hot-toast';
 import { SavedWorkflow } from './types';
 import { getAllWorkflows, saveWorkflowToStorage } from './storage';
 
@@ -11,11 +11,7 @@ export const handleQuickSave = async (
   currentWorkflow: SavedWorkflow
 ) => {
   if (!currentWorkflow?.metadata?.appliance) {
-    toast({
-      title: "Error",
-      description: "No appliance selected for quick save",
-      variant: "destructive"
-    });
+    toast.error("No appliance selected for quick save");
     return;
   }
 
@@ -39,11 +35,7 @@ export const handleSaveWorkflow = async (
   symptom?: string
 ) => {
   if (!name || !appliance) {
-    toast({
-      title: "Error",
-      description: "Workflow name and appliance are required",
-      variant: "destructive"
-    });
+    toast.error("Workflow name and appliance are required");
     return null;
   }
 
@@ -101,19 +93,12 @@ export const handleSaveWorkflow = async (
       newValue: localStorage.getItem('diagnostic-workflows')
     }));
     
-    toast({
-      title: "Workflow Saved",
-      description: `${name} has been saved to ${appliance} workflows.`
-    });
+    toast.success(`${name} has been saved to ${appliance} workflows.`);
     
     return workflowToSave;
   } catch (error) {
     console.error('Error saving workflow:', error);
-    toast({
-      title: "Error",
-      description: "Failed to save workflow. Please try again.",
-      variant: "destructive"
-    });
+    toast.error("Failed to save workflow. Please try again.");
     throw error;
   }
 };
@@ -131,16 +116,9 @@ export const handleImportWorkflow = (
       setNodes(workflow.nodes);
       setEdges(workflow.edges);
       setNodeCounter(workflow.nodeCounter || workflow.nodes.length + 1);
-      toast({
-        title: "Workflow Imported",
-        description: "Your workflow has been imported successfully."
-      });
+      toast.success("Your workflow has been imported successfully.");
     } catch (error) {
-      toast({
-        title: "Import Error",
-        description: "Failed to import workflow. Please check the file format.",
-        variant: "destructive"
-      });
+      toast.error("Failed to import workflow. Please check the file format.");
     }
   };
   reader.readAsText(file);

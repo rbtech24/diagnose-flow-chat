@@ -1,7 +1,7 @@
 
 import { SavedWorkflow } from '../../types';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'react-hot-toast';
 
 export const saveWorkflowToStorage = async (workflow: SavedWorkflow): Promise<boolean> => {
   try {
@@ -97,19 +97,12 @@ export const saveWorkflowToStorage = async (workflow: SavedWorkflow): Promise<bo
       localStorage.setItem('diagnostic-workflows', JSON.stringify(existingWorkflows));
     }
     
-    toast({
-      title: "Success",
-      description: "Workflow saved successfully"
-    });
+    toast.success("Workflow saved successfully");
     
     return true;
   } catch (error) {
     console.error('Error saving workflow to storage:', error);
-    toast({
-      title: "Error",
-      description: "Failed to save workflow",
-      variant: "destructive"
-    });
+    toast.error("Failed to save workflow");
     return false;
   }
 };
