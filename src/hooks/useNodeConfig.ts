@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { TechnicalSpecs } from '@/types/node-config';
-import { toast } from "react-hot-toast";
+import toast from 'react-hot-toast';
 import { useNodeFields } from '@/components/node-config/hooks/useNodeFields';
 import { useNodeValidation } from '@/components/node-config/hooks/useNodeValidation';
 import { combineFieldsData } from '@/components/node-config/utils/nodeDataTransform';

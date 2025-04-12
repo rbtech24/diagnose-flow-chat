@@ -1,6 +1,6 @@
 
 import { useCallback } from 'react';
-import { toast } from "react-hot-toast";
+import toast from 'react-hot-toast';
 import { handleSaveWorkflow, handleImportWorkflow } from '@/utils/flow';
 import { addToHistory } from '@/utils/workflowHistory';
 import { Node } from '@xyflow/react';

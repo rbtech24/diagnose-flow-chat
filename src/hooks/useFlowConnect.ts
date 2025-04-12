@@ -1,7 +1,7 @@
 
 import { useCallback } from 'react';
 import { Connection, Edge, addEdge } from '@xyflow/react';
-import { toast } from "react-hot-toast";
+import toast from 'react-hot-toast';
 import { addToHistory } from '@/utils/workflowHistory';
 
 export function useFlowConnect(

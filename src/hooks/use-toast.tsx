@@ -2,6 +2,7 @@
 import { ReactNode, createContext, useContext, useState } from 'react';
 import toast, { Toast as HotToast } from 'react-hot-toast';
 
+// Define types that match shadcn/ui toast types for compatibility
 export type ToastProps = {
   title?: string;
   description?: string;
@@ -42,6 +43,34 @@ export function useToast() {
   
   return context;
 }
+
+// Helper functions to adapt shadcn/ui toast props to react-hot-toast
+export const shadcnToast = {
+  // Converts shadcn toast props to react-hot-toast
+  toast: (props: ToastProps | string) => {
+    if (typeof props === 'string') {
+      return toast(props);
+    }
+    
+    const { title, description, variant } = props;
+    const message = title 
+      ? description 
+        ? `${title}: ${description}` 
+        : title
+      : description || '';
+    
+    if (variant === 'destructive') {
+      return toast.error(message);
+    }
+    
+    return toast(message);
+  },
+  
+  // For direct usage
+  success: (message: string) => toast.success(message),
+  error: (message: string) => toast.error(message),
+  dismiss: toast.dismiss
+};
 
 // For direct usage without the hook
 export { toast };

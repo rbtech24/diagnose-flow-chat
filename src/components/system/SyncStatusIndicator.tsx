@@ -4,7 +4,7 @@ import { useOfflineStatus } from '@/hooks/useOfflineStatus';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Cloud, CloudOff, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 
 interface SyncStatusIndicatorProps {
   syncItems?: number;
