@@ -21,7 +21,7 @@ export default function AdminCompanies() {
   // Filter companies based on search query
   const filteredCompanies = companies.filter(company => 
     company.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    company.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    company.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     company.status.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -94,6 +94,7 @@ export default function AdminCompanies() {
           ) : filteredCompanies.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               {searchQuery ? "No companies match your search" : "No companies found"}
+              <p className="mt-2">Connect to a real database or add companies to get started</p>
             </div>
           ) : (
             <div className="space-y-4">

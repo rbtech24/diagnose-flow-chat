@@ -11,7 +11,6 @@ import {
 import { useWorkflows } from "@/hooks/useWorkflows";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Navigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 
 interface DashboardMetrics {
   activeJobs: number;
@@ -21,26 +20,9 @@ interface DashboardMetrics {
   teamPerformance: number;
 }
 
-interface TeamMember {
-  id: string;
-  name: string;
-  avatar: string;
-  status: "active" | "offline";
-  jobs: number;
-}
-
-interface ActivityItem {
-  id: string;
-  type: string;
-  message: string;
-  time: string;
-}
-
 export default function CompanyDashboard() {
   const { role, isLoading: roleLoading } = useUserRole();
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Get workflows for diagnosis
@@ -61,20 +43,9 @@ export default function CompanyDashboard() {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        // In a real application, we would fetch from the database
-        // For example:
-        // const { data: metricsData, error: metricsError } = await supabase
-        //   .from('company_metrics')
-        //   .select('*')
-        //   .eq('company_id', companyId)
-        //   .single();
+        // This would be replaced with an actual API call
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        // if (metricsError) throw metricsError;
-        // setMetrics(metricsData);
-        
-        // For now, set empty arrays and default metrics
-        setTeamMembers([]);
-        setActivities([]);
         setMetrics({
           activeJobs: 0,
           teamMembers: 0,
@@ -93,7 +64,7 @@ export default function CompanyDashboard() {
   }, []);
   
   // Check if user is authorized to access this page
-  if (!roleLoading && role !== 'company' && role !== 'admin') { // Changed from 'company_admin' to 'company'
+  if (!roleLoading && role !== 'company' && role !== 'admin') {
     return <Navigate to="/login" />;
   }
   
@@ -216,40 +187,11 @@ export default function CompanyDashboard() {
               <CardDescription>Manage your technicians</CardDescription>
             </CardHeader>
             <CardContent className="mt-4">
-              {teamMembers.length > 0 ? (
-                teamMembers.map(member => (
-                  <div 
-                    key={member.id} 
-                    className={`flex justify-between mb-4 p-3 rounded-lg ${
-                      member.status === 'active' ? 'bg-green-50 border border-green-100' : 'bg-gray-50 border border-gray-100'
-                    }`}
-                  >
-                    <div className="flex items-center">
-                      <div className="relative mr-2">
-                        <img className="h-10 w-10 rounded-full" src={member.avatar} alt={member.name} />
-                        <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white ${
-                          member.status === 'active' ? 'bg-green-500' : 'bg-gray-300'
-                        }`}></span>
-                      </div>
-                      <div>
-                        <p className="font-medium">{member.name}</p>
-                        <p className="text-xs text-gray-500">
-                          {member.status === 'active' ? 'Active' : 'Offline'} • {member.jobs} jobs
-                        </p>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      <Link to="/company/technicians" className="text-black">View</Link>
-                    </Button>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-12 border rounded-lg">
-                  <Users className="h-10 w-10 text-blue-500 mx-auto mb-3" />
-                  <h3 className="text-lg font-medium mb-1">No Team Members</h3>
-                  <p className="text-gray-500 mb-4">You don't have any team members yet.</p>
-                </div>
-              )}
+              <div className="text-center py-12 border rounded-lg">
+                <Users className="h-10 w-10 text-blue-500 mx-auto mb-3" />
+                <h3 className="text-lg font-medium mb-1">No Team Members</h3>
+                <p className="text-gray-500 mb-4">You don't have any team members yet.</p>
+              </div>
               
               <div className="mt-6">
                 <Button className="w-full">
@@ -269,43 +211,10 @@ export default function CompanyDashboard() {
             <CardDescription>Latest updates</CardDescription>
           </CardHeader>
           <CardContent className="mt-4">
-            {activities.length > 0 ? (
-              <div className="space-y-4">
-                {activities.map(activity => (
-                  <div 
-                    key={activity.id} 
-                    className={`flex items-start gap-4 p-3 rounded-lg ${
-                      activity.type === 'job' ? 'bg-blue-50 border border-blue-100' : 
-                      activity.type === 'tech' ? 'bg-green-50 border border-green-100' : 
-                      'bg-amber-50 border border-amber-100'
-                    }`}
-                  >
-                    <div className={`mt-1 rounded-full p-1 ${
-                      activity.type === 'job' ? 'bg-blue-100' : 
-                      activity.type === 'tech' ? 'bg-green-100' : 
-                      'bg-amber-100'
-                    }`}>
-                      {activity.type === 'job' ? (
-                        <Wrench className={`h-3 w-3 ${activity.type === 'job' ? 'text-blue-600' : ''}`} />
-                      ) : activity.type === 'tech' ? (
-                        <Users className="h-3 w-3 text-green-600" />
-                      ) : (
-                        <AlertTriangle className="h-3 w-3 text-amber-600" />
-                      )}
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">{activity.message}</p>
-                      <p className="text-xs text-gray-500">{activity.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Activity className="h-8 w-8 text-purple-500 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">No recent activity</p>
-              </div>
-            )}
+            <div className="text-center py-8">
+              <Activity className="h-8 w-8 text-purple-500 mx-auto mb-2" />
+              <p className="text-sm text-gray-500">No recent activity</p>
+            </div>
             
             <Button variant="ghost" size="sm" className="w-full mt-4">
               <Link to="/company/activity" className="text-black w-full">View All Activity</Link>

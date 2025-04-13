@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from "react";
 import { User, TechnicianInvite } from "@/types/user";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 // Type for technician limits
@@ -27,25 +26,9 @@ export function useTechnicianData() {
 
   const fetchTechnicians = async () => {
     try {
-      const { data: userData, error: userError } = await supabase
-        .from('technicians')
-        .select('*')
-        .eq('role', 'tech');
-      
-      if (userError) throw userError;
-
-      // Format data to match User type
-      const formattedUsers: User[] = userData.map(tech => ({
-        id: tech.id,
-        name: tech.email.split('@')[0], // Temporary, in real app would use proper name field
-        email: tech.email,
-        phone: tech.phone || undefined,
-        role: tech.role as "admin" | "company" | "tech",
-        companyId: tech.company_id,
-        status: tech.status as "active" | "archived" | "deleted" | undefined
-      }));
-      
-      setTechnicians(formattedUsers);
+      // This would fetch real data from an API
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setTechnicians([]);
     } catch (error) {
       console.error('Error fetching technicians:', error);
       toast.error('Failed to load technicians');
@@ -54,26 +37,9 @@ export function useTechnicianData() {
 
   const fetchInvites = async () => {
     try {
-      const { data: inviteData, error: inviteError } = await supabase
-        .from('technician_invites')
-        .select('*')
-        .eq('status', 'pending');
-      
-      if (inviteError) throw inviteError;
-      
-      // Format data to match TechnicianInvite type
-      const formattedInvites: TechnicianInvite[] = inviteData.map(invite => ({
-        id: invite.id,
-        email: invite.email,
-        name: invite.name,
-        phone: invite.phone || undefined,
-        companyId: invite.company_id,
-        status: invite.status as "pending" | "accepted" | "expired",
-        createdAt: new Date(invite.created_at),
-        expiresAt: new Date(invite.expires_at)
-      }));
-      
-      setInvites(formattedInvites);
+      // This would fetch real data from an API
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setInvites([]);
     } catch (error) {
       console.error('Error fetching invites:', error);
       toast.error('Failed to load pending invitations');
@@ -82,42 +48,15 @@ export function useTechnicianData() {
 
   const fetchTechnicianLimits = async () => {
     try {
-      // Get current user's company ID
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const { data: userData, error: userError } = await supabase
-        .from('technicians')
-        .select('company_id')
-        .eq('id', user.id)
-        .single();
-      
-      if (userError) throw userError;
-      
-      // Call the stored function to get limits
-      const { data, error } = await supabase.rpc(
-        'check_company_technician_limits',
-        { p_company_id: userData.company_id }
-      );
-      
-      if (error) throw error;
-      
-      // Convert the returned data to our expected format with proper typing
-      // Use type assertion to tell TypeScript about the structure
-      const typedData = data as {
-        active_count: number;
-        pending_count: number;
-        max_technicians: number;
-        total_count: number;
-        is_at_limit: boolean;
-      };
+      // This would fetch real data from an API
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       setTechnicianLimits({
-        activeCount: typedData.active_count,
-        pendingCount: typedData.pending_count,
-        maxTechnicians: typedData.max_technicians,
-        totalCount: typedData.total_count,
-        isAtLimit: typedData.is_at_limit
+        activeCount: 0,
+        pendingCount: 0,
+        maxTechnicians: 0,
+        totalCount: 0,
+        isAtLimit: false
       });
     } catch (error) {
       console.error('Error fetching technician limits:', error);
@@ -128,48 +67,15 @@ export function useTechnicianData() {
   const handleAddTechnician = async (data: { name: string; email: string; phone: string }) => {
     if (!data.name || !data.email) {
       toast.error("Name and email are required");
-      return;
-    }
-
-    if (technicianLimits.isAtLimit) {
-      toast.error(`Your plan only allows ${technicianLimits.maxTechnicians} technicians. Please upgrade to add more.`);
-      return;
+      return false;
     }
 
     try {
-      // Get current user's company ID
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const { data: userData, error: userError } = await supabase
-        .from('technicians')
-        .select('company_id')
-        .eq('id', user.id)
-        .single();
+      // This would be replaced with an actual API call
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      if (userError) throw userError;
-
-      // Call the stored function to create invitation
-      const { data: inviteData, error } = await supabase.rpc(
-        'invite_technician',
-        { 
-          p_email: data.email,
-          p_name: data.name,
-          p_phone: data.phone || null,
-          p_company_id: userData.company_id
-        }
-      );
-      
-      if (error) throw error;
-      
-      // Refresh invites list and limits
-      await Promise.all([
-        fetchInvites(),
-        fetchTechnicianLimits()
-      ]);
-      
-      toast.success("Invitation sent successfully");
-      return true;
+      toast.success("Functionality not implemented");
+      return false;
     } catch (error) {
       console.error('Error sending invitation:', error);
       toast.error('Failed to send invitation');
@@ -179,20 +85,13 @@ export function useTechnicianData() {
 
   const handleCancelInvite = async (inviteId: string) => {
     try {
-      const { error } = await supabase
-        .from('technician_invites')
-        .delete()
-        .eq('id', inviteId);
-      
-      if (error) throw error;
+      // This would be replaced with an actual API call
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Remove from local state
       setInvites(invites.filter(invite => invite.id !== inviteId));
       
-      // Refresh limits
-      await fetchTechnicianLimits();
-      
-      toast.success("Invitation canceled");
+      toast.success("Functionality not implemented");
     } catch (error) {
       console.error('Error canceling invitation:', error);
       toast.error('Failed to cancel invitation');
@@ -201,20 +100,13 @@ export function useTechnicianData() {
 
   const handleDeleteTechnician = async (techId: string) => {
     try {
-      const { error } = await supabase
-        .from('technicians')
-        .delete()
-        .eq('id', techId);
-      
-      if (error) throw error;
+      // This would be replaced with an actual API call
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Remove from local state
       setTechnicians(technicians.filter(tech => tech.id !== techId));
       
-      // Refresh limits
-      await fetchTechnicianLimits();
-      
-      toast.success("Technician removed successfully");
+      toast.success("Functionality not implemented");
     } catch (error) {
       console.error('Error deleting technician:', error);
       toast.error('Failed to delete technician');
@@ -223,22 +115,10 @@ export function useTechnicianData() {
 
   const handleArchiveTechnician = async (techId: string) => {
     try {
-      const { error } = await supabase
-        .from('technicians')
-        .update({ status: 'archived' })
-        .eq('id', techId);
+      // This would be replaced with an actual API call
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      if (error) throw error;
-      
-      // Update in local state
-      setTechnicians(technicians.map(tech => {
-        if (tech.id === techId) {
-          return { ...tech, status: 'archived' as const };
-        }
-        return tech;
-      }));
-      
-      toast.success("Technician archived successfully");
+      toast.success("Functionality not implemented");
     } catch (error) {
       console.error('Error archiving technician:', error);
       toast.error('Failed to archive technician');

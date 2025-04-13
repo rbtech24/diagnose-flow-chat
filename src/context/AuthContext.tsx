@@ -38,44 +38,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Mock sign-in function
+  // Sign-in function (placeholder for real authentication)
   const signIn = async (email: string, password: string) => {
     try {
-      // This is a mock implementation
-      // In a real app, you would validate credentials with your backend
+      setIsLoading(true);
+      // In a real implementation, this would call an authentication service
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock user data based on email domain
-      let role: 'admin' | 'company' | 'tech' = 'tech';
-      
-      if (email.includes('admin')) {
-        role = 'admin';
-      } else if (email.includes('company')) {
-        role = 'company';
-      }
-      
-      const mockUser: User = {
-        id: '123456',
-        name: email.split('@')[0],
-        email,
-        role,
-        avatarUrl: 'https://i.pravatar.cc/150?u=' + email,
-        status: 'active',
-      };
-      
-      // Save user in state
-      setUser(mockUser);
-      setIsAuthenticated(true);
-      
-      // Store in localStorage
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      
-      toast.success('Signed in successfully');
+      toast.success('Authentication service not connected');
+      setIsLoading(false);
     } catch (error) {
       toast.error('Failed to sign in');
       console.error('Sign in error:', error);
+      setIsLoading(false);
     }
   };
 
@@ -84,43 +58,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (email: string, password: string, data?: any) => {
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      setIsLoading(true);
+      // In a real implementation, this would call an authentication service
       
-      // Mock user registration
-      const role = 'tech'; // Default role for new registrations
-      
-      const mockUser: User = {
-        id: `user-${Date.now()}`,
-        name: data?.name || email.split('@')[0],
-        email,
-        role,
-        status: 'active',
-        ...data
-      };
-      
-      // Save user in state
-      setUser(mockUser);
-      setIsAuthenticated(true);
-      
-      // Store in localStorage
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      
-      toast.success('Registration successful');
+      toast.success('Registration functionality not connected');
+      setIsLoading(false);
     } catch (error) {
       toast.error('Failed to register');
       console.error('Registration error:', error);
+      setIsLoading(false);
       throw error;
     }
   };
 
   const resetPassword = async (token: string, newPassword: string): Promise<boolean> => {
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock password reset functionality
-      toast.success('Password has been reset successfully');
+      // In a real implementation, this would reset password
+      toast.success('Password reset functionality not connected');
       return true;
     } catch (error) {
       toast.error('Failed to reset password');
@@ -131,11 +85,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const forgotPassword = async (email: string): Promise<boolean> => {
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock forgot password functionality
-      toast.success(`Password reset link has been sent to ${email}`);
+      // In a real implementation, this would send a password reset email
+      toast.success('Password reset functionality not connected');
       return true;
     } catch (error) {
       toast.error('Failed to send reset link');
@@ -149,7 +100,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     const updatedUser = {...user, ...data};
     setUser(updatedUser);
-    localStorage.setItem('user', JSON.stringify(updatedUser));
     toast.success('User profile updated');
   };
 
@@ -161,29 +111,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const checkWorkflowAccess = (): boolean => {
-    // Mock implementation - in a real app, this would check user subscription status
-    if (!user) return false;
-    
-    // Admin users always have access
-    if (user.role === 'admin') return true;
-    
-    // Other roles have access based on subscription status
-    return user.subscriptionStatus === 'active' || user.subscriptionStatus === 'trial';
+    // In a real implementation, this would check user subscription status
+    return false;
   };
 
   // Check for stored user on initial load
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser) as User;
-        setUser(parsedUser);
-        setIsAuthenticated(true);
-      } catch (error) {
-        console.error('Error parsing stored user:', error);
-        localStorage.removeItem('user');
-      }
-    }
+    // In a real implementation, this would check for an active session
     setIsLoading(false);
   }, []);
 

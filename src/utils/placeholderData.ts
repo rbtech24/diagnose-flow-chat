@@ -4,17 +4,18 @@ import { FeatureRequest } from "@/types/feature-request";
 import { KnowledgeArticle } from "@/hooks/useKnowledgeBaseData";
 import { SupportTicket } from "@/types/support-ticket";
 
+// Empty user object
 export const placeholderUser: User = {
-  id: "user-123",
-  name: "Demo User",
-  email: "demo@example.com",
+  id: "",
+  name: "",
+  email: "",
   role: "tech",
-  phone: "(555) 123-4567",
-  avatarUrl: "https://i.pravatar.cc/300",
+  phone: "",
+  avatarUrl: "",
   status: "active"
 };
 
-// Add empty arrays for feature requests
+// Empty array for feature requests
 export const emptyFeatureRequests: FeatureRequest[] = [];
 
 // Define knowledge article type that matches the CompanyKnowledgeBase component's expectations
@@ -27,8 +28,8 @@ export interface CompanyKnowledgeBaseArticle {
   fromCommunityPost?: string;
 }
 
-// Add empty arrays for knowledge articles
+// Empty array for knowledge articles
 export const emptyKnowledgeArticles: CompanyKnowledgeBaseArticle[] = [];
 
-// Add empty arrays for support tickets with the required messages array
+// Empty array for support tickets with the required messages array
 export const emptyTickets: SupportTicket[] = [];
