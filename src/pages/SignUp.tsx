@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -15,7 +16,7 @@ import {
   FormMessage 
 } from '@/components/ui/form';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Check } from 'lucide-react';
 
 const FormSchema = z.object({
   email: z.string().email({
@@ -133,6 +134,24 @@ export default function SignUp() {
                 </FormItem>
               )}
             />
+            
+            <div className="rounded-md bg-gray-50 p-4">
+              <h3 className="font-medium text-gray-800">Start with a 30-day free trial</h3>
+              <ul className="mt-2 space-y-1">
+                <li className="flex items-center text-sm text-gray-600">
+                  <Check className="mr-2 h-4 w-4 text-green-500" />
+                  Full access to all features
+                </li>
+                <li className="flex items-center text-sm text-gray-600">
+                  <Check className="mr-2 h-4 w-4 text-green-500" />
+                  No credit card required
+                </li>
+                <li className="flex items-center text-sm text-gray-600">
+                  <Check className="mr-2 h-4 w-4 text-green-500" />
+                  Choose a subscription plan later
+                </li>
+              </ul>
+            </div>
             
             <Button 
               type="submit" 
