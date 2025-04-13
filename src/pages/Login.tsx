@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -44,7 +45,7 @@ export default function Login() {
         <div className="bg-white rounded-lg shadow-md p-8">
           <div className="flex justify-center mb-6">
             <img 
-              src="/public/lovable-uploads/626e46ce-b31c-4656-8873-f950a140763f.png" 
+              src="/lovable-uploads/626e46ce-b31c-4656-8873-f950a140763f.png" 
               alt="Repair Autopilot" 
               className="h-16 w-auto" 
             />
