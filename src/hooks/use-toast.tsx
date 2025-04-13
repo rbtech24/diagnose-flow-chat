@@ -19,27 +19,28 @@ export type Toast = {
   variant?: 'default' | 'destructive';
 };
 
-// Function to create toast with shadcn compatibility
+// Export direct toast functions
+const showToast = (props: ToastProps | string) => {
+  if (typeof props === 'string') {
+    return toast(props);
+  }
+
+  const { title, description, variant } = props;
+  const message = title 
+    ? description 
+      ? `${title}: ${description}` 
+      : title
+    : description || '';
+  
+  if (variant === 'destructive') {
+    return toast.error(message);
+  }
+  
+  return toast(message);
+};
+
+// Hook for using toast within components
 export const useToast = () => {
-  const showToast = (props: ToastProps | string) => {
-    if (typeof props === 'string') {
-      return toast(props);
-    }
-
-    const { title, description, variant } = props;
-    const message = title 
-      ? description 
-        ? `${title}: ${description}` 
-        : title
-      : description || '';
-    
-    if (variant === 'destructive') {
-      return toast.error(message);
-    }
-    
-    return toast(message);
-  };
-
   return {
     toast: showToast,
     success: (message: string) => toast.success(message),
