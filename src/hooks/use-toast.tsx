@@ -19,33 +19,31 @@ export type Toast = {
   variant?: 'default' | 'destructive';
 };
 
-// Simple functions that map to react-hot-toast
+// Function to create toast with shadcn compatibility
 export const useToast = () => {
-  return {
-    toast: (props: ToastProps | string): string => {
-      if (typeof props === 'string') {
-        return toast(props);
-      }
+  const showToast = (props: ToastProps | string) => {
+    if (typeof props === 'string') {
+      return toast(props);
+    }
 
-      const { title, description, variant } = props;
-      const message = title 
-        ? description 
-          ? `${title}: ${description}` 
-          : title
-        : description || '';
-      
-      if (variant === 'destructive') {
-        return toast.error(message);
-      }
-      
-      return toast(message);
-    },
-    success: (message: string): string => {
-      return toast.success(message);
-    },
-    error: (message: string): string => {
+    const { title, description, variant } = props;
+    const message = title 
+      ? description 
+        ? `${title}: ${description}` 
+        : title
+      : description || '';
+    
+    if (variant === 'destructive') {
       return toast.error(message);
-    },
+    }
+    
+    return toast(message);
+  };
+
+  return {
+    toast: showToast,
+    success: (message: string) => toast.success(message),
+    error: (message: string) => toast.error(message),
     dismiss: toast.dismiss,
     toasts: [] // Empty array as we're using react-hot-toast
   };
