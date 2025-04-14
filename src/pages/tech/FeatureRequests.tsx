@@ -1,16 +1,18 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FeatureRequest, FeatureRequestStatus, convertToFeatureRequestUser } from "@/types/feature-request";
+import { FeatureRequest, FeatureRequestStatus } from "@/types/feature-request";
 import { FeatureRequestCard } from "@/components/feature-request/FeatureRequestCard";
 import { NewFeatureRequestForm } from "@/components/feature-request/NewFeatureRequestForm";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Search } from "lucide-react";
 import { emptyFeatureRequests } from "@/utils/placeholderData";
 import { placeholderUser } from "@/utils/placeholderData";
+import { convertToFeatureRequestUser } from "@/utils/userConverter";
 import { toast } from "react-hot-toast";
 
 export default function TechFeatureRequests() {

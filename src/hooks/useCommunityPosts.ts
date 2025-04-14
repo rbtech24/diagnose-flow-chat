@@ -1,9 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
-import { CommunityPostType as AppCommunityPostType } from '@/types/community';
-
-export type CommunityPostType = 'question' | 'discussion' | 'tech-sheet-request' | 'wire-diagram-request' | 'technical-alert-request' | 'misc-document-request';
+import { CommunityPostType } from '@/types/community';
 
 export interface CommunityComment {
   id: string;
@@ -24,6 +22,7 @@ export interface CommunityPost {
   content: string;
   type: CommunityPostType;
   tags: string[];
+  authorId: string;
   author: {
     id: string;
     name: string;
@@ -34,9 +33,14 @@ export interface CommunityPost {
   upvotes: number;
   isSolved: boolean;
   comments: CommunityComment[];
-  authorId?: string;
-  attachments?: any[];
-  views?: number;
+  attachments: {
+    id: string;
+    filename: string;
+    url: string;
+    contentType: string;
+    size: number;
+  }[];
+  views: number;
 }
 
 export function useCommunityPosts() {

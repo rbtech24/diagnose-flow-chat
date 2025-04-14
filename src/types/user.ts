@@ -22,6 +22,7 @@ export interface TechnicianInvite {
   name: string;
   email: string;
   phone?: string;
+  companyId?: string;
   createdAt: Date;
   expiresAt: Date;
   status: "pending" | "accepted" | "rejected" | "expired";

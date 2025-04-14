@@ -40,5 +40,5 @@ export interface FeatureRequest {
   votes: FeatureRequestVote[];
   score: number;
   comments: FeatureRequestComment[];
-  category?: string; // Making category optional
+  category: string;
 }

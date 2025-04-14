@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
-import { FeatureRequest, FeatureRequestVote, FeatureRequestStatus, FeatureRequestPriority, convertToFeatureRequestUser } from "@/types/feature-request";
+import { FeatureRequest, FeatureRequestVote, FeatureRequestStatus, FeatureRequestPriority, FeatureRequestUser } from "@/types/feature-request";
 import { placeholderUser } from "@/utils/placeholderData";
 import { ArrowLeft } from "lucide-react";
+import { convertToFeatureRequestUser } from "@/utils/userConverter";
 
 export default function AdminFeatureRequestDetailPage() {
   const [featureRequest, setFeatureRequest] = useState<FeatureRequest | null>(null);
@@ -13,12 +14,9 @@ export default function AdminFeatureRequestDetailPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // This would be replaced with a real API call
     setLoading(true);
     
-    // Simulate API call
     setTimeout(() => {
-      // In a real app, you would fetch data from the server
       const frUser = convertToFeatureRequestUser(placeholderUser);
       
       const mockFeatureRequest: FeatureRequest = {
