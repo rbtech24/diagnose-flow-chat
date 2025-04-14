@@ -1962,6 +1962,36 @@ export type Database = {
           },
         ]
       }
+      product_updates: {
+        Row: {
+          content: string
+          created_at: string | null
+          date: string | null
+          id: string
+          title: string
+          updated_at: string | null
+          version: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          date?: string | null
+          id?: string
+          title: string
+          updated_at?: string | null
+          version?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          date?: string | null
+          id?: string
+          title?: string
+          updated_at?: string | null
+          version?: string | null
+        }
+        Relationships: []
+      }
       purchase_order_items: {
         Row: {
           created_at: string | null

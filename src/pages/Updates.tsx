@@ -4,20 +4,19 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Info, RefreshCw } from "lucide-react";
 import { SystemMessage } from "@/components/system/SystemMessage";
-import { useUserRole } from "@/hooks/useUserRole";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "react-hot-toast";
+import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UpdateData {
   id: string;
   title: string;
-  date: string;
   content: string;
   version?: string;
+  date: string;
 }
 
 export default function Updates() {
-  const { role } = useUserRole();
   const [updates, setUpdates] = useState<UpdateData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,16 +26,22 @@ export default function Updates() {
     setError(null);
     
     try {
-      // In a real app, this would be an API call
-      // For demo purposes, we're simulating API behavior
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { data, error } = await supabase
+        .from('product_updates')
+        .select('*')
+        .order('date', { ascending: false });
+        
+      if (error) throw error;
       
-      // Mock empty response
-      setUpdates([]);
+      setUpdates(data || []);
     } catch (err) {
       console.error("Error fetching updates:", err);
       setError("Failed to load product updates. Please try again later.");
-      toast.error("Failed to load product updates");
+      toast({
+        title: "Error",
+        description: "Failed to load product updates",
+        type: "error"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -121,7 +126,9 @@ export default function Updates() {
                 <div className="flex justify-between items-start">
                   <h3 className="text-xl font-medium text-gray-900">{update.title}</h3>
                   <div className="flex flex-col items-end">
-                    <span className="text-sm text-gray-500">{update.date}</span>
+                    <span className="text-sm text-gray-500">
+                      {new Date(update.date).toLocaleDateString()}
+                    </span>
                     {update.version && (
                       <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full mt-1">
                         v{update.version}
