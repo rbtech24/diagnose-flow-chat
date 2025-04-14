@@ -3,6 +3,7 @@ import { User, TechnicianInvite } from "@/types/user";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
+import { DbCompany } from "@/types/database";
 
 // Type for technician limits
 export interface TechnicianLimits {
@@ -127,12 +128,15 @@ export function useTechnicianData() {
         
       if (companyError) throw companyError;
       
+      // Cast company to DbCompany for proper TypeScript checking
+      const dbCompany = company as DbCompany;
+      
       // Determine max technicians based on plan
       let maxTechnicians = 5; // Default for basic plan
       
-      if (company?.subscription_tier === 'professional') {
+      if (dbCompany?.subscription_tier === 'professional') {
         maxTechnicians = 20;
-      } else if (company?.subscription_tier === 'enterprise') {
+      } else if (dbCompany?.subscription_tier === 'enterprise') {
         maxTechnicians = 100;
       }
       

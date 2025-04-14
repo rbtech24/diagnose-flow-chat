@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'react-hot-toast';
+import { DbCompany, DbUser, DbTechnicianInvite } from '@/types/database';
 
 interface Company {
   id: string;
@@ -68,7 +69,7 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
 
       if (error) throw error;
       
-      const formattedCompanies = data.map(company => ({
+      const formattedCompanies = (data as DbCompany[]).map(company => ({
         id: company.id,
         name: company.name,
         contactName: company.contact_name || '',
@@ -110,7 +111,8 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
 
       if (error) throw error;
       
-      const formattedUsers = data.map(user => ({
+      // Type assertion to avoid "cannot find relation between users and company_id" error
+      const formattedUsers = (data as any[]).map(user => ({
         id: user.id,
         name: user.name || '',
         email: user.email,
@@ -141,25 +143,28 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
       
       if (!data) return null;
       
+      // Cast data to DbCompany type for proper TypeScript checking
+      const company = data as DbCompany;
+      
       return {
-        id: data.id,
-        name: data.name,
-        contactName: data.contact_name || '',
-        email: data.email || '',
-        phone: data.phone,
-        address: data.address,
-        city: data.city,
-        state: data.state,
-        zipCode: data.zip_code,
-        country: data.country,
-        planId: data.plan_id,
-        planName: data.plan_name || data.subscription_tier,
-        status: (data.status || data.trial_status) as 'active' | 'inactive' | 'trial' | 'expired',
-        technicianCount: data.technician_count || 0,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at),
-        trialEndsAt: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
-        subscriptionEndsAt: data.subscription_ends_at ? new Date(data.subscription_ends_at) : undefined,
+        id: company.id,
+        name: company.name,
+        contactName: company.contact_name || '',
+        email: company.email || '',
+        phone: company.phone,
+        address: company.address,
+        city: company.city,
+        state: company.state,
+        zipCode: company.zip_code,
+        country: company.country,
+        planId: company.plan_id,
+        planName: company.plan_name || company.subscription_tier,
+        status: (company.status || company.trial_status) as 'active' | 'inactive' | 'trial' | 'expired',
+        technicianCount: company.technician_count || 0,
+        createdAt: new Date(company.created_at),
+        updatedAt: new Date(company.updated_at),
+        trialEndsAt: company.trial_end_date ? new Date(company.trial_end_date) : undefined,
+        subscriptionEndsAt: company.subscription_ends_at ? new Date(company.subscription_ends_at) : undefined,
       };
     } catch (error) {
       console.error('Error fetching company by ID:', error);
@@ -194,25 +199,28 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
       
       if (error) throw error;
       
+      // Cast to DbCompany for proper TypeScript checking
+      const company = data as DbCompany;
+      
       const newCompany: Company = {
-        id: data.id,
-        name: data.name,
-        contactName: data.contact_name || '',
-        email: data.email || '',
-        phone: data.phone,
-        address: data.address,
-        city: data.city,
-        state: data.state,
-        zipCode: data.zip_code,
-        country: data.country,
-        planId: data.plan_id,
-        planName: data.plan_name,
-        status: data.status as 'active' | 'inactive' | 'trial' | 'expired',
-        technicianCount: data.technician_count || 0,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at),
-        trialEndsAt: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
-        subscriptionEndsAt: data.subscription_ends_at ? new Date(data.subscription_ends_at) : undefined,
+        id: company.id,
+        name: company.name,
+        contactName: company.contact_name || '',
+        email: company.email || '',
+        phone: company.phone,
+        address: company.address,
+        city: company.city,
+        state: company.state,
+        zipCode: company.zip_code,
+        country: company.country,
+        planId: company.plan_id,
+        planName: company.plan_name,
+        status: company.status as 'active' | 'inactive' | 'trial' | 'expired',
+        technicianCount: company.technician_count || 0,
+        createdAt: new Date(company.created_at),
+        updatedAt: new Date(company.updated_at),
+        trialEndsAt: company.trial_end_date ? new Date(company.trial_end_date) : undefined,
+        subscriptionEndsAt: company.subscription_ends_at ? new Date(company.subscription_ends_at) : undefined,
       };
       
       set(state => ({
@@ -261,25 +269,28 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
       
       if (error) throw error;
       
+      // Cast to DbCompany for proper TypeScript checking
+      const company = data as DbCompany;
+      
       const updatedCompany: Company = {
-        id: data.id,
-        name: data.name,
-        contactName: data.contact_name || '',
-        email: data.email || '',
-        phone: data.phone,
-        address: data.address,
-        city: data.city,
-        state: data.state,
-        zipCode: data.zip_code,
-        country: data.country,
-        planId: data.plan_id,
-        planName: data.plan_name,
-        status: data.status as 'active' | 'inactive' | 'trial' | 'expired',
-        technicianCount: data.technician_count || 0,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at),
-        trialEndsAt: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
-        subscriptionEndsAt: data.subscription_ends_at ? new Date(data.subscription_ends_at) : undefined,
+        id: company.id,
+        name: company.name,
+        contactName: company.contact_name || '',
+        email: company.email || '',
+        phone: company.phone,
+        address: company.address,
+        city: company.city,
+        state: company.state,
+        zipCode: company.zip_code,
+        country: company.country,
+        planId: company.plan_id,
+        planName: company.plan_name,
+        status: company.status as 'active' | 'inactive' | 'trial' | 'expired',
+        technicianCount: company.technician_count || 0,
+        createdAt: new Date(company.created_at),
+        updatedAt: new Date(company.updated_at),
+        trialEndsAt: company.trial_end_date ? new Date(company.trial_end_date) : undefined,
+        subscriptionEndsAt: company.subscription_ends_at ? new Date(company.subscription_ends_at) : undefined,
       };
       
       set(state => ({
