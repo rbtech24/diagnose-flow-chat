@@ -14,8 +14,7 @@ export const showToast = {
   
   // For shadcn/ui compatibility - use this when you have title/description pattern
   titleDescription: (title: string, description?: string): string => {
-    const message = description ? `${title}: ${description}` : title;
-    return toast.custom(message);
+    return toast.custom(description ? `${title}: ${description}` : title);
   },
   
   // For shadcn/ui compatibility with variants

@@ -10,16 +10,17 @@ export const adaptToast = {
       return toast(props);
     }
     
-    const { title, description, type } = props;
+    const { title, description, type, variant } = props;
     const message = title 
       ? description 
         ? `${title}: ${description}` 
         : title
       : description || '';
     
-    if (type === 'error') {
+    // Check variant first, then type
+    if (variant === "destructive" || type === "error") {
       return toast.error(message);
-    } else if (type === 'success') {
+    } else if (type === "success") {
       return toast.success(message);
     }
     

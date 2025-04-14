@@ -32,7 +32,8 @@ export function useFlowActions(
       });
       toast({
         title: "Connection Success",
-        description: "Nodes have been connected successfully."
+        description: "Nodes have been connected successfully.",
+        type: "success"
       });
     },
     [setEdges, nodes, nodeCounter, history, setHistory, toast]
@@ -44,7 +45,8 @@ export function useFlowActions(
       setCopiedNodes(selectedNodes);
       toast({
         title: "Copied",
-        description: `${selectedNodes.length} node(s) copied to clipboard`
+        description: `${selectedNodes.length} node(s) copied to clipboard`,
+        type: "success"
       });
     }
   }, [nodes, setCopiedNodes, toast]);
@@ -84,7 +86,8 @@ export function useFlowActions(
 
     toast({
       title: "Pasted",
-      description: `${newNodes.length} node(s) pasted`
+      description: `${newNodes.length} node(s) pasted`,
+      type: "success"
     });
   }, [copiedNodes, getViewport, edges, nodeCounter, history, setNodes, setNodeCounter, setHistory, toast]);
 
@@ -93,13 +96,14 @@ export function useFlowActions(
       handleQuickSave(nodes, edges, nodeCounter, currentWorkflow);
       toast({
         title: "Saved",
-        description: "Your changes have been saved automatically."
+        description: "Your changes have been saved automatically.",
+        type: "success"
       });
     } else {
       toast({
         title: "Error",
         description: "This is a new workflow. Please use 'Save Workflow' to save it first.",
-        variant: "destructive"
+        type: "error"
       });
     }
   }, [nodes, edges, nodeCounter, currentWorkflow, toast]);
@@ -138,7 +142,8 @@ export function useFlowActions(
 
     toast({
       title: "Node Added", 
-      description: "New node has been added to the workflow."
+      description: "New node has been added to the workflow.",
+      type: "success"
     });
   }, [nodes, edges, nodeCounter, setNodes, setNodeCounter, setHistory, history, toast]);
 

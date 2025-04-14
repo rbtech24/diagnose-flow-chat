@@ -8,12 +8,13 @@ export interface ToastProps {
   id?: string;
   title?: string;
   description?: string;
-  type: ToastType;
+  type: ToastType; // Make type required
   duration?: number;
   position?: "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
   icon?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
+  variant?: "default" | "destructive"; // Add variant to type definition
   onDismiss?: () => void;
 }
 
@@ -21,7 +22,7 @@ export type Toast = ToastProps;
 
 export function useToast() {
   const toast = (props: ToastProps) => {
-    const { title, description, type, duration = 5000, onDismiss, ...options } = props;
+    const { title, description, type, duration = 5000, onDismiss, variant, ...options } = props;
     
     const content = (
       <div className="flex items-start">
@@ -37,17 +38,15 @@ export function useToast() {
       ...options
     };
     
-    switch(type) {
-      case "success":
-        return hotToast.success(content, hotToastOptions);
-      case "error":
-        return hotToast.error(content, hotToastOptions);
-      case "loading":
-        return hotToast.loading(content, hotToastOptions);
-      case "custom":
-        return hotToast(content, hotToastOptions);
-      default:
-        return hotToast(content, hotToastOptions);
+    // Use variant to determine error if specified, otherwise use type
+    if (variant === "destructive" || type === "error") {
+      return hotToast.error(content, hotToastOptions);
+    } else if (type === "success") {
+      return hotToast.success(content, hotToastOptions);
+    } else if (type === "loading") {
+      return hotToast.loading(content, hotToastOptions);
+    } else {
+      return hotToast(content, hotToastOptions);
     }
   };
   

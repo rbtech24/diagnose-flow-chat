@@ -65,7 +65,7 @@ export function ProfileForm({
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
-        type: "success" // Add the type property
+        type: "success" // Always include the type property
       });
       
       setIsSubmitting(false);

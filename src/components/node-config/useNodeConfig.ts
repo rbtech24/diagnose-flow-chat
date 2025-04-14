@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { TechnicalSpecs } from '@/types/node-config';
 import { useToast } from '@/hooks/use-toast';
@@ -54,7 +55,7 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
       toast({
         title: "Validation Error",
         description: "Please fix the errors before applying changes.",
-        variant: "destructive"
+        type: "error" // Use type instead of variant
       });
       return;
     }
