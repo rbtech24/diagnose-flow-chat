@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { OfflineAwareCommunityForum } from '@/components/community/OfflineAwareCommunityForum';
-import { CommunityPost, CommunityPostType } from '@/types/community';
-import { useCommunityPosts } from '@/hooks/useCommunityPosts';
+import { CommunityPost as TypedCommunityPost, CommunityPostType } from '@/types/community';
+import { useCommunityPosts, CommunityPost } from '@/hooks/useCommunityPosts';
 import { MessageSquare, FileText, Workflow, CheckCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
@@ -31,6 +31,14 @@ export default function CompanyCommunity() {
   const techSheetRequestCount = posts.filter(post => post.type === 'tech-sheet-request').length;
   const wireDiagramRequestCount = posts.filter(post => post.type === 'wire-diagram-request').length;
   const fulfilledRequestCount = posts.filter(post => post.isSolved).length;
+  
+  // Convert posts to the expected type for OfflineAwareCommunityForum
+  const typedPosts: TypedCommunityPost[] = posts.map(post => ({
+    ...post,
+    authorId: post.authorId || "",
+    attachments: post.attachments || [],
+    views: post.views || 0
+  }));
 
   return (
     <div className="container mx-auto px-0 sm:px-4">
@@ -80,7 +88,7 @@ export default function CompanyCommunity() {
       
       <OfflineAwareCommunityForum
         basePath="/company/community"
-        initialPosts={posts}
+        initialPosts={typedPosts}
         onCreatePost={handleCreatePost}
         userRole="company"
         showDocumentTypes={true}

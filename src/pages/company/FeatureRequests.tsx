@@ -38,7 +38,8 @@ export default function CompanyFeatureRequests() {
       createdBy: frUser,
       votes: [],
       score: 0,
-      comments: []
+      comments: [],
+      category: "General" // Adding the required category property
     };
     
     // Simulate API call

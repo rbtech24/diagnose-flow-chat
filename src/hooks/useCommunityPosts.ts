@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -9,6 +10,8 @@ export interface CommunityComment {
   author: {
     id: string;
     name: string;
+    email: string;
+    role: "admin" | "company" | "tech";
     avatarUrl?: string;
   };
   createdAt: Date;
@@ -26,6 +29,8 @@ export interface CommunityPost {
   author: {
     id: string;
     name: string;
+    email: string;
+    role: "admin" | "company" | "tech";
     avatarUrl?: string;
   };
   createdAt: Date;
