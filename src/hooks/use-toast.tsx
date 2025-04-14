@@ -1,54 +1,62 @@
 
-import { ReactNode } from 'react';
-import toast from 'react-hot-toast';
+import React from "react";
+import { toast as hotToast, Toast as HotToast } from "react-hot-toast";
 
-// Define types that match shadcn/ui toast types for compatibility
-export type ToastProps = {
+type ToastType = "success" | "error" | "loading" | "custom";
+
+interface ToastOptions {
+  duration?: number;
+  position?: "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
+  icon?: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+interface ToastProps extends ToastOptions {
+  id?: string;
   title?: string;
   description?: string;
-  variant?: 'default' | 'destructive';
-  action?: ReactNode;
-};
+  type: ToastType;
+  onDismiss?: () => void;
+}
 
-// This type is needed for shadcn/ui Toaster compatibility
-export type Toast = {
-  id: string;
-  title?: string;
-  description?: string;
-  action?: ReactNode;
-  variant?: 'default' | 'destructive';
-};
-
-// Export direct toast functions
-const showToast = (props: ToastProps | string) => {
-  if (typeof props === 'string') {
-    return toast(props);
-  }
-
-  const { title, description, variant } = props;
-  const message = title 
-    ? description 
-      ? `${title}: ${description}` 
-      : title
-    : description || '';
-  
-  if (variant === 'destructive') {
-    return toast.error(message);
-  }
-  
-  return toast(message);
-};
-
-// Hook for using toast within components
-export const useToast = () => {
-  return {
-    toast: showToast,
-    success: (message: string) => toast.success(message),
-    error: (message: string) => toast.error(message),
-    dismiss: toast.dismiss,
-    toasts: [] // Empty array as we're using react-hot-toast
+export function useToast() {
+  const toast = (props: ToastProps) => {
+    const { title, description, type, duration = 5000, onDismiss, ...options } = props;
+    
+    const content = (
+      <div className="flex items-start">
+        <div>
+          {title && <div className="font-medium">{title}</div>}
+          {description && <div className="text-sm text-gray-500">{description}</div>}
+        </div>
+      </div>
+    );
+    
+    switch(type) {
+      case "success":
+        return hotToast.success(content, { duration, ...options });
+      case "error":
+        return hotToast.error(content, { duration, ...options });
+      case "loading":
+        return hotToast.loading(content, { duration, ...options });
+      case "custom":
+        return hotToast(content, { duration, ...options });
+      default:
+        return hotToast(content, { duration, ...options });
+    }
   };
-};
-
-// For direct usage without the hook
-export { toast };
+  
+  return {
+    toast,
+    dismiss: hotToast.dismiss,
+    success: (title: string, options?: Omit<ToastProps, "type" | "title">) => 
+      toast({ title, type: "success", ...options }),
+    error: (title: string, options?: Omit<ToastProps, "type" | "title">) => 
+      toast({ title, type: "error", ...options }),
+    loading: (title: string, options?: Omit<ToastProps, "type" | "title">) => 
+      toast({ title, type: "loading", ...options }),
+    custom: (title: string, options?: Omit<ToastProps, "type" | "title">) => 
+      toast({ title, type: "custom", ...options }),
+  };
+}

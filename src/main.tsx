@@ -12,9 +12,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <AuthProvider>
       <SystemMessageProvider>
         <App />
+        <Toaster position="bottom-right" />
       </SystemMessageProvider>
     </AuthProvider>
-    <Toaster position="bottom-right" />
   </React.StrictMode>,
 );
 
