@@ -96,122 +96,124 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-blue-50 px-4 py-12">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <div className="flex justify-center mb-6">
-            <img 
-              src="/lovable-uploads/626e46ce-b31c-4656-8873-f950a140763f.png" 
-              alt="Repair Autopilot" 
-              className="h-16 w-auto" 
+    <div className="flex min-h-screen items-center justify-center bg-blue-50">
+      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
+        <div className="flex justify-center mb-6">
+          <img 
+            src="/lovable-uploads/626e46ce-b31c-4656-8873-f950a140763f.png" 
+            alt="Repair Autopilot" 
+            className="h-16 w-auto" 
+          />
+        </div>
+        
+        <h1 className="text-center text-xl font-medium mb-2">
+          Sign in to your account to continue
+        </h1>
+        
+        <p className="text-center text-gray-600 mb-6">
+          Enter your credentials to access your account
+        </p>
+        
+        <div className="mb-6">
+          <div className="text-sm font-medium mb-2">Select your role</div>
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => updateRoleAndUrl("tech")}
+              className={`flex items-center justify-center gap-2 p-3 rounded border ${
+                role === "tech" 
+                  ? "bg-blue-50 border-blue-500 text-blue-700" 
+                  : "border-gray-200 hover:bg-gray-50"
+              }`}
+              aria-label="Select technician role"
+            >
+              <Wrench className="h-4 w-4" />
+              <span>Technician</span>
+            </button>
+            
+            <button
+              type="button"
+              onClick={() => updateRoleAndUrl("company")}
+              className={`flex items-center justify-center gap-2 p-3 rounded border ${
+                role === "company" 
+                  ? "bg-blue-50 border-blue-500 text-blue-700" 
+                  : "border-gray-200 hover:bg-gray-50"
+              }`}
+              aria-label="Select company role"
+            >
+              <Building className="h-4 w-4" />
+              <span>Company</span>
+            </button>
+            
+            <button
+              type="button"
+              onClick={() => updateRoleAndUrl("admin")}
+              className={`flex items-center justify-center gap-2 p-3 rounded border ${
+                role === "admin" 
+                  ? "bg-blue-50 border-blue-500 text-blue-700" 
+                  : "border-gray-200 hover:bg-gray-50"
+              }`}
+              aria-label="Select admin role"
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              <span>Admin</span>
+            </button>
+          </div>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@example.com"
+              className="bg-gray-50"
+              required
+              disabled={isLoggingIn}
             />
           </div>
           
-          <h1 className="text-center text-lg font-medium mb-6">
-            Sign in to your account to continue
-          </h1>
-          
-          <div className="mb-6">
-            <div className="text-sm font-medium mb-2">Select your role</div>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => updateRoleAndUrl("tech")}
-                className={`flex items-center justify-center gap-2 p-3 rounded border ${
-                  role === "tech" 
-                    ? "bg-blue-50 border-blue-500 text-blue-700" 
-                    : "border-gray-200 hover:bg-gray-50"
-                }`}
-                aria-label="Select technician role"
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              <Link
+                to="/forgot-password"
+                className="text-sm text-blue-600 hover:underline"
               >
-                <Wrench className="h-4 w-4" />
-                <span>Technician</span>
-              </button>
-              
-              <button
-                type="button"
-                onClick={() => updateRoleAndUrl("company")}
-                className={`flex items-center justify-center gap-2 p-3 rounded border ${
-                  role === "company" 
-                    ? "bg-blue-50 border-blue-500 text-blue-700" 
-                    : "border-gray-200 hover:bg-gray-50"
-                }`}
-                aria-label="Select company role"
-              >
-                <Building className="h-4 w-4" />
-                <span>Company</span>
-              </button>
-              
-              <button
-                type="button"
-                onClick={() => updateRoleAndUrl("admin")}
-                className={`flex items-center justify-center gap-2 p-3 rounded border ${
-                  role === "admin" 
-                    ? "bg-blue-50 border-blue-500 text-blue-700" 
-                    : "border-gray-200 hover:bg-gray-50"
-                }`}
-                aria-label="Select admin role"
-              >
-                <LayoutDashboard className="h-4 w-4" />
-                <span>Admin</span>
-              </button>
-            </div>
-          </div>
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@example.com"
-                className="bg-gray-50"
-                required
-                disabled={isLoggingIn}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link
-                  to="/forgot-password"
-                  className="text-sm text-blue-600 hover:underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-gray-50"
-                required
-                disabled={isLoggingIn}
-              />
-            </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full bg-blue-600 hover:bg-blue-700"
-              disabled={isLoggingIn}
-            >
-              {isLoggingIn && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Sign in
-            </Button>
-          </form>
-          
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{" "}
-              <Link to="/signup" className="text-blue-600 hover:underline font-medium">
-                Sign up now
+                Forgot password?
               </Link>
-            </p>
+            </div>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="bg-gray-50"
+              required
+              disabled={isLoggingIn}
+            />
           </div>
+          
+          <Button 
+            type="submit" 
+            className="w-full bg-blue-600 hover:bg-blue-700"
+            disabled={isLoggingIn}
+          >
+            {isLoggingIn && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Sign in
+          </Button>
+        </form>
+        
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600">
+            Don't have an account?{" "}
+            <Link to="/signup" className="text-blue-600 hover:underline font-medium">
+              Sign up
+            </Link>
+          </p>
         </div>
       </div>
     </div>

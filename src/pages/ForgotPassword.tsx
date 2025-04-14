@@ -46,7 +46,7 @@ export default function ForgotPassword() {
           
           <div className="flex justify-center mb-4">
             <img 
-              src="/public/lovable-uploads/626e46ce-b31c-4656-8873-f950a140763f.png" 
+              src="/lovable-uploads/626e46ce-b31c-4656-8873-f950a140763f.png" 
               alt="Repair Autopilot" 
               className="h-16 w-auto" 
             />
