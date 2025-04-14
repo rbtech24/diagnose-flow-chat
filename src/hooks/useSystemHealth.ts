@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -43,11 +44,13 @@ export function useSystemHealth(): SystemHealthMetrics {
 
         // Use real data if available, otherwise keep default values
         if (healthData && healthData.length > 0) {
-          setSystemHealth(parseFloat(healthData[0].value) || 98.7);
+          // Convert string value to number
+          setSystemHealth(parseFloat(healthData[0].value.toString()) || 98.7);
         }
 
         if (uptimeData && uptimeData.length > 0) {
-          setSystemUptime(parseFloat(uptimeData[0].value) || 99.8);
+          // Convert string value to number
+          setSystemUptime(parseFloat(uptimeData[0].value.toString()) || 99.8);
         }
 
         setError(null);

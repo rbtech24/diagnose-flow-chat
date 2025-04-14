@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +22,7 @@ export default function CompanyDashboard() {
   const { workflows, isLoading: workflowsLoading } = useWorkflows();
   
   // Get company metrics
-  const { activeJobs, teamMembers, responseTime, avgResponseTime, teamPerformance, isLoading: metricsLoading } = useCompanyMetrics(user?.company_id);
+  const { activeJobs, teamMembers, responseTime, avgResponseTime, teamPerformance, isLoading: metricsLoading } = useCompanyMetrics(user?.companyId);
   
   // Get current date
   const today = new Date();

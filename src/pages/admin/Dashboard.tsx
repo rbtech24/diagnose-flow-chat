@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -85,9 +84,9 @@ export default function AdminDashboard() {
           .select('amount');
 
         if (revenueError) throw revenueError;
-        // Calculate total revenue
+        // Calculate total revenue - ensure proper type conversion
         const totalRevenue = revenueData?.reduce((sum, transaction) => 
-          sum + (parseFloat(transaction.amount) || 0), 0) || 0;
+          sum + (parseFloat(transaction.amount.toString()) || 0), 0) || 0;
         setRevenue(totalRevenue);
 
       } catch (error) {
