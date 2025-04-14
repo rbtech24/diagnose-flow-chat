@@ -48,9 +48,8 @@ export function useToast() {
 
 // Direct toast export for simple usage without hooks
 export const toast = {
-  success: hotToast.success,
-  error: hotToast.error,
-  loading: hotToast.loading,
+  success: (message: string) => hotToast.success(message),
+  error: (message: string) => hotToast.error(message),
+  loading: (message: string) => hotToast.loading(message),
   dismiss: hotToast.dismiss
 };
-
