@@ -38,7 +38,7 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
     console.log("User not authenticated, redirecting to login");
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // For admin role, allow access to all protected routes regardless of allowedRoles
