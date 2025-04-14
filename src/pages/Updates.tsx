@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Info, RefreshCw } from "lucide-react";
 import { SystemMessage } from "@/components/system/SystemMessage";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface UpdateData {
@@ -17,6 +17,7 @@ interface UpdateData {
 }
 
 export default function Updates() {
+  const { toast } = useToast();
   const [updates, setUpdates] = useState<UpdateData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
