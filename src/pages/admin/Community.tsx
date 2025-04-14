@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { OfflineAwareCommunityForum } from '@/components/community/OfflineAwareCommunityForum';
-import { CommunityPost as TypedCommunityPost, CommunityPostType } from '@/types/community';
+import { CommunityPost as TypedCommunityPost, CommunityPostType, CommunityPostComment } from '@/types/community';
 import { useCommunityPosts, CommunityPost } from '@/hooks/useCommunityPosts';
 
 export default function AdminCommunity() {
@@ -29,7 +29,14 @@ export default function AdminCommunity() {
     ...post,
     authorId: post.authorId || "",
     attachments: post.attachments || [],
-    views: post.views || 0
+    views: post.views || 0,
+    comments: post.comments.map(comment => ({
+      ...comment,
+      authorId: comment.author.id,
+      updatedAt: comment.createdAt, // Use createdAt as updatedAt since it's not available
+      attachments: [], // Add empty attachments array
+      postId: post.id // Add postId reference
+    })) as CommunityPostComment[]
   }));
 
   return (
