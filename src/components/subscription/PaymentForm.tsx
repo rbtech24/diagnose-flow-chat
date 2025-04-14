@@ -8,15 +8,15 @@ import { SubscriptionPlan, BillingCycle } from "@/types/subscription";
 import { CheckCircle2, CreditCard, Calendar, Lock } from "lucide-react";
 
 interface PaymentFormProps {
-  plan: SubscriptionPlan;
-  billingCycle: BillingCycle;
+  plan?: SubscriptionPlan;
+  billingCycle?: BillingCycle;
   onComplete: () => void;
   onCancel: () => void;
 }
 
 export function PaymentForm({
   plan,
-  billingCycle,
+  billingCycle = "monthly",
   onComplete,
   onCancel
 }: PaymentFormProps) {
@@ -26,7 +26,7 @@ export function PaymentForm({
   const [cvv, setCvv] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const price = billingCycle === "monthly" ? plan.monthlyPrice : plan.yearlyPrice;
+  const price = plan ? (billingCycle === "monthly" ? plan.monthlyPrice : plan.yearlyPrice) : 0;
   
   const handleSubmit = () => {
     setIsSubmitting(true);

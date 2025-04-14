@@ -1,10 +1,14 @@
 
 import { useState, useCallback } from 'react';
-import { Node, Edge, Connection, useNodesState, useEdgesState } from '@xyflow/react';
+import { Node, Edge, Connection, useNodesState, useEdgesState, addEdge } from '@xyflow/react';
 import { toast } from '@/hooks/use-toast';
 import { WorkflowState, HistoryState, addToHistory } from '@/utils/workflowHistory';
 
 const LOCAL_STORAGE_KEY = 'workflow-state';
+
+interface CheckWorkflowAccessParams {
+  role?: string;
+}
 
 export function useFlowState() {
   const loadInitialState = (): WorkflowState => {
@@ -31,6 +35,20 @@ export function useFlowState() {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
   }, []);
 
+  // Add this function to check workflow access
+  const checkWorkflowAccess = useCallback(({ role }: CheckWorkflowAccessParams) => {
+    if (!role || (role !== 'admin' && role !== 'company')) {
+      toast({
+        title: "Access Denied",
+        description: "You don't have permission to access this workflow editor.",
+        type: "error",
+        variant: "destructive"
+      });
+      return false;
+    }
+    return true;
+  }, []);
+
   return {
     nodes,
     setNodes,
@@ -47,5 +65,6 @@ export function useFlowState() {
     clearSavedState,
     onNodesChange,
     onEdgesChange,
+    checkWorkflowAccess,
   };
 }

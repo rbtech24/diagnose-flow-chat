@@ -28,8 +28,9 @@ const initialPlans: SubscriptionPlan[] = [
       "Email support"
     ],
     is_active: true,
-    max_users: 3,
-    max_storage: "5GB"
+    maxTechnicians: 3,
+    max_storage: "5GB",
+    trial_period: 30
   },
   {
     id: "2",
@@ -46,8 +47,9 @@ const initialPlans: SubscriptionPlan[] = [
       "Basic analytics"
     ],
     is_active: true,
-    max_users: 10,
-    max_storage: "20GB"
+    maxTechnicians: 10,
+    max_storage: "20GB",
+    trial_period: 30
   },
   {
     id: "3",
@@ -66,8 +68,9 @@ const initialPlans: SubscriptionPlan[] = [
       "Dedicated account manager"
     ],
     is_active: true,
-    max_users: null,
-    max_storage: "100GB"
+    maxTechnicians: null,
+    max_storage: "100GB",
+    trial_period: 30
   }
 ];
 
@@ -103,8 +106,9 @@ export default function SubscriptionPlans() {
       price_yearly: 0,
       features: [],
       is_active: true,
-      max_users: null,
-      max_storage: ""
+      maxTechnicians: null,
+      max_storage: "",
+      trial_period: 30
     });
     setIsDialogOpen(true);
   };

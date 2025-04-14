@@ -1,18 +1,16 @@
+
 export interface SubscriptionPlan {
   id: string;
   name: string;
   description: string;
-  monthlyPrice: number;
-  yearlyPrice: number;
-  maxTechnicians: number;
-  maxAdmins: number;
-  dailyDiagnostics: number;
-  storageLimit: number; // in GB
+  price_monthly: number;
+  price_yearly: number;
+  maxTechnicians: number | null;
+  max_storage: string;
   features: string[];
-  trialPeriod: number; // in days
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  trial_period: number;
+  is_active: boolean;
+  recommended?: boolean;
 }
 
 export interface License {
@@ -22,14 +20,19 @@ export interface License {
   planId: string;
   planName: string;
   status: 'trial' | 'active' | 'expired' | 'canceled';
-  activeTechnicians: number;
+  activeTechnicians?: number;
   startDate: Date;
   endDate?: Date;
   trialEndsAt?: Date;
   lastPayment?: Date;
   nextPayment?: Date;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+  // Add these fields to handle the LicenseCard component usage
+  name?: string;
+  email?: string;
+  role?: string;
+  activatedOn?: string;
   usageLimits?: {
     diagnosticsPerDay: number;
     maxTechnicians: number;
