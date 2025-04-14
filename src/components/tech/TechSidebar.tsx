@@ -8,7 +8,8 @@ import {
   Lightbulb, 
   HelpCircle,
   Book,
-  Stethoscope
+  Stethoscope,
+  History
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -37,8 +38,8 @@ export function TechSidebar() {
       active: currentPath === "/tech/diagnostics"
     },
     {
-      title: "Tools",
-      icon: <Wrench className="h-5 w-5" />,
+      title: "Service History",
+      icon: <History className="h-5 w-5" />,
       href: "/tech/tools",
       active: currentPath === "/tech/tools"
     },
