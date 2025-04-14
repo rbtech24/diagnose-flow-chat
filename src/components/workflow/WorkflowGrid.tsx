@@ -96,16 +96,14 @@ export function WorkflowGrid({
 
   const handleViewWorkflow = (folder: string, name?: string) => {
     if (isReadOnly) {
-      // Just show a toast message for view-only users
       toast({
         title: "Workflow Details",
         description: `Viewing workflow: ${name || 'New Workflow'}`,
-        type: "info"
+        type: "custom"
       });
       return;
     }
     
-    // For admins, open the editor
     onOpenWorkflowEditor(folder, name);
   };
 
@@ -132,7 +130,7 @@ export function WorkflowGrid({
               (symptomName) => toast({
                 title: "View Only",
                 description: `Viewing ${symptomName} in ${appliance.name}`,
-                type: "info"
+                type: "custom"
               }) : 
               (symptomName) => onOpenWorkflowEditor(appliance.name, symptomName)
             }

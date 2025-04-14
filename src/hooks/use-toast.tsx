@@ -2,7 +2,7 @@
 import React from "react";
 import { toast as hotToast, type Toast as HotToast } from "react-hot-toast";
 
-export type ToastType = "success" | "error" | "loading" | "custom";
+export type ToastType = "success" | "error" | "loading" | "custom" | "info";
 
 export interface ToastProps {
   id?: string;
@@ -35,7 +35,9 @@ export function useToast() {
     
     const hotToastOptions = {
       duration,
-      ...options
+      // Only pass properties that are valid for react-hot-toast
+      ...(options.id && { id: options.id }),
+      ...(options.position && { position: options.position })
     };
     
     // Use variant to determine error if specified, otherwise use type
@@ -45,6 +47,8 @@ export function useToast() {
       return hotToast.success(content, hotToastOptions);
     } else if (type === "loading") {
       return hotToast.loading(content, hotToastOptions);
+    } else if (type === "info") {
+      return hotToast(content, hotToastOptions);
     } else {
       return hotToast(content, hotToastOptions);
     }
@@ -59,6 +63,8 @@ export function useToast() {
       toast({ title, type: "error", ...options }),
     loading: (title: string, options?: Omit<ToastProps, "type" | "title">) => 
       toast({ title, type: "loading", ...options }),
+    info: (title: string, options?: Omit<ToastProps, "type" | "title">) => 
+      toast({ title, type: "info", ...options }),
     custom: (title: string, options?: Omit<ToastProps, "type" | "title">) => 
       toast({ title, type: "custom", ...options }),
   };
@@ -69,6 +75,7 @@ export const toast = {
   success: (message: string) => hotToast.success(message),
   error: (message: string) => hotToast.error(message),
   loading: (message: string) => hotToast.loading(message),
+  info: (message: string) => hotToast(message),
   custom: (message: string) => hotToast(message),
   dismiss: hotToast.dismiss
 };
