@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { SubscriptionPlanCard } from '@/components/admin/subscription/SubscriptionPlanCard';
 import { Plus, Download, Upload, ArrowUpDown } from 'lucide-react';
 import { SubscriptionPlan } from '@/types/subscription';
+import { SubscriptionPlanForm } from '@/components/subscription/SubscriptionPlanForm';
 
 const initialPlans: SubscriptionPlan[] = [
   {
@@ -276,6 +277,25 @@ export default function SubscriptionPlans() {
           </div>
         </TabsContent>
       </Tabs>
+      
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editingPlan?.id ? "Edit Plan" : "Create New Plan"}</DialogTitle>
+            <DialogDescription>
+              {editingPlan?.id 
+                ? "Update the details of this subscription plan." 
+                : "Fill in the details to create a new subscription plan."}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <SubscriptionPlanForm
+            initialData={editingPlan}
+            onSubmit={handleSavePlan}
+            onCancel={() => setIsDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

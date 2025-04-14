@@ -1,56 +1,39 @@
 
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { FlowEditorContent } from "@/components/flow/FlowEditorContent";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useFlowState } from "@/hooks/useFlowState";
-import { useUserRole } from "@/hooks/useUserRole";
+import { FlowEditorContent } from "@/components/flow/FlowEditorContent";
 import { useToast } from "@/hooks/use-toast";
+import { useUserRole } from "@/hooks/useUserRole";
 
 export default function WorkflowEditor() {
-  const location = useLocation();
-  const [applianceName, setApplianceName] = useState<string | null>(null);
-  const [symptomName, setSymptomName] = useState<string | null>(null);
-  const { role } = useUserRole();
-  const flowState = useFlowState();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const folder = searchParams.get("folder") || "";
+  const name = searchParams.get("name") || "";
   const { toast } = useToast();
+  const { role } = useUserRole();
+  const { checkWorkflowAccess } = useFlowState();
 
   useEffect(() => {
-    // Extract query parameters from the URL
-    const params = new URLSearchParams(location.search);
-    const appliance = params.get("appliance");
-    const symptom = params.get("symptom");
-    
-    if (appliance) {
-      setApplianceName(appliance);
+    // Prevent access if the user doesn't have proper permissions
+    if (!checkWorkflowAccess(role)) {
+      toast({
+        title: "Access denied",
+        description: "You don't have permission to edit workflows.",
+        variant: "destructive",
+      });
+      navigate(role === "admin" ? "/admin" : role === "company" ? "/company" : "/tech");
     }
-    
-    if (symptom) {
-      setSymptomName(symptom);
-    }
+  }, [navigate, role, checkWorkflowAccess, toast]);
 
-    // Check access to this workflow
-    flowState.checkWorkflowAccess({ role });
-  }, [location, role, flowState]);
+  if (!folder) {
+    return <div>Error: Missing folder parameter</div>;
+  }
 
-  // Pass the props correctly matching FlowEditorContent's expected props
   return (
-    <FlowEditorContent 
-      nodes={flowState.nodes}
-      edges={flowState.edges}
-      isLoading={flowState.isLoading}
-      snapToGrid={flowState.snapToGrid}
-      onNodesChange={flowState.onNodesChange}
-      onEdgesChange={flowState.onEdgesChange}
-      onConnect={() => {}}
-      onNodeClick={() => {}}
-      onQuickSave={() => {}}
-      onAddNode={() => {}}
-      onSave={() => Promise.resolve()}
-      onFileImport={() => {}}
-      onFileInputClick={() => {}}
-      onCopySelected={() => {}}
-      onPaste={() => {}}
-      appliances={applianceName ? [applianceName] : []}
-    />
+    <div className="h-screen w-full overflow-hidden">
+      <FlowEditorContent />
+    </div>
   );
 }

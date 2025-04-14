@@ -1,3 +1,4 @@
+
 export interface SubscriptionPlan {
   id: string;
   name: string;
@@ -6,7 +7,7 @@ export interface SubscriptionPlan {
   price_yearly: number;
   monthlyPrice?: number; // For backward compatibility
   yearlyPrice?: number; // For backward compatibility
-  maxTechnicians: number | null;
+  maxTechnicians?: number | null;
   maxAdmins?: number;
   dailyDiagnostics?: number;
   storageLimit?: number | string;
