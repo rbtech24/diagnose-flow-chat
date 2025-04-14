@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Moon, Sun, Monitor } from "lucide-react";
 
 export function ThemePreferences() {
@@ -25,6 +25,7 @@ export function ThemePreferences() {
       toast({
         title: "Theme preferences saved",
         description: "Your theme preferences have been updated successfully.",
+        type: "success"
       });
       
       setIsSaving(false);

@@ -1,4 +1,3 @@
-
 import { ApplianceCard } from '@/components/appliance/ApplianceCard';
 import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
@@ -88,7 +87,8 @@ export function WorkflowGrid({
         onMoveWorkflowToFolder?.(workflow, targetAppliance);
         toast({
           title: "Workflow Moved",
-          description: `Workflow moved to ${targetAppliance}`
+          description: `Workflow moved to ${targetAppliance}`,
+          type: "success"
         });
       }
     }
@@ -99,7 +99,8 @@ export function WorkflowGrid({
       // Just show a toast message for view-only users
       toast({
         title: "Workflow Details",
-        description: `Viewing workflow: ${name || 'New Workflow'}`
+        description: `Viewing workflow: ${name || 'New Workflow'}`,
+        type: "info"
       });
       return;
     }
@@ -130,7 +131,8 @@ export function WorkflowGrid({
             onOpenWorkflowEditor={isReadOnly ? 
               (symptomName) => toast({
                 title: "View Only",
-                description: `Viewing ${symptomName} in ${appliance.name}`
+                description: `Viewing ${symptomName} in ${appliance.name}`,
+                type: "info"
               }) : 
               (symptomName) => onOpenWorkflowEditor(appliance.name, symptomName)
             }

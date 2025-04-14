@@ -1,4 +1,3 @@
-
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import FlowEditor from '@/components/FlowEditor';
 import NodeConfigPanel from '@/components/NodeConfigPanel';
@@ -37,7 +36,7 @@ export default function WorkflowEditor() {
         // Check access - removed the argument since checkWorkflowAccess doesn't take any
         const checkAccess = async () => {
           try {
-            const hasAccess = checkWorkflowAccess();
+            const hasAccess = checkWorkflowAccess(workflowId);
             
             if (!hasAccess) {
               toast("Your license doesn't allow editing this workflow.");

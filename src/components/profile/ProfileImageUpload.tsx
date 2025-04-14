@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Upload, Trash2 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 
 interface ProfileImageUploadProps {
@@ -26,6 +26,7 @@ export function ProfileImageUpload({ currentImageUrl, onImageUpdate }: ProfileIm
       toast({
         title: "Invalid file type",
         description: "Please upload an image file (jpg, png, etc.)",
+        type: "error",
         variant: "destructive"
       });
       return;
@@ -35,6 +36,7 @@ export function ProfileImageUpload({ currentImageUrl, onImageUpdate }: ProfileIm
       toast({
         title: "File too large",
         description: "Image file size must be less than 5MB",
+        type: "error",
         variant: "destructive"
       });
       return;
@@ -60,6 +62,7 @@ export function ProfileImageUpload({ currentImageUrl, onImageUpdate }: ProfileIm
       toast({
         title: "Profile image updated",
         description: "Your profile image has been successfully updated.",
+        type: "success"
       });
     }, 1500);
   };
@@ -71,6 +74,7 @@ export function ProfileImageUpload({ currentImageUrl, onImageUpdate }: ProfileIm
     toast({
       title: "Profile image removed",
       description: "Your profile image has been removed.",
+      type: "success"
     });
   };
   

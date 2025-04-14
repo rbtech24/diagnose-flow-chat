@@ -13,7 +13,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { updateUserPassword } from "@/utils/auth";
 
@@ -62,6 +62,7 @@ export function PasswordForm({ onSubmit }: PasswordFormProps) {
         toast({
           title: "Error",
           description: error.message || "Failed to update password.",
+          type: "error",
           variant: "destructive",
         });
       } else {
@@ -72,6 +73,7 @@ export function PasswordForm({ onSubmit }: PasswordFormProps) {
         toast({
           title: "Password updated",
           description: "Your password has been updated successfully.",
+          type: "success"
         });
         
         form.reset();
@@ -80,6 +82,7 @@ export function PasswordForm({ onSubmit }: PasswordFormProps) {
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
+        type: "error",
         variant: "destructive",
       });
     } finally {

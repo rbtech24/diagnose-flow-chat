@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Bell, Mail, MessageSquare, AlertTriangle, Smartphone } from "lucide-react";
 
 export function NotificationSettings() {
@@ -52,6 +52,7 @@ export function NotificationSettings() {
       toast({
         title: "Notification settings saved",
         description: "Your notification preferences have been updated successfully.",
+        type: "success"
       });
       
       setIsSaving(false);
