@@ -1,81 +1,54 @@
 
 import React from "react";
-import { toast as hotToast, type Toast as HotToast } from "react-hot-toast";
+import { toast as hotToast } from "react-hot-toast";
 
 export type ToastType = "success" | "error" | "loading" | "custom" | "info";
 
 export interface ToastProps {
-  id?: string;
   title?: string;
   description?: string;
-  type?: ToastType; // Changed to optional
+  type?: ToastType;
   duration?: number;
-  position?: "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
-  icon?: React.ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
-  variant?: "default" | "destructive"; // Optional property
-  onDismiss?: () => void;
 }
-
-export type Toast = ToastProps;
 
 export function useToast() {
-  const toast = (props: ToastProps) => {
-    const { title, description, type, variant, duration = 5000, onDismiss, ...options } = props;
-    
-    const content = (
-      <div className="flex items-start">
-        <div>
-          {title && <div className="font-medium">{title}</div>}
-          {description && <div className="text-sm text-gray-500">{description}</div>}
-        </div>
-      </div>
-    );
-    
-    const hotToastOptions = {
-      duration,
-      // Only pass properties that are valid for react-hot-toast
-      ...(options.id && { id: options.id }),
-      ...(options.position && { position: options.position })
-    };
-    
-    // Use variant to determine error if specified, otherwise use type
-    if (variant === "destructive" || type === "error") {
-      return hotToast.error(content, hotToastOptions);
-    } else if (type === "success") {
-      return hotToast.success(content, hotToastOptions);
-    } else if (type === "loading") {
-      return hotToast.loading(content, hotToastOptions);
-    } else if (type === "info") {
-      return hotToast(content, hotToastOptions);
-    } else {
-      return hotToast(content, hotToastOptions);
+  const toast = (props: ToastProps | string) => {
+    if (typeof props === 'string') {
+      return hotToast(props);
+    }
+
+    const { title, description, type, duration = 3000 } = props;
+    const message = title 
+      ? description 
+        ? `${title}: ${description}` 
+        : title 
+      : description || '';
+
+    switch(type) {
+      case 'success':
+        return hotToast.success(message, { duration });
+      case 'error':
+        return hotToast.error(message, { duration });
+      case 'loading':
+        return hotToast.loading(message, { duration });
+      default:
+        return hotToast(message, { duration });
     }
   };
-  
+
   return {
     toast,
-    dismiss: hotToast.dismiss,
-    success: (title: string, options?: Omit<ToastProps, "type" | "title">) => 
-      toast({ title, type: "success", ...options }),
-    error: (title: string, options?: Omit<ToastProps, "type" | "title">) => 
-      toast({ title, type: "error", ...options }),
-    loading: (title: string, options?: Omit<ToastProps, "type" | "title">) => 
-      toast({ title, type: "loading", ...options }),
-    info: (title: string, options?: Omit<ToastProps, "type" | "title">) => 
-      toast({ title, type: "info", ...options }),
-    custom: (title: string, options?: Omit<ToastProps, "type" | "title">) => 
-      toast({ title, type: "custom", ...options }),
+    success: (message: string) => hotToast.success(message),
+    error: (message: string) => hotToast.error(message),
+    loading: (message: string) => hotToast.loading(message),
+    dismiss: hotToast.dismiss
   };
 }
 
-// Export a simplified version for direct use
+// Direct toast export for simple usage
 export const toast = {
-  success: (message: string) => hotToast.success(message),
-  error: (message: string) => hotToast.error(message),
-  loading: (message: string) => hotToast.loading(message),
-  info: (message: string) => hotToast(message),
-  custom: (message: string) => hotToast(message),
+  success: hotToast.success,
+  error: hotToast.error,
+  loading: hotToast.loading,
   dismiss: hotToast.dismiss
 };
