@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+
+import React from "react";  // Add this import at the top of the file
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
