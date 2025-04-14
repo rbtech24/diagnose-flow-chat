@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2, AlertTriangle } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -31,6 +31,7 @@ export function AccountDeletion() {
       toast({
         title: "Account deleted",
         description: "Your account has been scheduled for deletion. You will be logged out shortly.",
+        type: "success" // Added type property
       });
       
       // In a real app, you would redirect to logout

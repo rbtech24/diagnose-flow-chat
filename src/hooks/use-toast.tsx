@@ -8,13 +8,13 @@ export interface ToastProps {
   id?: string;
   title?: string;
   description?: string;
-  type: ToastType; // Make type required
+  type: ToastType; // Required property
   duration?: number;
   position?: "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
   icon?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
-  variant?: "default" | "destructive"; // Add variant to type definition
+  variant?: "default" | "destructive"; // Optional property
   onDismiss?: () => void;
 }
 

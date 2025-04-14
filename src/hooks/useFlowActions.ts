@@ -33,7 +33,7 @@ export function useFlowActions(
       toast({
         title: "Connection Success",
         description: "Nodes have been connected successfully.",
-        type: "success"
+        type: "success" // Added type property
       });
     },
     [setEdges, nodes, nodeCounter, history, setHistory, toast]
@@ -46,7 +46,7 @@ export function useFlowActions(
       toast({
         title: "Copied",
         description: `${selectedNodes.length} node(s) copied to clipboard`,
-        type: "success"
+        type: "success" // Added type property
       });
     }
   }, [nodes, setCopiedNodes, toast]);
@@ -97,13 +97,13 @@ export function useFlowActions(
       toast({
         title: "Saved",
         description: "Your changes have been saved automatically.",
-        type: "success"
+        type: "success" // Added type property
       });
     } else {
       toast({
         title: "Error",
         description: "This is a new workflow. Please use 'Save Workflow' to save it first.",
-        type: "error"
+        type: "error" // Use type instead of variant
       });
     }
   }, [nodes, edges, nodeCounter, currentWorkflow, toast]);

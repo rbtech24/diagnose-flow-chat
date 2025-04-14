@@ -24,7 +24,8 @@ export function StatusSubscriptionModal({ open, onOpenChange }: StatusSubscripti
       toast({
         title: "Invalid email",
         description: "Please enter a valid email address.",
-        variant: "destructive"
+        type: "error", // Use type instead of variant
+        variant: "destructive" // Keep variant for styling if needed
       });
       return;
     }
@@ -39,6 +40,7 @@ export function StatusSubscriptionModal({ open, onOpenChange }: StatusSubscripti
       toast({
         title: "Subscription successful",
         description: "You will now receive status updates to your email.",
+        type: "success" // Added type property
       });
       
       setEmail("");
@@ -47,7 +49,8 @@ export function StatusSubscriptionModal({ open, onOpenChange }: StatusSubscripti
       toast({
         title: "Subscription failed",
         description: "There was an error subscribing to status updates.",
-        variant: "destructive"
+        type: "error", // Use type instead of variant
+        variant: "destructive" // Keep variant for styling if needed
       });
     } finally {
       setIsLoading(false);
