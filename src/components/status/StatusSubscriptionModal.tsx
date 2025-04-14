@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -24,15 +23,13 @@ export function StatusSubscriptionModal({ open, onOpenChange }: StatusSubscripti
       toast({
         title: "Invalid email",
         description: "Please enter a valid email address.",
-        type: "error",
-        variant: "destructive"
+        type: "error"
       });
       return;
     }
 
     setIsLoading(true);
     
-    // Simulate API call
     try {
       // Here you would normally have an API call to subscribe the user
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -49,8 +46,7 @@ export function StatusSubscriptionModal({ open, onOpenChange }: StatusSubscripti
       toast({
         title: "Subscription failed",
         description: "There was an error subscribing to status updates.",
-        type: "error",
-        variant: "destructive"
+        type: "error"
       });
     } finally {
       setIsLoading(false);
