@@ -9,6 +9,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 // Lazy load pages for better performance
 const Login = lazy(() => import("./pages/Login"));
 const SignUp = lazy(() => import("./pages/SignUp"));
+const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -104,6 +105,7 @@ function App() {
                 </ErrorBoundary>
               } />
               <Route path="/signup" element={<SignUp />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
 
