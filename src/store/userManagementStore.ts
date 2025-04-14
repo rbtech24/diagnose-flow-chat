@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'react-hot-toast';
@@ -84,7 +85,7 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
         technicianCount: company.technician_count || 0,
         createdAt: new Date(company.created_at),
         updatedAt: new Date(company.updated_at),
-        trialEndsAt: company.trial_ends_at || company.trial_end_date ? new Date(company.trial_ends_at || company.trial_end_date) : undefined,
+        trialEndsAt: company.trial_end_date ? new Date(company.trial_end_date) : undefined,
         subscriptionEndsAt: company.subscription_ends_at ? new Date(company.subscription_ends_at) : undefined,
       }));
       
@@ -157,7 +158,7 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
         technicianCount: data.technician_count || 0,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
-        trialEndsAt: data.trial_ends_at || data.trial_end_date ? new Date(data.trial_ends_at || data.trial_end_date) : undefined,
+        trialEndsAt: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
         subscriptionEndsAt: data.subscription_ends_at ? new Date(data.subscription_ends_at) : undefined,
       };
     } catch (error) {
@@ -185,7 +186,7 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
           plan_name: companyData.planName,
           status: companyData.status,
           technician_count: companyData.technicianCount || 0,
-          trial_ends_at: companyData.trialEndsAt?.toISOString(),
+          trial_end_date: companyData.trialEndsAt?.toISOString(),
           subscription_ends_at: companyData.subscriptionEndsAt?.toISOString(),
         }])
         .select()
@@ -210,7 +211,7 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
         technicianCount: data.technician_count || 0,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
-        trialEndsAt: data.trial_ends_at ? new Date(data.trial_ends_at) : undefined,
+        trialEndsAt: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
         subscriptionEndsAt: data.subscription_ends_at ? new Date(data.subscription_ends_at) : undefined,
       };
       
@@ -245,7 +246,7 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
       if (updates.planName !== undefined) dbUpdates.plan_name = updates.planName;
       if (updates.status !== undefined) dbUpdates.status = updates.status;
       if (updates.technicianCount !== undefined) dbUpdates.technician_count = updates.technicianCount;
-      if (updates.trialEndsAt !== undefined) dbUpdates.trial_ends_at = updates.trialEndsAt?.toISOString();
+      if (updates.trialEndsAt !== undefined) dbUpdates.trial_end_date = updates.trialEndsAt?.toISOString();
       if (updates.subscriptionEndsAt !== undefined) dbUpdates.subscription_ends_at = updates.subscriptionEndsAt?.toISOString();
       
       // Always update the updated_at field
@@ -277,7 +278,7 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
         technicianCount: data.technician_count || 0,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
-        trialEndsAt: data.trial_ends_at ? new Date(data.trial_ends_at) : undefined,
+        trialEndsAt: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
         subscriptionEndsAt: data.subscription_ends_at ? new Date(data.subscription_ends_at) : undefined,
       };
       
