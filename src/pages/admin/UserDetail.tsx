@@ -18,6 +18,7 @@ export default function UserDetail() {
   const [userData, setUserData] = useState<any>(null);
   const [isPasswordResetDialogOpen, setIsPasswordResetDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -323,10 +324,13 @@ export default function UserDetail() {
               Send a password reset email to {userData.email}
             </DialogDescription>
           </DialogHeader>
-          <AdminPasswordResetForm 
-            email={userData.email}
-            onSubmit={handleResetPassword}
-            onCancel={() => setIsPasswordResetDialogOpen(false)}
+          <AdminPasswordResetForm
+            userId={userData.id}
+            onSuccess={() => {
+              setResetPasswordOpen(false);
+              // Add any success handling here
+            }}
+            onCancel={() => setResetPasswordOpen(false)}
           />
         </DialogContent>
       </Dialog>

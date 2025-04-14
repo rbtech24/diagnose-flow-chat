@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -11,9 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { SubscriptionPlanCard } from '@/components/admin/subscription/SubscriptionPlanCard';
 import { Plus, Download, Upload, ArrowUpDown } from 'lucide-react';
-import { SubscriptionPlan } from '@/hooks/useSubscriptionPlans';
+import { SubscriptionPlan } from '@/types/subscription';
 
-// Mock data for subscription plans
 const initialPlans: SubscriptionPlan[] = [
   {
     id: "1",
@@ -94,7 +92,6 @@ export default function SubscriptionPlans() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Simulate API call to fetch plans
     const fetchPlans = async () => {
       try {
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -145,7 +142,6 @@ export default function SubscriptionPlans() {
 
   const handleSavePlan = (data: SubscriptionPlan) => {
     if (data.id) {
-      // Update existing plan
       setPlans(prevPlans => 
         prevPlans.map(plan => plan.id === data.id ? data : plan)
       );
@@ -155,7 +151,6 @@ export default function SubscriptionPlans() {
         type: "success"
       });
     } else {
-      // Add new plan
       const newPlan = { ...data, id: `plan-${Date.now()}` };
       setPlans(prevPlans => [...prevPlans, newPlan]);
       toast({
