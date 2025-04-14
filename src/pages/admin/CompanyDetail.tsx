@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -9,18 +8,19 @@ import { Link } from "react-router-dom";
 import { useUserManagementStore } from "@/store/userManagementStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { DeleteCompanyDialog } from "@/components/companies/DeleteCompanyDialog";
 
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { companies, users, fetchCompanyById, fetchUsers, deleteCompany } = useUserManagementStore();
+  const { companies, users, fetchCompanyById, fetchUsers } = useUserManagementStore();
   const [companyData, setCompanyData] = useState<any>(null);
   const [companyUsers, setCompanyUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -58,34 +58,6 @@ export default function CompanyDetail() {
     
     loadData();
   }, [id, fetchCompanyById, fetchUsers, users, navigate, toast]);
-
-  const handleDeleteCompany = async () => {
-    if (!id) return;
-    
-    try {
-      const success = await deleteCompany(id);
-      if (success) {
-        toast({
-          title: "Company deleted",
-          description: "The company has been successfully deleted.",
-        });
-        navigate("/admin/companies");
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to delete company.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error deleting company:", error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleEditCompany = () => {
     navigate(`/admin/companies/${id}/edit`);
@@ -182,6 +154,7 @@ export default function CompanyDetail() {
                 </p>
               </div>
             </div>
+            
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-1">
                 <span className="text-sm text-muted-foreground">Contact</span>
@@ -225,25 +198,13 @@ export default function CompanyDetail() {
               <Button variant="outline" size="sm" onClick={handleEditCompany}>
                 Edit Company
               </Button>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="sm">Delete Company</Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action will permanently delete the company and all associated users. This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteCompany}>
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                onClick={() => setIsDeleteDialogOpen(true)}
+              >
+                Delete Company
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -404,6 +365,13 @@ export default function CompanyDetail() {
           )}
         </CardContent>
       </Card>
+
+      <DeleteCompanyDialog
+        companyId={id || ""}
+        companyName={companyData.name}
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+      />
     </div>
   );
 }

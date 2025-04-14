@@ -2,6 +2,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,21 +12,32 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUserManagementStore } from "@/store/userManagementStore";
 import { UserWithPassword } from "@/types/user";
+import { toast } from "react-hot-toast";
 
 const userFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   role: z.enum(["admin", "company", "tech"]),
   phone: z.string().min(10, "Phone number must be at least 10 characters").optional(),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
   companyId: z.string().optional(),
+  status: z.enum(["active", "inactive", "pending", "archived", "deleted"]).default("active"),
 });
 
 type UserFormValues = z.infer<typeof userFormSchema>;
 
 export default function UserNew() {
   const navigate = useNavigate();
-  const { addUser, companies } = useUserManagementStore();
+  const { addUser, companies, fetchCompanies } = useUserManagementStore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    fetchCompanies();
+  }, [fetchCompanies]);
 
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
@@ -36,12 +48,20 @@ export default function UserNew() {
       phone: "",
       password: "",
       companyId: undefined,
+      status: "active",
     },
   });
 
   const selectedRole = form.watch("role");
 
   const onSubmit = async (data: UserFormValues) => {
+    if (selectedRole !== "admin" && !data.companyId) {
+      toast.error("Company is required for company managers and technicians");
+      return;
+    }
+
+    setIsSubmitting(true);
+    
     try {
       const userData: UserWithPassword = {
         name: data.name,
@@ -50,13 +70,22 @@ export default function UserNew() {
         phone: data.phone,
         password: data.password,
         companyId: data.companyId,
-        status: "active" // Status is now required in UserWithPassword
+        status: data.status
       };
       
       const newUser = await addUser(userData);
-      navigate(`/admin/users/${newUser.id}`);
+      
+      if (newUser && newUser.id) {
+        toast.success("User created successfully!");
+        navigate(`/admin/users/${newUser.id}`);
+      } else {
+        toast.error("Failed to create user. Please try again.");
+      }
     } catch (error) {
       console.error("Failed to create user:", error);
+      toast.error("An error occurred while creating the user.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -155,6 +184,33 @@ export default function UserNew() {
                 )}
               />
 
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="archived">Archived</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      The current status of this user account
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               {(selectedRole === "company" || selectedRole === "tech") && (
                 <FormField
                   control={form.control}
@@ -162,18 +218,27 @@ export default function UserNew() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Company</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a company" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {companies.map((company) => (
-                            <SelectItem key={company.id} value={company.id}>
-                              {company.name}
+                          {companies.length === 0 ? (
+                            <SelectItem value="no-companies" disabled>
+                              No companies available
                             </SelectItem>
-                          ))}
+                          ) : (
+                            companies.map((company) => (
+                              <SelectItem key={company.id} value={company.id}>
+                                {company.name}
+                              </SelectItem>
+                            ))
+                          )}
                         </SelectContent>
                       </Select>
                       <FormDescription>
@@ -197,7 +262,7 @@ export default function UserNew() {
                       <Input type="password" placeholder="••••••••" {...field} />
                     </FormControl>
                     <FormDescription>
-                      The user will be asked to change this on first login
+                      Must include uppercase, lowercase, number, and special character
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -212,7 +277,9 @@ export default function UserNew() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit">Create User</Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Creating..." : "Create User"}
+                </Button>
               </div>
             </form>
           </Form>

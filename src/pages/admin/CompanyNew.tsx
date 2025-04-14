@@ -1,7 +1,9 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +11,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUserManagementStore } from "@/store/userManagementStore";
+import { toast } from "react-hot-toast";
 
 const companyFormSchema = z.object({
   name: z.string().min(2, "Company name must be at least 2 characters"),
@@ -30,6 +33,7 @@ type CompanyFormValues = z.infer<typeof companyFormSchema>;
 export default function CompanyNew() {
   const navigate = useNavigate();
   const { addCompany } = useUserManagementStore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<CompanyFormValues>({
     resolver: zodResolver(companyFormSchema),
@@ -50,6 +54,8 @@ export default function CompanyNew() {
   });
 
   const onSubmit = async (data: CompanyFormValues) => {
+    setIsSubmitting(true);
+    
     try {
       const now = new Date();
       const newCompany = await addCompany({
@@ -68,9 +74,18 @@ export default function CompanyNew() {
         createdAt: now,
         updatedAt: now
       });
-      navigate(`/admin/companies/${newCompany.id}`);
+      
+      if (newCompany && newCompany.id) {
+        toast.success("Company created successfully!");
+        navigate(`/admin/companies/${newCompany.id}`);
+      } else {
+        toast.error("Failed to create company. Please try again.");
+      }
     } catch (error) {
       console.error("Failed to create company:", error);
+      toast.error("An error occurred while creating the company.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -277,7 +292,7 @@ export default function CompanyNew() {
                 />
               </div>
 
-              <div className="flex justify-end gap-3">
+              <div className="flex justify-end gap-3 pt-4">
                 <Button
                   type="button"
                   variant="outline"
@@ -285,7 +300,9 @@ export default function CompanyNew() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit">Create Company</Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Creating..." : "Create Company"}
+                </Button>
               </div>
             </form>
           </Form>
