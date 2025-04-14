@@ -1,5 +1,3 @@
-
-// For SubscriptionPlans.tsx, just updating the one error instance since the file is very large
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -30,8 +28,8 @@ const initialPlans: SubscriptionPlan[] = [
     isActive: true,
     maxTechnicians: 3,
     max_storage: "5GB",
-    trial_period: 30,
-    trialPeriod: 30
+    trial_period: 14,
+    trialPeriod: 14
   },
   {
     id: "2",
@@ -53,8 +51,8 @@ const initialPlans: SubscriptionPlan[] = [
     isActive: true,
     maxTechnicians: 10,
     max_storage: "20GB",
-    trial_period: 30,
-    trialPeriod: 30
+    trial_period: 14,
+    trialPeriod: 14
   },
   {
     id: "3",
@@ -78,8 +76,8 @@ const initialPlans: SubscriptionPlan[] = [
     isActive: true,
     maxTechnicians: null,
     max_storage: "100GB",
-    trial_period: 30,
-    trialPeriod: 30
+    trial_period: 14,
+    trialPeriod: 14
   }
 ];
 
