@@ -32,7 +32,7 @@ export function useCompanyMetrics(companyId?: string): CompanyMetrics {
         const { count: techCount, error: techError } = await supabase
           .from('users')
           .select('*', { count: 'exact', head: true })
-          .eq('companyId', companyId)
+          .eq('company_id', companyId)
           .eq('role', 'tech');
           
         if (techError) throw techError;
@@ -41,7 +41,7 @@ export function useCompanyMetrics(companyId?: string): CompanyMetrics {
         const { count: jobsCount, error: jobsError } = await supabase
           .from('repairs')
           .select('*', { count: 'exact', head: true })
-          .eq('companyId', companyId)
+          .eq('company_id', companyId)
           .eq('status', 'in_progress');
           
         if (jobsError) throw jobsError;
@@ -65,11 +65,11 @@ export function useCompanyMetrics(companyId?: string): CompanyMetrics {
         
       } catch (err) {
         console.error("Error fetching company metrics:", err);
-        setMetrics({
-          ...metrics,
+        setMetrics(prevMetrics => ({
+          ...prevMetrics,
           isLoading: false,
           error: err instanceof Error ? err : new Error(String(err))
-        });
+        }));
       }
     }
     

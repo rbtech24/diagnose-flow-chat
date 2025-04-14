@@ -62,7 +62,8 @@ export function useKnowledgeSync() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: action !== 'delete' ? article : undefined
+        body: action !== 'delete' ? JSON.stringify(article) : undefined,
+        timestamp: Date.now()
       });
       
       // Update pending count

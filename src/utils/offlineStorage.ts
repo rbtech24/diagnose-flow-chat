@@ -63,6 +63,17 @@ export function clearOfflineData(): void {
   keys.forEach(key => localStorage.removeItem(key));
 }
 
+// Type definition for pending updates
+export interface PendingUpdate {
+  id?: string;
+  url: string;
+  method: string;
+  headers?: Record<string, string>;
+  body?: string;
+  timestamp: number;
+  attempts?: number;
+}
+
 // Knowledge base specific storage utilities
 export const knowledgeStorage = {
   async storeArticle(article: any): Promise<void> {
@@ -136,17 +147,6 @@ export const communityStorage = {
     localStorage.setItem('offline_community_pending_updates', JSON.stringify(filteredUpdates));
   }
 };
-
-// Type definition for pending updates
-export interface PendingUpdate {
-  id?: string;
-  url: string;
-  method: string;
-  headers?: Record<string, string>;
-  body?: string;
-  timestamp: number;
-  attempts?: number;
-}
 
 // Function to get all pending updates from all storage types
 export async function getAllPendingUpdates(): Promise<{
