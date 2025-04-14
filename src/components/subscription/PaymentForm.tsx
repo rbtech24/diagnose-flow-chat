@@ -26,7 +26,11 @@ export function PaymentForm({
   const [cvv, setCvv] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const price = plan ? (billingCycle === "monthly" ? plan.monthlyPrice : plan.yearlyPrice) : 0;
+  const price = plan ? (
+    billingCycle === "monthly" 
+      ? (plan.monthlyPrice !== undefined ? plan.monthlyPrice : plan.price_monthly) 
+      : (plan.yearlyPrice !== undefined ? plan.yearlyPrice : plan.price_yearly)
+  ) : 0;
   
   const handleSubmit = () => {
     setIsSubmitting(true);
@@ -71,11 +75,11 @@ export function PaymentForm({
       <div className="bg-gray-50 p-4 rounded-lg">
         <div className="flex justify-between items-center">
           <div>
-            <h3 className="font-medium">{plan.name} Plan</h3>
+            <h3 className="font-medium">{plan?.name} Plan</h3>
             <p className="text-gray-500 text-sm">{billingCycle === "monthly" ? "Monthly" : "Annual"} billing</p>
           </div>
           <div className="text-right">
-            <div className="font-bold text-lg">${price.toFixed(2)}</div>
+            <div className="font-bold text-lg">${price?.toFixed(2)}</div>
             <p className="text-gray-500 text-sm">
               {billingCycle === "monthly" ? "per month" : "per year"}
             </p>
@@ -87,23 +91,23 @@ export function PaymentForm({
         <div className="space-y-1">
           <div className="flex items-start text-sm">
             <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
-            <span>Up to {plan.maxTechnicians} technicians & {plan.maxAdmins} admins</span>
+            <span>Up to {plan?.maxTechnicians} technicians & {plan?.maxAdmins || 1} admins</span>
           </div>
           <div className="flex items-start text-sm">
             <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
-            <span>{plan.dailyDiagnostics} diagnostics per day</span>
+            <span>{plan?.dailyDiagnostics || 20} diagnostics per day</span>
           </div>
           <div className="flex items-start text-sm">
             <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
-            <span>{plan.storageLimit} GB storage</span>
+            <span>{plan?.storageLimit || plan?.max_storage || "10 GB"} storage</span>
           </div>
-          {plan.features.slice(0, 3).map((feature, index) => (
+          {plan?.features?.slice(0, 3).map((feature, index) => (
             <div key={index} className="flex items-start text-sm">
               <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
               <span>{feature}</span>
             </div>
           ))}
-          {plan.features.length > 3 && (
+          {plan?.features?.length > 3 && (
             <div className="text-sm text-blue-600">+{plan.features.length - 3} more features</div>
           )}
         </div>

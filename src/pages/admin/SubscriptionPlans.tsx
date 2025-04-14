@@ -21,6 +21,8 @@ const initialPlans: SubscriptionPlan[] = [
     description: "Essential features for small repair businesses",
     price_monthly: 29.99,
     price_yearly: 299.99,
+    monthlyPrice: 29.99,
+    yearlyPrice: 299.99,
     features: [
       "Up to 3 technicians",
       "Basic diagnostic workflows",
@@ -28,9 +30,11 @@ const initialPlans: SubscriptionPlan[] = [
       "Email support"
     ],
     is_active: true,
+    isActive: true,
     maxTechnicians: 3,
     max_storage: "5GB",
-    trial_period: 30
+    trial_period: 30,
+    trialPeriod: 30
   },
   {
     id: "2",
@@ -38,6 +42,8 @@ const initialPlans: SubscriptionPlan[] = [
     description: "Advanced features for growing businesses",
     price_monthly: 59.99,
     price_yearly: 599.99,
+    monthlyPrice: 59.99,
+    yearlyPrice: 599.99,
     features: [
       "Up to 10 technicians",
       "Advanced diagnostic workflows",
@@ -47,9 +53,11 @@ const initialPlans: SubscriptionPlan[] = [
       "Basic analytics"
     ],
     is_active: true,
+    isActive: true,
     maxTechnicians: 10,
     max_storage: "20GB",
-    trial_period: 30
+    trial_period: 30,
+    trialPeriod: 30
   },
   {
     id: "3",
@@ -57,6 +65,8 @@ const initialPlans: SubscriptionPlan[] = [
     description: "Complete solution for large service organizations",
     price_monthly: 99.99,
     price_yearly: 999.99,
+    monthlyPrice: 99.99,
+    yearlyPrice: 999.99,
     features: [
       "Unlimited technicians",
       "Custom diagnostic workflows",
@@ -68,9 +78,11 @@ const initialPlans: SubscriptionPlan[] = [
       "Dedicated account manager"
     ],
     is_active: true,
+    isActive: true,
     maxTechnicians: null,
     max_storage: "100GB",
-    trial_period: 30
+    trial_period: 30,
+    trialPeriod: 30
   }
 ];
 
@@ -104,11 +116,15 @@ export default function SubscriptionPlans() {
       description: "",
       price_monthly: 0,
       price_yearly: 0,
+      monthlyPrice: 0,
+      yearlyPrice: 0,
       features: [],
       is_active: true,
+      isActive: true,
       maxTechnicians: null,
       max_storage: "",
-      trial_period: 30
+      trial_period: 30,
+      trialPeriod: 30
     });
     setIsDialogOpen(true);
   };

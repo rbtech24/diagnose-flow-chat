@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { Node, Edge, Connection, useNodesState, useEdgesState, addEdge } from '@xyflow/react';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { WorkflowState, HistoryState, addToHistory } from '@/utils/workflowHistory';
 
 const LOCAL_STORAGE_KEY = 'workflow-state';
@@ -11,6 +11,7 @@ interface CheckWorkflowAccessParams {
 }
 
 export function useFlowState() {
+  const { toast } = useToast();
   const loadInitialState = (): WorkflowState => {
     const savedState = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (savedState) {
@@ -47,7 +48,7 @@ export function useFlowState() {
       return false;
     }
     return true;
-  }, []);
+  }, [toast]);
 
   return {
     nodes,

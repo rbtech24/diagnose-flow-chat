@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 import { FlowEditorContent } from "@/components/flow/FlowEditorContent";
 import { useFlowState } from "@/hooks/useFlowState";
 import { useUserRole } from "@/hooks/useUserRole";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 export default function WorkflowEditor() {
   const location = useLocation();
@@ -12,6 +12,7 @@ export default function WorkflowEditor() {
   const [symptomName, setSymptomName] = useState<string | null>(null);
   const { role } = useUserRole();
   const flowState = useFlowState();
+  const { toast } = useToast();
 
   useEffect(() => {
     // Extract query parameters from the URL
@@ -28,20 +29,8 @@ export default function WorkflowEditor() {
     }
 
     // Check access to this workflow
-    checkWorkflowAccess(role);
-  }, [location, role]);
-
-  // Simple access check function
-  const checkWorkflowAccess = (userRole: string | undefined) => {
-    if (!userRole || (userRole !== 'admin' && userRole !== 'company')) {
-      toast({
-        title: "Access Denied",
-        description: "You don't have permission to access this workflow editor.",
-        type: "error",
-        variant: "destructive"
-      });
-    }
-  };
+    flowState.checkWorkflowAccess({ role });
+  }, [location, role, flowState]);
 
   // Pass the props correctly matching FlowEditorContent's expected props
   return (

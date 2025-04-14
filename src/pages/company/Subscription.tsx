@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -328,7 +327,10 @@ export default function Subscription() {
                     Enter your new payment details
                   </DialogDescription>
                 </DialogHeader>
-                <PaymentForm onSubmit={handleUpdatePaymentMethod} />
+                <PaymentForm 
+                  onComplete={handleUpdatePaymentMethod} 
+                  onCancel={() => setIsPaymentDialogOpen(false)}
+                />
               </DialogContent>
             </Dialog>
             
@@ -422,7 +424,19 @@ export default function Subscription() {
                 {licenses.map(license => (
                   <LicenseCard 
                     key={license.id}
-                    license={license}
+                    license={{
+                      id: license.id,
+                      name: license.name,
+                      email: license.email,
+                      role: license.role,
+                      status: license.status,
+                      activatedOn: license.activatedOn,
+                      companyId: "",
+                      companyName: "",
+                      planId: "",
+                      planName: "",
+                      startDate: new Date()
+                    }}
                     onActivate={() => {
                       // Handle activation logic
                     }}

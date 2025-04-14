@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,14 +25,22 @@ export function NewLicenseForm({
   const [planId, setPlanId] = useState("");
   const [activeTechnicians, setActiveTechnicians] = useState("1");
   const [trialPeriod, setTrialPeriod] = useState(
-    planId ? activePlans.find(p => p.id === planId)?.trialPeriod.toString() || "30" : "30"
+    planId ? 
+      activePlans.find(p => p.id === planId)?.trialPeriod !== undefined ? 
+        activePlans.find(p => p.id === planId)?.trialPeriod?.toString() : 
+        activePlans.find(p => p.id === planId)?.trial_period?.toString() || "30" 
+      : "30"
   );
 
   const handlePlanChange = (value: string) => {
     setPlanId(value);
     const plan = activePlans.find(p => p.id === value);
     if (plan) {
-      setTrialPeriod(plan.trialPeriod.toString());
+      setTrialPeriod(
+        plan.trialPeriod !== undefined ? 
+          plan.trialPeriod.toString() : 
+          plan.trial_period.toString()
+      );
     }
   };
 
@@ -95,7 +104,11 @@ export function NewLicenseForm({
             {activePlans.length > 0 ? (
               activePlans.map(plan => (
                 <SelectItem key={plan.id} value={plan.id}>
-                  {plan.name} (${plan.monthlyPrice}/month)
+                  {plan.name} (${
+                    plan.monthlyPrice !== undefined ? 
+                    plan.monthlyPrice.toFixed(2) : 
+                    plan.price_monthly.toFixed(2)
+                  }/month)
                 </SelectItem>
               ))
             ) : (

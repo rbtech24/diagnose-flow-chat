@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -17,7 +16,7 @@ export default function UserDetail() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState<any>(null);
-  const [isPasswordResetOpen, setIsPasswordResetOpen] = useState(false);
+  const [isPasswordResetDialogOpen, setIsPasswordResetDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -70,7 +69,7 @@ export default function UserDetail() {
     fetchUserData();
   }, [id, navigate, toast]);
 
-  const handleSendPasswordReset = async () => {
+  const handleResetPassword = async () => {
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -81,7 +80,7 @@ export default function UserDetail() {
         type: "success"
       });
       
-      setIsPasswordResetOpen(false);
+      setIsPasswordResetDialogOpen(false);
     } catch (error: any) {
       console.error("Error sending password reset:", error);
       toast({
@@ -152,7 +151,7 @@ export default function UserDetail() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setIsPasswordResetOpen(true)}>
+            <DropdownMenuItem onClick={() => setIsPasswordResetDialogOpen(true)}>
               <KeyRound className="mr-2 h-4 w-4" />
               Reset Password
             </DropdownMenuItem>
@@ -216,7 +215,7 @@ export default function UserDetail() {
                 </div>
                 
                 <div className="w-full mt-6 pt-6 border-t">
-                  <Button variant="outline" className="w-full" onClick={() => setIsPasswordResetOpen(true)}>
+                  <Button variant="outline" className="w-full" onClick={() => setIsPasswordResetDialogOpen(true)}>
                     <Mail className="mr-2 h-4 w-4" />
                     Send Password Reset
                   </Button>
@@ -316,7 +315,7 @@ export default function UserDetail() {
       </div>
       
       {/* Password Reset Dialog */}
-      <Dialog open={isPasswordResetOpen} onOpenChange={setIsPasswordResetOpen}>
+      <Dialog open={isPasswordResetDialogOpen} onOpenChange={setIsPasswordResetDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Reset User Password</DialogTitle>
@@ -326,8 +325,8 @@ export default function UserDetail() {
           </DialogHeader>
           <AdminPasswordResetForm 
             email={userData.email}
-            onSubmit={handleSendPasswordReset}
-            onCancel={() => setIsPasswordResetOpen(false)}
+            onSubmit={handleResetPassword}
+            onCancel={() => setIsPasswordResetDialogOpen(false)}
           />
         </DialogContent>
       </Dialog>

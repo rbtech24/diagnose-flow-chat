@@ -25,16 +25,20 @@ export function SubscriptionPlanCard({
   isCurrentPlan = false,
   isAdmin = false
 }: SubscriptionPlanCardProps) {
-  const price = billingCycle === "monthly" ? plan.monthlyPrice : plan.yearlyPrice;
-  const savings = plan.monthlyPrice * 12 - plan.yearlyPrice;
+  const price = billingCycle === "monthly" 
+    ? (plan.monthlyPrice !== undefined ? plan.monthlyPrice : plan.price_monthly) 
+    : (plan.yearlyPrice !== undefined ? plan.yearlyPrice : plan.price_yearly);
+  const monthlySavings = (plan.monthlyPrice !== undefined ? plan.monthlyPrice : plan.price_monthly) * 12 - 
+    (plan.yearlyPrice !== undefined ? plan.yearlyPrice : plan.price_yearly);
+  const isActive = plan.isActive !== undefined ? plan.isActive : plan.is_active;
 
   return (
-    <Card className={`border ${isCurrentPlan ? 'border-blue-400 ring-2 ring-blue-200' : ''} ${!plan.isActive && isAdmin ? 'opacity-70' : ''}`}>
+    <Card className={`border ${isCurrentPlan ? 'border-blue-400 ring-2 ring-blue-200' : ''} ${!isActive && isAdmin ? 'opacity-70' : ''}`}>
       <CardHeader>
         {isAdmin && (
           <div className="flex justify-between items-center mb-2">
             <Switch
-              checked={plan.isActive}
+              checked={isActive}
               onCheckedChange={onToggleStatus}
             />
             <Button variant="ghost" size="icon" onClick={onEdit}>
@@ -58,7 +62,7 @@ export function SubscriptionPlanCard({
           </div>
           {billingCycle === "yearly" && (
             <div className="text-green-600 text-sm mt-1">
-              Save ${savings.toFixed(2)} per year
+              Save ${monthlySavings.toFixed(2)} per year
             </div>
           )}
         </div>
@@ -68,11 +72,11 @@ export function SubscriptionPlanCard({
           <div className="space-y-1">
             <div className="flex items-start">
               <Badge className="mr-2">Up to {plan.maxTechnicians} techs</Badge>
-              <Badge>Up to {plan.maxAdmins} admins</Badge>
+              <Badge>Up to {plan.maxAdmins || 1} admins</Badge>
             </div>
             <div className="flex items-start">
-              <Badge className="mr-2">{plan.dailyDiagnostics} diagnostics/day</Badge>
-              <Badge>{plan.storageLimit} GB storage</Badge>
+              <Badge className="mr-2">{plan.dailyDiagnostics || 20} diagnostics/day</Badge>
+              <Badge>{plan.storageLimit || plan.max_storage || "10 GB"} storage</Badge>
             </div>
           </div>
         </div>
@@ -92,7 +96,7 @@ export function SubscriptionPlanCard({
       <CardFooter>
         {isAdmin ? (
           <div className="w-full text-sm text-gray-500">
-            {plan.trialPeriod}-day trial period
+            {(plan.trialPeriod !== undefined ? plan.trialPeriod : plan.trial_period)}-day trial period
           </div>
         ) : (
           <Button

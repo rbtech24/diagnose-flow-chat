@@ -34,7 +34,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         set((state) => ({
           plans: state.plans.map(plan => 
             plan.id === planId 
-              ? { ...plan, isActive: !plan.isActive, updatedAt: new Date() } 
+              ? { ...plan, is_active: !plan.is_active, isActive: !plan.is_active, updatedAt: new Date() } 
               : plan
           )
         })),
@@ -57,7 +57,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         })),
       
       getActivePlans: () => {
-        return get().plans.filter(plan => plan.isActive);
+        return get().plans.filter(plan => plan.is_active);
       },
       
       getDailyDiagnosticLimit: (planId: string, isOnTrial: boolean) => {
@@ -73,7 +73,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         
         // Try to find the plan in our store
         const plan = get().plans.find(p => p.id === planId);
-        if (plan && plan.dailyDiagnostics) {
+        if (plan && (plan.dailyDiagnostics || plan.dailyDiagnostics === 0)) {
           return plan.dailyDiagnostics;
         }
         
