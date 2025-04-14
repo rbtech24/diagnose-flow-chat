@@ -1,11 +1,10 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Session, User, AuthError } from '@supabase/supabase-js';
+import { Session, AuthError } from '@supabase/supabase-js';
 import { toast } from '@/hooks/use-toast'; 
 
 // User type definition
-type User = {
+type UserType = {
   id: string;
   name: string;
   email: string;
@@ -19,7 +18,7 @@ type User = {
 };
 
 type AuthContextType = {
-  user: User | null;
+  user: UserType | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   userRole: string | null;
@@ -28,7 +27,7 @@ type AuthContextType = {
   register: (email: string, password: string, data?: any) => Promise<void>;
   resetPassword: (token: string, newPassword: string) => Promise<boolean>;
   forgotPassword: (email: string) => Promise<boolean>;
-  updateUser: (data: Partial<User>) => void;
+  updateUser: (data: Partial<UserType>) => void;
   signOut: () => void;
   checkWorkflowAccess: () => boolean;
 };
@@ -36,8 +35,7 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [supabaseUser, setSupabaseUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserType | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -86,17 +84,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
 
       if (data) {
+        // Check for the role and status values and make sure they conform to the expected types
+        const userRole = data.role as 'admin' | 'company' | 'tech';
+        if (!['admin', 'company', 'tech'].includes(userRole)) {
+          throw new Error(`Invalid role: ${data.role}`);
+        }
+        
+        const userStatus = data.status as 'active' | 'inactive' | 'pending' | 'archived' | 'deleted';
+        if (!['active', 'inactive', 'pending', 'archived', 'deleted'].includes(userStatus)) {
+          throw new Error(`Invalid status: ${data.status}`);
+        }
+        
+        const subscriptionStatus = data.subscription_status as 'trial' | 'active' | 'expired' | 'canceled' | undefined;
+        if (data.subscription_status && !['trial', 'active', 'expired', 'canceled'].includes(subscriptionStatus!)) {
+          throw new Error(`Invalid subscription status: ${data.subscription_status}`);
+        }
+
         setUser({
           id: data.id,
           name: data.name || '',
           email: data.email,
-          role: data.role,
+          role: userRole,
           avatarUrl: data.avatar_url,
           phone: data.phone,
           companyId: data.company_id,
-          status: data.status,
+          status: userStatus,
           trialEndsAt: data.trial_ends_at ? new Date(data.trial_ends_at) : undefined,
-          subscriptionStatus: data.subscription_status
+          subscriptionStatus: subscriptionStatus
         });
         setIsAuthenticated(true);
       }
@@ -109,8 +123,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             id: session.user.id,
             email: session.user.email || '',
             name: session.user.email?.split('@')[0] || '',
-            role: 'tech', // Default role
-            status: 'active'
+            role: 'tech' as const, // Default role
+            status: 'active' as const
           };
           
           const { error } = await supabase
@@ -119,7 +133,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             
           if (error) throw error;
           
-          setUser(newUser as User);
+          setUser(newUser as UserType);
           setIsAuthenticated(true);
         } catch (createError) {
           console.error('Error creating user profile:', createError);
@@ -221,7 +235,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateUser = async (data: Partial<User>) => {
+  const updateUser = async (data: Partial<UserType>) => {
     if (!user) return;
     
     try {

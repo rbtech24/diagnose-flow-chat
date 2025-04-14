@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'react-hot-toast';
@@ -6,8 +5,8 @@ import { toast } from 'react-hot-toast';
 interface Company {
   id: string;
   name: string;
-  contactName: string;
-  email: string;
+  contactName?: string;
+  email?: string;
   phone?: string;
   address?: string;
   city?: string;
@@ -49,7 +48,7 @@ interface UserManagementStore {
   fetchUserById: (id: string) => Promise<User | null>;
   deleteUser: (id: string) => Promise<boolean>;
   resetUserPassword: (id: string, newPassword: string) => Promise<boolean>;
-  addUser: (userData: Omit<User, 'id'>) => Promise<User | null>;
+  addUser: (userData: any) => Promise<User | null>;
 }
 
 export const useUserManagementStore = create<UserManagementStore>((set, get) => ({
@@ -80,12 +79,12 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
         zipCode: company.zip_code,
         country: company.country,
         planId: company.plan_id,
-        planName: company.plan_name,
-        status: company.status as 'active' | 'inactive' | 'trial' | 'expired',
+        planName: company.plan_name || company.subscription_tier,
+        status: (company.status || company.trial_status) as 'active' | 'inactive' | 'trial' | 'expired',
         technicianCount: company.technician_count || 0,
         createdAt: new Date(company.created_at),
         updatedAt: new Date(company.updated_at),
-        trialEndsAt: company.trial_ends_at ? new Date(company.trial_ends_at) : undefined,
+        trialEndsAt: company.trial_ends_at || company.trial_end_date ? new Date(company.trial_ends_at || company.trial_end_date) : undefined,
         subscriptionEndsAt: company.subscription_ends_at ? new Date(company.subscription_ends_at) : undefined,
       }));
       
@@ -117,7 +116,7 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
         role: user.role as 'admin' | 'company' | 'tech',
         status: user.status as 'active' | 'inactive' | 'pending' | 'archived' | 'deleted',
         companyId: user.company_id,
-        companyName: user.companies?.name,
+        companyName: user.companies?.name || '',
         isMainAdmin: false // This would need additional logic to determine
       }));
       
@@ -153,12 +152,12 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
         zipCode: data.zip_code,
         country: data.country,
         planId: data.plan_id,
-        planName: data.plan_name,
-        status: data.status as 'active' | 'inactive' | 'trial' | 'expired',
+        planName: data.plan_name || data.subscription_tier,
+        status: (data.status || data.trial_status) as 'active' | 'inactive' | 'trial' | 'expired',
         technicianCount: data.technician_count || 0,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
-        trialEndsAt: data.trial_ends_at ? new Date(data.trial_ends_at) : undefined,
+        trialEndsAt: data.trial_ends_at || data.trial_end_date ? new Date(data.trial_ends_at || data.trial_end_date) : undefined,
         subscriptionEndsAt: data.subscription_ends_at ? new Date(data.subscription_ends_at) : undefined,
       };
     } catch (error) {
@@ -341,7 +340,7 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
         role: data.role as 'admin' | 'company' | 'tech',
         status: data.status as 'active' | 'inactive' | 'pending' | 'archived' | 'deleted',
         companyId: data.company_id,
-        companyName: data.companies?.name,
+        companyName: data.companies?.name || '',
         isMainAdmin: false // This would need additional logic
       };
     } catch (error) {
@@ -393,7 +392,7 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
       // This is a simplified version
       const { data, error } = await supabase.auth.admin.createUser({
         email: userData.email,
-        password: 'tempPassword123', // This would be randomly generated
+        password: userData.password || 'tempPassword123', // This would be randomly generated
         email_confirm: true,
         user_metadata: {
           name: userData.name,
@@ -415,9 +414,9 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
           id: data.user.id,
           name: userData.name,
           email: userData.email,
-          role: userData.role,
+          role: userData.role as 'admin' | 'company' | 'tech',
           company_id: userData.companyId,
-          status: userData.status || 'active'
+          status: (userData.status || 'active') as 'active' | 'inactive' | 'pending' | 'archived' | 'deleted'
         }])
         .select()
         .single();
@@ -428,8 +427,8 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
         id: profile.id,
         name: profile.name,
         email: profile.email,
-        role: profile.role,
-        status: profile.status,
+        role: profile.role as 'admin' | 'company' | 'tech',
+        status: profile.status as 'active' | 'inactive' | 'pending' | 'archived' | 'deleted',
         companyId: profile.company_id,
         companyName: userData.companyName,
         isMainAdmin: userData.isMainAdmin
