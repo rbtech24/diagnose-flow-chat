@@ -1,7 +1,7 @@
 
 import React, { createContext, useState, useContext, useEffect, ReactNode } from "react";
 import { User } from "@/types/user";
-import toast from "react-hot-toast";
+import { toast } from "react-hot-toast"; // Changed from default import to named import
 
 interface AuthContextType {
   user: User | null;
