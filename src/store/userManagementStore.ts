@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'react-hot-toast';
@@ -113,7 +114,7 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
       const formattedUsers = (data as any[]).map(user => {
         let companyName = '';
         if (user.companies && typeof user.companies === 'object') {
-          companyName = user.companies.name || '';
+          companyName = user.companies?.name || '';
         }
         
         return {
