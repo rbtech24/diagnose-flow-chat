@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,22 +11,19 @@ import {
 import { useWorkflows } from "@/hooks/useWorkflows";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Navigate } from "react-router-dom";
-
-interface DashboardMetrics {
-  activeJobs: number;
-  teamMembers: number;
-  responseTime: string;
-  avgResponseTime: string;
-  teamPerformance: number;
-}
+import { useCompanyMetrics } from "@/hooks/useCompanyMetrics";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
 
 export default function CompanyDashboard() {
   const { role, isLoading: roleLoading } = useUserRole();
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
   
   // Get workflows for diagnosis
   const { workflows, isLoading: workflowsLoading } = useWorkflows();
+  
+  // Get company metrics
+  const { activeJobs, teamMembers, responseTime, avgResponseTime, teamPerformance, isLoading: metricsLoading } = useCompanyMetrics(user?.company_id);
   
   // Get current date
   const today = new Date();
@@ -38,37 +35,14 @@ export default function CompanyDashboard() {
   };
   const formattedDate = today.toLocaleDateString('en-US', dateOptions);
   
-  // Fetch dashboard data
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      setLoading(true);
-      try {
-        // This would be replaced with an actual API call
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        setMetrics({
-          activeJobs: 0,
-          teamMembers: 0,
-          responseTime: "0 hrs",
-          avgResponseTime: "0 hrs",
-          teamPerformance: 0
-        });
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchDashboardData();
-  }, []);
-  
   // Check if user is authorized to access this page
   if (!roleLoading && role !== 'company' && role !== 'admin') {
     return <Navigate to="/login" />;
   }
   
-  if (loading || workflowsLoading) {
+  const isLoading = metricsLoading || workflowsLoading;
+  
+  if (isLoading) {
     return (
       <div className="container mx-auto p-6">
         <div className="flex justify-center items-center h-screen">
@@ -109,14 +83,14 @@ export default function CompanyDashboard() {
                 <Clock className="h-4 w-4 text-blue-600" />
                 <div>
                   <p className="text-sm font-medium">Avg Response Time</p>
-                  <p className="text-2xl font-bold">{metrics?.avgResponseTime || "0 hrs"}</p>
+                  <p className="text-2xl font-bold">{avgResponseTime}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Activity className="h-4 w-4 text-green-600" />
                 <div>
                   <p className="text-sm font-medium">Team Performance</p>
-                  <p className="text-2xl font-bold">{metrics?.teamPerformance || 0}%</p>
+                  <p className="text-2xl font-bold">{teamPerformance}%</p>
                 </div>
               </div>
             </div>
@@ -149,7 +123,7 @@ export default function CompanyDashboard() {
           <CardContent>
             <div className="flex items-center">
               <Wrench className="h-4 w-4 text-cyan-600 mr-2" />
-              <span className="text-2xl font-bold">{metrics?.activeJobs || 0}</span>
+              <span className="text-2xl font-bold">{activeJobs}</span>
             </div>
           </CardContent>
         </Card>
@@ -161,7 +135,7 @@ export default function CompanyDashboard() {
           <CardContent>
             <div className="flex items-center">
               <Users className="h-4 w-4 text-green-600 mr-2" />
-              <span className="text-2xl font-bold">{metrics?.teamMembers || 0}</span>
+              <span className="text-2xl font-bold">{teamMembers}</span>
             </div>
           </CardContent>
         </Card>
@@ -173,7 +147,7 @@ export default function CompanyDashboard() {
           <CardContent>
             <div className="flex items-center">
               <Clock className="h-4 w-4 text-amber-600 mr-2" />
-              <span className="text-2xl font-bold">{metrics?.responseTime || "0 hrs"}</span>
+              <span className="text-2xl font-bold">{responseTime}</span>
             </div>
           </CardContent>
         </Card>
@@ -187,11 +161,21 @@ export default function CompanyDashboard() {
               <CardDescription>Manage your technicians</CardDescription>
             </CardHeader>
             <CardContent className="mt-4">
-              <div className="text-center py-12 border rounded-lg">
-                <Users className="h-10 w-10 text-blue-500 mx-auto mb-3" />
-                <h3 className="text-lg font-medium mb-1">No Team Members</h3>
-                <p className="text-gray-500 mb-4">You don't have any team members yet.</p>
-              </div>
+              {teamMembers > 0 ? (
+                <div className="space-y-4">
+                  {/* We'd map over actual technicians here */}
+                  <div className="p-4 border rounded-lg">
+                    <h3 className="font-medium">You have {teamMembers} technicians in your team</h3>
+                    <p className="text-sm text-gray-500 mt-1">View and manage your team members</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-12 border rounded-lg">
+                  <Users className="h-10 w-10 text-blue-500 mx-auto mb-3" />
+                  <h3 className="text-lg font-medium mb-1">No Team Members</h3>
+                  <p className="text-gray-500 mb-4">You don't have any team members yet.</p>
+                </div>
+              )}
               
               <div className="mt-6">
                 <Button className="w-full">
