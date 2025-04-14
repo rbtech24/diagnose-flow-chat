@@ -24,21 +24,16 @@ export default function UserDetail() {
     const fetchUserData = async () => {
       setLoading(true);
       try {
-        // Simulate API call to get user data
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
         if (!id) {
           toast({
             title: "User not found",
             description: "The requested user could not be found.",
-            type: "error",
-            variant: "destructive",
+            type: "error"
           });
           navigate('/admin/users');
           return;
         }
 
-        // Mock user data
         const mockUser = {
           id,
           name: "John Technician",
@@ -61,8 +56,7 @@ export default function UserDetail() {
         toast({
           title: "Error",
           description: "Failed to load user data.",
-          type: "error",
-          variant: "destructive",
+          type: "error"
         });
       }
     };
@@ -72,7 +66,6 @@ export default function UserDetail() {
 
   const handleResetPassword = async () => {
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       toast({
@@ -87,15 +80,13 @@ export default function UserDetail() {
       toast({
         title: "Error",
         description: error.message || "An unexpected error occurred. Please try again.",
-        type: "error",
-        variant: "destructive",
+        type: "error"
       });
     }
   };
 
   const handleDeleteUser = async () => {
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       toast({
@@ -110,8 +101,7 @@ export default function UserDetail() {
       toast({
         title: "Error",
         description: "Failed to delete user.",
-        type: "error",
-        variant: "destructive",
+        type: "error"
       });
     }
   };
@@ -315,7 +305,6 @@ export default function UserDetail() {
         </div>
       </div>
       
-      {/* Password Reset Dialog */}
       <Dialog open={isPasswordResetDialogOpen} onOpenChange={setIsPasswordResetDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -328,14 +317,12 @@ export default function UserDetail() {
             userId={userData.id}
             onSuccess={() => {
               setResetPasswordOpen(false);
-              // Add any success handling here
             }}
             onCancel={() => setResetPasswordOpen(false)}
           />
         </DialogContent>
       </Dialog>
       
-      {/* Delete User Dialog */}
       <DeleteUserDialog
         userId={userData.id}
         userName={userData.name}
@@ -346,7 +333,6 @@ export default function UserDetail() {
   );
 }
 
-// Helper component for user status badge
 function Badge({ status }: { status: string }) {
   const colorMap: Record<string, string> = {
     active: "bg-green-100 text-green-800",

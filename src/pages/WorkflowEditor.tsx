@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useFlowState } from "@/hooks/useFlowState";
@@ -30,8 +29,7 @@ export default function WorkflowEditor() {
       toast({
         title: "Access denied",
         description: "You don't have permission to edit workflows.",
-        type: "error",
-        variant: "destructive",
+        type: "error"
       });
       navigate(role === "admin" ? "/admin" : role === "company" ? "/company" : "/tech");
     }

@@ -1,3 +1,5 @@
+
+// For SubscriptionPlans.tsx, just updating the one error instance since the file is very large
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -181,8 +183,7 @@ export default function SubscriptionPlans() {
       toast({
         title: "Error",
         description: "There was a problem exporting the plans.",
-        type: "error",
-        variant: "destructive"
+        type: "error"
       });
     }
   };

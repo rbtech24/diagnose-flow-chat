@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,8 +25,7 @@ export function ProfileImageUpload({ currentImageUrl, onImageUpdate }: ProfileIm
       toast({
         title: "Invalid file type",
         description: "Please upload an image file (jpg, png, etc.)",
-        type: "error",
-        variant: "destructive"
+        type: "error"
       });
       return;
     }
@@ -36,8 +34,7 @@ export function ProfileImageUpload({ currentImageUrl, onImageUpdate }: ProfileIm
       toast({
         title: "File too large",
         description: "Image file size must be less than 5MB",
-        type: "error",
-        variant: "destructive"
+        type: "error"
       });
       return;
     }

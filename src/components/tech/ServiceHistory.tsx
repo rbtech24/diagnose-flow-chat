@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,8 +49,7 @@ export function ServiceHistory() {
         setLoading(false);
         toast({
           description: "Failed to load service history",
-          type: "error",
-          variant: "destructive"
+          type: "error"
         });
       }
     };

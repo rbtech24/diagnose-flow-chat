@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -20,8 +19,7 @@ export default function CompanyDetail() {
           toast({
             title: "Error",
             description: "No company ID provided",
-            type: "error",
-            variant: "destructive"
+            type: "error"
           });
           return;
         }
@@ -54,8 +52,7 @@ export default function CompanyDetail() {
         toast({
           title: "Error",
           description: "Failed to load company data",
-          type: "error",
-          variant: "destructive"
+          type: "error"
         });
       }
     };

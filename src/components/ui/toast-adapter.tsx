@@ -8,14 +8,14 @@ export const adaptToast = {
       return toast(props);
     }
     
-    const { title, description, type } = props;
+    const { title, description, type, variant } = props;
     const message = title 
       ? description 
         ? `${title}: ${description}` 
         : title
       : description || '';
     
-    if (type === "error") {
+    if (type === "error" || variant === "destructive") {
       return toast.error(message);
     } else if (type === "success") {
       return toast.success(message);

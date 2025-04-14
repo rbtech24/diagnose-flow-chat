@@ -8,6 +8,7 @@ export interface ToastProps {
   title?: string;
   description?: string;
   type?: ToastType;
+  variant?: "default" | "destructive";
   duration?: number;
 }
 

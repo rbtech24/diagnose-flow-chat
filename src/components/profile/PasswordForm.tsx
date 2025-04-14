@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -62,8 +61,7 @@ export function PasswordForm({ onSubmit }: PasswordFormProps) {
         toast({
           title: "Error",
           description: error.message || "Failed to update password.",
-          type: "error",
-          variant: "destructive",
+          type: "error"
         });
       } else {
         if (onSubmit) {
@@ -82,8 +80,7 @@ export function PasswordForm({ onSubmit }: PasswordFormProps) {
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
-        type: "error",
-        variant: "destructive",
+        type: "error"
       });
     } finally {
       setIsSubmitting(false);

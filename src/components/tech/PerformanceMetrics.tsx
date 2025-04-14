@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -59,8 +58,7 @@ export function PerformanceMetrics({
         setLoading(false);
         toast({
           description: "Failed to load performance data",
-          type: "error",
-          variant: "destructive"
+          type: "error"
         });
       }
     };

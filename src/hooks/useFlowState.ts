@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -28,8 +27,7 @@ export function useFlowState() {
       toast({
         title: "Connection created",
         description: "A new connection was created between nodes.",
-        type: "success",
-        variant: "default",
+        type: "success"
       });
     },
     [toast]
