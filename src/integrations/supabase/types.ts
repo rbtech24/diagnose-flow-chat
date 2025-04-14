@@ -2505,6 +2505,70 @@ export type Database = {
           },
         ]
       }
+      service_records: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          customer: string
+          date: string | null
+          device: string
+          id: string
+          notes: string | null
+          rating: number | null
+          status: string
+          technician_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          customer: string
+          date?: string | null
+          device: string
+          id?: string
+          notes?: string | null
+          rating?: number | null
+          status?: string
+          technician_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          customer?: string
+          date?: string | null
+          device?: string
+          id?: string
+          notes?: string | null
+          rating?: number | null
+          status?: string
+          technician_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_records_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_records_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technician_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_records_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           created_at: string | null
@@ -3343,6 +3407,60 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      technician_performance_metrics: {
+        Row: {
+          average_service_time: unknown | null
+          calculated_at: string | null
+          completed_repairs: number | null
+          created_at: string | null
+          customer_rating: number | null
+          customers_served: number | null
+          efficiency_score: number | null
+          id: string
+          technician_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          average_service_time?: unknown | null
+          calculated_at?: string | null
+          completed_repairs?: number | null
+          created_at?: string | null
+          customer_rating?: number | null
+          customers_served?: number | null
+          efficiency_score?: number | null
+          id?: string
+          technician_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          average_service_time?: unknown | null
+          calculated_at?: string | null
+          completed_repairs?: number | null
+          created_at?: string | null
+          customer_rating?: number | null
+          customers_served?: number | null
+          efficiency_score?: number | null
+          id?: string
+          technician_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technician_performance_metrics_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technician_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "technician_performance_metrics_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
             referencedColumns: ["id"]
           },
         ]
@@ -4242,6 +4360,10 @@ export type Database = {
       }
       calculate_repair_metrics: {
         Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      calculate_technician_metrics: {
+        Args: { p_technician_id: string }
         Returns: undefined
       }
       can_access_company: {

@@ -46,10 +46,11 @@ export function useToast() {
   };
 }
 
-// Direct toast export for simple usage
+// Direct toast export for simple usage without hooks
 export const toast = {
   success: hotToast.success,
   error: hotToast.error,
   loading: hotToast.loading,
   dismiss: hotToast.dismiss
 };
+
