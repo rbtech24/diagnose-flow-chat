@@ -1,5 +1,6 @@
+
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import Index from "./pages/Index";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { Loader2 } from "lucide-react";
@@ -74,6 +75,11 @@ function LoadingFallback() {
 }
 
 function App() {
+  // Add a console log to debug routing on page load
+  useEffect(() => {
+    console.log("App mounted, current path:", window.location.pathname);
+  }, []);
+
   return (
     <ErrorBoundary>
       <Router>

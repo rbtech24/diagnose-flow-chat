@@ -1,7 +1,8 @@
 
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
 
 interface ProtectedRouteProps {
   allowedRoles?: Array<'admin' | 'company' | 'tech'>;
@@ -9,6 +10,18 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
   const { isAuthenticated, userRole, isLoading } = useAuth();
+  const location = useLocation();
+
+  // Log route information for debugging
+  useEffect(() => {
+    console.log("ProtectedRoute check:", {
+      path: location.pathname,
+      isAuthenticated,
+      userRole,
+      isLoading,
+      allowedRoles
+    });
+  }, [location.pathname, isAuthenticated, userRole, isLoading, allowedRoles]);
 
   // Show loading state while checking authentication
   if (isLoading) {
