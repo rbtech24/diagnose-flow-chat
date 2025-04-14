@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,11 @@ export default function Login() {
   const [role, setRole] = useState("tech"); // Default role: tech
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { login, isAuthenticated, userRole } = useAuth();
+  const location = useLocation();
+
+  const from = location.state?.from || "/";
+  
+  console.log("Login page loaded, redirect destination:", from);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,10 +41,15 @@ export default function Login() {
 
   // Redirect if already authenticated
   if (isAuthenticated) {
-    if (userRole === "admin") return <Navigate to="/admin" />;
-    if (userRole === "company") return <Navigate to="/company" />;
-    if (userRole === "tech") return <Navigate to="/tech" />;
-    return <Navigate to="/" />;
+    console.log("User authenticated, redirecting to:", from);
+    
+    // Prioritize the saved "from" path if exists, otherwise redirect based on role
+    if (from && from !== "/") return <Navigate to={from} replace />;
+    
+    if (userRole === "admin") return <Navigate to="/admin" replace />;
+    if (userRole === "company") return <Navigate to="/company" replace />;
+    if (userRole === "tech") return <Navigate to="/tech" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return (

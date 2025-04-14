@@ -75,9 +75,20 @@ function LoadingFallback() {
 }
 
 function App() {
-  // Add a console log to debug routing on page load
+  // Debug routing and navigation
   useEffect(() => {
     console.log("App mounted, current path:", window.location.pathname);
+    
+    // Listen for route changes
+    const handleRouteChange = () => {
+      console.log("Route changed to:", window.location.pathname);
+    };
+    
+    window.addEventListener('popstate', handleRouteChange);
+    
+    return () => {
+      window.removeEventListener('popstate', handleRouteChange);
+    };
   }, []);
 
   return (

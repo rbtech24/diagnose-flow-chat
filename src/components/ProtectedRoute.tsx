@@ -19,9 +19,10 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
       isAuthenticated,
       userRole,
       isLoading,
-      allowedRoles
+      allowedRoles,
+      state: location.state
     });
-  }, [location.pathname, isAuthenticated, userRole, isLoading, allowedRoles]);
+  }, [location.pathname, isAuthenticated, userRole, isLoading, allowedRoles, location.state]);
 
   // Show loading state while checking authentication
   if (isLoading) {
@@ -37,13 +38,14 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
 
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
-    console.log("User not authenticated, redirecting to login");
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    console.log("User not authenticated, redirecting to login with returnTo:", location.pathname);
+    // Save the current location to redirect back after login
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
   // For admin role, allow access to all protected routes regardless of allowedRoles
   if (userRole === 'admin') {
-    console.log("Admin user, granting access");
+    console.log("Admin user, granting access to:", location.pathname);
     return <Outlet />;
   }
   
@@ -51,12 +53,12 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
   if (allowedRoles && userRole && !allowedRoles.includes(userRole as 'admin' | 'company' | 'tech')) {
     console.log(`User role ${userRole} not in allowed roles: ${allowedRoles.join(', ')}`);
     // Redirect to appropriate dashboard based on role
-    if (userRole === 'company') return <Navigate to="/company" />;
-    if (userRole === 'tech') return <Navigate to="/tech" />;
-    return <Navigate to="/" />;
+    if (userRole === 'company') return <Navigate to="/company" replace />;
+    if (userRole === 'tech') return <Navigate to="/tech" replace />;
+    return <Navigate to="/" replace />;
   }
 
   // Render child routes if authorized
-  console.log(`User authorized with role: ${userRole}`);
+  console.log(`User authorized with role: ${userRole} for path: ${location.pathname}`);
   return <Outlet />;
 }
