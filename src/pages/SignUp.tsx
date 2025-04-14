@@ -53,8 +53,16 @@ export default function SignUp() {
     setError('');
     
     try {
-      await register(data.email, data.password, data.role);
-      navigate('/verify-email');
+      // Pass the role to the register function
+      await register(data.email, data.password, {
+        role: data.role,
+        // You can add more user metadata here
+      });
+      
+      // Navigate to the verification page
+      navigate('/verify-email', { 
+        state: { email: data.email }
+      });
     } catch (err: any) {
       console.error('Sign up error:', err);
       setError(err.message || 'An error occurred during sign up.');

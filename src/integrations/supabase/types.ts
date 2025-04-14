@@ -3689,6 +3689,51 @@ export type Database = {
         }
         Relationships: []
       }
+      users: {
+        Row: {
+          avatar_url: string | null
+          company_id: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string | null
+          phone: string | null
+          role: string
+          status: string
+          subscription_status: string | null
+          trial_ends_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          company_id?: string | null
+          created_at?: string
+          email: string
+          id: string
+          name?: string | null
+          phone?: string | null
+          role: string
+          status: string
+          subscription_status?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          company_id?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string | null
+          phone?: string | null
+          role?: string
+          status?: string
+          subscription_status?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       webhook_endpoints: {
         Row: {
           company_id: string | null
@@ -4319,6 +4364,10 @@ export type Database = {
       increment: {
         Args: { row_id: string; field_name?: string; table_name?: string }
         Returns: number
+      }
+      increment_view_count: {
+        Args: { table_name: string; row_id: string }
+        Returns: undefined
       }
       invite_technician: {
         Args: {

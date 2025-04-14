@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Wrench, Building, LayoutDashboard } from "lucide-react";
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -17,15 +17,18 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
+    if (!email || !password) {
+      toast.error("Email and password are required");
+      return;
+    }
     
     setIsLoggingIn(true);
     try {
       await login(email, password);
-      toast.success("You have been successfully logged in.");
+      // Success toast is shown in the AuthContext after successful login
     } catch (error: any) {
       console.error("Login error:", error);
-      toast.error(error.message || "Failed to sign in. Please check your credentials.");
+      // Error toast is shown in the AuthContext
     } finally {
       setIsLoggingIn(false);
     }
@@ -66,6 +69,7 @@ export default function Login() {
                     ? "bg-blue-50 border-blue-500 text-blue-700" 
                     : "border-gray-200 hover:bg-gray-50"
                 }`}
+                aria-label="Select technician role"
               >
                 <Wrench className="h-4 w-4" />
                 <span>Technician</span>
@@ -79,6 +83,7 @@ export default function Login() {
                     ? "bg-blue-50 border-blue-500 text-blue-700" 
                     : "border-gray-200 hover:bg-gray-50"
                 }`}
+                aria-label="Select company role"
               >
                 <Building className="h-4 w-4" />
                 <span>Company</span>
@@ -92,6 +97,7 @@ export default function Login() {
                     ? "bg-blue-50 border-blue-500 text-blue-700" 
                     : "border-gray-200 hover:bg-gray-50"
                 }`}
+                aria-label="Select admin role"
               >
                 <LayoutDashboard className="h-4 w-4" />
                 <span>Admin</span>
@@ -110,6 +116,7 @@ export default function Login() {
                 placeholder="name@example.com"
                 className="bg-gray-50"
                 required
+                disabled={isLoggingIn}
               />
             </div>
             
@@ -130,6 +137,7 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="bg-gray-50"
                 required
+                disabled={isLoggingIn}
               />
             </div>
             
