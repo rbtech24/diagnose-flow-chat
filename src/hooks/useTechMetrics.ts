@@ -9,6 +9,7 @@ interface TechMetrics {
   avgCompletionTime: string;
   satisfaction: number;
   isLoading: boolean;
+  error: Error | null;
 }
 
 export function useTechMetrics(): TechMetrics {
@@ -18,7 +19,8 @@ export function useTechMetrics(): TechMetrics {
     completedJobs: 0,
     avgCompletionTime: "0 hrs",
     satisfaction: 0,
-    isLoading: true
+    isLoading: true,
+    error: null
   });
 
   useEffect(() => {
@@ -51,15 +53,17 @@ export function useTechMetrics(): TechMetrics {
           completedJobs: completedCount || 0,
           avgCompletionTime: "3.5 hrs",
           satisfaction: 92,
-          isLoading: false
+          isLoading: false,
+          error: null
         });
         
       } catch (error) {
         console.error("Error fetching tech metrics:", error);
-        setMetrics({
-          ...metrics,
-          isLoading: false
-        });
+        setMetrics(prevMetrics => ({
+          ...prevMetrics,
+          isLoading: false,
+          error: error instanceof Error ? error : new Error(String(error))
+        }));
       }
     }
     

@@ -45,12 +45,12 @@ export function useSystemHealth(): SystemHealthMetrics {
         // Use real data if available, otherwise keep default values
         if (healthData && healthData.length > 0) {
           // Convert string value to number
-          setSystemHealth(parseFloat(healthData[0].value.toString()) || 98.7);
+          setSystemHealth(parseFloat(String(healthData[0].value)) || 98.7);
         }
 
         if (uptimeData && uptimeData.length > 0) {
           // Convert string value to number
-          setSystemUptime(parseFloat(uptimeData[0].value.toString()) || 99.8);
+          setSystemUptime(parseFloat(String(uptimeData[0].value)) || 99.8);
         }
 
         setError(null);

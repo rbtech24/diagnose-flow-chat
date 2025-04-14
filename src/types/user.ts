@@ -7,7 +7,7 @@ export interface User {
   phone?: string;
   avatarUrl?: string;
   status: "active" | "inactive" | "pending" | "archived" | "deleted";
-  companyId?: string;
+  companyId?: string; // Consistent naming convention
   subscriptionStatus?: string;
   trialEndsAt?: Date;
   planId?: string;
@@ -22,7 +22,7 @@ export interface TechnicianInvite {
   name: string;
   email: string;
   phone?: string;
-  companyId?: string;
+  companyId?: string; // Consistent naming convention
   createdAt: Date;
   expiresAt: Date;
   status: "pending" | "accepted" | "rejected" | "expired";

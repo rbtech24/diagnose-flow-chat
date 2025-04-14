@@ -3,6 +3,17 @@
  * Utility functions for managing offline data storage and synchronization
  */
 
+// Type definition for pending updates
+export interface PendingUpdate {
+  id?: string;
+  url: string;
+  method: string;
+  headers?: Record<string, string>;
+  body?: string;
+  timestamp: number;
+  attempts?: number;
+}
+
 // Check if there are pending changes that need to be synced
 export async function hasPendingChanges(): Promise<boolean> {
   try {
@@ -61,17 +72,6 @@ export function clearOfflineData(): void {
   }
   
   keys.forEach(key => localStorage.removeItem(key));
-}
-
-// Type definition for pending updates
-export interface PendingUpdate {
-  id?: string;
-  url: string;
-  method: string;
-  headers?: Record<string, string>;
-  body?: string;
-  timestamp: number;
-  attempts?: number;
 }
 
 // Knowledge base specific storage utilities

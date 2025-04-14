@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { KnowledgeArticle } from "@/types/knowledge";
 import { useKnowledgeSync } from "@/hooks/useKnowledgeSync";
@@ -13,7 +14,8 @@ interface OfflineAwareKnowledgeBaseProps {
   children: React.ReactNode;
 }
 
-export function OfflineAwareKnowledgeBase({ children }: OfflineAwareKnowledgeBaseProps) {
+// Use React.memo for performance optimization
+export const OfflineAwareKnowledgeBase = React.memo(({ children }: OfflineAwareKnowledgeBaseProps) => {
   const { isOffline } = useOfflineStatus();
   const { 
     syncStatus, 
@@ -76,7 +78,7 @@ export function OfflineAwareKnowledgeBase({ children }: OfflineAwareKnowledgeBas
       setSelectedConflict(null);
       setShowConflictDialog(false);
     }
-  }, [conflictedItems]);
+  }, [conflictedItems, selectedConflict]);
   
   if (isLoading) {
     return (
@@ -134,4 +136,6 @@ export function OfflineAwareKnowledgeBase({ children }: OfflineAwareKnowledgeBas
       />
     </div>
   );
-}
+});
+
+OfflineAwareKnowledgeBase.displayName = 'OfflineAwareKnowledgeBase';

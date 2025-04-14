@@ -14,7 +14,7 @@ import { useCompanyMetrics } from "@/hooks/useCompanyMetrics";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 
-export default function CompanyDashboard() {
+const CompanyDashboard = React.memo(() => {
   const { role, isLoading: roleLoading } = useUserRole();
   const { user } = useAuth();
   
@@ -225,4 +225,6 @@ export default function CompanyDashboard() {
       </Card>
     </div>
   );
-}
+});
+
+export default CompanyDashboard;
