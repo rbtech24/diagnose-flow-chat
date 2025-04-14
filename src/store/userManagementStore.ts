@@ -1,6 +1,7 @@
+
 import { create } from 'zustand';
 import { supabase } from '@/utils/supabaseClient';
-import { User } from '@/types/user';
+import { User, UserWithPassword } from '@/types/user';
 import { toast } from 'react-hot-toast';
 
 interface UserManagementState {
@@ -17,11 +18,16 @@ interface UserManagementState {
   fetchCompanies: () => Promise<void>;
   fetchCompanyById: (id: string) => Promise<any | null>;
   
-  // CRUD operations
+  // CRUD operations for users
   createUser: (user: Partial<User>) => Promise<User | null>;
   updateUser: (id: string, userData: Partial<User>) => Promise<boolean>;
   deleteUser: (id: string) => Promise<boolean>;
   resetUserPassword: (id: string, newPassword: string) => Promise<boolean>;
+  addUser: (user: UserWithPassword) => Promise<any>;
+  
+  // CRUD operations for companies
+  addCompany: (company: any) => Promise<any>;
+  deleteCompany: (id: string) => Promise<boolean>;
 }
 
 export const useUserManagementStore = create<UserManagementState>((set, get) => ({
@@ -209,6 +215,83 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       console.error('Error resetting password:', error);
       toast.error('Failed to reset password');
       return false;
+    }
+  },
+
+  // Add new methods for handling companies and user creation
+  addCompany: async (company: any) => {
+    try {
+      const { data, error } = await supabase
+        .from('companies')
+        .insert([company])
+        .select('*')
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success('Company created successfully!');
+      get().fetchCompanies(); // Refresh companies
+      return data;
+    } catch (error) {
+      console.error('Error creating company:', error);
+      toast.error('Failed to create company');
+      return null;
+    }
+  },
+
+  deleteCompany: async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('companies')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success('Company deleted successfully!');
+      get().fetchCompanies(); // Refresh companies
+      return true;
+    } catch (error) {
+      console.error('Error deleting company:', error);
+      toast.error('Failed to delete company');
+      return false;
+    }
+  },
+
+  addUser: async (user: UserWithPassword) => {
+    try {
+      // Create a new user with the auth API (this is a placeholder; actual implementation may vary)
+      // For now, we'll just insert into the users table
+      const { data, error } = await supabase
+        .from('users')
+        .insert([{
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          phone: user.phone,
+          company_id: user.companyId,
+          status: user.status,
+          // Note: In a real implementation, you would handle password securely
+          // and use Supabase auth signup
+        }])
+        .select('*')
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success('User added successfully!');
+      get().fetchUsers(); // Refresh users
+      return data;
+    } catch (error) {
+      console.error('Error adding user:', error);
+      toast.error('Failed to add user');
+      return null;
     }
   }
 }));
