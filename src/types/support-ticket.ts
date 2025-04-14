@@ -1,44 +1,25 @@
 
+import { User } from "./user";
+
+export type SupportTicketStatus = "open" | "in-progress" | "resolved" | "closed";
+export type SupportTicketPriority = "low" | "medium" | "high" | "critical";
+
+export interface SupportTicketMessage {
+  id: string;
+  ticketId: string;
+  content: string;
+  createdAt: Date;
+  sender: User;
+}
+
 export interface SupportTicket {
   id: string;
   title: string;
   description: string;
-  status: 'open' | 'in-progress' | 'resolved' | 'closed';
-  priority: 'low' | 'medium' | 'high' | 'critical' | 'urgent';
+  status: SupportTicketStatus;
+  priority: SupportTicketPriority;
   createdAt: Date;
   updatedAt: Date;
-  createdBy: {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-  };
-  assignedTo?: {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-  };
-  comments?: Array<{
-    id: string;
-    content: string;
-    createdAt: Date;
-    createdBy: {
-      id: string;
-      name: string;
-    };
-  }>;
-  messages: Array<{
-    id: string;
-    ticketId: string;
-    content: string;
-    createdAt: Date;
-    sender: {
-      id: string;
-      name: string;
-      email: string;
-      role: string;
-      avatarUrl?: string;
-    };
-  }>;
+  createdBy: User;
+  messages: SupportTicketMessage[];
 }

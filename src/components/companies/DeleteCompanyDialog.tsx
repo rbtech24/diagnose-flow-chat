@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUserManagementStore } from "@/store/userManagementStore";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { toast } from "react-hot-toast";
 
 interface DeleteCompanyDialogProps {
   companyId: string;
@@ -28,11 +29,21 @@ export function DeleteCompanyDialog({
     
     try {
       const success = await deleteCompany(companyId);
-      if (success && redirectPath) {
-        navigate(redirectPath);
+      if (success) {
+        toast.success(`Company ${companyName} has been deleted successfully`);
+        if (redirectPath) {
+          navigate(redirectPath);
+        } else {
+          onClose();
+        }
       } else {
+        toast.error("Failed to delete company. Please try again.");
         onClose();
       }
+    } catch (error) {
+      console.error("Error deleting company:", error);
+      toast.error("An error occurred while deleting the company.");
+      onClose();
     } finally {
       setIsDeleting(false);
     }

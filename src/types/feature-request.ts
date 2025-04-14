@@ -1,26 +1,15 @@
 
-import { User } from './user';
+import { User } from "./user";
 
-export type FeatureRequestStatus = 
-  | 'pending'
-  | 'approved' 
-  | 'rejected'
-  | 'in-progress'
-  | 'completed'
-  | 'planned'
-  | 'implemented'
-  | 'under-review';
+export type FeatureRequestStatus = "pending" | "in-progress" | "planned" | "completed" | "rejected";
+export type FeatureRequestPriority = "low" | "medium" | "high" | "critical";
 
-export type FeatureRequestPriority = 'low' | 'medium' | 'high' | 'critical';
-
-// Simplified User type for feature requests
 export interface FeatureRequestUser {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'company' | 'tech';
-  avatarUrl: string;
-  status: 'active' | 'inactive' | 'pending';
+  role: "admin" | "company" | "tech";
+  avatarUrl?: string;
 }
 
 export interface FeatureRequestVote {
@@ -45,25 +34,10 @@ export interface FeatureRequest {
   description: string;
   status: FeatureRequestStatus;
   priority: FeatureRequestPriority;
-  score: number;
   createdAt: Date;
-  updatedAt: Date | null;
+  updatedAt: Date;
   createdBy: FeatureRequestUser;
   votes: FeatureRequestVote[];
+  score: number;
   comments: FeatureRequestComment[];
-  category?: string;
-  userId?: string; // Add the userId property as optional
-}
-
-// Helper function to convert a User to a FeatureRequestUser
-export function convertToFeatureRequestUser(user: User): FeatureRequestUser {
-  return {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    avatarUrl: user.avatarUrl || '',
-    status: (user.status === 'archived' || user.status === 'deleted') ? 
-      'inactive' : ((user.status || 'active') as 'active' | 'inactive' | 'pending')
-  };
 }

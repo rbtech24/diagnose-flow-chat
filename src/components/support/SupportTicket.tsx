@@ -1,217 +1,216 @@
 
-import React, { useState } from "react";
-import { formatDistanceToNow } from "date-fns";
-import { Send, PaperclipIcon } from "lucide-react";
+import { useState } from "react";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle
-} from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { MessageSquare, AlertCircle, Clock, Flag } from "lucide-react";
+import { User } from "@/types/user";
+import { formatDistanceToNow } from "date-fns";
 
 export type SupportTicketStatus = "open" | "in-progress" | "resolved" | "closed";
-export type TicketPriority = "low" | "medium" | "high" | "critical" | "urgent";
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  avatarUrl?: string;
-  phone?: string;
-}
-
-export interface Message {
-  id: string;
-  ticketId: string;
-  content: string;
-  createdAt: Date;
-  sender: User;
-}
+export type SupportTicketPriority = "low" | "medium" | "high" | "critical";
 
 export interface SupportTicket {
   id: string;
   title: string;
   description: string;
   status: SupportTicketStatus;
-  priority: TicketPriority;
+  priority: SupportTicketPriority;
   createdAt: Date;
   updatedAt: Date;
   createdBy: User;
-  assignedTo?: User;
-  messages: Message[];
+  messages: {
+    id: string;
+    ticketId: string;
+    content: string;
+    createdAt: Date;
+    sender: User;
+  }[];
 }
 
-interface SupportTicketComponentProps {
+interface SupportTicketProps {
   ticket: SupportTicket;
   onAddMessage: (ticketId: string, content: string) => void;
-  onUpdateStatus?: (ticketId: string, status: SupportTicketStatus) => void;
-  isDetailView?: boolean;
 }
 
-export function SupportTicketComponent({
-  ticket,
-  onAddMessage,
-  onUpdateStatus,
-  isDetailView = false
-}: SupportTicketComponentProps) {
-  const [newMessage, setNewMessage] = useState("");
-  const [status, setStatus] = useState<SupportTicketStatus>(ticket.status);
+export function SupportTicketComponent({ ticket, onAddMessage }: SupportTicketProps) {
+  const [messageContent, setMessageContent] = useState("");
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      onAddMessage(ticket.id, newMessage);
-      setNewMessage("");
+  const handleSubmit = async () => {
+    if (!messageContent.trim()) return;
+    
+    setIsSubmitting(true);
+    try {
+      await onAddMessage(ticket.id, messageContent);
+      setMessageContent("");
+    } catch (error) {
+      console.error("Error adding message:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleStatusChange = (newStatus: SupportTicketStatus) => {
-    setStatus(newStatus);
-    if (onUpdateStatus) {
-      onUpdateStatus(ticket.id, newStatus);
-    }
-  };
-
-  const getStatusColor = (status: SupportTicketStatus) => {
+  const getStatusBadge = (status: SupportTicketStatus) => {
     switch (status) {
       case "open":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        return <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">Open</Badge>;
       case "in-progress":
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">In Progress</Badge>;
       case "resolved":
-        return "bg-green-100 text-green-800 border-green-200";
+        return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">Resolved</Badge>;
       case "closed":
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">Closed</Badge>;
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityBadge = (priority: SupportTicketPriority) => {
     switch (priority) {
       case "low":
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">Low</Badge>;
       case "medium":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        return <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">Medium</Badge>;
       case "high":
-        return "bg-red-100 text-red-800 border-red-200";
-      case "urgent":
-        return "bg-purple-100 text-purple-800 border-purple-200";
+        return <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">High</Badge>;
+      case "critical":
+        return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">Critical</Badge>;
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return <Badge variant="outline">{priority}</Badge>;
     }
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map(n => n[0])
-      .join("")
-      .toUpperCase();
-  };
-
+  const timeAgo = formatDistanceToNow(new Date(ticket.updatedAt), { addSuffix: true });
+  const lastMessage = ticket.messages.length > 0 
+    ? ticket.messages[ticket.messages.length - 1] 
+    : null;
+  
   return (
-    <Card className="shadow-sm">
-      <CardHeader>
-        <div className="flex justify-between items-start">
+    <Card className="mb-4">
+      <CardHeader className="pb-2">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
           <div>
-            <CardTitle className="text-xl">{ticket.title}</CardTitle>
-            <CardDescription>
-              Created {formatDistanceToNow(ticket.createdAt, { addSuffix: true })} by {ticket.createdBy.name}
-            </CardDescription>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-medium">{ticket.title}</h3>
+              {getStatusBadge(ticket.status)}
+              <div className="flex items-center ml-2">
+                <Flag className="h-3 w-3 mr-1" />
+                {getPriorityBadge(ticket.priority)}
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              <span className="inline-flex items-center">
+                <Clock className="h-3 w-3 mr-1" /> {timeAgo}
+              </span>
+              <span className="inline-flex items-center ml-3">
+                <MessageSquare className="h-3 w-3 mr-1" /> {ticket.messages.length} messages
+              </span>
+            </p>
           </div>
-          <div className="flex gap-2">
-            <Badge className={getPriorityColor(ticket.priority)}>
-              {ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)} Priority
-            </Badge>
-            {onUpdateStatus ? (
-              <Select value={status} onValueChange={(value) => handleStatusChange(value as SupportTicketStatus)}>
-                <SelectTrigger className={`w-[140px] h-7 text-xs ${getStatusColor(status)}`}>
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="open">Open</SelectItem>
-                  <SelectItem value="in-progress">In Progress</SelectItem>
-                  <SelectItem value="resolved">Resolved</SelectItem>
-                  <SelectItem value="closed">Closed</SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
-              <Badge className={getStatusColor(ticket.status)}>
-                {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1).replace("-", " ")}
-              </Badge>
-            )}
-          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            {isExpanded ? "Hide Details" : "View Details"}
+          </Button>
         </div>
       </CardHeader>
-      <CardContent>
-        {isDetailView && (
-          <div className="mb-6 p-4 bg-muted/50 rounded-md">
-            <p className="whitespace-pre-line">{ticket.description}</p>
-          </div>
-        )}
 
-        {ticket.messages.length > 0 ? (
-          <div className="space-y-4 max-h-[500px] overflow-y-auto p-1">
-            {ticket.messages.map((message) => (
-              <div key={message.id} className="flex gap-3">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={message.sender.avatarUrl} alt={message.sender.name} />
-                  <AvatarFallback>{getInitials(message.sender.name)}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <div className="flex items-baseline justify-between mb-1">
-                    <div className="font-medium text-sm">{message.sender.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(message.createdAt, { addSuffix: true })}
+      {isExpanded && (
+        <>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-start gap-3 mb-4">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={ticket.createdBy.avatarUrl} />
+                    <AvatarFallback>{ticket.createdBy.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex justify-between">
+                      <p className="text-sm font-medium">{ticket.createdBy.name}</p>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(ticket.createdAt), { addSuffix: true })}
+                      </span>
                     </div>
-                  </div>
-                  <div className="bg-muted/30 rounded-md p-3 text-sm">
-                    <p className="whitespace-pre-line">{message.content}</p>
+                    <p className="text-sm mt-1">{ticket.description}</p>
                   </div>
                 </div>
+
+                {ticket.messages.length === 0 ? (
+                  <div className="text-center py-4 bg-gray-50 rounded-md">
+                    <AlertCircle className="h-4 w-4 mx-auto mb-2 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">No messages yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4 mt-4">
+                    {ticket.messages.map((message) => (
+                      <div key={message.id} className="flex items-start gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={message.sender.avatarUrl} />
+                          <AvatarFallback>{message.sender.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="flex justify-between">
+                            <p className="text-sm font-medium">{message.sender.name}</p>
+                            <span className="text-xs text-muted-foreground">
+                              {formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })}
+                            </span>
+                          </div>
+                          <p className="text-sm mt-1">{message.content}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            ))}
+
+              {(ticket.status === "open" || ticket.status === "in-progress") && (
+                <div className="pt-2">
+                  <Textarea
+                    placeholder="Add a message..."
+                    value={messageContent}
+                    onChange={(e) => setMessageContent(e.target.value)}
+                    className="mb-2"
+                  />
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={isSubmitting || !messageContent.trim()}
+                  >
+                    {isSubmitting ? "Sending..." : "Send Message"}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </>
+      )}
+
+      {!isExpanded && (
+        <CardFooter className="pt-0 pb-4">
+          <div className="w-full text-sm truncate">
+            {lastMessage ? (
+              <div className="flex items-start gap-2">
+                <Avatar className="h-6 w-6 mt-0.5">
+                  <AvatarImage src={lastMessage.sender.avatarUrl} />
+                  <AvatarFallback>{lastMessage.sender.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <span className="font-medium mr-1">{lastMessage.sender.name}:</span>
+                  <span className="text-muted-foreground truncate">{lastMessage.content}</span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-muted-foreground">No messages yet</p>
+            )}
           </div>
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            No messages yet. Start the conversation by sending a message.
-          </div>
-        )}
-      </CardContent>
-      <CardFooter className="flex flex-col">
-        <div className="w-full">
-          <Textarea
-            placeholder="Type a message..."
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            className="min-h-[100px] resize-none mb-2"
-          />
-          <div className="flex justify-between items-center mt-2">
-            <Button variant="outline" size="sm" className="gap-1">
-              <PaperclipIcon className="h-4 w-4" />
-              Attach
-            </Button>
-            <Button onClick={handleSendMessage} disabled={!newMessage.trim()} size="sm" className="gap-1">
-              <Send className="h-4 w-4" />
-              Send
-            </Button>
-          </div>
-        </div>
-      </CardFooter>
+        </CardFooter>
+      )}
     </Card>
   );
 }

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUserManagementStore } from "@/store/userManagementStore";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { toast } from "react-hot-toast";
 
 interface DeleteUserDialogProps {
   userId: string;
@@ -28,11 +29,21 @@ export function DeleteUserDialog({
     
     try {
       const success = await deleteUser(userId);
-      if (success && redirectPath) {
-        navigate(redirectPath);
+      if (success) {
+        toast.success(`User ${userName} has been deleted successfully`);
+        if (redirectPath) {
+          navigate(redirectPath);
+        } else {
+          onClose();
+        }
       } else {
+        toast.error("Failed to delete user. Please try again.");
         onClose();
       }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error("An error occurred while deleting the user.");
+      onClose();
     } finally {
       setIsDeleting(false);
     }
