@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Wrench, Building, LayoutDashboard } from 'lucide-react';
@@ -8,9 +8,10 @@ import { Wrench, Building, LayoutDashboard } from 'lucide-react';
 export default function Index() {
   const navigate = useNavigate();
   const { isAuthenticated, userRole } = useAuth();
+  const [searchParams] = useSearchParams();
 
   // If user is already authenticated, redirect to their dashboard
-  React.useEffect(() => {
+  useEffect(() => {
     if (isAuthenticated) {
       console.log("User already authenticated, redirecting to dashboard");
       if (userRole === 'admin') navigate('/admin');
@@ -18,6 +19,11 @@ export default function Index() {
       else if (userRole === 'tech') navigate('/tech');
     }
   }, [isAuthenticated, userRole, navigate]);
+
+  // Helper function to navigate with role parameter
+  const navigateWithRole = (path: string, role: string) => {
+    navigate(path, { state: { role }, replace: false });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
@@ -61,7 +67,7 @@ export default function Index() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div 
-              onClick={() => navigate('/signup', { state: { role: 'company' } })}
+              onClick={() => navigateWithRole('/signup?role=company', 'company')}
               className="bg-white rounded-xl shadow-md p-6 cursor-pointer transition-all hover:shadow-lg border border-gray-100"
             >
               <div className="flex justify-center mb-4">
@@ -74,7 +80,7 @@ export default function Index() {
             </div>
             
             <div 
-              onClick={() => navigate('/signup', { state: { role: 'tech' } })}
+              onClick={() => navigateWithRole('/signup?role=tech', 'tech')}
               className="bg-white rounded-xl shadow-md p-6 cursor-pointer transition-all hover:shadow-lg border border-gray-100"
             >
               <div className="flex justify-center mb-4">
@@ -87,7 +93,7 @@ export default function Index() {
             </div>
             
             <div 
-              onClick={() => navigate('/login', { state: { role: 'admin' } })}
+              onClick={() => navigateWithRole('/login?role=admin', 'admin')}
               className="bg-white rounded-xl shadow-md p-6 cursor-pointer transition-all hover:shadow-lg border border-gray-100"
             >
               <div className="flex justify-center mb-4">

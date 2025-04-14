@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useNavigate, Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -38,14 +38,34 @@ export default function SignUp() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
 
-  // Get role from state if available, default to 'company'
-  const roleFromState = location.state?.role || 'company';
+  // Get role from state if available, URL query param as fallback, or default to 'company'
+  const getRoleFromStateOrQuery = () => {
+    // First check location state
+    if (location.state?.role && ['company', 'tech'].includes(location.state.role)) {
+      return location.state.role;
+    }
+    
+    // Then check URL query parameters
+    const roleParam = searchParams.get('role');
+    if (roleParam && ['company', 'tech'].includes(roleParam)) {
+      return roleParam;
+    }
+    
+    // Default fallback
+    return 'company';
+  };
+
+  const initialRole = getRoleFromStateOrQuery();
 
   // Log information about the current route and state for debugging
   useEffect(() => {
-    console.log("SignUp page loaded, path:", location.pathname, "state:", location.state, "roleFromState:", roleFromState);
-  }, [location, roleFromState]);
+    console.log("SignUp page loaded, path:", location.pathname, 
+      "state:", location.state, 
+      "query params:", Object.fromEntries(searchParams.entries()),
+      "selected role:", initialRole);
+  }, [location, searchParams, initialRole]);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -53,14 +73,27 @@ export default function SignUp() {
       email: '',
       password: '',
       confirmPassword: '',
-      role: roleFromState
+      role: initialRole
     }
   });
 
-  // Update form when roleFromState changes
+  // Update form when role changes externally
   useEffect(() => {
-    form.setValue('role', roleFromState);
-  }, [roleFromState, form]);
+    const currentRole = getRoleFromStateOrQuery();
+    if (form.getValues('role') !== currentRole) {
+      form.setValue('role', currentRole);
+    }
+  }, [location.state, searchParams]);
+
+  // Update URL query parameter when role is changed through UI
+  const updateRoleAndUrl = (newRole: 'company' | 'tech') => {
+    form.setValue('role', newRole);
+    
+    // Update URL query parameter without full navigation (preserves form state)
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set('role', newRole);
+    navigate(`?${newSearchParams.toString()}`, { replace: true, state: { role: newRole } });
+  };
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     setIsLoading(true);
@@ -165,7 +198,7 @@ export default function SignUp() {
                 <div className="flex gap-4">
                   <div 
                     className={`flex-1 border rounded-lg p-4 cursor-pointer transition-all ${form.watch('role') === 'company' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
-                    onClick={() => form.setValue('role', 'company')}
+                    onClick={() => updateRoleAndUrl('company')}
                   >
                     <div className="flex justify-center mb-2">
                       <Building className={`h-6 w-6 ${form.watch('role') === 'company' ? 'text-blue-500' : 'text-gray-400'}`} />
@@ -175,7 +208,7 @@ export default function SignUp() {
                   
                   <div 
                     className={`flex-1 border rounded-lg p-4 cursor-pointer transition-all ${form.watch('role') === 'tech' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
-                    onClick={() => form.setValue('role', 'tech')}
+                    onClick={() => updateRoleAndUrl('tech')}
                   >
                     <div className="flex justify-center mb-2">
                       <Wrench className={`h-6 w-6 ${form.watch('role') === 'tech' ? 'text-blue-500' : 'text-gray-400'}`} />

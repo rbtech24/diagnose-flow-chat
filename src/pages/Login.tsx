@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,16 +16,39 @@ export default function Login() {
   const { login, isAuthenticated, userRole } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const from = location.state?.from || "/";
   
-  // Set initial role based on location state
+  // Set initial role based on location state or query parameters
   useEffect(() => {
-    if (location.state?.role) {
+    // First check location state
+    if (location.state?.role && ['admin', 'company', 'tech'].includes(location.state.role)) {
       setRole(location.state.role);
+    } 
+    // Then check URL query parameters
+    else {
+      const roleParam = searchParams.get('role');
+      if (roleParam && ['admin', 'company', 'tech'].includes(roleParam)) {
+        setRole(roleParam);
+      }
     }
-    console.log("Login page loaded, redirect destination:", from, "state:", location.state);
-  }, [location, from]);
+    
+    console.log("Login page loaded, redirect destination:", from, 
+      "state:", location.state,
+      "query params:", Object.fromEntries(searchParams.entries()),
+      "selected role:", role);
+  }, [location, searchParams, from]);
+
+  // Update URL when role is changed through UI
+  const updateRoleAndUrl = (newRole: string) => {
+    setRole(newRole);
+    
+    // Update URL query parameter without full navigation
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set('role', newRole);
+    navigate(`?${newSearchParams.toString()}`, { replace: true, state: { ...location.state, role: newRole } });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,7 +116,7 @@ export default function Login() {
             <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
-                onClick={() => setRole("tech")}
+                onClick={() => updateRoleAndUrl("tech")}
                 className={`flex items-center justify-center gap-2 p-3 rounded border ${
                   role === "tech" 
                     ? "bg-blue-50 border-blue-500 text-blue-700" 
@@ -107,7 +130,7 @@ export default function Login() {
               
               <button
                 type="button"
-                onClick={() => setRole("company")}
+                onClick={() => updateRoleAndUrl("company")}
                 className={`flex items-center justify-center gap-2 p-3 rounded border ${
                   role === "company" 
                     ? "bg-blue-50 border-blue-500 text-blue-700" 
@@ -121,7 +144,7 @@ export default function Login() {
               
               <button
                 type="button"
-                onClick={() => setRole("admin")}
+                onClick={() => updateRoleAndUrl("admin")}
                 className={`flex items-center justify-center gap-2 p-3 rounded border ${
                   role === "admin" 
                     ? "bg-blue-50 border-blue-500 text-blue-700" 
