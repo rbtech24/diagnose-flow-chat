@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -33,9 +32,11 @@ export interface SupportTicket {
 interface SupportTicketProps {
   ticket: SupportTicket;
   onAddMessage: (ticketId: string, content: string) => void;
+  onUpdateStatus?: (ticketId: string, status: SupportTicketStatus) => void;
+  isDetailView?: boolean;
 }
 
-export function SupportTicketComponent({ ticket, onAddMessage }: SupportTicketProps) {
+export function SupportTicketComponent({ ticket, onAddMessage, onUpdateStatus, isDetailView }: SupportTicketProps) {
   const [messageContent, setMessageContent] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

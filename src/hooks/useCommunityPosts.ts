@@ -1,9 +1,9 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
+import { CommunityPostType as AppCommunityPostType } from '@/types/community';
 
-export type CommunityPostType = 'question' | 'tech-sheet-request' | 'wire-diagram-request';
+export type CommunityPostType = 'question' | 'discussion' | 'tech-sheet-request' | 'wire-diagram-request' | 'technical-alert-request' | 'misc-document-request';
 
 export interface CommunityComment {
   id: string;
@@ -34,6 +34,9 @@ export interface CommunityPost {
   upvotes: number;
   isSolved: boolean;
   comments: CommunityComment[];
+  authorId?: string;
+  attachments?: any[];
+  views?: number;
 }
 
 export function useCommunityPosts() {
@@ -42,11 +45,9 @@ export function useCommunityPosts() {
   const [error, setError] = useState<Error | null>(null);
   const { user } = useAuth();
 
-  // Fetch posts from API
   const fetchPosts = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Implement actual API call here
       const response = await fetch('/api/community/posts');
       
       if (!response.ok) {
@@ -65,10 +66,8 @@ export function useCommunityPosts() {
     }
   }, []);
 
-  // Fetch a specific post by ID
   const fetchPostById = useCallback(async (postId: string) => {
     try {
-      // Implement actual API call here
       const response = await fetch(`/api/community/posts/${postId}`);
       
       if (!response.ok) {
@@ -84,7 +83,6 @@ export function useCommunityPosts() {
     }
   }, []);
 
-  // Create a new post
   const createPost = useCallback(async (postData: { 
     title: string; 
     content: string; 
@@ -97,7 +95,6 @@ export function useCommunityPosts() {
         return null;
       }
 
-      // Implement actual API call here
       const response = await fetch('/api/community/posts', {
         method: 'POST',
         headers: {
@@ -124,7 +121,6 @@ export function useCommunityPosts() {
     }
   }, [user]);
 
-  // Add a comment to a post
   const addComment = useCallback(async (postId: string, content: string) => {
     try {
       if (!user) {
@@ -132,7 +128,6 @@ export function useCommunityPosts() {
         return null;
       }
 
-      // Implement actual API call here
       const response = await fetch(`/api/community/posts/${postId}/comments`, {
         method: 'POST',
         headers: {
@@ -150,7 +145,6 @@ export function useCommunityPosts() {
       
       const newComment = await response.json();
       
-      // Update the posts state
       setPosts(prevPosts => 
         prevPosts.map(post => 
           post.id === postId 
@@ -172,10 +166,8 @@ export function useCommunityPosts() {
     }
   }, [user]);
 
-  // Mark a comment as the answer to a post
   const markAsAnswer = useCallback(async (postId: string, commentId: string) => {
     try {
-      // Implement actual API call here
       const response = await fetch(`/api/community/posts/${postId}/comments/${commentId}/answer`, {
         method: 'PUT',
       });
@@ -184,7 +176,6 @@ export function useCommunityPosts() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      // Update the posts state
       setPosts(prevPosts => 
         prevPosts.map(post => {
           if (post.id === postId) {
@@ -210,7 +201,6 @@ export function useCommunityPosts() {
     }
   }, []);
 
-  // Upvote a post
   const upvotePost = useCallback(async (postId: string) => {
     try {
       if (!user) {
@@ -218,7 +208,6 @@ export function useCommunityPosts() {
         return false;
       }
 
-      // Implement actual API call here
       const response = await fetch(`/api/community/posts/${postId}/upvote`, {
         method: 'PUT',
       });
@@ -227,7 +216,6 @@ export function useCommunityPosts() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      // Update the posts state
       setPosts(prevPosts => 
         prevPosts.map(post => 
           post.id === postId 
@@ -244,7 +232,6 @@ export function useCommunityPosts() {
     }
   }, [user]);
 
-  // Upvote a comment
   const upvoteComment = useCallback(async (commentId: string) => {
     try {
       if (!user) {
@@ -252,7 +239,6 @@ export function useCommunityPosts() {
         return false;
       }
 
-      // Implement actual API call here
       const response = await fetch(`/api/community/comments/${commentId}/upvote`, {
         method: 'PUT',
       });
@@ -261,7 +247,6 @@ export function useCommunityPosts() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      // Update the posts state
       setPosts(prevPosts => 
         prevPosts.map(post => ({
           ...post,
@@ -281,7 +266,6 @@ export function useCommunityPosts() {
     }
   }, [user]);
 
-  // Initialize data loading
   useEffect(() => {
     fetchPosts();
   }, [fetchPosts]);

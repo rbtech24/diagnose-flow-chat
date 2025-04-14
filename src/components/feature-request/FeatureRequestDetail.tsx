@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { FeatureRequest, FeatureRequestStatus, convertToFeatureRequestUser } from "@/types/feature-request";
+import { FeatureRequest, FeatureRequestStatus } from "@/types/feature-request";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,7 @@ export function FeatureRequestDetail({
 }: FeatureRequestDetailProps) {
   const [comment, setComment] = useState("");
   
-  const statusColors: Record<FeatureRequestStatus, string> = {
+  const statusColors: Record<string, string> = {
     "pending": "bg-yellow-100 text-yellow-800",
     "approved": "bg-blue-100 text-blue-800",
     "rejected": "bg-red-100 text-red-800",

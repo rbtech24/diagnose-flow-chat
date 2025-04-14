@@ -45,6 +45,7 @@ interface CommunityPostDetailProps {
   onAddComment: (postId: string, content: string, files: File[]) => Promise<any>;
   onMarkAsAnswer: (postId: string, commentId: string) => Promise<any>;
   onUpvote: (postId: string, commentId?: string) => Promise<any>;
+  showModeratorControls?: boolean;
 }
 
 export function CommunityPostDetail({
@@ -52,7 +53,8 @@ export function CommunityPostDetail({
   onBack,
   onAddComment,
   onMarkAsAnswer,
-  onUpvote
+  onUpvote,
+  showModeratorControls = false
 }: CommunityPostDetailProps) {
   const [newComment, setNewComment] = useState("");
   const [files, setFiles] = useState<File[]>([]);

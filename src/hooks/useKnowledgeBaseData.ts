@@ -9,6 +9,8 @@ export interface KnowledgeArticle {
   category: string;
   createdAt: string;
   updatedAt: string;
+  tags?: string[];
+  views?: number;
   author: {
     id: string;
     name: string;
@@ -20,7 +22,7 @@ export function useKnowledgeBaseData() {
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { fetchKnowledgeBase } = useUserManagementStore();
+  const { fetchKnowledgeBase } = useUserManagementStore() as { fetchKnowledgeBase: () => Promise<KnowledgeArticle[]> };
 
   useEffect(() => {
     async function loadKnowledgeBase() {
@@ -32,7 +34,7 @@ export function useKnowledgeBaseData() {
         // Extract unique categories
         const uniqueCategories = Array.from(
           new Set(data.map(article => article.category))
-        );
+        ) as string[];
         setCategories(uniqueCategories);
         
         setError(null);

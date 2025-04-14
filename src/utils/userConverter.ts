@@ -11,3 +11,7 @@ export function convertToFeatureRequestUser(user: User): FeatureRequestUser {
     avatarUrl: user.avatarUrl
   };
 }
+
+export function ensureFeatureRequestUser(user: User): FeatureRequestUser {
+  return convertToFeatureRequestUser(user);
+}

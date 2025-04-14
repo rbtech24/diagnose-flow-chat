@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -33,12 +32,13 @@ const ticketSchema = z.object({
 
 type TicketValues = z.infer<typeof ticketSchema>;
 
-interface NewTicketFormProps {
-  onSubmit: (title: string, description: string, priority: string) => void;
+export interface NewTicketFormProps {
+  onSubmit: (title: string, description: string, priority: any) => void;
   isSubmitting: boolean;
+  error?: string;
 }
 
-export function NewTicketForm({ onSubmit, isSubmitting }: NewTicketFormProps) {
+export function NewTicketForm({ onSubmit, isSubmitting, error }: NewTicketFormProps) {
   const form = useForm<TicketValues>({
     resolver: zodResolver(ticketSchema),
     defaultValues: {

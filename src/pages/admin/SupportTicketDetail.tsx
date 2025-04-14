@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -49,9 +48,10 @@ export default function AdminSupportTicketDetail() {
             sender: {
               id: user.id,
               name: user.name || 'Admin User',
-              role: user.role || 'Administrator',
+              role: user.role || 'admin',
               email: user.email,
-              avatarUrl: ''
+              avatarUrl: '',
+              status: user.status || 'active'
             }
           }
         ],

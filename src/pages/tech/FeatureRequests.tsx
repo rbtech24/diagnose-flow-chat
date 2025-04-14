@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,7 +30,7 @@ export default function TechFeatureRequests() {
       id: `request-${Date.now()}`,
       title: values.title,
       description: values.description,
-      status: "under-review" as FeatureRequestStatus,
+      status: "pending" as FeatureRequestStatus,
       priority: values.priority || "medium",
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -63,7 +62,7 @@ export default function TechFeatureRequests() {
   const plannedRequests = filteredRequests.filter(r => r.status === "planned");
   const inProgressRequests = filteredRequests.filter(r => r.status === "in-progress");
   const completedRequests = filteredRequests.filter(r => r.status === "completed");
-  const reviewRequests = filteredRequests.filter(r => r.status === "under-review");
+  const reviewRequests = filteredRequests.filter(r => r.status === "pending");
 
   return (
     <div className="container mx-auto p-6">
@@ -95,10 +94,10 @@ export default function TechFeatureRequests() {
         />
       </div>
 
-      <Tabs defaultValue="under-review">
+      <Tabs defaultValue="pending">
         <TabsList className="mb-6">
-          <TabsTrigger value="under-review">
-            Under Review <span className="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{reviewRequests.length}</span>
+          <TabsTrigger value="pending">
+            Pending <span className="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{reviewRequests.length}</span>
           </TabsTrigger>
           <TabsTrigger value="planned">
             Planned <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-600">{plannedRequests.length}</span>
@@ -111,7 +110,7 @@ export default function TechFeatureRequests() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="under-review" className="space-y-4">
+        <TabsContent value="pending" className="space-y-4">
           {reviewRequests.length > 0 ? (
             reviewRequests.map((request) => (
               <FeatureRequestCard 
@@ -123,7 +122,7 @@ export default function TechFeatureRequests() {
           ) : (
             <Card>
               <CardContent className="pt-6 text-center">
-                <p className="text-muted-foreground">No feature requests under review</p>
+                <p className="text-muted-foreground">No feature requests pending</p>
               </CardContent>
             </Card>
           )}

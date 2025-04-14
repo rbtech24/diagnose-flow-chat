@@ -1,7 +1,7 @@
 
 import { User } from "./user";
 
-export type FeatureRequestStatus = "pending" | "in-progress" | "planned" | "completed" | "rejected";
+export type FeatureRequestStatus = "pending" | "in-progress" | "planned" | "completed" | "rejected" | "approved" | "implemented" | "under-review";
 export type FeatureRequestPriority = "low" | "medium" | "high" | "critical";
 
 export interface FeatureRequestUser {
@@ -40,4 +40,5 @@ export interface FeatureRequest {
   votes: FeatureRequestVote[];
   score: number;
   comments: FeatureRequestComment[];
+  category?: string; // Making category optional
 }
