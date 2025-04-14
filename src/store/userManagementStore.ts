@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'react-hot-toast';
@@ -111,17 +110,23 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
 
       if (error) throw error;
       
-      // Type assertion to avoid "cannot find relation between users and company_id" error
-      const formattedUsers = (data as any[]).map(user => ({
-        id: user.id,
-        name: user.name || '',
-        email: user.email,
-        role: user.role as 'admin' | 'company' | 'tech',
-        status: user.status as 'active' | 'inactive' | 'pending' | 'archived' | 'deleted',
-        companyId: user.company_id,
-        companyName: user.companies?.name || '',
-        isMainAdmin: false // This would need additional logic to determine
-      }));
+      const formattedUsers = (data as any[]).map(user => {
+        let companyName = '';
+        if (user.companies && typeof user.companies === 'object') {
+          companyName = user.companies.name || '';
+        }
+        
+        return {
+          id: user.id,
+          name: user.name || '',
+          email: user.email,
+          role: user.role as 'admin' | 'company' | 'tech',
+          status: user.status as 'active' | 'inactive' | 'pending' | 'archived' | 'deleted',
+          companyId: user.company_id,
+          companyName,
+          isMainAdmin: false // This would need additional logic to determine
+        };
+      });
       
       set({ users: formattedUsers, isLoadingUsers: false });
     } catch (error) {
@@ -143,7 +148,6 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
       
       if (!data) return null;
       
-      // Cast data to DbCompany type for proper TypeScript checking
       const company = data as DbCompany;
       
       return {
@@ -199,7 +203,6 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
       
       if (error) throw error;
       
-      // Cast to DbCompany for proper TypeScript checking
       const company = data as DbCompany;
       
       const newCompany: Company = {
@@ -238,7 +241,6 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
   
   updateCompany: async (id: string, updates: Partial<Company>) => {
     try {
-      // Convert camelCase to snake_case for database
       const dbUpdates: any = {};
       
       if (updates.name !== undefined) dbUpdates.name = updates.name;
@@ -257,7 +259,6 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
       if (updates.trialEndsAt !== undefined) dbUpdates.trial_end_date = updates.trialEndsAt?.toISOString();
       if (updates.subscriptionEndsAt !== undefined) dbUpdates.subscription_ends_at = updates.subscriptionEndsAt?.toISOString();
       
-      // Always update the updated_at field
       dbUpdates.updated_at = new Date().toISOString();
       
       const { data, error } = await supabase
@@ -269,7 +270,6 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
       
       if (error) throw error;
       
-      // Cast to DbCompany for proper TypeScript checking
       const company = data as DbCompany;
       
       const updatedCompany: Company = {
@@ -345,6 +345,11 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
       
       if (!data) return null;
       
+      let companyName = '';
+      if (data.companies && typeof data.companies === 'object' && 'name' in data.companies) {
+        companyName = data.companies.name || '';
+      }
+      
       return {
         id: data.id,
         name: data.name || '',
@@ -352,7 +357,7 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
         role: data.role as 'admin' | 'company' | 'tech',
         status: data.status as 'active' | 'inactive' | 'pending' | 'archived' | 'deleted',
         companyId: data.company_id,
-        companyName: data.companies?.name || '',
+        companyName,
         isMainAdmin: false // This would need additional logic
       };
     } catch (error) {
@@ -364,7 +369,6 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
   
   deleteUser: async (id: string) => {
     try {
-      // First update the status to deleted instead of actually deleting
       const { error } = await supabase
         .from('users')
         .update({ status: 'deleted', updated_at: new Date().toISOString() })
@@ -387,8 +391,6 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
   
   resetUserPassword: async (id: string, newPassword: string) => {
     try {
-      // This would need to be implemented with a serverless function
-      // For now we just simulate success
       toast.success('Password reset functionality not connected to backend');
       return true;
     } catch (error) {
@@ -400,11 +402,9 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
   
   addUser: async (userData) => {
     try {
-      // In a real implementation, we would create both an auth user and a profile
-      // This is a simplified version
       const { data, error } = await supabase.auth.admin.createUser({
         email: userData.email,
-        password: userData.password || 'tempPassword123', // This would be randomly generated
+        password: userData.password || 'tempPassword123',
         email_confirm: true,
         user_metadata: {
           name: userData.name,
@@ -419,7 +419,6 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
         throw new Error('User creation failed');
       }
       
-      // Create the user profile
       const { data: profile, error: profileError } = await supabase
         .from('users')
         .insert([{
