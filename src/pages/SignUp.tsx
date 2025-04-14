@@ -39,10 +39,13 @@ export default function SignUp() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Get role from state if available, default to 'company'
+  const roleFromState = location.state?.role || 'company';
+
   // Log information about the current route and state for debugging
   useEffect(() => {
-    console.log("SignUp page loaded, path:", location.pathname, "state:", location.state);
-  }, [location]);
+    console.log("SignUp page loaded, path:", location.pathname, "state:", location.state, "roleFromState:", roleFromState);
+  }, [location, roleFromState]);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -50,9 +53,14 @@ export default function SignUp() {
       email: '',
       password: '',
       confirmPassword: '',
-      role: 'company'
+      role: roleFromState
     }
   });
+
+  // Update form when roleFromState changes
+  useEffect(() => {
+    form.setValue('role', roleFromState);
+  }, [roleFromState, form]);
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     setIsLoading(true);

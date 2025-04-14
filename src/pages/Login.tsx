@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { Link, Navigate, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,10 +15,17 @@ export default function Login() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { login, isAuthenticated, userRole } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const from = location.state?.from || "/";
   
-  console.log("Login page loaded, redirect destination:", from);
+  // Set initial role based on location state
+  useEffect(() => {
+    if (location.state?.role) {
+      setRole(location.state.role);
+    }
+    console.log("Login page loaded, redirect destination:", from, "state:", location.state);
+  }, [location, from]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,8 +36,21 @@ export default function Login() {
     
     setIsLoggingIn(true);
     try {
-      await login(email, password);
-      // Success toast is shown in the AuthContext after successful login
+      // Modify email if needed to match the role for demo purposes
+      let emailToUse = email;
+      if (!emailToUse.includes(role) && role !== "") {
+        // For demo, append role to email if not already present
+        emailToUse = email.includes('@') 
+          ? email.split('@')[0] + `-${role}@` + email.split('@')[1]
+          : `${email}-${role}@example.com`;
+      }
+      
+      const success = await login(emailToUse, password);
+      
+      if (success) {
+        // Let the automatic redirect in the useEffect handle navigation
+        console.log("Login successful, will redirect to:", from);
+      }
     } catch (error: any) {
       console.error("Login error:", error);
       // Error toast is shown in the AuthContext

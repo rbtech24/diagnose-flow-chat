@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { Suspense, lazy, useEffect } from "react";
 import Index from "./pages/Index";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -75,26 +75,42 @@ function LoadingFallback() {
   );
 }
 
+// Route change tracking component
+function RouteChangeTracker() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    console.log("Route changed to:", location.pathname, "state:", location.state);
+    
+    // Listen for popstate (browser back/forward)
+    const handlePopState = () => {
+      console.log("Browser navigation (back/forward) detected", {
+        path: window.location.pathname,
+        state: window.history.state
+      });
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [location, navigate]);
+
+  return null;
+}
+
 function App() {
   // Debug routing and navigation
   useEffect(() => {
     console.log("App mounted, current path:", window.location.pathname);
-    
-    // Listen for route changes
-    const handleRouteChange = () => {
-      console.log("Route changed to:", window.location.pathname);
-    };
-    
-    window.addEventListener('popstate', handleRouteChange);
-    
-    return () => {
-      window.removeEventListener('popstate', handleRouteChange);
-    };
   }, []);
 
   return (
     <ErrorBoundary>
       <Router>
+          <RouteChangeTracker />
           <Suspense fallback={<LoadingFallback />}>
             <Routes>
               {/* Public routes */}
