@@ -1,4 +1,6 @@
+
 import { useState, useEffect } from 'react';
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,52 +12,77 @@ export function ServiceHistory() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchServiceHistory = async () => {
-      try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setServiceHistory([
-          {
-            id: 'srh-001',
-            customer: 'John Smith',
-            device: 'Refrigerator XL5200',
-            date: '2023-05-15',
-            status: 'completed',
-            rating: 5,
-            notes: 'Fixed cooling issue. Replaced compressor.'
-          },
-          {
-            id: 'srh-002',
-            customer: 'Alice Johnson',
-            device: 'Washing Machine WM300',
-            date: '2023-05-12',
-            status: 'completed',
-            rating: 4,
-            notes: 'Repaired water inlet valve.'
-          },
-          {
-            id: 'srh-003',
-            customer: 'Bob Williams',
-            device: 'Dryer DR100',
-            date: '2023-05-10',
-            status: 'completed',
-            rating: 5,
-            notes: 'Fixed heating element.'
-          }
-        ]);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching service history:', error);
-        setLoading(false);
-        toast({
-          description: "Failed to load service history",
-          type: "error"
-        });
-      }
-    };
-
     fetchServiceHistory();
-  }, [toast]);
+  }, []);
+
+  const fetchServiceHistory = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('service_records')
+        .select('*')
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+
+      setServiceHistory(data || []);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching service history:', error);
+      toast({
+        description: "Failed to load service history",
+        type: "error"
+      });
+      setLoading(false);
+    }
+  };
+
+  const insertSampleRecords = async () => {
+    try {
+      const sampleRecords = [
+        {
+          customer: 'John Smith',
+          device: 'Refrigerator XL5200',
+          status: 'completed',
+          rating: 5,
+          notes: 'Fixed cooling issue. Replaced compressor.',
+        },
+        {
+          customer: 'Alice Johnson',
+          device: 'Washing Machine WM300',
+          status: 'completed',
+          rating: 4,
+          notes: 'Repaired water inlet valve.',
+        },
+        {
+          customer: 'Bob Williams',
+          device: 'Dryer DR100',
+          status: 'completed',
+          rating: 5,
+          notes: 'Fixed heating element.',
+        }
+      ];
+
+      const { data, error } = await supabase
+        .from('service_records')
+        .insert(sampleRecords);
+
+      if (error) throw error;
+
+      toast({
+        description: "Sample service records added successfully",
+        type: "success"
+      });
+
+      // Refresh the list
+      fetchServiceHistory();
+    } catch (error) {
+      console.error('Error inserting sample records:', error);
+      toast({
+        description: "Failed to add sample records",
+        type: "error"
+      });
+    }
+  };
 
   if (loading) {
     return <div className="animate-pulse p-4">Loading service history...</div>;
@@ -64,7 +91,15 @@ export function ServiceHistory() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Service History</CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle>Recent Service History</CardTitle>
+          <Button 
+            variant="outline" 
+            onClick={insertSampleRecords}
+          >
+            Insert Sample Records
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -74,7 +109,7 @@ export function ServiceHistory() {
                 <div>
                   <h3 className="font-medium">{service.customer}</h3>
                   <p className="text-sm text-gray-500">{service.device}</p>
-                  <p className="text-xs text-gray-400 mt-1">{service.date}</p>
+                  <p className="text-xs text-gray-400 mt-1">{new Date(service.date).toLocaleDateString()}</p>
                   <p className="text-sm mt-2">{service.notes}</p>
                 </div>
                 <div className="flex flex-col items-end">
@@ -91,7 +126,6 @@ export function ServiceHistory() {
           ) : (
             <p className="text-center text-gray-500">No service history available</p>
           )}
-          <Button variant="outline" className="w-full mt-2">View Full History</Button>
         </div>
       </CardContent>
     </Card>
