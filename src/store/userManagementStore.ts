@@ -348,8 +348,9 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
       if (!data) return null;
       
       let companyName = '';
-      if (data.companies && typeof data.companies === 'object' && data.companies !== null) {
-        companyName = data.companies?.name || '';
+      if (data.companies && typeof data.companies === 'object') {
+        // Use optional chaining and nullish coalescing to safely access the name property
+        companyName = data.companies?.name ?? '';
       }
       
       return {
