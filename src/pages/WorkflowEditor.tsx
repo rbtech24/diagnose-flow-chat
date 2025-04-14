@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useFlowState } from "@/hooks/useFlowState";
 import { FlowEditorContent } from "@/components/flow/FlowEditorContent";
@@ -13,7 +13,16 @@ export default function WorkflowEditor() {
   const name = searchParams.get("name") || "";
   const { toast } = useToast();
   const { role } = useUserRole();
-  const { checkWorkflowAccess } = useFlowState();
+  const { 
+    nodes, 
+    edges, 
+    isLoading, 
+    snapToGrid, 
+    onNodesChange, 
+    onEdgesChange, 
+    onConnect,
+    checkWorkflowAccess 
+  } = useFlowState();
 
   useEffect(() => {
     // Prevent access if the user doesn't have proper permissions
@@ -21,6 +30,7 @@ export default function WorkflowEditor() {
       toast({
         title: "Access denied",
         description: "You don't have permission to edit workflows.",
+        type: "error",
         variant: "destructive",
       });
       navigate(role === "admin" ? "/admin" : role === "company" ? "/company" : "/tech");
@@ -33,7 +43,24 @@ export default function WorkflowEditor() {
 
   return (
     <div className="h-screen w-full overflow-hidden">
-      <FlowEditorContent />
+      <FlowEditorContent 
+        nodes={nodes}
+        edges={edges}
+        isLoading={isLoading}
+        snapToGrid={snapToGrid}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        onNodeClick={() => {}}
+        onQuickSave={() => {}}
+        onAddNode={() => {}}
+        onSave={async () => {}}
+        onFileImport={() => {}}
+        onFileInputClick={() => {}}
+        onCopySelected={() => {}}
+        onPaste={() => {}}
+        appliances={[]}
+      />
     </div>
   );
 }

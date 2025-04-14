@@ -7,6 +7,10 @@ import { Node, Edge, addEdge, OnNodesChange, OnEdgesChange, OnConnect, applyNode
 export function useFlowState() {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
+  const [nodeCounter, setNodeCounter] = useState<number>(1);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [snapToGrid, setSnapToGrid] = useState<boolean>(true);
+  const [copiedNodes, setCopiedNodes] = useState<Node[]>([]);
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
 
@@ -24,6 +28,7 @@ export function useFlowState() {
       toast({
         title: "Connection created",
         description: "A new connection was created between nodes.",
+        type: "success",
         variant: "default",
       });
     },
@@ -36,14 +41,28 @@ export function useFlowState() {
     return role ? allowedRoles.includes(role) : false;
   }, []);
 
+  const clearSavedState = useCallback(() => {
+    setNodes([]);
+    setEdges([]);
+    setNodeCounter(1);
+  }, []);
+
   return {
     nodes,
     setNodes,
     edges,
     setEdges,
+    nodeCounter,
+    setNodeCounter,
+    isLoading,
+    setIsLoading,
+    snapToGrid,
+    copiedNodes,
+    setCopiedNodes,
     onNodesChange,
     onEdgesChange,
     onConnect,
     checkWorkflowAccess,
+    clearSavedState,
   };
 }

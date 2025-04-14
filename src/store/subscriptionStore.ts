@@ -78,7 +78,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         
         // Try to find the plan in our store
         const plan = get().plans.find(p => p.id === planId);
-        if (plan && (plan.dailyDiagnostics !== undefined || plan.dailyDiagnostics === 0)) {
+        if (plan && plan.dailyDiagnostics !== undefined) {
           return plan.dailyDiagnostics;
         }
         

@@ -8,7 +8,7 @@ export interface ToastProps {
   id?: string;
   title?: string;
   description?: string;
-  type: ToastType; // Required property
+  type?: ToastType; // Changed to optional
   duration?: number;
   position?: "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
   icon?: React.ReactNode;
@@ -22,7 +22,7 @@ export type Toast = ToastProps;
 
 export function useToast() {
   const toast = (props: ToastProps) => {
-    const { title, description, type, duration = 5000, onDismiss, variant, ...options } = props;
+    const { title, description, type, variant, duration = 5000, onDismiss, ...options } = props;
     
     const content = (
       <div className="flex items-start">

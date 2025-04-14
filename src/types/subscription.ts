@@ -1,4 +1,3 @@
-
 export interface SubscriptionPlan {
   id: string;
   name: string;
@@ -10,7 +9,7 @@ export interface SubscriptionPlan {
   maxTechnicians?: number | null;
   maxAdmins?: number;
   dailyDiagnostics?: number;
-  storageLimit?: number | string;
+  storageLimit?: string | number;
   max_storage: string;
   features: string[];
   trial_period: number;

@@ -3,14 +3,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { SubscriptionPlanCard } from '@/components/admin/subscription/SubscriptionPlanCard';
-import { Plus, Download, Upload, ArrowUpDown } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Plus, Download } from 'lucide-react';
 import { SubscriptionPlan } from '@/types/subscription';
+import { SubscriptionPlanCard } from '@/components/admin/subscription/SubscriptionPlanCard';
 import { SubscriptionPlanForm } from '@/components/subscription/SubscriptionPlanForm';
 
 const initialPlans: SubscriptionPlan[] = [
