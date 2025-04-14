@@ -349,7 +349,7 @@ export const useUserManagementStore = create<UserManagementStore>((set, get) => 
       
       let companyName = '';
       if (data.companies && typeof data.companies === 'object' && data.companies !== null) {
-        companyName = data.companies.name || '';
+        companyName = data.companies?.name || '';
       }
       
       return {
