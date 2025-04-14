@@ -28,7 +28,7 @@ const initialPlans: SubscriptionPlan[] = [
     is_active: true,
     description: "Perfect for small repair businesses",
     recommended: false,
-    trial_period: 30,
+    trial_period: 14, // Changed from 30 to 14
     usage_limits: {
       diagnostics_per_day: 10,
       technicians: 5,
@@ -44,7 +44,7 @@ const initialPlans: SubscriptionPlan[] = [
     is_active: true,
     description: "Ideal for growing businesses",
     recommended: true,
-    trial_period: 30,
+    trial_period: 14, // Changed from 30 to 14
     usage_limits: {
       diagnostics_per_day: 25,
       technicians: 15,
@@ -60,7 +60,7 @@ const initialPlans: SubscriptionPlan[] = [
     is_active: false,
     description: "For large organizations with complex needs",
     recommended: false,
-    trial_period: 30,
+    trial_period: 14, // Changed from 30 to 14
     usage_limits: {
       diagnostics_per_day: 100,
       technicians: 50,
