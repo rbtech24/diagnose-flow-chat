@@ -16,12 +16,18 @@ import {
   FormMessage 
 } from '@/components/ui/form';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, Check, Building, Wrench, ArrowRight, Star } from 'lucide-react';
+import { AlertTriangle, Check, Building, Wrench, ArrowRight, ArrowLeft } from 'lucide-react';
 
 const FormSchema = z.object({
+  fullName: z.string().min(2, {
+    message: "Full name must be at least 2 characters."
+  }),
   email: z.string().email({
     message: "Please enter a valid email address."
   }),
+  phoneNumber: z.string().min(10, {
+    message: "Phone number must be at least 10 digits."
+  }).optional(),
   password: z.string().min(8, {
     message: "Password must be at least 8 characters."
   }),
@@ -54,7 +60,7 @@ export default function SignUp() {
     }
     
     // Default fallback
-    return 'company';
+    return 'tech';
   };
 
   const initialRole = getRoleFromStateOrQuery();
@@ -70,7 +76,9 @@ export default function SignUp() {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
+      fullName: '',
       email: '',
+      phoneNumber: '',
       password: '',
       confirmPassword: '',
       role: initialRole
@@ -103,7 +111,8 @@ export default function SignUp() {
       // Pass the role to the register function
       await register(data.email, data.password, {
         role: data.role,
-        // You can add more user metadata here
+        fullName: data.fullName,
+        phoneNumber: data.phoneNumber
       });
       
       // Navigate to the verification page
@@ -119,69 +128,93 @@ export default function SignUp() {
   };
 
   return (
-    <div className="flex min-h-screen">
-      {/* Sales content side */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-8 flex-col justify-between">
+    <div className="flex min-h-screen bg-blue-50">
+      {/* Left side - Marketing content */}
+      <div className="w-full lg:w-1/2 p-12 flex flex-col">
         <div>
-          <img 
-            src="/lovable-uploads/626e46ce-b31c-4656-8873-f950a140763f.png" 
-            alt="Repair Autopilot" 
-            className="h-12 w-auto mb-12" 
-          />
+          <Link to="/" className="inline-flex items-center text-blue-600 mb-10">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to home
+          </Link>
           
-          <h1 className="text-3xl font-bold mb-4">Transform Your Repair Business Today</h1>
-          <p className="text-lg mb-8 text-blue-100">Join hundreds of successful repair companies already using Repair Auto Pilot to streamline operations and boost productivity.</p>
+          <div className="flex justify-center mb-8">
+            <img 
+              src="/lovable-uploads/626e46ce-b31c-4656-8873-f950a140763f.png" 
+              alt="Repair Autopilot" 
+              className="h-12 w-auto" 
+            />
+          </div>
           
+          <div className="mt-10 mb-12">
+            <h2 className="text-xl font-medium mb-4">Get immediate access to powerful diagnostic workflows for appliance repair professionals.</h2>
+          </div>
+          
+          {/* Free trial features */}
+          <div className="bg-white rounded-lg p-6 mb-8 shadow-sm">
+            <h3 className="text-lg font-medium mb-4 flex items-center">
+              <span className="flex h-6 w-6 rounded-full bg-blue-100 text-blue-600 items-center justify-center mr-2">
+                <Check className="h-4 w-4" />
+              </span>
+              Start with a 14-day free trial
+            </h3>
+            <ul className="space-y-3">
+              <li className="flex items-start">
+                <Check className="h-4 w-4 text-blue-600 mt-1 mr-2" />
+                <span>Full access to all features</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="h-4 w-4 text-blue-600 mt-1 mr-2" />
+                <span>No credit card required</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="h-4 w-4 text-blue-600 mt-1 mr-2" />
+                <span>Choose a subscription plan later</span>
+              </li>
+            </ul>
+          </div>
+          
+          {/* Plan information */}
           <div className="space-y-6">
             <div className="flex items-start">
-              <div className="flex-shrink-0 bg-blue-500 rounded-full p-2">
-                <Star className="h-6 w-6 text-white" />
+              <div className="flex-shrink-0 bg-blue-100 rounded-full p-2">
+                <Wrench className="h-5 w-5 text-blue-600" />
               </div>
               <div className="ml-4">
-                <h3 className="text-xl font-semibold">40% Increased Productivity</h3>
-                <p className="text-blue-100">Our diagnostic workflows reduce repair time and increase technician efficiency.</p>
+                <h3 className="text-lg font-medium">Individual Technician</h3>
+                <p className="text-gray-600">Access to diagnostic workflows, repair guides, and tracking tools.</p>
               </div>
             </div>
             
             <div className="flex items-start">
-              <div className="flex-shrink-0 bg-blue-500 rounded-full p-2">
-                <Star className="h-6 w-6 text-white" />
+              <div className="flex-shrink-0 bg-blue-100 rounded-full p-2">
+                <Building className="h-5 w-5 text-blue-600" />
               </div>
               <div className="ml-4">
-                <h3 className="text-xl font-semibold">82% First-Time Fix Rate</h3>
-                <p className="text-blue-100">Technicians arrive prepared with the right knowledge to solve problems on the first visit.</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start">
-              <div className="flex-shrink-0 bg-blue-500 rounded-full p-2">
-                <Star className="h-6 w-6 text-white" />
-              </div>
-              <div className="ml-4">
-                <h3 className="text-xl font-semibold">No Credit Card Required</h3>
-                <p className="text-blue-100">Start your 30-day free trial today and experience the difference.</p>
+                <h3 className="text-lg font-medium">Affordable Plan</h3>
+                <p className="text-gray-600">Low monthly fee with access to all features.</p>
               </div>
             </div>
           </div>
-        </div>
-        
-        <div className="mt-12 border-t border-blue-500 pt-6">
-          <div className="flex items-center">
-            <img src="/lovable-uploads/83ff694d-eb6c-4d23-9e13-2f1b96f3258e.png" alt="Customer" className="h-12 w-12 rounded-full object-cover" />
-            <div className="ml-4">
-              <p className="font-medium">"Repair Auto Pilot has revolutionized our business. Our technicians complete jobs faster and our customers are happier than ever."</p>
-              <p className="text-blue-200 mt-1">— Robert Johnson, Elite Appliance Repair</p>
-            </div>
+          
+          <div className="mt-8">
+            <p className="text-gray-600">
+              Already have an account?{' '}
+              <Link to="/login" className="text-blue-600 font-medium hover:underline">
+                Sign in
+              </Link>
+            </p>
           </div>
         </div>
       </div>
       
-      {/* Signup form side */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900">Create Your Account</h2>
-            <p className="text-gray-600 mt-2">Sign up for your 30-day free trial</p>
+      {/* Right side - Form */}
+      <div className="hidden lg:block lg:w-1/2 bg-white p-12">
+        <div className="max-w-md mx-auto">
+          <h1 className="text-3xl font-bold mb-2 text-gray-900">Join Repair Auto Pilot</h1>
+          
+          <div className="mb-8">
+            <h2 className="text-xl font-medium mb-1">Create Your Account</h2>
+            <p className="text-gray-600">Choose your account type below</p>
           </div>
           
           {error && (
@@ -192,31 +225,54 @@ export default function SignUp() {
           )}
           
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="flex flex-col space-y-2">
-                <p className="text-sm font-medium text-gray-700">I am a:</p>
-                <div className="flex gap-4">
-                  <div 
-                    className={`flex-1 border rounded-lg p-4 cursor-pointer transition-all ${form.watch('role') === 'company' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
-                    onClick={() => updateRoleAndUrl('company')}
-                  >
-                    <div className="flex justify-center mb-2">
-                      <Building className={`h-6 w-6 ${form.watch('role') === 'company' ? 'text-blue-500' : 'text-gray-400'}`} />
-                    </div>
-                    <div className="text-center font-medium">Company</div>
-                  </div>
-                  
-                  <div 
-                    className={`flex-1 border rounded-lg p-4 cursor-pointer transition-all ${form.watch('role') === 'tech' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
-                    onClick={() => updateRoleAndUrl('tech')}
-                  >
-                    <div className="flex justify-center mb-2">
-                      <Wrench className={`h-6 w-6 ${form.watch('role') === 'tech' ? 'text-blue-500' : 'text-gray-400'}`} />
-                    </div>
-                    <div className="text-center font-medium">Technician</div>
-                  </div>
-                </div>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+              {/* Role selection */}
+              <div className="grid grid-cols-2 gap-4 mb-2">
+                <button
+                  type="button"
+                  onClick={() => updateRoleAndUrl('tech')}
+                  className={`flex items-center justify-center gap-2 p-4 rounded-lg border ${
+                    form.watch('role') === 'tech' 
+                      ? 'bg-blue-50 border-blue-500 text-blue-700' 
+                      : 'border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  <Wrench className="h-5 w-5" />
+                  <span>Technician</span>
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => updateRoleAndUrl('company')}
+                  className={`flex items-center justify-center gap-2 p-4 rounded-lg border ${
+                    form.watch('role') === 'company' 
+                      ? 'bg-blue-50 border-blue-500 text-blue-700' 
+                      : 'border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  <Building className="h-5 w-5" />
+                  <span>Company</span>
+                </button>
               </div>
+              
+              {/* Form fields */}
+              <FormField
+                control={form.control}
+                name="fullName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="John Doe" 
+                        {...field}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               
               <FormField
                 control={form.control}
@@ -227,10 +283,28 @@ export default function SignUp() {
                     <FormControl>
                       <Input 
                         type="email" 
-                        placeholder="name@company.com" 
+                        placeholder="name@example.com" 
                         {...field}
                         disabled={isLoading}
-                        className="bg-gray-50"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="tel" 
+                        placeholder="(555) 123-4567" 
+                        {...field}
+                        disabled={isLoading}
                       />
                     </FormControl>
                     <FormMessage />
@@ -247,10 +321,9 @@ export default function SignUp() {
                     <FormControl>
                       <Input 
                         type="password" 
-                        placeholder="Create a secure password" 
+                        placeholder="••••••••" 
                         {...field}
                         disabled={isLoading}
-                        className="bg-gray-50"
                       />
                     </FormControl>
                     <FormMessage />
@@ -267,10 +340,9 @@ export default function SignUp() {
                     <FormControl>
                       <Input 
                         type="password" 
-                        placeholder="Confirm your password" 
+                        placeholder="••••••••" 
                         {...field}
                         disabled={isLoading}
-                        className="bg-gray-50"
                       />
                     </FormControl>
                     <FormMessage />
@@ -278,47 +350,22 @@ export default function SignUp() {
                 )}
               />
               
-              <div className="rounded-md bg-gray-50 p-4">
-                <h3 className="font-medium text-gray-800">Your 30-day free trial includes:</h3>
-                <ul className="mt-2 space-y-2">
-                  <li className="flex items-center text-sm text-gray-600">
-                    <Check className="mr-2 h-4 w-4 text-green-500" />
-                    Full access to all features
-                  </li>
-                  <li className="flex items-center text-sm text-gray-600">
-                    <Check className="mr-2 h-4 w-4 text-green-500" />
-                    Unlimited repair workflows
-                  </li>
-                  <li className="flex items-center text-sm text-gray-600">
-                    <Check className="mr-2 h-4 w-4 text-green-500" />
-                    Priority customer support
-                  </li>
-                </ul>
-              </div>
-              
               <Button 
                 type="submit" 
-                className="w-full"
+                className="w-full bg-blue-600 hover:bg-blue-700"
                 disabled={isLoading}
                 size="lg"
               >
-                {isLoading ? 'Creating Your Account...' : (
-                  <span className="flex items-center justify-center">
-                    Create Account <ArrowRight className="ml-2 h-4 w-4" />
-                  </span>
-                )}
+                {isLoading ? 'Creating account...' : 
+                  `Create ${form.watch('role') === 'tech' ? 'Technician' : 'Company'} Account`
+                }
               </Button>
+              
+              <p className="text-xs text-gray-500 text-center">
+                By signing up, you agree to our Terms of Service and Privacy Policy.
+              </p>
             </form>
           </Form>
-          
-          <div className="mt-8 text-center">
-            <p className="text-gray-600">
-              Already have an account?{' '}
-              <Link to="/login" className="text-blue-600 hover:underline font-medium">
-                Sign in
-              </Link>
-            </p>
-          </div>
         </div>
       </div>
     </div>
