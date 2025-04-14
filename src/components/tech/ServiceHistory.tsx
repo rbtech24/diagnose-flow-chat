@@ -6,8 +6,23 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
+// Define the type for service records
+interface ServiceRecord {
+  id: string;
+  company_id?: string;
+  customer: string;
+  device: string;
+  date: string;
+  status: string;
+  rating: number;
+  notes?: string;
+  technician_id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export function ServiceHistory() {
-  const [serviceHistory, setServiceHistory] = useState([]);
+  const [serviceHistory, setServiceHistory] = useState<ServiceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -20,7 +35,7 @@ export function ServiceHistory() {
       const { data, error } = await supabase
         .from('service_records')
         .select('*')
-        .order('date', { ascending: false });
+        .order('date', { ascending: false }) as { data: ServiceRecord[] | null; error: any };
 
       if (error) throw error;
 
@@ -64,7 +79,7 @@ export function ServiceHistory() {
 
       const { data, error } = await supabase
         .from('service_records')
-        .insert(sampleRecords);
+        .insert(sampleRecords) as { data: any; error: any };
 
       if (error) throw error;
 
@@ -104,7 +119,7 @@ export function ServiceHistory() {
       <CardContent>
         <div className="space-y-4">
           {serviceHistory.length > 0 ? (
-            serviceHistory.map((service: any) => (
+            serviceHistory.map((service) => (
               <div key={service.id} className="flex justify-between items-start border-b pb-3">
                 <div>
                   <h3 className="font-medium">{service.customer}</h3>
