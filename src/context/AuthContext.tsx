@@ -10,6 +10,13 @@ interface AuthContextType {
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<boolean>;
   signOut: () => void;
+  // Add missing methods
+  login: (email: string, password: string) => Promise<boolean>;
+  forgotPassword: (email: string) => Promise<boolean>;
+  resetPassword: (token: string, newPassword: string) => Promise<boolean>;
+  register: (email: string, password: string, metadata?: any) => Promise<boolean>;
+  updateUser: (data: Partial<User>) => void;
+  checkWorkflowAccess: (workflowId: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -106,6 +113,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     toast.success("Logged out successfully");
   };
 
+  // Add missing method implementations
+  const login = signIn; // Alias for signIn
+
+  const forgotPassword = async (email: string): Promise<boolean> => {
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      toast.success(`Password reset link sent to ${email}`);
+      return true;
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      toast.error("Failed to send reset link");
+      return false;
+    }
+  };
+
+  const resetPassword = async (token: string, newPassword: string): Promise<boolean> => {
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      toast.success("Password has been reset successfully");
+      return true;
+    } catch (error) {
+      console.error("Reset password error:", error);
+      toast.error("Failed to reset password");
+      return false;
+    }
+  };
+
+  const register = async (email: string, password: string, metadata?: any): Promise<boolean> => {
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      toast.success("Registration successful! Please check your email to verify your account.");
+      return true;
+    } catch (error) {
+      console.error("Registration error:", error);
+      toast.error("Registration failed");
+      return false;
+    }
+  };
+
+  const updateUser = (data: Partial<User>) => {
+    if (!user) return;
+    
+    const updatedUser = { ...user, ...data };
+    setUser(updatedUser);
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+    toast.success("Profile updated successfully");
+  };
+
+  const checkWorkflowAccess = async (workflowId: string): Promise<boolean> => {
+    // Simulate API call to check access
+    await new Promise(resolve => setTimeout(resolve, 500));
+    // In a demo, we'll grant access to all workflows
+    return true;
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -114,7 +179,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         userRole: user?.role || null,
         isLoading,
         signIn,
-        signOut
+        signOut,
+        login,
+        forgotPassword,
+        resetPassword,
+        register,
+        updateUser,
+        checkWorkflowAccess
       }}
     >
       {children}

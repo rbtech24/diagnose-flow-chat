@@ -1,24 +1,23 @@
 
 import React from "react";
-import { toast as hotToast, Toast as HotToast } from "react-hot-toast";
+import { toast as hotToast, type Toast as HotToast } from "react-hot-toast";
 
-type ToastType = "success" | "error" | "loading" | "custom";
+export type ToastType = "success" | "error" | "loading" | "custom";
 
-interface ToastOptions {
+export interface ToastProps {
+  id?: string;
+  title?: string;
+  description?: string;
+  type: ToastType;
   duration?: number;
   position?: "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
   icon?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
-}
-
-interface ToastProps extends ToastOptions {
-  id?: string;
-  title?: string;
-  description?: string;
-  type: ToastType;
   onDismiss?: () => void;
 }
+
+export type Toast = ToastProps;
 
 export function useToast() {
   const toast = (props: ToastProps) => {
@@ -33,17 +32,22 @@ export function useToast() {
       </div>
     );
     
+    const hotToastOptions = {
+      duration,
+      ...options
+    };
+    
     switch(type) {
       case "success":
-        return hotToast.success(content, { duration, ...options });
+        return hotToast.success(content, hotToastOptions);
       case "error":
-        return hotToast.error(content, { duration, ...options });
+        return hotToast.error(content, hotToastOptions);
       case "loading":
-        return hotToast.loading(content, { duration, ...options });
+        return hotToast.loading(content, hotToastOptions);
       case "custom":
-        return hotToast(content, { duration, ...options });
+        return hotToast(content, hotToastOptions);
       default:
-        return hotToast(content, { duration, ...options });
+        return hotToast(content, hotToastOptions);
     }
   };
   
@@ -60,3 +64,12 @@ export function useToast() {
       toast({ title, type: "custom", ...options }),
   };
 }
+
+// Export a simplified version for direct use
+export const toast = {
+  success: (message: string) => hotToast.success(message),
+  error: (message: string) => hotToast.error(message),
+  loading: (message: string) => hotToast.loading(message),
+  custom: (message: string) => hotToast(message),
+  dismiss: hotToast.dismiss
+};

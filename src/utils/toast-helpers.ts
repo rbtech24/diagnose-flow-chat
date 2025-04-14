@@ -1,10 +1,10 @@
 
-import toast from 'react-hot-toast';
+import { toast } from '@/hooks/use-toast';
 
 // This helper simplifies standardized access to toast methods across the application
 export const showToast = {
   // Basic toast with message only
-  message: (message: string): string => toast(message),
+  message: (message: string): string => toast.custom(message),
   
   // Success variant
   success: (message: string): string => toast.success(message),
@@ -15,13 +15,13 @@ export const showToast = {
   // For shadcn/ui compatibility - use this when you have title/description pattern
   titleDescription: (title: string, description?: string): string => {
     const message = description ? `${title}: ${description}` : title;
-    return toast(message);
+    return toast.custom(message);
   },
   
   // For shadcn/ui compatibility with variants
   titleDescriptionVariant: (title: string, description?: string, variant?: 'default' | 'destructive'): string => {
     const message = description ? `${title}: ${description}` : title;
-    return variant === 'destructive' ? toast.error(message) : toast(message);
+    return variant === 'destructive' ? toast.error(message) : toast.custom(message);
   },
 
   // Dismiss method

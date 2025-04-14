@@ -14,7 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 const profileFormSchema = z.object({
@@ -65,6 +65,7 @@ export function ProfileForm({
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
+        type: "success" // Add the type property
       });
       
       setIsSubmitting(false);
