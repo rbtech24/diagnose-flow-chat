@@ -22,6 +22,7 @@ export default function Index() {
 
   // Helper function to navigate with role parameter
   const navigateWithRole = (path: string, role: string) => {
+    console.log(`Navigating to ${path} with role ${role}`);
     navigate(path, { state: { role }, replace: false });
   };
 
