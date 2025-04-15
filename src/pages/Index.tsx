@@ -49,7 +49,7 @@ export default function Index() {
             size="lg" 
             className="bg-blue-600 hover:bg-blue-700"
           >
-            Start Free Trial
+            Start 30-Day Free Trial
           </Button>
           
           <Button 

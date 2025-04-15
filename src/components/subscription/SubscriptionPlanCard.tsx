@@ -3,6 +3,6 @@
 const trialPeriodText = (plan) => {
   const period = (plan.trialPeriod !== undefined ? plan.trialPeriod : 
     plan.trial_period !== undefined ? plan.trial_period : 
-    14);
+    30);
   return `${period}-day trial period`;
 };

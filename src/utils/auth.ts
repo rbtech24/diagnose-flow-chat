@@ -157,7 +157,7 @@ export function getWorkflowUsageStats() {
 }
 
 /**
- * Check if current license is valid with enhanced verification
+ * Verify license with enhanced verification
  * @param user The current user
  * @returns Object with status and message
  */
