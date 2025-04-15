@@ -111,7 +111,7 @@ export default function Login() {
         </h1>
         
         <p className="text-center text-gray-600 mb-6">
-          Enter your credentials to access your account
+          Start with a 30-day free trial, no credit card required
         </p>
         
         <div className="mb-6">
@@ -219,3 +219,4 @@ export default function Login() {
     </div>
   );
 }
+
