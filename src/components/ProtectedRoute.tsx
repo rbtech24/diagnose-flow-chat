@@ -43,24 +43,30 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
-  // For admin role, allow access to all protected routes with some exceptions
+  // For admin role: allow access to all protected routes except specific ones
   if (userRole === 'admin') {
-    // Admin role should access admin routes, not tech or company routes
-    if (location.pathname.startsWith('/tech') && !location.pathname.startsWith('/tech/diagnostics')) {
-      console.log("Admin redirected from tech routes to admin dashboard");
+    // Admin should not be redirected to tech routes
+    if (location.pathname.startsWith('/tech') && !location.pathname.includes('/tech/diagnostics')) {
+      console.log("Admin trying to access tech route, redirecting to admin dashboard");
       return <Navigate to="/admin" replace />;
     }
     
     if (location.pathname.startsWith('/company')) {
-      console.log("Admin redirected from company routes to admin dashboard");
+      console.log("Admin trying to access company route, redirecting to admin dashboard");
       return <Navigate to="/admin" replace />;
+    }
+    
+    // Allow access to workflow editor and admin routes
+    if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/workflow-editor')) {
+      console.log("Admin accessing admin or workflow route, granting access");
+      return <Outlet />;
     }
     
     console.log("Admin user, granting access to:", location.pathname);
     return <Outlet />;
   }
   
-  // Check for role-based authorization for non-admin users
+  // Check role-based access for non-admin users
   if (allowedRoles && userRole && !allowedRoles.includes(userRole as 'admin' | 'company' | 'tech')) {
     console.log(`User role ${userRole} not in allowed roles: ${allowedRoles.join(', ')}`);
     // Redirect to appropriate dashboard based on role

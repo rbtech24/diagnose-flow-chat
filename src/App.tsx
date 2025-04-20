@@ -188,7 +188,7 @@ function App() {
                 </Route>
               </Route>
 
-              <Route element={<ProtectedRoute />}>
+              <Route element={<ProtectedRoute allowedRoles={['admin', 'company']} />}>
                 <Route path="/workflow-editor" element={<WorkflowEditor />} />
               </Route>
 

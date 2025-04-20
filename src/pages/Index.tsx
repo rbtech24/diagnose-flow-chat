@@ -14,6 +14,8 @@ export default function Index() {
   useEffect(() => {
     if (isAuthenticated) {
       console.log("User already authenticated with role:", userRole, "redirecting to dashboard");
+      
+      // Make sure to redirect to the correct dashboard based on role
       if (userRole === 'admin') {
         navigate('/admin');
       } else if (userRole === 'company') {
