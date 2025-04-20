@@ -1,191 +1,199 @@
 
-import React, { createContext, useState, useContext, useEffect, ReactNode } from "react";
-import { User } from "@/types/user";
-import { toast } from "react-hot-toast"; // Changed from default import to named import
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+
+type UserRole = 'admin' | 'company' | 'tech' | null;
+
+interface User {
+  id: string;
+  email: string;
+  name?: string;
+  avatarUrl?: string;
+}
 
 interface AuthContextType {
   user: User | null;
+  userRole: UserRole;
   isAuthenticated: boolean;
-  userRole: "admin" | "company" | "tech" | null;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<boolean>;
-  signOut: () => void;
-  // Add missing methods
-  login: (email: string, password: string) => Promise<boolean>;
-  forgotPassword: (email: string) => Promise<boolean>;
-  resetPassword: (token: string, newPassword: string) => Promise<boolean>;
-  register: (email: string, password: string, metadata?: any) => Promise<boolean>;
-  updateUser: (data: Partial<User>) => void;
-  checkWorkflowAccess: (workflowId: string) => Promise<boolean>;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, role: UserRole) => Promise<void>;
+  signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
 }
 
+// Create a context with a default value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Provider component that wraps app and provides auth context
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [userRole, setUserRole] = useState<UserRole>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Simulated authentication for demo purposes
+  // Initialize auth state from session
   useEffect(() => {
-    // Simulate loading user data
-    const timer = setTimeout(() => {
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser) as User;
-          setUser(parsedUser);
-        } catch (error) {
-          console.error("Failed to parse stored user:", error);
-          localStorage.removeItem("user");
+    const checkSession = async () => {
+      setIsLoading(true);
+      
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          return;
+        }
+        
+        if (data.session) {
+          const { user } = data.session;
+          
+          // Set user data
+          setUser({
+            id: user.id,
+            email: user.email || '',
+            name: user.user_metadata?.name,
+            avatarUrl: user.user_metadata?.avatar_url
+          });
+          
+          // Get user role from metadata or user table
+          setUserRole(user.user_metadata?.role as UserRole || null);
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.error('Session check error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkSession();
+    
+    // Set up auth state listener
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event);
+        
+        if (event === 'SIGNED_IN' && session) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+            name: session.user.user_metadata?.name,
+            avatarUrl: session.user.user_metadata?.avatar_url
+          });
+          setUserRole(session.user.user_metadata?.role as UserRole || null);
+          setIsAuthenticated(true);
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+          setUserRole(null);
+          setIsAuthenticated(false);
         }
       }
-      setIsLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
+    );
+    
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
-
-  const signIn = async (email: string, password: string): Promise<boolean> => {
-    setIsLoading(true);
+  
+  // Sign in handler
+  const signIn = async (email: string, password: string) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
-      // Demo authentication logic
-      // In a real app, this would be an API call to your auth service
-      if (email.includes('admin')) {
-        const adminUser: User = {
-          id: "admin-123",
-          name: "Admin User",
-          email: email,
-          role: "admin",
-          status: "active",
-          avatarUrl: "https://i.pravatar.cc/150?u=admin"
-        };
-        setUser(adminUser);
-        localStorage.setItem("user", JSON.stringify(adminUser));
-        toast.success("Welcome, Admin!");
-        return true;
-      } else if (email.includes('company')) {
-        const companyUser: User = {
-          id: "company-123",
-          name: "Company Manager",
-          email: email,
-          role: "company",
-          status: "active",
-          companyId: "comp-123",
-          avatarUrl: "https://i.pravatar.cc/150?u=company"
-        };
-        setUser(companyUser);
-        localStorage.setItem("user", JSON.stringify(companyUser));
-        toast.success("Welcome, Company Manager!");
-        return true;
-      } else if (email.includes('tech')) {
-        const techUser: User = {
-          id: "tech-123",
-          name: "Technician",
-          email: email,
-          role: "tech",
-          status: "active",
-          companyId: "comp-123",
-          avatarUrl: "https://i.pravatar.cc/150?u=tech"
-        };
-        setUser(techUser);
-        localStorage.setItem("user", JSON.stringify(techUser));
-        toast.success("Welcome, Technician!");
-        return true;
-      } else {
-        toast.error("Invalid credentials");
-        return false;
+      if (error) {
+        toast.error(error.message);
+        throw error;
+      }
+      
+      if (data.user) {
+        toast.success('Signed in successfully');
       }
     } catch (error) {
-      console.error("SignIn error:", error);
-      toast.error("Authentication failed");
-      return false;
-    } finally {
-      setIsLoading(false);
+      console.error('Sign in error:', error);
+      throw error;
     }
   };
-
-  const signOut = () => {
-    setUser(null);
-    localStorage.removeItem("user");
-    toast.success("Logged out successfully");
-  };
-
-  // Add missing method implementations
-  const login = signIn; // Alias for signIn
-
-  const forgotPassword = async (email: string): Promise<boolean> => {
+  
+  // Sign up handler
+  const signUp = async (email: string, password: string, role: UserRole) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success(`Password reset link sent to ${email}`);
-      return true;
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            role: role
+          },
+        }
+      });
+      
+      if (error) {
+        toast.error(error.message);
+        throw error;
+      }
+      
+      if (data.user) {
+        toast.success('Signed up successfully. Please check your email for verification.');
+      }
     } catch (error) {
-      console.error("Forgot password error:", error);
-      toast.error("Failed to send reset link");
-      return false;
+      console.error('Sign up error:', error);
+      throw error;
     }
   };
-
-  const resetPassword = async (token: string, newPassword: string): Promise<boolean> => {
+  
+  // Sign out handler
+  const signOut = async () => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success("Password has been reset successfully");
-      return true;
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        toast.error(error.message);
+        throw error;
+      }
+      
+      toast.success('Signed out successfully');
     } catch (error) {
-      console.error("Reset password error:", error);
-      toast.error("Failed to reset password");
-      return false;
+      console.error('Sign out error:', error);
+      throw error;
     }
   };
-
-  const register = async (email: string, password: string, metadata?: any): Promise<boolean> => {
+  
+  // Reset password handler
+  const resetPassword = async (email: string) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success("Registration successful! Please check your email to verify your account.");
-      return true;
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      
+      if (error) {
+        toast.error(error.message);
+        throw error;
+      }
+      
+      toast.success('Password reset email sent');
     } catch (error) {
-      console.error("Registration error:", error);
-      toast.error("Registration failed");
-      return false;
+      console.error('Password reset error:', error);
+      throw error;
     }
   };
-
-  const updateUser = (data: Partial<User>) => {
-    if (!user) return;
-    
-    const updatedUser = { ...user, ...data };
-    setUser(updatedUser);
-    localStorage.setItem("user", JSON.stringify(updatedUser));
-    toast.success("Profile updated successfully");
-  };
-
-  const checkWorkflowAccess = async (workflowId: string): Promise<boolean> => {
-    // Simulate API call to check access
-    await new Promise(resolve => setTimeout(resolve, 500));
-    // In a demo, we'll grant access to all workflows
-    return true;
-  };
-
+  
   return (
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated: !!user,
-        userRole: user?.role || null,
+        userRole,
+        isAuthenticated,
         isLoading,
         signIn,
+        signUp,
         signOut,
-        login,
-        forgotPassword,
-        resetPassword,
-        register,
-        updateUser,
-        checkWorkflowAccess
+        resetPassword
       }}
     >
       {children}
@@ -193,10 +201,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// Custom hook to use the auth context
 export function useAuth() {
   const context = useContext(AuthContext);
+  
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
+  
   return context;
 }

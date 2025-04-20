@@ -1,55 +1,29 @@
 
-import React from "react";
-import { toast as hotToast } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 
-export type ToastType = "success" | "error" | "loading" | "custom" | "info";
-
-export interface ToastProps {
-  title?: string;
-  description?: string;
-  type?: ToastType;
-  variant?: "default" | "destructive";
+interface ToastOptions {
   duration?: number;
+  position?: "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
 }
 
-export function useToast() {
-  const toast = (props: ToastProps | string) => {
-    if (typeof props === 'string') {
-      return hotToast(props);
-    }
+export const useToast = () => {
+  const showSuccess = (message: string, options?: ToastOptions) => {
+    toast.success(message, options);
+  };
 
-    const { title, description, type, duration = 3000 } = props;
-    const message = title 
-      ? description 
-        ? `${title}: ${description}` 
-        : title 
-      : description || '';
+  const showError = (message: string, options?: ToastOptions) => {
+    toast.error(message, options);
+  };
 
-    switch(type) {
-      case 'success':
-        return hotToast.success(message, { duration });
-      case 'error':
-        return hotToast.error(message, { duration });
-      case 'loading':
-        return hotToast.loading(message, { duration });
-      default:
-        return hotToast(message, { duration });
-    }
+  const showInfo = (message: string, options?: ToastOptions) => {
+    toast(message, options);
   };
 
   return {
-    toast,
-    success: (message: string) => hotToast.success(message),
-    error: (message: string) => hotToast.error(message),
-    loading: (message: string) => hotToast.loading(message),
-    dismiss: hotToast.dismiss
+    showSuccess,
+    showError,
+    showInfo,
   };
-}
-
-// Direct toast export for simple usage without hooks
-export const toast = {
-  success: (message: string) => hotToast.success(message),
-  error: (message: string) => hotToast.error(message),
-  loading: (message: string) => hotToast.loading(message),
-  dismiss: hotToast.dismiss
 };
+
+export default useToast;
