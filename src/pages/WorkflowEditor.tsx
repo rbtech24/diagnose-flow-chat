@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useFlowState } from "@/hooks/useFlowState";
 import { FlowEditorContent } from "@/components/flow/FlowEditorContent";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "react-hot-toast";
 import { useUserRole } from "@/hooks/useUserRole";
 
 export default function WorkflowEditor() {
@@ -10,7 +10,6 @@ export default function WorkflowEditor() {
   const [searchParams] = useSearchParams();
   const folder = searchParams.get("folder") || "";
   const name = searchParams.get("name") || "";
-  const { toast } = useToast();
   const { role } = useUserRole();
   const { 
     nodes, 
@@ -26,14 +25,10 @@ export default function WorkflowEditor() {
   useEffect(() => {
     // Prevent access if the user doesn't have proper permissions
     if (!checkWorkflowAccess(role)) {
-      toast({
-        title: "Access denied",
-        description: "You don't have permission to edit workflows.",
-        type: "error"
-      });
+      toast.error("You don't have permission to edit workflows.");
       navigate(role === "admin" ? "/admin" : role === "company" ? "/company" : "/tech");
     }
-  }, [navigate, role, checkWorkflowAccess, toast]);
+  }, [navigate, role, checkWorkflowAccess]);
 
   if (!folder) {
     return <div>Error: Missing folder parameter</div>;

@@ -3,25 +3,23 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { User } from "@/types/user";
 
 type UserRole = 'admin' | 'company' | 'tech' | null;
-
-interface User {
-  id: string;
-  email: string;
-  name?: string;
-  avatarUrl?: string;
-}
 
 interface AuthContextType {
   user: User | null;
   userRole: UserRole;
   isAuthenticated: boolean;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, role: UserRole) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<boolean>; // Alias for signIn
+  signUp: (email: string, password: string, role: UserRole, additionalData?: any) => Promise<void>;
+  register: (email: string, password: string, additionalData?: any) => Promise<void>; // Alias for signUp
   signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
+  forgotPassword: (email: string) => Promise<boolean>;
+  resetPassword: (token: string, newPassword: string) => Promise<boolean>;
+  updateUser: (data: Partial<User>) => Promise<boolean>;
 }
 
 // Create a context with a default value
@@ -54,8 +52,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser({
             id: user.id,
             email: user.email || '',
-            name: user.user_metadata?.name,
-            avatarUrl: user.user_metadata?.avatar_url
+            name: user.user_metadata?.name || '',
+            avatarUrl: user.user_metadata?.avatar_url,
+            role: user.user_metadata?.role as UserRole || 'tech',
+            status: 'active',
+            companyId: user.user_metadata?.company_id,
+            subscriptionStatus: user.user_metadata?.subscription_status,
+            trialEndsAt: user.user_metadata?.trial_ends_at ? new Date(user.user_metadata.trial_ends_at) : undefined
           });
           
           // Get user role from metadata or user table
@@ -80,8 +83,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser({
             id: session.user.id,
             email: session.user.email || '',
-            name: session.user.user_metadata?.name,
-            avatarUrl: session.user.user_metadata?.avatar_url
+            name: session.user.user_metadata?.name || '',
+            avatarUrl: session.user.user_metadata?.avatar_url,
+            role: session.user.user_metadata?.role as UserRole || 'tech',
+            status: 'active',
+            companyId: session.user.user_metadata?.company_id,
+            subscriptionStatus: session.user.user_metadata?.subscription_status,
+            trialEndsAt: session.user.user_metadata?.trial_ends_at ? new Date(session.user.user_metadata.trial_ends_at) : undefined
           });
           setUserRole(session.user.user_metadata?.role as UserRole || null);
           setIsAuthenticated(true);
@@ -99,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
   
   // Sign in handler
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<boolean> => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -108,27 +116,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (error) {
         toast.error(error.message);
-        throw error;
+        return false;
       }
       
       if (data.user) {
         toast.success('Signed in successfully');
+        return true;
       }
-    } catch (error) {
+      
+      return false;
+    } catch (error: any) {
       console.error('Sign in error:', error);
-      throw error;
+      toast.error(error.message || 'Sign in failed');
+      return false;
     }
   };
   
+  // Alias for signIn
+  const login = signIn;
+  
   // Sign up handler
-  const signUp = async (email: string, password: string, role: UserRole) => {
+  const signUp = async (email: string, password: string, role: UserRole, additionalData: any = {}): Promise<void> => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            role: role
+            role: role,
+            name: additionalData.fullName || additionalData.name,
+            phone: additionalData.phoneNumber || additionalData.phone,
+            ...additionalData
           },
         }
       });
@@ -141,10 +159,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data.user) {
         toast.success('Signed up successfully. Please check your email for verification.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Sign up error:', error);
       throw error;
     }
+  };
+  
+  // Alias for signUp
+  const register = async (email: string, password: string, additionalData: any = {}): Promise<void> => {
+    return signUp(email, password, additionalData.role || 'tech', additionalData);
   };
   
   // Sign out handler
@@ -158,14 +181,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       toast.success('Signed out successfully');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Sign out error:', error);
       throw error;
     }
   };
   
   // Reset password handler
-  const resetPassword = async (email: string) => {
+  const resetPassword = async (token: string, newPassword: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase.auth.updateUser({ 
+        password: newPassword 
+      });
+      
+      if (error) {
+        toast.error(error.message);
+        return false;
+      }
+      
+      toast.success('Password has been reset successfully');
+      return true;
+    } catch (error: any) {
+      console.error('Password reset error:', error);
+      toast.error(error.message || 'Password reset failed');
+      return false;
+    }
+  };
+  
+  // Forgot password handler
+  const forgotPassword = async (email: string): Promise<boolean> => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
@@ -173,13 +217,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (error) {
         toast.error(error.message);
-        throw error;
+        return false;
       }
       
-      toast.success('Password reset email sent');
-    } catch (error) {
-      console.error('Password reset error:', error);
-      throw error;
+      return true;
+    } catch (error: any) {
+      console.error('Forgot password error:', error);
+      toast.error(error.message || 'Failed to send reset link');
+      return false;
+    }
+  };
+  
+  // Update user handler
+  const updateUser = async (data: Partial<User>): Promise<boolean> => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          ...data
+        }
+      });
+      
+      if (error) {
+        toast.error(error.message);
+        return false;
+      }
+      
+      // Update local state
+      if (user) {
+        setUser({
+          ...user,
+          ...data
+        });
+      }
+      
+      toast.success('User profile updated successfully');
+      return true;
+    } catch (error: any) {
+      console.error('Update user error:', error);
+      toast.error(error.message || 'Failed to update user profile');
+      return false;
     }
   };
   
@@ -191,9 +267,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated,
         isLoading,
         signIn,
+        login,
         signUp,
+        register,
         signOut,
-        resetPassword
+        resetPassword,
+        forgotPassword,
+        updateUser
       }}
     >
       {children}

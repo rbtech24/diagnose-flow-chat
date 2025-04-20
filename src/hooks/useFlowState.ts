@@ -1,6 +1,7 @@
+
 import { useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'react-hot-toast';
 import { Node, Edge, addEdge, OnNodesChange, OnEdgesChange, OnConnect, applyNodeChanges, applyEdgeChanges } from '@xyflow/react';
 
 export function useFlowState() {
@@ -11,7 +12,6 @@ export function useFlowState() {
   const [snapToGrid, setSnapToGrid] = useState<boolean>(true);
   const [copiedNodes, setCopiedNodes] = useState<Node[]>([]);
   const [searchParams] = useSearchParams();
-  const { toast } = useToast();
 
   const onNodesChange: OnNodesChange = useCallback((changes) => {
     setNodes((nds) => applyNodeChanges(changes, nds));
@@ -24,13 +24,9 @@ export function useFlowState() {
   const onConnect: OnConnect = useCallback(
     (connection) => {
       setEdges((eds) => addEdge(connection, eds));
-      toast({
-        title: "Connection created",
-        description: "A new connection was created between nodes.",
-        type: "success"
-      });
+      toast.success("A new connection was created between nodes.");
     },
-    [toast]
+    []
   );
 
   const checkWorkflowAccess = useCallback((role: string | undefined) => {

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Upload, Trash2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "react-hot-toast";
 import { Label } from "@/components/ui/label";
 
 interface ProfileImageUploadProps {
@@ -15,27 +15,18 @@ interface ProfileImageUploadProps {
 export function ProfileImageUpload({ currentImageUrl, onImageUpdate }: ProfileImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null);
-  const { toast } = useToast();
   
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
     if (!file.type.includes('image/')) {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload an image file (jpg, png, etc.)",
-        type: "error"
-      });
+      toast.error("Please upload an image file (jpg, png, etc.)");
       return;
     }
     
     if (file.size > 5 * 1024 * 1024) { // 5MB limit
-      toast({
-        title: "File too large",
-        description: "Image file size must be less than 5MB",
-        type: "error"
-      });
+      toast.error("Image file size must be less than 5MB");
       return;
     }
     
@@ -56,11 +47,7 @@ export function ProfileImageUpload({ currentImageUrl, onImageUpdate }: ProfileIm
       onImageUpdate(mockUploadedUrl);
       setIsUploading(false);
       
-      toast({
-        title: "Profile image updated",
-        description: "Your profile image has been successfully updated.",
-        type: "success"
-      });
+      toast.success("Your profile image has been successfully updated.");
     }, 1500);
   };
   
@@ -68,11 +55,7 @@ export function ProfileImageUpload({ currentImageUrl, onImageUpdate }: ProfileIm
     setPreviewUrl(null);
     onImageUpdate("");
     
-    toast({
-      title: "Profile image removed",
-      description: "Your profile image has been removed.",
-      type: "success"
-    });
+    toast.success("Your profile image has been removed.");
   };
   
   return (

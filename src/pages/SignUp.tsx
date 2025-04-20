@@ -108,7 +108,7 @@ export default function SignUp() {
     setError('');
     
     try {
-      // Pass the role to the register function
+      // Pass the data to the register function with proper structure
       await register(data.email, data.password, {
         role: data.role,
         fullName: data.fullName,

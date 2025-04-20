@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "react-hot-toast";
 import { Mail } from "lucide-react";
 
 interface StatusSubscriptionModalProps {
@@ -14,17 +14,12 @@ interface StatusSubscriptionModalProps {
 export function StatusSubscriptionModal({ open, onOpenChange }: StatusSubscriptionModalProps) {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
-      toast({
-        title: "Invalid email",
-        description: "Please enter a valid email address.",
-        type: "error"
-      });
+      toast.error("Please enter a valid email address.");
       return;
     }
 
@@ -34,20 +29,12 @@ export function StatusSubscriptionModal({ open, onOpenChange }: StatusSubscripti
       // Here you would normally have an API call to subscribe the user
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      toast({
-        title: "Subscription successful",
-        description: "You will now receive status updates to your email.",
-        type: "success"
-      });
+      toast.success("You will now receive status updates to your email.");
       
       setEmail("");
       onOpenChange(false);
     } catch (error) {
-      toast({
-        title: "Subscription failed",
-        description: "There was an error subscribing to status updates.",
-        type: "error"
-      });
+      toast.error("There was an error subscribing to status updates.");
     } finally {
       setIsLoading(false);
     }
