@@ -29,7 +29,8 @@ export function useFlowState() {
     []
   );
 
-  const checkWorkflowAccess = useCallback((role: string | undefined) => {
+  const checkWorkflowAccess = useCallback((role: string | undefined | null) => {
+    console.log("Checking workflow access for role:", role);
     // Define which roles have access to the workflow editor
     const allowedRoles = ['admin', 'company'];
     return role ? allowedRoles.includes(role) : false;

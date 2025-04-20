@@ -26,6 +26,7 @@ export default function WorkflowEditor() {
   useEffect(() => {
     // Prevent access if the user doesn't have proper permissions
     if (!checkWorkflowAccess(role)) {
+      console.log("User role:", role, "does not have access to workflows");
       toast.error("You don't have permission to edit workflows.");
       navigate(role === "admin" ? "/admin" : role === "company" ? "/company" : "/tech");
     }

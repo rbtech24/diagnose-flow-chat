@@ -12,7 +12,7 @@ export function useUserRole() {
     hasRole: (targetRole: string | string[]) => {
       if (!userRole) return false;
       
-      // Special case: admin role has access to everything
+      // Special case: admin role has access to everything except specifically excluded routes
       if (userRole === 'admin') return true;
       
       if (Array.isArray(targetRole)) {
