@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ export default function Updates() {
       if (error) throw error;
       
       setUpdates(data || []);
+      console.log("Fetched product updates:", data || []);
     } catch (err) {
       console.error("Error fetching updates:", err);
       setError("Failed to load product updates. Please try again later.");
@@ -50,41 +52,6 @@ export default function Updates() {
   useEffect(() => {
     window.scrollTo(0, 0);
     fetchUpdates();
-  }, []);
-
-  // Simulate real updates data
-  const mockUpdates = [
-    {
-      id: "1",
-      title: "New AI-Powered Diagnostic Workflows",
-      content: "Introducing advanced diagnostic flows powered by machine learning, improving accuracy by 35% and reducing diagnosis time by 45%.",
-      version: "2.4.0",
-      date: "2025-04-15"
-    },
-    {
-      id: "2",
-      title: "Mobile App Enhancement",
-      content: "Major mobile experience improvements including offline mode for field technicians and real-time sync capabilities.",
-      version: "2.3.0",
-      date: "2025-03-28"
-    },
-    {
-      id: "3",
-      title: "Customer Communication Tools",
-      content: "New features for automated status updates, repair documentation sharing, and instant customer feedback collection.",
-      version: "2.2.5",
-      date: "2025-03-10"
-    }
-  ];
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    // Mock data loading
-    setIsLoading(true);
-    setTimeout(() => {
-      setUpdates(mockUpdates);
-      setIsLoading(false);
-    }, 1000);
   }, []);
 
   return (
@@ -183,9 +150,9 @@ export default function Updates() {
               <div className="rounded-full bg-blue-50 p-3 mb-4">
                 <Info className="h-8 w-8 text-blue-500" />
               </div>
-              <h3 className="text-xl font-medium text-gray-900 mb-2">No Current Updates</h3>
+              <h3 className="text-xl font-medium text-gray-900 mb-2">No Updates Available</h3>
               <p className="text-gray-500 max-w-md">
-                There are no new product updates at this time. Check back later for the latest improvements and features.
+                There are no product updates available at this time. Please check back later for the latest improvements and features.
               </p>
             </div>
           </div>

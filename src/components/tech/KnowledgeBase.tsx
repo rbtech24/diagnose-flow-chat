@@ -24,6 +24,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { showToast } from "@/utils/toast-helpers";
 
+// Define interface that matches exactly what comes from the database
+interface KnowledgeDBItem {
+  id: string;
+  title: string;
+  category: string | null;
+  content: string;
+  is_public: boolean;
+  company_id: string;
+  author_id: string;
+  tags: string[];
+  views: number;
+  created_at: string;
+  updated_at: string;
+  // Optional field that might not exist in some database records
+  from_community_post?: string;
+}
+
+// Interface for our transformed knowledge article
 interface KnowledgeArticle {
   id: string;
   title: string;
@@ -58,7 +76,7 @@ export function KnowledgeBase() {
       
       if (data && data.length > 0) {
         // Transform the data to match our KnowledgeArticle interface
-        const transformedData: KnowledgeArticle[] = data.map(item => ({
+        const transformedData: KnowledgeArticle[] = data.map((item: KnowledgeDBItem) => ({
           id: item.id,
           title: item.title,
           category: item.category || 'General',
@@ -66,26 +84,27 @@ export function KnowledgeBase() {
           type: mapCategoryToType(item.category) || 'guide',
           excerpt: item.content.substring(0, 120) + '...',
           // Check if there's a community post reference in the database item
-          fromCommunityPost: item.from_community_post || undefined
+          fromCommunityPost: item.from_community_post
         }));
         
         setArticles(transformedData);
+        console.log("Fetched real knowledge articles:", transformedData);
       } else {
-        // No data found, use sample data
-        setArticles(mockKnowledgeArticles);
+        console.log("No knowledge articles found in database, using empty array");
+        setArticles([]);
       }
     } catch (error) {
       console.error('Error fetching knowledge articles:', error);
       showToast.error("Failed to load knowledge articles");
-      // Fallback to mock data
-      setArticles(mockKnowledgeArticles);
+      console.log("Using empty array due to error");
+      setArticles([]);
     } finally {
       setLoading(false);
     }
   };
   
   // Helper function to map database categories to our article types
-  const mapCategoryToType = (category?: string): KnowledgeArticleType | undefined => {
+  const mapCategoryToType = (category?: string | null): KnowledgeArticleType | undefined => {
     if (!category) return undefined;
     
     category = category.toLowerCase();
@@ -288,7 +307,7 @@ export function KnowledgeBase() {
               ))
             ) : (
               <div className="text-center py-8 text-gray-500">
-                No articles found matching your search
+                {searchQuery ? "No articles found matching your search" : "No knowledge articles found. Please add some to your database."}
               </div>
             )}
           </div>
@@ -300,124 +319,3 @@ export function KnowledgeBase() {
     </Card>
   );
 }
-
-// Define the functions we referenced above
-const getTypeIcon = (type: KnowledgeArticleType) => {
-  switch(type) {
-    case "guide":
-      return <BookOpen className="h-5 w-5 text-blue-500" />;
-    case "manual":
-      return <FileText className="h-5 w-5 text-amber-500" />;
-    case "faq":
-      return <Book className="h-5 w-5 text-green-500" />;
-    case "link":
-      return <LinkIcon className="h-5 w-5 text-purple-500" />;
-    case "troubleshooting":
-      return <Settings className="h-5 w-5 text-orange-500" />;
-    case "tech-sheet":
-      return <FileSpreadsheet className="h-5 w-5 text-cyan-500" />;
-    case "service-manual":
-      return <File className="h-5 w-5 text-indigo-500" />;
-    case "wire-diagram":
-      return <Workflow className="h-5 w-5 text-rose-500" />;
-    case "technical-alert":
-      return <AlertTriangle className="h-5 w-5 text-red-500" />;
-    case "misc-document":
-      return <FileQuestion className="h-5 w-5 text-gray-500" />;
-  }
-};
-
-const getTypeLabel = (type: KnowledgeArticleType) => {
-  switch(type) {
-    case "tech-sheet":
-      return "Tech Sheet";
-    case "service-manual":
-      return "Service Manual";
-    case "wire-diagram":
-      return "Wire Diagram";
-    case "technical-alert":
-      return "Technical Alert";
-    case "misc-document":
-      return "Misc Document";
-    default:
-      return type.charAt(0).toUpperCase() + type.slice(1);
-  }
-};
-
-const isDocumentType = (type: KnowledgeArticleType) => {
-  return ["tech-sheet", "service-manual", "wire-diagram", "technical-alert", "misc-document"].includes(type);
-};
-
-// Fallback mock data in case the real data cannot be fetched
-const mockKnowledgeArticles: KnowledgeArticle[] = [
-  {
-    id: "kb-001",
-    title: "Refrigerator Compressor Troubleshooting Guide",
-    category: "Refrigeration",
-    type: "guide",
-    excerpt: "Step-by-step process for diagnosing and repairing common compressor issues in residential refrigerators."
-  },
-  {
-    id: "kb-002",
-    title: "HVAC System 3000 Service Manual",
-    category: "HVAC",
-    type: "manual",
-    excerpt: "Complete technical specifications and repair procedures for the HVAC System 3000 series."
-  },
-  {
-    id: "kb-003",
-    title: "Common Washing Machine Leaks and Fixes",
-    category: "Laundry",
-    type: "faq",
-    excerpt: "Frequently asked questions about detecting and repairing water leaks in various washing machine models."
-  },
-  {
-    id: "kb-004",
-    title: "Commercial Freezer Temperature Calibration",
-    category: "Commercial",
-    type: "guide",
-    excerpt: "Guidelines for proper temperature calibration and troubleshooting inconsistencies in commercial freezers."
-  },
-  {
-    id: "kb-005",
-    title: "Manufacturer Support Resources",
-    category: "Resources",
-    type: "link",
-    excerpt: "Direct links to manufacturer support portals, warranty information, and parts ordering systems."
-  },
-  {
-    id: "kb-006",
-    title: "Whirlpool WRF535SWHZ Technical Sheet",
-    category: "Refrigeration",
-    type: "tech-sheet",
-    excerpt: "Technical specifications and component details for Whirlpool WRF535SWHZ French Door Refrigerator."
-  },
-  {
-    id: "kb-007",
-    title: "GE Profile Dishwasher PDT715 Wiring Diagram",
-    category: "Dishwashers",
-    type: "wire-diagram",
-    excerpt: "Complete wire diagram with component connections for GE Profile PDT715 series dishwashers."
-  },
-  {
-    id: "kb-008",
-    title: "Maytag MHW5630HW Service Manual",
-    category: "Laundry",
-    type: "service-manual",
-    excerpt: "Comprehensive service guide for Maytag MHW5630HW washing machine including disassembly instructions."
-  },
-  {
-    id: "kb-009",
-    title: "Safety Alert: Samsung Refrigerator Ice Maker Recall",
-    category: "Refrigeration",
-    type: "technical-alert",
-    excerpt: "Important safety information regarding Samsung ice maker recall affecting models produced between 2016-2018."
-  },
-  {
-    id: "kb-010",
-    title: "Warranty Processing Guidelines",
-    category: "Administrative",
-    type: "misc-document",
-    excerpt: "Documentation outlining proper procedures for processing warranty claims across all major manufacturers."
-  }
-];
