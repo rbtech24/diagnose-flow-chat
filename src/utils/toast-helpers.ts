@@ -2,7 +2,8 @@
 import { toast as hotToast } from 'react-hot-toast';
 import { toast as useToastHook } from '@/hooks/use-toast';
 
-type ToastType = 'info' | 'success' | 'error' | 'loading';
+// Match the type to what's expected in use-toast.tsx
+type ToastType = 'info' | 'success' | 'error' | 'custom';
 
 export const showToast = {
   message: (message: string) => hotToast(message),
