@@ -65,8 +65,8 @@ export function KnowledgeBase() {
           // Map database category to our type, defaulting to "guide"
           type: mapCategoryToType(item.category) || 'guide',
           excerpt: item.content.substring(0, 120) + '...',
-          // If it came from a community post, add a reference
-          fromCommunityPost: item.from_community_post
+          // Check if there's a community post reference in the database item
+          fromCommunityPost: item.from_community_post || undefined
         }));
         
         setArticles(transformedData);
@@ -300,6 +300,53 @@ export function KnowledgeBase() {
     </Card>
   );
 }
+
+// Define the functions we referenced above
+const getTypeIcon = (type: KnowledgeArticleType) => {
+  switch(type) {
+    case "guide":
+      return <BookOpen className="h-5 w-5 text-blue-500" />;
+    case "manual":
+      return <FileText className="h-5 w-5 text-amber-500" />;
+    case "faq":
+      return <Book className="h-5 w-5 text-green-500" />;
+    case "link":
+      return <LinkIcon className="h-5 w-5 text-purple-500" />;
+    case "troubleshooting":
+      return <Settings className="h-5 w-5 text-orange-500" />;
+    case "tech-sheet":
+      return <FileSpreadsheet className="h-5 w-5 text-cyan-500" />;
+    case "service-manual":
+      return <File className="h-5 w-5 text-indigo-500" />;
+    case "wire-diagram":
+      return <Workflow className="h-5 w-5 text-rose-500" />;
+    case "technical-alert":
+      return <AlertTriangle className="h-5 w-5 text-red-500" />;
+    case "misc-document":
+      return <FileQuestion className="h-5 w-5 text-gray-500" />;
+  }
+};
+
+const getTypeLabel = (type: KnowledgeArticleType) => {
+  switch(type) {
+    case "tech-sheet":
+      return "Tech Sheet";
+    case "service-manual":
+      return "Service Manual";
+    case "wire-diagram":
+      return "Wire Diagram";
+    case "technical-alert":
+      return "Technical Alert";
+    case "misc-document":
+      return "Misc Document";
+    default:
+      return type.charAt(0).toUpperCase() + type.slice(1);
+  }
+};
+
+const isDocumentType = (type: KnowledgeArticleType) => {
+  return ["tech-sheet", "service-manual", "wire-diagram", "technical-alert", "misc-document"].includes(type);
+};
 
 // Fallback mock data in case the real data cannot be fetched
 const mockKnowledgeArticles: KnowledgeArticle[] = [
