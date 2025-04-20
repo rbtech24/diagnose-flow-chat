@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,9 @@ import {
   FileQuestion
 } from "lucide-react";
 import { KnowledgeArticleType } from "@/types/knowledge";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
+import { showToast } from "@/utils/toast-helpers";
 
 interface KnowledgeArticle {
   id: string;
@@ -30,84 +33,74 @@ interface KnowledgeArticle {
   fromCommunityPost?: string;
 }
 
-const mockKnowledgeArticles: KnowledgeArticle[] = [
-  {
-    id: "kb-001",
-    title: "Refrigerator Compressor Troubleshooting Guide",
-    category: "Refrigeration",
-    type: "guide",
-    excerpt: "Step-by-step process for diagnosing and repairing common compressor issues in residential refrigerators."
-  },
-  {
-    id: "kb-002",
-    title: "HVAC System 3000 Service Manual",
-    category: "HVAC",
-    type: "manual",
-    excerpt: "Complete technical specifications and repair procedures for the HVAC System 3000 series."
-  },
-  {
-    id: "kb-003",
-    title: "Common Washing Machine Leaks and Fixes",
-    category: "Laundry",
-    type: "faq",
-    excerpt: "Frequently asked questions about detecting and repairing water leaks in various washing machine models."
-  },
-  {
-    id: "kb-004",
-    title: "Commercial Freezer Temperature Calibration",
-    category: "Commercial",
-    type: "guide",
-    excerpt: "Guidelines for proper temperature calibration and troubleshooting inconsistencies in commercial freezers."
-  },
-  {
-    id: "kb-005",
-    title: "Manufacturer Support Resources",
-    category: "Resources",
-    type: "link",
-    excerpt: "Direct links to manufacturer support portals, warranty information, and parts ordering systems."
-  },
-  {
-    id: "kb-006",
-    title: "Whirlpool WRF535SWHZ Technical Sheet",
-    category: "Refrigeration",
-    type: "tech-sheet",
-    excerpt: "Technical specifications and component details for Whirlpool WRF535SWHZ French Door Refrigerator."
-  },
-  {
-    id: "kb-007",
-    title: "GE Profile Dishwasher PDT715 Wiring Diagram",
-    category: "Dishwashers",
-    type: "wire-diagram",
-    excerpt: "Complete wire diagram with component connections for GE Profile PDT715 series dishwashers."
-  },
-  {
-    id: "kb-008",
-    title: "Maytag MHW5630HW Service Manual",
-    category: "Laundry",
-    type: "service-manual",
-    excerpt: "Comprehensive service guide for Maytag MHW5630HW washing machine including disassembly instructions."
-  },
-  {
-    id: "kb-009",
-    title: "Safety Alert: Samsung Refrigerator Ice Maker Recall",
-    category: "Refrigeration",
-    type: "technical-alert",
-    excerpt: "Important safety information regarding Samsung ice maker recall affecting models produced between 2016-2018."
-  },
-  {
-    id: "kb-010",
-    title: "Warranty Processing Guidelines",
-    category: "Administrative",
-    type: "misc-document",
-    excerpt: "Documentation outlining proper procedures for processing warranty claims across all major manufacturers."
-  }
-];
-
 export function KnowledgeBase() {
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<KnowledgeArticleType | "all">("all");
+  const [articles, setArticles] = useState<KnowledgeArticle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
   
-  const filteredArticles = mockKnowledgeArticles.filter(article => {
+  useEffect(() => {
+    fetchKnowledgeArticles();
+  }, [user?.id]);
+  
+  const fetchKnowledgeArticles = async () => {
+    try {
+      setLoading(true);
+      
+      // Get all knowledge articles that are public or belong to the user's company
+      const { data, error } = await supabase
+        .from('knowledge_base')
+        .select('*')
+        .or(`is_public.eq.true,company_id.eq.${user?.companyId || '00000000-0000-0000-0000-000000000000'}`);
+        
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        // Transform the data to match our KnowledgeArticle interface
+        const transformedData: KnowledgeArticle[] = data.map(item => ({
+          id: item.id,
+          title: item.title,
+          category: item.category || 'General',
+          // Map database category to our type, defaulting to "guide"
+          type: mapCategoryToType(item.category) || 'guide',
+          excerpt: item.content.substring(0, 120) + '...',
+          // If it came from a community post, add a reference
+          fromCommunityPost: item.from_community_post
+        }));
+        
+        setArticles(transformedData);
+      } else {
+        // No data found, use sample data
+        setArticles(mockKnowledgeArticles);
+      }
+    } catch (error) {
+      console.error('Error fetching knowledge articles:', error);
+      showToast.error("Failed to load knowledge articles");
+      // Fallback to mock data
+      setArticles(mockKnowledgeArticles);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Helper function to map database categories to our article types
+  const mapCategoryToType = (category?: string): KnowledgeArticleType | undefined => {
+    if (!category) return undefined;
+    
+    category = category.toLowerCase();
+    if (category.includes('guide')) return 'guide';
+    if (category.includes('manual')) return 'manual';
+    if (category.includes('sheet') || category.includes('spec')) return 'tech-sheet';
+    if (category.includes('diagram')) return 'wire-diagram';
+    if (category.includes('faq')) return 'faq';
+    if (category.includes('link')) return 'link';
+    if (category.includes('alert')) return 'technical-alert';
+    if (category.includes('trouble')) return 'troubleshooting';
+    return 'misc-document';
+  };
+  
+  const filteredArticles = articles.filter(article => {
     // Apply search filter
     const matchesSearch = !searchQuery || 
       article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -165,6 +158,10 @@ export function KnowledgeBase() {
   const isDocumentType = (type: KnowledgeArticleType) => {
     return ["tech-sheet", "service-manual", "wire-diagram", "technical-alert", "misc-document"].includes(type);
   };
+
+  if (loading) {
+    return <div className="animate-pulse p-4">Loading knowledge base...</div>;
+  }
 
   return (
     <Card className="h-full flex flex-col">
@@ -303,3 +300,77 @@ export function KnowledgeBase() {
     </Card>
   );
 }
+
+// Fallback mock data in case the real data cannot be fetched
+const mockKnowledgeArticles: KnowledgeArticle[] = [
+  {
+    id: "kb-001",
+    title: "Refrigerator Compressor Troubleshooting Guide",
+    category: "Refrigeration",
+    type: "guide",
+    excerpt: "Step-by-step process for diagnosing and repairing common compressor issues in residential refrigerators."
+  },
+  {
+    id: "kb-002",
+    title: "HVAC System 3000 Service Manual",
+    category: "HVAC",
+    type: "manual",
+    excerpt: "Complete technical specifications and repair procedures for the HVAC System 3000 series."
+  },
+  {
+    id: "kb-003",
+    title: "Common Washing Machine Leaks and Fixes",
+    category: "Laundry",
+    type: "faq",
+    excerpt: "Frequently asked questions about detecting and repairing water leaks in various washing machine models."
+  },
+  {
+    id: "kb-004",
+    title: "Commercial Freezer Temperature Calibration",
+    category: "Commercial",
+    type: "guide",
+    excerpt: "Guidelines for proper temperature calibration and troubleshooting inconsistencies in commercial freezers."
+  },
+  {
+    id: "kb-005",
+    title: "Manufacturer Support Resources",
+    category: "Resources",
+    type: "link",
+    excerpt: "Direct links to manufacturer support portals, warranty information, and parts ordering systems."
+  },
+  {
+    id: "kb-006",
+    title: "Whirlpool WRF535SWHZ Technical Sheet",
+    category: "Refrigeration",
+    type: "tech-sheet",
+    excerpt: "Technical specifications and component details for Whirlpool WRF535SWHZ French Door Refrigerator."
+  },
+  {
+    id: "kb-007",
+    title: "GE Profile Dishwasher PDT715 Wiring Diagram",
+    category: "Dishwashers",
+    type: "wire-diagram",
+    excerpt: "Complete wire diagram with component connections for GE Profile PDT715 series dishwashers."
+  },
+  {
+    id: "kb-008",
+    title: "Maytag MHW5630HW Service Manual",
+    category: "Laundry",
+    type: "service-manual",
+    excerpt: "Comprehensive service guide for Maytag MHW5630HW washing machine including disassembly instructions."
+  },
+  {
+    id: "kb-009",
+    title: "Safety Alert: Samsung Refrigerator Ice Maker Recall",
+    category: "Refrigeration",
+    type: "technical-alert",
+    excerpt: "Important safety information regarding Samsung ice maker recall affecting models produced between 2016-2018."
+  },
+  {
+    id: "kb-010",
+    title: "Warranty Processing Guidelines",
+    category: "Administrative",
+    type: "misc-document",
+    excerpt: "Documentation outlining proper procedures for processing warranty claims across all major manufacturers."
+  }
+];

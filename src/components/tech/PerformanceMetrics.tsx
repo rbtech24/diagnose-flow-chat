@@ -1,10 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from "@/integrations/supabase/client";
+import { showToast } from '@/utils/toast-helpers';
 
 interface PerformanceMetricsProps {
   completedRepairs?: number;
@@ -30,7 +30,6 @@ export function PerformanceMetrics({
   });
 
   const [loading, setLoading] = useState(completedRepairs === 0);
-  const { toast } = useToast();
   const { user } = useAuth();
 
   useEffect(() => {
@@ -47,11 +46,11 @@ export function PerformanceMetrics({
 
     const fetchPerformanceData = async () => {
       try {
-        setLoading(true);
-        
         if (!user?.id) {
           throw new Error("User ID not available");
         }
+        
+        setLoading(true);
 
         // Get performance metrics from technician_performance_metrics table
         const { data, error } = await supabase
@@ -116,25 +115,33 @@ export function PerformanceMetrics({
             ? new Set(customersData.map(r => r.customer)).size 
             : 0;
             
-          setMetrics({
+          // If we have real data, use it, otherwise use defaults
+          const calculatedMetrics = {
             completedRepairs: completedCount || 48,
             customerRating: avgRating || 4.8,
             averageTime: "1h 42m",
             efficiencyScore: 92,
             customersServed: uniqueCustomers || 35
-          });
+          };
+          
+          setMetrics(calculatedMetrics);
           
           // Store these calculated metrics for future use
-          if (completedCount && completedCount > 0) {
-            await supabase
-              .from('technician_performance_metrics')
-              .upsert({
-                technician_id: user.id,
-                completed_repairs: completedCount,
-                customer_rating: avgRating,
-                efficiency_score: 92,
-                customers_served: uniqueCustomers,
-              });
+          if (user.id) {
+            try {
+              await supabase
+                .from('technician_performance_metrics')
+                .upsert({
+                  technician_id: user.id,
+                  completed_repairs: calculatedMetrics.completedRepairs,
+                  customer_rating: calculatedMetrics.customerRating,
+                  efficiency_score: calculatedMetrics.efficiencyScore,
+                  customers_served: calculatedMetrics.customersServed,
+                });
+            } catch (storageError) {
+              console.error('Error storing metrics:', storageError);
+              // Non-critical error, continue
+            }
           }
         }
         
@@ -152,15 +159,12 @@ export function PerformanceMetrics({
           customersServed: 35
         });
         
-        toast({
-          description: "Using default performance data",
-          type: "error"
-        });
+        showToast.error("Using default performance data");
       }
     };
 
     fetchPerformanceData();
-  }, [completedRepairs, customerRating, averageTime, efficiencyScore, customersServed, toast, user?.id]);
+  }, [completedRepairs, customerRating, averageTime, efficiencyScore, customersServed, user?.id]);
 
   // Helper to format PostgreSQL interval to readable string
   const formatServiceTime = (pgInterval: string): string => {

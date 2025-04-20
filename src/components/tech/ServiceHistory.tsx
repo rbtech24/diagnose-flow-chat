@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { showToast } from '@/utils/toast-helpers';
 
 // Define the type for service records
 interface ServiceRecord {
@@ -30,16 +31,21 @@ export function ServiceHistory() {
 
   useEffect(() => {
     fetchServiceHistory();
-  }, []);
+  }, [user?.id]);
 
   const fetchServiceHistory = async () => {
     try {
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
+      
       setLoading(true);
       
       const { data, error } = await supabase
         .from('service_records')
         .select('*')
-        .eq('technician_id', user?.id)
+        .eq('technician_id', user.id)
         .order('date', { ascending: false })
         .limit(10);
       
@@ -48,7 +54,7 @@ export function ServiceHistory() {
       if (data && data.length > 0) {
         setServiceHistory(data);
       } else {
-        // No data found, use sample data for now but mark it clearly
+        // No data found, use sample data but mark it clearly
         const sampleData = [
           {
             id: '1',
@@ -75,16 +81,18 @@ export function ServiceHistory() {
       setLoading(false);
     } catch (error) {
       console.error('Error fetching service history:', error);
-      toast({
-        description: "Failed to load service history",
-        type: "error"
-      });
+      showToast.error("Failed to load service history");
       setLoading(false);
     }
   };
 
   const insertSampleRecords = async () => {
     try {
+      if (!user?.id) {
+        showToast.error("User not authenticated");
+        return;
+      }
+      
       const sampleRecords = [
         {
           customer: 'John Smith',
@@ -93,8 +101,8 @@ export function ServiceHistory() {
           status: 'completed',
           rating: 5,
           notes: 'Fixed cooling issue. Replaced compressor.',
-          technician_id: user?.id,
-          company_id: user?.companyId
+          technician_id: user.id,
+          company_id: user.companyId
         },
         {
           customer: 'Alice Johnson',
@@ -103,8 +111,8 @@ export function ServiceHistory() {
           status: 'completed',
           rating: 4,
           notes: 'Repaired water inlet valve.',
-          technician_id: user?.id,
-          company_id: user?.companyId
+          technician_id: user.id,
+          company_id: user.companyId
         },
         {
           customer: 'Bob Williams',
@@ -113,8 +121,8 @@ export function ServiceHistory() {
           status: 'completed',
           rating: 5,
           notes: 'Fixed heating element.',
-          technician_id: user?.id,
-          company_id: user?.companyId
+          technician_id: user.id,
+          company_id: user.companyId
         }
       ];
 
@@ -124,19 +132,13 @@ export function ServiceHistory() {
 
       if (error) throw error;
 
-      toast({
-        description: "Sample service records added successfully",
-        type: "success"
-      });
+      showToast.success("Sample service records added successfully");
 
       // Refresh the list
       fetchServiceHistory();
     } catch (error) {
       console.error('Error inserting sample records:', error);
-      toast({
-        description: "Failed to add sample records",
-        type: "error"
-      });
+      showToast.error("Failed to add sample records");
     }
   };
 
