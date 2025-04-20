@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle } from "lucide-react";
@@ -29,61 +28,59 @@ export default function Partners() {
         
         <div className="prose max-w-none">
           <p className="text-lg mb-8">
-            Join our partner ecosystem and grow your business while helping appliance repair companies transform their operations with Repair Auto Pilot.
+            Join our ecosystem of appliance manufacturers, parts suppliers, and service management platforms to deliver comprehensive solutions to repair businesses.
           </p>
           
           <div className="grid md:grid-cols-2 gap-8 my-12">
             <div className="bg-blue-50 rounded-lg p-8">
-              <h2 className="text-2xl font-semibold mb-4">Reseller Partners</h2>
+              <h2 className="text-2xl font-semibold mb-4">Service Partners</h2>
               <p className="mb-4">
-                Expand your service offerings by reselling Repair Auto Pilot to your clients. Our reseller program provides competitive margins, 
-                sales enablement resources, and dedicated support.
+                Expand your service offerings by integrating our AI diagnostic platform with your existing solutions.
               </p>
               <ul className="space-y-2 mb-6">
                 <li className="flex items-start gap-2">
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span>Competitive commission structure</span>
+                  <span>White-label diagnostic tools</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span>Co-branded marketing materials</span>
+                  <span>API access for seamless integration</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span>Sales and technical training</span>
+                  <span>Joint marketing opportunities</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span>Dedicated partner manager</span>
+                  <span>Priority technical support</span>
                 </li>
               </ul>
               <Button className="bg-blue-600 hover:bg-blue-700">
-                Become a Reseller
+                Become a Service Partner
               </Button>
             </div>
             
             <div className="bg-blue-50 rounded-lg p-8">
               <h2 className="text-2xl font-semibold mb-4">Technology Partners</h2>
               <p className="mb-4">
-                Integrate your solution with Repair Auto Pilot to create powerful combined offerings for appliance repair companies. 
-                Our API-first approach makes integration straightforward.
+                Integrate your diagnostic data, parts inventory, or service management platform with our solution.
               </p>
               <ul className="space-y-2 mb-6">
                 <li className="flex items-start gap-2">
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span>Comprehensive API documentation</span>
+                  <span>Full API documentation</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span>Development sandbox environment</span>
+                  <span>Developer sandbox access</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span>Technical integration support</span>
+                  <span>Integration support team</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span>Joint marketing opportunities</span>
+                  <span>Co-marketing initiatives</span>
                 </li>
               </ul>
               <Button className="bg-blue-600 hover:bg-blue-700">

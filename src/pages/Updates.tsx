@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -51,6 +50,41 @@ export default function Updates() {
   useEffect(() => {
     window.scrollTo(0, 0);
     fetchUpdates();
+  }, []);
+
+  // Simulate real updates data
+  const mockUpdates = [
+    {
+      id: "1",
+      title: "New AI-Powered Diagnostic Workflows",
+      content: "Introducing advanced diagnostic flows powered by machine learning, improving accuracy by 35% and reducing diagnosis time by 45%.",
+      version: "2.4.0",
+      date: "2025-04-15"
+    },
+    {
+      id: "2",
+      title: "Mobile App Enhancement",
+      content: "Major mobile experience improvements including offline mode for field technicians and real-time sync capabilities.",
+      version: "2.3.0",
+      date: "2025-03-28"
+    },
+    {
+      id: "3",
+      title: "Customer Communication Tools",
+      content: "New features for automated status updates, repair documentation sharing, and instant customer feedback collection.",
+      version: "2.2.5",
+      date: "2025-03-10"
+    }
+  ];
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    // Mock data loading
+    setIsLoading(true);
+    setTimeout(() => {
+      setUpdates(mockUpdates);
+      setIsLoading(false);
+    }, 1000);
   }, []);
 
   return (

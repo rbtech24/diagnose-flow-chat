@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ChevronRight } from "lucide-react";
@@ -7,34 +6,25 @@ import { Card, CardContent } from "@/components/ui/card";
 export default function Careers() {
   const openPositions = [
     {
-      title: "Senior React Developer",
+      title: "Senior Full Stack Engineer",
       department: "Engineering",
-      location: "Remote (US)",
-      type: "Full-time"
+      location: "Remote (US/Europe)",
+      type: "Full-time",
+      description: "Build and scale our AI-powered diagnostic platform using React, Node.js, and machine learning technologies."
     },
     {
-      title: "UX/UI Designer",
-      department: "Design",
-      location: "Remote (US)",
-      type: "Full-time"
-    },
-    {
-      title: "Customer Success Manager",
-      department: "Customer Success",
-      location: "Remote (US)",
-      type: "Full-time"
-    },
-    {
-      title: "Appliance Repair Specialist",
+      title: "Product Manager - Diagnostic Tools",
       department: "Product",
       location: "Remote (US)",
-      type: "Contract"
+      type: "Full-time",
+      description: "Lead the development of our core diagnostic workflow tools and shape the future of appliance repair technology."
     },
     {
       title: "Technical Support Specialist",
-      department: "Support",
+      department: "Customer Success",
       location: "Remote (US)",
-      type: "Full-time"
+      type: "Full-time",
+      description: "Help appliance repair businesses implement and maximize value from our platform."
     }
   ];
 
@@ -59,11 +49,11 @@ export default function Careers() {
       </header>
       
       <main className="flex-1 container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Careers at Repair Auto Pilot</h1>
+        <h1 className="text-3xl font-bold mb-6">Join Our Mission</h1>
         
         <div className="prose max-w-none">
           <p className="text-lg mb-8">
-            Join our team and help transform the appliance repair industry with cutting-edge technology and innovative solutions.
+            Help us revolutionize the appliance repair industry by making advanced diagnostic tools accessible to technicians worldwide.
           </p>
           
           <div className="bg-blue-50 rounded-lg p-8 my-8">
@@ -153,6 +143,7 @@ export default function Careers() {
                     <div>
                       <h3 className="text-lg font-semibold">{position.title}</h3>
                       <p className="text-gray-600">{position.department} • {position.location} • {position.type}</p>
+                      <p className="text-gray-600">{position.description}</p>
                     </div>
                     <Button className="mt-4 md:mt-0 bg-blue-600 hover:bg-blue-700">
                       Apply Now <ChevronRight className="ml-2 h-4 w-4" />

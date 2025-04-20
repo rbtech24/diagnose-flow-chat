@@ -4460,8 +4460,8 @@ export type Database = {
       }
       get_technician_messages: {
         Args:
-          | { p_receiver_id: number }
           | { p_company_id: string; p_user_id: string; p_receiver_id?: string }
+          | { p_receiver_id: number }
         Returns: {
           id: number
           message: string
