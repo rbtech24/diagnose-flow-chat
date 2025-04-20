@@ -84,14 +84,17 @@ export default function Login() {
 
   // Redirect if already authenticated
   if (isAuthenticated) {
-    console.log("User authenticated, redirecting to:", from);
+    console.log("User authenticated with role:", userRole, "redirecting to:", from || `/${userRole}`);
     
     // Prioritize the saved "from" path if exists, otherwise redirect based on role
     if (from && from !== "/") return <Navigate to={from} replace />;
     
+    // Ensure each role goes to their correct dashboard
     if (userRole === "admin") return <Navigate to="/admin" replace />;
     if (userRole === "company") return <Navigate to="/company" replace />;
     if (userRole === "tech") return <Navigate to="/tech" replace />;
+    
+    // Fallback to home
     return <Navigate to="/" replace />;
   }
 

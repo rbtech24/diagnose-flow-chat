@@ -13,10 +13,14 @@ export default function Index() {
   // If user is already authenticated, redirect to their dashboard
   useEffect(() => {
     if (isAuthenticated) {
-      console.log("User already authenticated, redirecting to dashboard");
-      if (userRole === 'admin') navigate('/admin');
-      else if (userRole === 'company') navigate('/company');
-      else if (userRole === 'tech') navigate('/tech');
+      console.log("User already authenticated with role:", userRole, "redirecting to dashboard");
+      if (userRole === 'admin') {
+        navigate('/admin');
+      } else if (userRole === 'company') {
+        navigate('/company');
+      } else if (userRole === 'tech') {
+        navigate('/tech');
+      }
     }
   }, [isAuthenticated, userRole, navigate]);
 

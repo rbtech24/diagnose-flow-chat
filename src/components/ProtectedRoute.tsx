@@ -45,6 +45,11 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
 
   // For admin role, allow access to all protected routes regardless of allowedRoles
   if (userRole === 'admin') {
+    // Admin role should access admin routes, not tech routes
+    if (location.pathname.startsWith('/tech') && !location.pathname.startsWith('/tech/diagnostics')) {
+      console.log("Admin redirected from tech routes to admin dashboard");
+      return <Navigate to="/admin" replace />;
+    }
     console.log("Admin user, granting access to:", location.pathname);
     return <Outlet />;
   }
