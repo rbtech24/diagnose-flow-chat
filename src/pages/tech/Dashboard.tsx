@@ -1,13 +1,15 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { 
+  Stethoscope, Book, MessageCircle, Wrench, Clock, ThumbsUp, Activity
+} from "lucide-react";
+import { useWorkflows } from "@/hooks/useWorkflows";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Navigate } from "react-router-dom";
-import { Stethoscope, Book, MessageCircle, Wrench, Clock, ThumbsUp, UsersRound } from "lucide-react";
 import { useTechMetrics } from "@/hooks/useTechMetrics";
-import { useWorkflows } from "@/hooks/useWorkflows";
 
 // Extract metric card component for reuse and better organization
 const MetricCard = React.memo(({ title, value, icon, color }: { 
@@ -70,12 +72,22 @@ const TechDashboard = React.memo(() => {
   const { workflows, isLoading: workflowsLoading } = useWorkflows();
   const { assignedJobs, completedJobs, avgCompletionTime, satisfaction, isLoading: metricsLoading } = useTechMetrics();
   
+  // Get current date
+  const today = new Date();
+  const dateOptions = { 
+    weekday: 'long' as const, 
+    year: 'numeric' as const, 
+    month: 'long' as const, 
+    day: 'numeric' as const 
+  };
+  const formattedDate = today.toLocaleDateString('en-US', dateOptions);
+  
   // Check if user is authorized to access this page
   if (!roleLoading && role !== 'tech' && role !== 'admin') {
     return <Navigate to="/login" />;
   }
   
-  const isLoading = roleLoading || metricsLoading || workflowsLoading;
+  const isLoading = metricsLoading || workflowsLoading;
   
   if (isLoading) {
     return (
@@ -87,9 +99,14 @@ const TechDashboard = React.memo(() => {
   
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Tech Dashboard</h1>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">Tech Dashboard</h1>
+          <p className="text-gray-500">{formattedDate}</p>
+        </div>
+      </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-4 mb-8">
         <MetricCard 
           title="Assigned Jobs" 
           value={assignedJobs} 
@@ -114,7 +131,7 @@ const TechDashboard = React.memo(() => {
         <MetricCard 
           title="Customer Satisfaction" 
           value={`${satisfaction}%`} 
-          icon={<UsersRound className="h-4 w-4 text-purple-600 mr-2" />} 
+          icon={<Activity className="h-4 w-4 text-purple-600 mr-2" />} 
           color="purple" 
         />
       </div>

@@ -1,4 +1,3 @@
-
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
@@ -13,7 +12,6 @@ import {
   FileText,
   Database,
   Bell,
-  Link2,
   Network,
   KeyRound,
   UserCircle,
@@ -84,11 +82,6 @@ export function AdminSidebar() {
       href: "/admin/system-messages",
       label: "System Messages",
       icon: <Bell className="h-5 w-5" />,
-    },
-    {
-      href: "/admin/crm-integration",
-      label: "CRM Integration",
-      icon: <Link2 className="h-5 w-5" />,
     },
     {
       href: "/admin/api-integrations",
