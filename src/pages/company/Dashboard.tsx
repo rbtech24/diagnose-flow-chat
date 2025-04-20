@@ -1,5 +1,4 @@
-
-import React from "react";  // Add this import at the top of the file
+import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,7 @@ const CompanyDashboard = React.memo(() => {
   const { workflows, isLoading: workflowsLoading } = useWorkflows();
   
   // Get company metrics
-  const { activeJobs, teamMembers, responseTime, avgResponseTime, teamPerformance, isLoading: metricsLoading } = useCompanyMetrics(user?.companyId);
+  const { activeJobs, teamMembers, responseTime, avgResponseTime, teamPerformance, isLoading: metricsLoading } = useCompanyMetrics();
   
   // Get current date
   const today = new Date();

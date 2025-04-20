@@ -67,7 +67,7 @@ export function PerformanceMetrics({
           
           // Convert interval to readable format
           const avgTimeStr = perfData.average_service_time 
-            ? formatServiceTime(perfData.average_service_time) 
+            ? formatServiceTime(String(perfData.average_service_time)) 
             : "1h 42m";
           
           setMetrics({
@@ -154,7 +154,7 @@ export function PerformanceMetrics({
         
         toast({
           description: "Using default performance data",
-          type: "warning"
+          type: "error"
         });
       }
     };
