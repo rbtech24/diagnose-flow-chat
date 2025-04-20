@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { Suspense, lazy, useEffect } from "react";
 import Index from "./pages/Index";
@@ -35,7 +34,6 @@ const AdminCommunity = lazy(() => import("./pages/admin/Community"));
 const AdminCommunityPostDetail = lazy(() => import("./pages/admin/CommunityPostDetail"));
 const AdminKnowledgeBase = lazy(() => import("./pages/admin/KnowledgeBase"));
 const AdminSystemMessages = lazy(() => import("./pages/admin/SystemMessages"));
-const AdminCRMIntegration = lazy(() => import("./pages/admin/CRMIntegration"));
 const AdminAPIIntegrations = lazy(() => import("./pages/admin/APIIntegrations"));
 const AdminAPIKeys = lazy(() => import("./pages/admin/ApiKeys"));
 const AdminProfile = lazy(() => import("./pages/admin/Profile"));
@@ -75,7 +73,6 @@ function LoadingFallback() {
   );
 }
 
-// Route change tracking component
 function RouteChangeTracker() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -83,7 +80,6 @@ function RouteChangeTracker() {
   useEffect(() => {
     console.log("Route changed to:", location.pathname, "state:", location.state);
     
-    // Listen for popstate (browser back/forward)
     const handlePopState = () => {
       console.log("Browser navigation (back/forward) detected", {
         path: window.location.pathname,
@@ -102,7 +98,6 @@ function RouteChangeTracker() {
 }
 
 function App() {
-  // Debug routing and navigation
   useEffect(() => {
     console.log("App mounted, current path:", window.location.pathname);
   }, []);
@@ -113,7 +108,6 @@ function App() {
           <RouteChangeTracker />
           <Suspense fallback={<LoadingFallback />}>
             <Routes>
-              {/* Public routes */}
               <Route path="/" element={<Index />} />
               <Route path="/login" element={
                 <ErrorBoundary>
@@ -125,7 +119,6 @@ function App() {
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
 
-              {/* Admin routes - protected with role */}
               <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
                 <Route path="/admin" element={<AdminLayout />}>
                   <Route index element={
@@ -149,14 +142,12 @@ function App() {
                   <Route path="community/:postId" element={<AdminCommunityPostDetail />} />
                   <Route path="knowledge-base" element={<AdminKnowledgeBase />} />
                   <Route path="system-messages" element={<AdminSystemMessages />} />
-                  <Route path="crm-integration" element={<AdminCRMIntegration />} />
                   <Route path="api-integrations" element={<AdminAPIIntegrations />} />
                   <Route path="api-keys" element={<AdminAPIKeys />} />
                   <Route path="profile" element={<AdminProfile />} />
                 </Route>
               </Route>
 
-              {/* Company routes - protected with role */}
               <Route element={<ProtectedRoute allowedRoles={['company']} />}>
                 <Route path="/company" element={<CompanyLayout />}>
                   <Route index element={
@@ -177,7 +168,6 @@ function App() {
                 </Route>
               </Route>
 
-              {/* Tech routes - protected with role */}
               <Route element={<ProtectedRoute allowedRoles={['tech']} />}>
                 <Route path="/tech" element={<TechLayout />}>
                   <Route index element={
@@ -198,12 +188,10 @@ function App() {
                 </Route>
               </Route>
 
-              {/* Global workflow route */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/workflow-editor" element={<WorkflowEditor />} />
               </Route>
 
-              {/* 404 route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
