@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,9 +31,9 @@ export default function AdminCompanies() {
   const getBadgeVariant = (status: string) => {
     switch (status) {
       case 'active':
-        return 'success';
+        return 'default';
       case 'trial':
-        return 'warning';
+        return 'secondary';
       case 'expired':
         return 'destructive';
       case 'inactive':
