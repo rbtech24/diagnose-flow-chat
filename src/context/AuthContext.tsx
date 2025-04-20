@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "react-hot-toast";
 import { User } from "@/types/user";
+import { showToast } from "@/utils/toast-helpers";
 
 type UserRole = 'admin' | 'company' | 'tech' | null;
 
@@ -114,19 +115,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       
       if (error) {
-        toast.error(error.message);
+        showToast.error(error.message);
         return false;
       }
       
       if (data.user) {
-        toast.success('Signed in successfully');
+        showToast.success('Signed in successfully');
         return true;
       }
       
       return false;
     } catch (error: any) {
       console.error('Sign in error:', error);
-      toast.error(error.message || 'Sign in failed');
+      showToast.error(error.message || 'Sign in failed');
       return false;
     }
   };
@@ -151,12 +152,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       
       if (error) {
-        toast.error(error.message);
+        showToast.error(error.message);
         throw error;
       }
       
       if (data.user) {
-        toast.success('Signed up successfully. Please check your email for verification.');
+        showToast.success('Signed up successfully. Please check your email for verification.');
       }
     } catch (error: any) {
       console.error('Sign up error:', error);
@@ -175,11 +176,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.auth.signOut();
       
       if (error) {
-        toast.error(error.message);
+        showToast.error(error.message);
         throw error;
       }
       
-      toast.success('Signed out successfully');
+      showToast.success('Signed out successfully');
     } catch (error: any) {
       console.error('Sign out error:', error);
       throw error;
@@ -194,15 +195,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       
       if (error) {
-        toast.error(error.message);
+        showToast.error(error.message);
         return false;
       }
       
-      toast.success('Password has been reset successfully');
+      showToast.success('Password has been reset successfully');
       return true;
     } catch (error: any) {
       console.error('Password reset error:', error);
-      toast.error(error.message || 'Password reset failed');
+      showToast.error(error.message || 'Password reset failed');
       return false;
     }
   };
@@ -215,14 +216,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       
       if (error) {
-        toast.error(error.message);
+        showToast.error(error.message);
         return false;
       }
       
       return true;
     } catch (error: any) {
       console.error('Forgot password error:', error);
-      toast.error(error.message || 'Failed to send reset link');
+      showToast.error(error.message || 'Failed to send reset link');
       return false;
     }
   };
@@ -237,7 +238,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       
       if (error) {
-        toast.error(error.message);
+        showToast.error(error.message);
         return false;
       }
       
@@ -249,11 +250,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
       }
       
-      toast.success('User profile updated successfully');
+      showToast.success('User profile updated successfully');
       return true;
     } catch (error: any) {
       console.error('Update user error:', error);
-      toast.error(error.message || 'Failed to update user profile');
+      showToast.error(error.message || 'Failed to update user profile');
       return false;
     }
   };

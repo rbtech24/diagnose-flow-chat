@@ -11,25 +11,15 @@ export const showToast = {
   success: (message: string) => hotToast.success(message),
   error: (message: string) => hotToast.error(message),
   loading: (message: string) => hotToast.loading(message),
-  // Instead of calling the hook, we'll provide a function that components can use
+  // Instead of calling the hook, we'll provide a version that doesn't use hooks
   custom: (title: string, description?: string, type: ToastType = 'info') => {
-    // Return a function that can be called within a component
-    return (toast: any) => {
-      if (toast) {
-        toast({
-          title,
-          description,
-          variant: type === 'error' ? 'destructive' : 'default',
-          type
-        });
-      } else {
-        // Fallback to hot-toast if the hook isn't available
-        type === 'error' 
-          ? hotToast.error(title) 
-          : type === 'success' 
-            ? hotToast.success(title) 
-            : hotToast(title);
-      }
-    };
+    // For react-hot-toast fallback
+    if (type === 'error') {
+      return hotToast.error(title + (description ? ` - ${description}` : ''));
+    } else if (type === 'success') {
+      return hotToast.success(title + (description ? ` - ${description}` : ''));
+    } else {
+      return hotToast(title + (description ? ` - ${description}` : ''));
+    }
   }
 };
