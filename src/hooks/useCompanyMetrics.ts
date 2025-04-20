@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
 
 interface CompanyMetrics {
   activeJobs: number;
@@ -12,7 +13,7 @@ interface CompanyMetrics {
   error: Error | null;
 }
 
-export function useCompanyMetrics(companyId?: string): CompanyMetrics {
+export function useCompanyMetrics(): CompanyMetrics {
   const [metrics, setMetrics] = useState<CompanyMetrics>({
     activeJobs: 0,
     teamMembers: 0,
@@ -23,11 +24,16 @@ export function useCompanyMetrics(companyId?: string): CompanyMetrics {
     error: null
   });
 
+  const { user } = useAuth();
+  const companyId = user?.companyId;
+
   useEffect(() => {
     async function fetchCompanyMetrics() {
       if (!companyId) return;
       
       try {
+        setMetrics(prev => ({ ...prev, isLoading: true }));
+        
         // Fetch team members (technicians)
         const { count: techCount, error: techError } = await supabase
           .from('users')
@@ -42,23 +48,62 @@ export function useCompanyMetrics(companyId?: string): CompanyMetrics {
           .from('repairs')
           .select('*', { count: 'exact', head: true })
           .eq('company_id', companyId)
-          .eq('status', 'in_progress');
+          .in('status', ['assigned', 'in_progress']);
           
         if (jobsError) throw jobsError;
         
-        // Fetch average response time
-        // This would likely be a more complex query in a real application
-        // For now, we'll use placeholder data
-        const avgResponseTime = "4.2 hrs";
-        const responseTime = "2.5 hrs";
-        const teamPerformance = 85; // percentage
+        // Fetch response time metrics
+        const { data: metricsData, error: metricsError } = await supabase
+          .from('analytics_metrics')
+          .select('metric_value')
+          .eq('company_id', companyId)
+          .eq('metric_name', 'avg_response_time')
+          .order('timestamp', { ascending: false })
+          .limit(1);
+        
+        if (metricsError) throw metricsError;
+        
+        // Format the response time
+        const avgResponseHours = metricsData && metricsData.length > 0 
+          ? parseFloat(metricsData[0].metric_value.toString()).toFixed(1)
+          : "4.2";
+        
+        // Get team performance data
+        const { data: perfData, error: perfError } = await supabase
+          .from('analytics_metrics')
+          .select('metric_value')
+          .eq('company_id', companyId)
+          .eq('metric_name', 'team_performance')
+          .order('timestamp', { ascending: false })
+          .limit(1);
+        
+        if (perfError) throw perfError;
+        
+        const teamPerf = perfData && perfData.length > 0 
+          ? Math.round(parseFloat(perfData[0].metric_value.toString()))
+          : 85;
+        
+        // Get current response time
+        const { data: currentRespData, error: currentRespError } = await supabase
+          .from('analytics_metrics')
+          .select('metric_value')
+          .eq('company_id', companyId)
+          .eq('metric_name', 'current_response_time')
+          .order('timestamp', { ascending: false })
+          .limit(1);
+        
+        if (currentRespError) throw currentRespError;
+        
+        const currentRespHours = currentRespData && currentRespData.length > 0 
+          ? parseFloat(currentRespData[0].metric_value.toString()).toFixed(1)
+          : "2.5";
         
         setMetrics({
           activeJobs: jobsCount || 0,
           teamMembers: techCount || 0,
-          responseTime,
-          avgResponseTime,
-          teamPerformance,
+          responseTime: `${currentRespHours} hrs`,
+          avgResponseTime: `${avgResponseHours} hrs`,
+          teamPerformance: teamPerf,
           isLoading: false,
           error: null
         });

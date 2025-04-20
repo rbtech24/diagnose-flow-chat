@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ export function ServiceHistory() {
   const [serviceHistory, setServiceHistory] = useState<ServiceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchServiceHistory();
@@ -32,16 +34,44 @@ export function ServiceHistory() {
 
   const fetchServiceHistory = async () => {
     try {
-      // Using any type here to bypass TypeScript's strict checking
-      // We'll properly type the response afterward
-      const response = await (supabase as any)
+      setLoading(true);
+      
+      const { data, error } = await supabase
         .from('service_records')
         .select('*')
-        .order('date', { ascending: false });
+        .eq('technician_id', user?.id)
+        .order('date', { ascending: false })
+        .limit(10);
       
-      if (response.error) throw response.error;
+      if (error) throw error;
 
-      setServiceHistory(response.data || []);
+      if (data && data.length > 0) {
+        setServiceHistory(data);
+      } else {
+        // No data found, use sample data for now but mark it clearly
+        const sampleData = [
+          {
+            id: '1',
+            customer: 'Sample: John Smith',
+            device: 'Refrigerator XL5200',
+            date: new Date().toISOString(),
+            status: 'completed',
+            rating: 5,
+            notes: 'Example record - Fixed cooling issue.',
+          },
+          {
+            id: '2',
+            customer: 'Sample: Alice Johnson',
+            device: 'Washing Machine WM300',
+            date: new Date(Date.now() - 86400000).toISOString(), // yesterday
+            status: 'completed',
+            rating: 4,
+            notes: 'Example record - Repaired water inlet valve.',
+          }
+        ];
+        setServiceHistory(sampleData as ServiceRecord[]);
+      }
+      
       setLoading(false);
     } catch (error) {
       console.error('Error fetching service history:', error);
@@ -63,6 +93,8 @@ export function ServiceHistory() {
           status: 'completed',
           rating: 5,
           notes: 'Fixed cooling issue. Replaced compressor.',
+          technician_id: user?.id,
+          company_id: user?.companyId
         },
         {
           customer: 'Alice Johnson',
@@ -71,6 +103,8 @@ export function ServiceHistory() {
           status: 'completed',
           rating: 4,
           notes: 'Repaired water inlet valve.',
+          technician_id: user?.id,
+          company_id: user?.companyId
         },
         {
           customer: 'Bob Williams',
@@ -79,15 +113,16 @@ export function ServiceHistory() {
           status: 'completed',
           rating: 5,
           notes: 'Fixed heating element.',
+          technician_id: user?.id,
+          company_id: user?.companyId
         }
       ];
 
-      // Using any type here to bypass TypeScript's strict checking
-      const response = await (supabase as any)
+      const { error } = await supabase
         .from('service_records')
         .insert(sampleRecords);
 
-      if (response.error) throw response.error;
+      if (error) throw error;
 
       toast({
         description: "Sample service records added successfully",
@@ -118,7 +153,7 @@ export function ServiceHistory() {
             variant="outline" 
             onClick={insertSampleRecords}
           >
-            Insert Sample Records
+            {serviceHistory.length === 0 ? "Add Sample Records" : "Add More Samples"}
           </Button>
         </div>
       </CardHeader>
