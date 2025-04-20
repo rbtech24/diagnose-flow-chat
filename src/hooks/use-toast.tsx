@@ -16,7 +16,7 @@ export interface ToastProps {
 }
 
 // Create a toast function with success, error, and other methods attached
-const createToast = (props: ToastProps | string) => {
+export const toast = (props: ToastProps | string) => {
   if (typeof props === 'string') {
     return hotToast(props);
   }
@@ -38,17 +38,19 @@ const createToast = (props: ToastProps | string) => {
 };
 
 // Add success and error methods to the toast function
-createToast.success = (message: string, options?: ToastOptions) => {
+toast.success = (message: string, options?: ToastOptions) => {
   return hotToast.success(message, options);
 };
 
-createToast.error = (message: string, options?: ToastOptions) => {
+toast.error = (message: string, options?: ToastOptions) => {
   return hotToast.error(message, options);
 };
 
-// Export the enhanced toast function
-export const toast = createToast;
+toast.loading = (message: string, options?: ToastOptions) => {
+  return hotToast.loading(message, options);
+};
 
+// Export the enhanced toast function
 export const useToast = () => {
   const showSuccess = (message: string, options?: ToastOptions) => {
     hotToast.success(message, options);

@@ -1,12 +1,12 @@
 
-import { toast } from 'react-hot-toast';
+import { toast as hotToast } from 'react-hot-toast';
 import { toast as useToastHook } from '@/hooks/use-toast';
 
 export const showToast = {
-  message: (message: string) => toast(message),
-  success: (message: string) => toast.success(message),
-  error: (message: string) => toast.error(message),
-  loading: (message: string) => toast.loading(message),
+  message: (message: string) => hotToast(message),
+  success: (message: string) => hotToast.success(message),
+  error: (message: string) => hotToast.error(message),
+  loading: (message: string) => hotToast.loading(message),
   custom: (title: string, description?: string) => useToastHook({
     title,
     description,
