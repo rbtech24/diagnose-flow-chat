@@ -43,13 +43,19 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
-  // For admin role, allow access to all protected routes regardless of allowedRoles
+  // For admin role, allow access to all protected routes with some exceptions
   if (userRole === 'admin') {
-    // Admin role should access admin routes, not tech routes
+    // Admin role should access admin routes, not tech or company routes
     if (location.pathname.startsWith('/tech') && !location.pathname.startsWith('/tech/diagnostics')) {
       console.log("Admin redirected from tech routes to admin dashboard");
       return <Navigate to="/admin" replace />;
     }
+    
+    if (location.pathname.startsWith('/company')) {
+      console.log("Admin redirected from company routes to admin dashboard");
+      return <Navigate to="/admin" replace />;
+    }
+    
     console.log("Admin user, granting access to:", location.pathname);
     return <Outlet />;
   }

@@ -88,7 +88,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         throw error;
       }
 
-      set({ users: data as User[] });
+      set({ users: data as User[] || [] });
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Failed to load users');
@@ -108,7 +108,14 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         throw error;
       }
 
-      set({ companies: data || [] });
+      // Add technicianCount field with default value for UI display
+      const companiesWithCounts = (data || []).map(company => ({
+        ...company,
+        technicianCount: 0, // Will be populated in a more advanced implementation
+        planName: company.subscription_tier || 'Basic'
+      }));
+
+      set({ companies: companiesWithCounts });
     } catch (error) {
       console.error('Error fetching companies:', error);
       toast.error('Failed to load companies');

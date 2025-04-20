@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,7 +62,7 @@ export default function AdminDashboard() {
 
         // Fetch technicians count (users with role 'tech')
         const { count: techniciansCount, error: techniciansError } = await supabase
-          .from('users')
+          .from('technicians')
           .select('*', { count: 'exact', head: true })
           .eq('role', 'tech');
 
@@ -86,7 +87,7 @@ export default function AdminDashboard() {
         if (revenueError) throw revenueError;
         // Calculate total revenue - ensure proper type conversion
         const totalRevenue = revenueData?.reduce((sum, transaction) => 
-          sum + (parseFloat(transaction.amount.toString()) || 0), 0) || 0;
+          sum + (parseFloat(String(transaction.amount)) || 0), 0) || 0;
         setRevenue(totalRevenue);
 
       } catch (error) {
@@ -94,7 +95,7 @@ export default function AdminDashboard() {
         toast({
           title: "Error loading dashboard data",
           description: "Could not fetch the latest metrics",
-          type: "error",
+          variant: "destructive",
         });
       } finally {
         setIsLoading(false);
