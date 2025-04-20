@@ -143,7 +143,7 @@ export default function SignUp() {
             <span className="flex h-6 w-6 rounded-full bg-blue-100 text-blue-600 items-center justify-center mr-2">
               <Check className="h-4 w-4" />
             </span>
-            Start with a 14-day free trial
+            Start with a 30-day free trial
           </h3>
           <ul className="space-y-3">
             <li className="flex items-start">
