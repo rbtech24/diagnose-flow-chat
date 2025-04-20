@@ -1,34 +1,36 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { LogIn, Home, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function HomeHeader() {
   return (
-    <header className="w-full bg-gradient-to-r from-blue-600 to-blue-400 text-white shadow-md">
-      <div className="max-w-7xl mx-auto flex items-center justify-between p-4 sm:p-6">
-        <Link to="/" className="flex items-center gap-2 font-bold text-2xl">
-          <Home className="w-7 h-7" />
-          Repair Auto Pilot
+    <header className="w-full bg-white py-4 border-b border-gray-100">
+      <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
+        <Link to="/" className="flex items-center">
+          <img 
+            src="/lovable-uploads/626e46ce-b31c-4656-8873-f950a140763f.png"
+            alt="Repair Auto Pilot" 
+            className="h-12"
+          />
         </Link>
-        <nav className="hidden md:flex gap-6 text-base font-medium">
-          <Link to="/" className="hover:text-blue-100 transition">Home</Link>
-          <Link to="/about" className="hover:text-blue-100 transition">About</Link>
-          <Link to="/features" className="hover:text-blue-100 transition">Features</Link>
-          <Link to="/contact" className="hover:text-blue-100 transition">Contact</Link>
-        </nav>
-        <div className="flex gap-3">
-          <Link to="/login">
-            <Button variant="secondary" className="bg-white text-blue-700 hover:bg-blue-100">
-              <LogIn className="w-4 h-4 mr-1" />
-              Sign In
-            </Button>
+        
+        <nav className="hidden md:flex items-center space-x-8">
+          <Link to="/features" className="text-gray-700 hover:text-blue-600 transition">
+            Features
+          </Link>
+          <Link to="/testimonials" className="text-gray-700 hover:text-blue-600 transition">
+            Testimonials
+          </Link>
+          <Link to="/login" className="text-gray-700 hover:text-blue-600 transition">
+            Login
           </Link>
           <Link to="/signup">
-            <Button className="bg-blue-700 hover:bg-blue-800 text-white">Free Trial</Button>
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              Get Started
+            </Button>
           </Link>
-        </div>
+        </nav>
       </div>
     </header>
   );
