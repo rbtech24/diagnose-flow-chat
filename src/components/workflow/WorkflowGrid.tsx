@@ -88,7 +88,7 @@ export function WorkflowGrid({
         toast({
           title: "Workflow Moved",
           description: `Workflow moved to ${targetAppliance}`,
-          type: "success"
+          type: "info"
         });
       }
     }
@@ -99,7 +99,7 @@ export function WorkflowGrid({
       toast({
         title: "Workflow Details",
         description: `Viewing workflow: ${name || 'New Workflow'}`,
-        type: "custom"
+        type: "info"
       });
       return;
     }

@@ -9,6 +9,7 @@ export const showToast = {
   loading: (message: string) => toast.loading(message),
   custom: (title: string, description?: string) => useToastHook({
     title,
-    description
+    description,
+    type: "info"
   })
 };

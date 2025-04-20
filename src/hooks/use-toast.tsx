@@ -9,13 +9,14 @@ export interface ToastOptions {
 export interface ToastProps {
   title?: string;
   description?: string;
-  type?: "success" | "error" | "info";
+  type?: "success" | "error" | "info" | "custom";
   variant?: "default" | "destructive";
   duration?: number;
   position?: "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
 }
 
-export const toast = (props: ToastProps | string) => {
+// Create a toast function with success, error, and other methods attached
+const createToast = (props: ToastProps | string) => {
   if (typeof props === 'string') {
     return hotToast(props);
   }
@@ -35,6 +36,18 @@ export const toast = (props: ToastProps | string) => {
   
   return hotToast(message, options);
 };
+
+// Add success and error methods to the toast function
+createToast.success = (message: string, options?: ToastOptions) => {
+  return hotToast.success(message, options);
+};
+
+createToast.error = (message: string, options?: ToastOptions) => {
+  return hotToast.error(message, options);
+};
+
+// Export the enhanced toast function
+export const toast = createToast;
 
 export const useToast = () => {
   const showSuccess = (message: string, options?: ToastOptions) => {

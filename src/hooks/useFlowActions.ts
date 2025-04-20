@@ -1,7 +1,7 @@
 
 import { useCallback } from 'react';
 import { Connection, Node, Edge, useReactFlow, addEdge } from '@xyflow/react';
-import { useToast } from '@/hooks/use-toast';
+import toast from 'react-hot-toast';
 import { addToHistory } from '@/utils/workflowHistory';
 import { handleQuickSave } from '@/utils/flow';
 import { SavedWorkflow } from '@/utils/flow/types';
@@ -20,7 +20,6 @@ export function useFlowActions(
   currentWorkflow?: SavedWorkflow
 ) {
   const { getViewport } = useReactFlow();
-  const { toast } = useToast();
 
   const handleConnect = useCallback(
     (params: Connection) => {
@@ -30,26 +29,18 @@ export function useFlowActions(
         setHistory(addToHistory(history, newState));
         return newEdges;
       });
-      toast({
-        title: "Connection Success",
-        description: "Nodes have been connected successfully.",
-        type: "success" // Added type property
-      });
+      toast.success("Nodes have been connected successfully.");
     },
-    [setEdges, nodes, nodeCounter, history, setHistory, toast]
+    [setEdges, nodes, nodeCounter, history, setHistory]
   );
 
   const handleCopySelected = useCallback(() => {
     const selectedNodes = nodes.filter(node => node.selected);
     if (selectedNodes.length > 0) {
       setCopiedNodes(selectedNodes);
-      toast({
-        title: "Copied",
-        description: `${selectedNodes.length} node(s) copied to clipboard`,
-        type: "success" // Added type property
-      });
+      toast.success(`${selectedNodes.length} node(s) copied to clipboard`);
     }
-  }, [nodes, setCopiedNodes, toast]);
+  }, [nodes, setCopiedNodes]);
 
   const handlePaste = useCallback(() => {
     if (copiedNodes.length === 0) return;
@@ -84,29 +75,17 @@ export function useFlowActions(
 
     setNodeCounter(prev => prev + newNodes.length);
 
-    toast({
-      title: "Pasted",
-      description: `${newNodes.length} node(s) pasted`,
-      type: "success"
-    });
-  }, [copiedNodes, getViewport, edges, nodeCounter, history, setNodes, setNodeCounter, setHistory, toast]);
+    toast.success(`${newNodes.length} node(s) pasted`);
+  }, [copiedNodes, getViewport, edges, nodeCounter, history, setNodes, setNodeCounter, setHistory]);
 
   const handleQuickSaveClick = useCallback(() => {
     if (currentWorkflow) {
       handleQuickSave(nodes, edges, nodeCounter, currentWorkflow);
-      toast({
-        title: "Saved",
-        description: "Your changes have been saved automatically.",
-        type: "success" // Added type property
-      });
+      toast.success("Your changes have been saved automatically.");
     } else {
-      toast({
-        title: "Error",
-        description: "This is a new workflow. Please use 'Save Workflow' to save it first.",
-        type: "error" // Use type instead of variant
-      });
+      toast.error("This is a new workflow. Please use 'Save Workflow' to save it first.");
     }
-  }, [nodes, edges, nodeCounter, currentWorkflow, toast]);
+  }, [nodes, edges, nodeCounter, currentWorkflow]);
 
   const handleAddNode = useCallback(() => {
     const newNodeId = `node-${nodeCounter}`;
@@ -140,12 +119,8 @@ export function useFlowActions(
     const newState = { nodes: [...nodes, newNode], edges, nodeCounter: nodeCounter + 1 };
     setHistory(addToHistory(history, newState));
 
-    toast({
-      title: "Node Added", 
-      description: "New node has been added to the workflow.",
-      type: "success"
-    });
-  }, [nodes, edges, nodeCounter, setNodes, setNodeCounter, setHistory, history, toast]);
+    toast.success("New node has been added to the workflow.");
+  }, [nodes, edges, nodeCounter, setNodes, setNodeCounter, setHistory, history]);
 
   return {
     handleConnect,
