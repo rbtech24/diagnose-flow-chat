@@ -1,30 +1,14 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import HomeHeader from "@/components/layout/HomeHeader";
+import HomeFooter from "@/components/layout/HomeFooter";
 
 export default function TermsOfUse() {
   return (
-    <div className="flex min-h-screen flex-col bg-white">
-      <header className="sticky top-0 z-10 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-        <div className="container mx-auto flex h-24 items-center justify-between px-4">
-          <div className="flex items-center">
-            <img 
-              src="/lovable-uploads/a942106a-6512-4888-a5c2-dcf6c5d18b64.png" 
-              alt="Repair Auto Pilot" 
-              className="h-10"
-            />
-          </div>
-          <Button asChild variant="outline">
-            <Link to="/" onClick={() => window.scrollTo(0, 0)}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Home
-            </Link>
-          </Button>
-        </div>
-      </header>
-
-      <main className="flex-1 container mx-auto px-4 py-8">
+    <div className="flex flex-col min-h-screen bg-white">
+      <HomeHeader />
+      <main className="flex-1 container mx-auto px-4 py-12">
         <h1 className="text-3xl font-bold mb-6">Terms of Use</h1>
 
         <div className="prose max-w-none">
@@ -51,6 +35,7 @@ export default function TermsOfUse() {
           <p className="mt-6 text-gray-600">Last updated: August 2023</p>
         </div>
       </main>
+      <HomeFooter />
     </div>
   );
 }

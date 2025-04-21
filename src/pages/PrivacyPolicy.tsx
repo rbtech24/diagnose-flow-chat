@@ -1,56 +1,50 @@
-
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import HomeHeader from "@/components/layout/HomeHeader";
+import HomeFooter from "@/components/layout/HomeFooter";
 
 export default function PrivacyPolicy() {
   return (
-    <div className="flex min-h-screen flex-col bg-white">
-      <header className="sticky top-0 z-10 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-        <div className="container mx-auto flex h-24 items-center justify-between px-4">
-          <div className="flex items-center">
-            <img 
-              src="/lovable-uploads/5e12430c-6872-485e-b07a-02b835f8e3d4.png" 
-              alt="Repair Auto Pilot" 
-              className="h-20"
-            />
-          </div>
-          <Button asChild variant="outline">
-            <Link to="/" onClick={() => window.scrollTo(0, 0)}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Home
-            </Link>
-          </Button>
-        </div>
-      </header>
-
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Privacy Policy</h1>
-
-        <div className="prose max-w-none">
-          <p>This Privacy Policy describes how Repair Auto Pilot ("we", "our", or "us") collects, uses, and shares your personal information when you use our services.</p>
-          <h2>Information We Collect</h2>
-          <p>We collect personal information when you:</p>
-          <ul className="list-disc pl-6 my-2">
-            <li>Create a user account or profile</li>
-            <li>Use our diagnostic tools and workflows</li>
-            <li>Submit information about repairs</li>
-            <li>Contact customer support</li>
-            <li>Participate in surveys or promotions</li>
+    <div className="flex flex-col min-h-screen bg-white">
+      <HomeHeader />
+      <main className="flex-1 container mx-auto px-4 py-12">
+        <section className="max-w-3xl mx-auto">
+          <h2 className="text-3xl font-bold mb-6">Privacy Policy</h2>
+          <p className="mb-4 text-gray-700">
+            Your privacy is important to us. This Privacy Policy explains how Repair Auto Pilot collects, uses, and protects your personal information.
+          </p>
+          <h3 className="text-xl font-semibold mt-6 mb-2">Information We Collect</h3>
+          <ul className="list-disc pl-6 mb-4 text-gray-700">
+            <li>Contact Information (name, email, phone)</li>
+            <li>Account Credentials (username, password)</li>
+            <li>Billing Information (credit card details)</li>
+            <li>Usage Data (IP address, browser type, pages visited)</li>
           </ul>
-          <h2>How We Use Your Information</h2>
-          <p>We use the information to provide, maintain, and improve our services, communicate updates, respond to support requests, and comply with legal obligations.</p>
-          <h2>Sharing Your Information</h2>
-          <p>Your data may be shared only with trusted service providers and legal entities per our privacy practices.</p>
-          <h2>Data Security</h2>
-          <p>We implement security measures to protect your information but no internet transmission is 100% secure.</p>
-          <h2>Your Rights</h2>
-          <p>You may have rights to access, correct, or delete your personal data depending on your jurisdiction.</p>
-          <h2>Contact Us</h2>
-          <p>For questions about this Privacy Policy, please contact us at <a href="mailto:privacy@repairautopilot.com" className="text-blue-600 underline">privacy@repairautopilot.com</a>.</p>
-          <p className="mt-6 text-gray-600">Last updated: August 2023</p>
-        </div>
+          <h3 className="text-xl font-semibold mt-6 mb-2">How We Use Your Information</h3>
+          <ul className="list-disc pl-6 mb-4 text-gray-700">
+            <li>Provide and improve our services</li>
+            <li>Process payments</li>
+            <li>Communicate with you</li>
+            <li>Personalize your experience</li>
+            <li>Detect and prevent fraud</li>
+          </ul>
+          <h3 className="text-xl font-semibold mt-6 mb-2">Data Security</h3>
+          <p className="mb-4 text-gray-700">
+            We implement industry-standard security measures to protect your personal information from unauthorized access, use, or disclosure.
+          </p>
+          <h3 className="text-xl font-semibold mt-6 mb-2">Data Sharing</h3>
+          <p className="mb-4 text-gray-700">
+            We do not share your personal information with third parties except as necessary to provide our services or as required by law.
+          </p>
+          <h3 className="text-xl font-semibold mt-6 mb-2">Your Rights</h3>
+          <p className="mb-4 text-gray-700">
+            You have the right to access, correct, or delete your personal information. Contact us at <a href="mailto:privacy@repairautopilot.com" className="text-blue-600 underline">privacy@repairautopilot.com</a> to exercise these rights.
+          </p>
+          <h3 className="text-xl font-semibold mt-6 mb-2">Changes to This Policy</h3>
+          <p className="mb-4 text-gray-700">
+            We may update this Privacy Policy from time to time. We will notify you of any material changes.
+          </p>
+        </section>
       </main>
+      <HomeFooter />
     </div>
   );
 }
