@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,31 +9,54 @@ import { StatusSubscriptionModal } from "@/components/status/StatusSubscriptionM
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 
+// Move these types to perfectly reflect your DB schema (src/integrations/supabase/types.ts or your migrations)
 type ServiceStatus = "operational" | "degraded" | "outage";
+interface ServiceStatusRow {
+  id: string;
+  name: string;
+  status: ServiceStatus;
+  description?: string | null;
+  last_updated_at?: string | null;
+}
+interface IncidentUpdateRow {
+  id: string;
+  incident_id: string;
+  message: string;
+  created_at: string;
+}
+interface IncidentRow {
+  id: string;
+  title: string;
+  description: string;
+  status: "resolved" | "investigating" | "identified" | "monitoring";
+  created_at: string;
+  resolved_at?: string | null;
+  incident_updates?: IncidentUpdateRow[];
+}
+interface SystemMetricRow {
+  id: string;
+  name: string;
+  value: number | string; // Supabase returns numbers as string sometimes
+  unit?: string | null;
+  created_at: string;
+}
 
-interface ServiceStatusItem {
+type ServiceStatusItem = {
   name: string;
   status: ServiceStatus;
   icon: JSX.Element;
   badge: JSX.Element;
-}
-
-interface IncidentUpdate {
-  time: string;
-  message: string;
-}
-
+};
 interface Incident {
   title: string;
   date: string;
-  status: "resolved" | "investigating" | "identified" | "monitoring";
-  updates: IncidentUpdate[];
+  status: string;
+  updates: { time: string; message: string }[];
 }
 
 export default function Status() {
   const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false);
-  const [currentUptimePercentage, setCurrentUptimePercentage] = useState(99.98);
-  
+  const [currentUptimePercentage, setCurrentUptimePercentage] = useState<number>(0);
   const [services, setServices] = useState<ServiceStatusItem[]>([]);
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,105 +69,94 @@ export default function Status() {
 
   useEffect(() => {
     async function fetchStatusData() {
+      setIsLoading(true);
       try {
+        // 1. Fetch live service statuses
         const { data: serviceData, error: serviceError } = await supabase
-          .from('service_statuses')
-          .select('*')
-          .order('name');
-        
+          .from("service_statuses")
+          .select("*")
+          .order("name");
         if (serviceError) throw serviceError;
-        
-        const formattedServices = serviceData?.map(service => ({
-          name: service.name,
-          status: service.status as ServiceStatus,
-          icon: getStatusIcon(service.status),
-          badge: getStatusBadge(service.status)
-        })) || [];
-        
+        const formattedServices: ServiceStatusItem[] =
+          (serviceData as ServiceStatusRow[])?.map(service => ({
+            name: service.name,
+            status: service.status,
+            icon: getStatusIcon(service.status),
+            badge: getStatusBadge(service.status)
+          })) ?? [];
         setServices(formattedServices);
-        
+
+        // 2. Fetch last 5 resolved incidents and updates
+        // type returned here is Array<IncidentRow & { incident_updates: IncidentUpdateRow[] }>
         const { data: incidentData, error: incidentError } = await supabase
-          .from('incidents')
-          .select('*, incident_updates(*)')
-          .eq('status', 'resolved')
-          .order('created_at', { ascending: false })
+          .from("incidents")
+          .select("id, title, description, status, created_at, resolved_at, incident_updates(id, incident_id, message, created_at)")
+          .eq("status", "resolved")
+          .order("created_at", { ascending: false })
           .limit(5);
-        
         if (incidentError) throw incidentError;
-        
-        const formattedIncidents = incidentData?.map(incident => ({
-          title: incident.title,
-          date: new Date(incident.created_at).toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric'
-          }),
-          status: incident.status,
-          updates: incident.incident_updates.map((update: any) => ({
-            time: new Date(update.created_at).toLocaleTimeString('en-US', {
-              hour: 'numeric',
-              minute: '2-digit',
-              hour12: true
+        const formattedIncidents: Incident[] =
+          (incidentData as (IncidentRow & { incident_updates: IncidentUpdateRow[] })[])?.map(incident => ({
+            title: incident.title,
+            date: new Date(incident.created_at).toLocaleDateString('en-US', {
+              year: 'numeric', month: 'long', day: 'numeric'
             }),
-            message: update.message
-          })).sort((a: any, b: any) => 
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-          )
-        })) || [];
-        
+            status: incident.status,
+            updates: (incident.incident_updates || [])
+              .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+              .map(update => ({
+                time: new Date(update.created_at).toLocaleTimeString('en-US', {
+                  hour: 'numeric', minute: '2-digit', hour12: true
+                }),
+                message: update.message
+              }))
+          })) ?? [];
         setIncidents(formattedIncidents);
-        
+
+        // 3. Fetch uptime metric
         const { data: uptimeData, error: uptimeError } = await supabase
-          .from('system_metrics')
-          .select('value')
-          .eq('name', 'uptime_percentage')
-          .order('created_at', { ascending: false })
+          .from("system_metrics")
+          .select("value")
+          .eq("name", "uptime_percentage")
+          .order("created_at", { ascending: false })
           .limit(1);
-        
         if (uptimeError) throw uptimeError;
-        
+        // Only use the latest value if available
         if (uptimeData && uptimeData.length > 0) {
+          // Typesafe: handles both string and number
           setCurrentUptimePercentage(Number(uptimeData[0].value));
+        } else {
+          setCurrentUptimePercentage(0);
         }
-        
+
         updateSystemStatus(formattedServices);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching status data:", error);
         toast({
           title: "Failed to load status data",
           description: "Please try again later",
           variant: "destructive"
         });
-        
-        const defaultServices = [
-          {
-            name: "Web Application",
-            status: "operational" as ServiceStatus,
-            icon: <CheckCircle className="h-5 w-5 text-green-500" />,
-            badge: <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50">Operational</Badge>
-          },
-          {
-            name: "API Services",
-            status: "operational" as ServiceStatus,
-            icon: <CheckCircle className="h-5 w-5 text-green-500" />,
-            badge: <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50">Operational</Badge>
-          }
-        ];
-        
-        setServices(defaultServices);
-        updateSystemStatus(defaultServices);
+        setServices([]);
+        setIncidents([]);
+        setCurrentUptimePercentage(0);
+        setSystemStatus({
+          title: "Status Unavailable",
+          description: "Could not fetch system status data.",
+          className: "bg-gray-50 border-gray-200",
+          icon: <Clock className="h-6 w-6 text-gray-500 flex-shrink-0" />
+        });
       } finally {
         setIsLoading(false);
       }
     }
-
     fetchStatusData();
   }, []);
 
   function updateSystemStatus(services: ServiceStatusItem[]) {
     const hasOutage = services.some(service => service.status === "outage");
     const hasDegradation = services.some(service => service.status === "degraded");
-    
+
     if (hasOutage) {
       setSystemStatus({
         title: "System Outage",
@@ -170,20 +183,19 @@ export default function Status() {
 
   function getStatusIcon(status: string) {
     switch (status) {
-      case 'outage':
+      case "outage":
         return <AlertCircle className="h-5 w-5 text-red-500" />;
-      case 'degraded':
+      case "degraded":
         return <Clock className="h-5 w-5 text-yellow-500" />;
       default:
         return <CheckCircle className="h-5 w-5 text-green-500" />;
     }
   }
-  
   function getStatusBadge(status: string) {
     switch (status) {
-      case 'outage':
+      case "outage":
         return <Badge variant="outline" className="bg-red-50 text-red-700 hover:bg-red-50">Outage</Badge>;
-      case 'degraded':
+      case "degraded":
         return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 hover:bg-yellow-50">Degraded Performance</Badge>;
       default:
         return <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50">Operational</Badge>;
@@ -207,9 +219,9 @@ export default function Status() {
       <header className="sticky top-0 z-10 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
         <div className="container mx-auto flex h-16 md:h-24 items-center justify-between px-4">
           <div className="flex items-center">
-            <img 
-              src="/lovable-uploads/a942106a-6512-4888-a5c2-dcf6c5d18b64.png" 
-              alt="Repair Auto Pilot" 
+            <img
+              src="/lovable-uploads/a942106a-6512-4888-a5c2-dcf6c5d18b64.png"
+              alt="Repair Auto Pilot"
               className="h-10 md:h-16"
             />
           </div>
@@ -221,13 +233,13 @@ export default function Status() {
           </Button>
         </div>
       </header>
-      
+
       <main className="flex-1 container mx-auto px-4 py-6 md:py-8">
         <h1 className="text-2xl md:text-3xl font-bold mb-3 md:mb-4">System Status</h1>
         <p className="text-gray-600 mb-6 md:mb-8 max-w-3xl text-sm md:text-base">
           Check the current status of all Repair Auto Pilot services and systems.
         </p>
-        
+
         <div className={`${systemStatus.className} rounded-lg p-4 md:p-6 mb-6 md:mb-8 flex items-center gap-3 md:gap-4`}>
           {systemStatus.icon}
           <div>
@@ -240,29 +252,35 @@ export default function Status() {
           <h3 className="text-base md:text-lg font-semibold mb-2 md:mb-0">Current Uptime</h3>
           <span className="text-xs md:text-sm text-gray-500">Last 30 days</span>
         </div>
-        
+
         <div className="mb-6 md:mb-8">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-xs md:text-sm font-medium">{currentUptimePercentage}% uptime</span>
+            <span className="text-xs md:text-sm font-medium">
+              {currentUptimePercentage ? `${currentUptimePercentage}% uptime` : "N/A"}
+            </span>
             <span className="text-xs text-gray-500">Target: 99.9%</span>
           </div>
           <Progress value={currentUptimePercentage} className="h-2" />
         </div>
-        
+
         <div className="space-y-3 md:space-y-4 mb-6 md:mb-8">
-          {services.map((service, index) => (
-            <div key={index} className="flex items-center justify-between p-3 md:p-4 border rounded-lg">
-              <div className="flex items-center gap-2 md:gap-3">
-                {service.icon}
-                <span className="font-medium text-sm md:text-base">{service.name}</span>
+          {services.length > 0 ? (
+            services.map((service, index) => (
+              <div key={index} className="flex items-center justify-between p-3 md:p-4 border rounded-lg">
+                <div className="flex items-center gap-2 md:gap-3">
+                  {service.icon}
+                  <span className="font-medium text-sm md:text-base">{service.name}</span>
+                </div>
+                {service.badge}
               </div>
-              {service.badge}
-            </div>
-          ))}
+            ))
+          ) : (
+            <div className="text-center p-6 border rounded-lg text-gray-400">No services found.</div>
+          )}
         </div>
-        
+
         <h2 className="text-xl md:text-2xl font-bold mb-4">Past Incidents</h2>
-        
+
         <div className="space-y-4 md:space-y-6 mb-6 md:mb-8">
           {incidents.length > 0 ? (
             incidents.map((incident, index) => (
@@ -291,11 +309,13 @@ export default function Status() {
             </div>
           )}
         </div>
-        
+
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 md:p-6 mb-6 md:mb-8">
           <h2 className="text-base md:text-lg font-semibold mb-2">Subscribe to Updates</h2>
-          <p className="text-sm md:text-base text-gray-600 mb-4">Receive real-time notifications about system status and scheduled maintenance.</p>
-          <Button 
+          <p className="text-sm md:text-base text-gray-600 mb-4">
+            Receive real-time notifications about system status and scheduled maintenance.
+          </p>
+          <Button
             className="bg-blue-600 w-full md:w-auto"
             onClick={() => setSubscriptionModalOpen(true)}
           >
@@ -303,7 +323,7 @@ export default function Status() {
           </Button>
         </div>
       </main>
-      
+
       <footer className="border-t bg-white py-4 md:py-6">
         <div className="container mx-auto px-4 text-center">
           <p className="text-xs md:text-sm text-gray-500">© 2023 Repair Auto Pilot. All rights reserved.</p>
@@ -315,9 +335,9 @@ export default function Status() {
         </div>
       </footer>
 
-      <StatusSubscriptionModal 
-        open={subscriptionModalOpen} 
-        onOpenChange={setSubscriptionModalOpen} 
+      <StatusSubscriptionModal
+        open={subscriptionModalOpen}
+        onOpenChange={setSubscriptionModalOpen}
       />
     </div>
   );

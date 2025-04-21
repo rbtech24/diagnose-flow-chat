@@ -1387,6 +1387,65 @@ export type Database = {
           },
         ]
       }
+      incident_updates: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          incident_id: string
+          message: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          incident_id: string
+          message: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          incident_id?: string
+          message?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_updates_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incidents: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          resolved_at: string | null
+          status: string
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          resolved_at?: string | null
+          status: string
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          resolved_at?: string | null
+          status?: string
+          title?: string
+        }
+        Relationships: []
+      }
       inventory_transactions: {
         Row: {
           company_id: string | null
@@ -2599,6 +2658,33 @@ export type Database = {
           },
         ]
       }
+      service_statuses: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          last_updated_at: string | null
+          name: string
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          last_updated_at?: string | null
+          name: string
+          status: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          last_updated_at?: string | null
+          name?: string
+          status?: string
+        }
+        Relationships: []
+      }
       subscription_plans: {
         Row: {
           created_at: string | null
@@ -2747,6 +2833,30 @@ export type Database = {
           title?: string
           type?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      system_metrics: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          unit: string | null
+          value: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          unit?: string | null
+          value: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          unit?: string | null
+          value?: number
         }
         Relationships: []
       }
