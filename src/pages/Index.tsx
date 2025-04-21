@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -102,7 +103,7 @@ export default function Index() {
               <div className="text-white text-sm">Appliance Repair</div>
             </div>
             <img 
-              src={cacheBustUrl("/lovable-uploads/c71206b9-55ab-4588-bbe9-2dcf1db816be.png")}
+              src={cacheBustUrl("/lovable-uploads/a471bd6a-c601-4b83-baaf-f6f0bc5f9ee7.png")}
               alt="Appliance repair diagnostic" 
               className="w-full h-auto rounded-b-md"
               onLoad={() => console.log("Hero image loaded successfully")}
@@ -334,3 +335,4 @@ export default function Index() {
     </div>
   );
 }
+
