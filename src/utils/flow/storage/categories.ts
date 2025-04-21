@@ -74,9 +74,15 @@ export const getFolders = async (): Promise<string[]> => {
     }
     
     const folderSet = new Set<string>();
+    
     workflows?.forEach(workflow => {
-      if (workflow.workflow_categories?.name) {
-        folderSet.add(workflow.workflow_categories.name);
+      // Fix: properly type check and access the workflow_categories property
+      if (workflow.workflow_categories && typeof workflow.workflow_categories === 'object') {
+        // Access the name directly from the object (not as an array)
+        const categoryName = workflow.workflow_categories.name;
+        if (categoryName) {
+          folderSet.add(categoryName);
+        }
       }
     });
     
