@@ -170,3 +170,14 @@ export const testImageLoading = (imagePaths: string[]) => {
     });
   }));
 };
+
+/**
+ * Force reload of image with cache busting
+ * @param imgElement Image element to reload
+ */
+export const reloadImage = (imgElement: HTMLImageElement) => {
+  if (!imgElement || !imgElement.src) return;
+  
+  const originalSrc = imgElement.src.split('?')[0]; // Remove any existing query params
+  imgElement.src = cacheBustUrl(originalSrc);
+};
