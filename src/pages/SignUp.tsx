@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -48,13 +47,11 @@ export default function SignUp() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [currentRole, setCurrentRole] = useState<'company' | 'tech'>('tech');
 
-  // Initialize role from URL parameters on component mount
   useEffect(() => {
     const roleParam = searchParams.get('role');
     if (roleParam && ['company', 'tech'].includes(roleParam)) {
       setCurrentRole(roleParam as 'company' | 'tech');
     } else if (!roleParam) {
-      // If no role in URL, set default and update URL
       updateRoleInURL('tech');
     }
     
@@ -65,7 +62,6 @@ export default function SignUp() {
     });
   }, []);
 
-  // Update form when role changes
   useEffect(() => {
     form.setValue('role', currentRole);
   }, [currentRole]);
@@ -119,7 +115,6 @@ export default function SignUp() {
 
   return (
     <div className="flex min-h-screen bg-blue-50">
-      {/* Left side - Promotional content - always visible regardless of screen size */}
       <div className="w-full lg:w-1/2 p-8 md:p-12 flex flex-col">
         <Link to="/" className="inline-flex items-center text-blue-600 mb-8">
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -128,9 +123,10 @@ export default function SignUp() {
         
         <div className="flex justify-center mb-8">
           <img 
-            src="/lovable-uploads/626e46ce-b31c-4656-8873-f950a140763f.png" 
-            alt="Repair Autopilot" 
-            className="h-12 w-auto" 
+            src="/lovable-uploads/2afa0162-e41f-4454-a6c6-1ffa81bb72f5.png"
+            alt="Repair Auto Pilot Logo" 
+            className="h-16 w-auto object-contain"
+            style={{ maxWidth: 250 }}
           />
         </div>
         
@@ -193,7 +189,6 @@ export default function SignUp() {
         </div>
       </div>
       
-      {/* Right side - Form */}
       <div className="hidden lg:block lg:w-1/2 bg-white p-8 md:p-12">
         <div className="max-w-md mx-auto">
           <h1 className="text-3xl font-bold mb-2 text-gray-900">Join Repair Auto Pilot</h1>
@@ -353,7 +348,6 @@ export default function SignUp() {
         </div>
       </div>
 
-      {/* Simplified mobile form (ONLY shows on small screens) */}
       <div className="lg:hidden fixed inset-0 bg-white p-6 overflow-y-auto">
         <div className="max-w-md mx-auto pt-8">
           <Link to="/" className="inline-flex items-center text-blue-600 mb-8">
@@ -363,9 +357,10 @@ export default function SignUp() {
 
           <div className="flex justify-center mb-6">
             <img 
-              src="/lovable-uploads/626e46ce-b31c-4656-8873-f950a140763f.png" 
-              alt="Repair Autopilot" 
-              className="h-10 w-auto" 
+              src="/lovable-uploads/2afa0162-e41f-4454-a6c6-1ffa81bb72f5.png"
+              alt="Repair Auto Pilot Logo"
+              className="h-16 w-auto object-contain"
+              style={{ maxWidth: 200 }}
             />
           </div>
 

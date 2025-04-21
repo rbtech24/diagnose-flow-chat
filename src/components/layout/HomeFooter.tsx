@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Twitter, Linkedin, Facebook } from "lucide-react";
@@ -11,9 +10,10 @@ export default function HomeFooter() {
           <div className="col-span-1">
             <Link to="/" className="flex flex-col items-start">
               <img 
-                src="/lovable-uploads/626e46ce-b31c-4656-8873-f950a140763f.png" 
+                src="/lovable-uploads/2afa0162-e41f-4454-a6c6-1ffa81bb72f5.png"
                 alt="Repair Auto Pilot" 
-                className="h-14 mb-3"
+                className="h-14 mb-3 object-contain"
+                style={{ maxWidth: 220 }}
               />
               <p className="text-gray-600 text-sm">
                 The ultimate appliance repair diagnostic solution for modern service businesses.
