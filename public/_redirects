@@ -1,2 +1,5 @@
 
 /*    /index.html   200
+# Add cache control headers
+/*.js   /index.html   200   Cache-Control: public, max-age=0, must-revalidate
+/*.css  /index.html   200   Cache-Control: public, max-age=0, must-revalidate

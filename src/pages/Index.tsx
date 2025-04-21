@@ -27,6 +27,17 @@ export default function Index() {
       img.onerror = () => console.error(`Image ${index + 1} failed to load:`, path);
       img.src = path;
     });
+    
+    // Force cache refresh for this component
+    const meta = document.createElement('meta');
+    meta.httpEquiv = 'Cache-Control';
+    meta.content = 'no-cache, no-store, must-revalidate';
+    document.head.appendChild(meta);
+    
+    return () => {
+      // Clean up added meta tag when component unmounts
+      document.head.removeChild(meta);
+    };
   }, []);
 
   return (
