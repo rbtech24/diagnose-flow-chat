@@ -133,11 +133,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else if (event === 'PASSWORD_RECOVERY') {
           console.log("Password recovery event received");
           // Could navigate to reset password page
-        } else if (event === 'USER_DELETED') {
+        }
+        
+        // Fix: Remove the comparison with "USER_DELETED" since it's not in the event type
+        // Instead, check if the user is deleted in a separate condition using basic auth check
+        if (!session && event !== 'SIGNED_OUT') {
+          // This might happen if the user is deleted or session becomes invalid
           setUser(null);
           setUserRole(null);
           setIsAuthenticated(false);
-          console.log("User account deleted");
+          console.log("Session invalid, user may have been deleted");
         }
       }
     );
