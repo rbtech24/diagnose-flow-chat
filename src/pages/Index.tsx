@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Check, Clock, Settings, Activity, Users, Shield } from "lucide-react";
@@ -7,6 +7,28 @@ import HomeHeader from "@/components/layout/HomeHeader";
 import HomeFooter from "@/components/layout/HomeFooter";
 
 export default function Index() {
+  useEffect(() => {
+    console.log("Index component mounted");
+    
+    // Debug image paths
+    const imagePaths = [
+      "/lovable-uploads/1961838b-05c5-44e0-a2c1-92dae3c80e1a.png",
+      "/lovable-uploads/0ab0b549-2aff-4f8c-84d7-416bfc37ba6e.png",
+      "/lovable-uploads/5e0204c2-ef16-48b1-8781-6e770f07a3ba.png",
+      "/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png"
+    ];
+    
+    console.log("Image paths to load:", imagePaths);
+    
+    // Test if images are accessible
+    imagePaths.forEach((path, index) => {
+      const img = new Image();
+      img.onload = () => console.log(`Image ${index + 1} loaded successfully:`, path);
+      img.onerror = () => console.error(`Image ${index + 1} failed to load:`, path);
+      img.src = path;
+    });
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <HomeHeader />
@@ -71,10 +93,55 @@ export default function Index() {
         <div className="max-w-7xl mx-auto px-4">
           <p className="text-center text-gray-500 mb-8">Trusted by leading appliance service companies</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center">
-            <img src="/lovable-uploads/1961838b-05c5-44e0-a2c1-92dae3c80e1a.png" alt="Service company" className="h-12 object-contain" />
-            <img src="/lovable-uploads/0ab0b549-2aff-4f8c-84d7-416bfc37ba6e.png" alt="Service company" className="h-14 object-contain" />
-            <img src="/lovable-uploads/5e0204c2-ef16-48b1-8781-6e770f07a3ba.png" alt="Service company" className="h-12 object-contain" />
-            <img src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" alt="Service company" className="h-16 object-contain" />
+            {/* Add error boundary around each image for better debugging */}
+            <div className="h-12 flex items-center justify-center">
+              <img 
+                src="/lovable-uploads/1961838b-05c5-44e0-a2c1-92dae3c80e1a.png" 
+                alt="Service company" 
+                className="h-full w-auto object-contain" 
+                onLoad={() => console.log("Logo 1 loaded")}
+                onError={(e) => {
+                  console.error("Logo 1 failed to load", e);
+                  e.currentTarget.src = "https://via.placeholder.com/150x50?text=Company+Logo";
+                }}
+              />
+            </div>
+            <div className="h-14 flex items-center justify-center">
+              <img 
+                src="/lovable-uploads/0ab0b549-2aff-4f8c-84d7-416bfc37ba6e.png" 
+                alt="Service company" 
+                className="h-full w-auto object-contain" 
+                onLoad={() => console.log("Logo 2 loaded")}
+                onError={(e) => {
+                  console.error("Logo 2 failed to load", e);
+                  e.currentTarget.src = "https://via.placeholder.com/150x50?text=Company+Logo";
+                }}
+              />
+            </div>
+            <div className="h-12 flex items-center justify-center">
+              <img 
+                src="/lovable-uploads/5e0204c2-ef16-48b1-8781-6e770f07a3ba.png" 
+                alt="Service company" 
+                className="h-full w-auto object-contain" 
+                onLoad={() => console.log("Logo 3 loaded")}
+                onError={(e) => {
+                  console.error("Logo 3 failed to load", e);
+                  e.currentTarget.src = "https://via.placeholder.com/150x50?text=Company+Logo";
+                }}
+              />
+            </div>
+            <div className="h-16 flex items-center justify-center">
+              <img 
+                src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
+                alt="Service company" 
+                className="h-full w-auto object-contain" 
+                onLoad={() => console.log("Logo 4 loaded")}
+                onError={(e) => {
+                  console.error("Logo 4 failed to load", e);
+                  e.currentTarget.src = "https://via.placeholder.com/150x50?text=Company+Logo";
+                }}
+              />
+            </div>
           </div>
         </div>
       </section>
