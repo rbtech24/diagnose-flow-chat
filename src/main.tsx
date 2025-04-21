@@ -6,6 +6,7 @@ import './index.css';
 import { AuthProvider } from './context/AuthContext';
 import { Toaster } from 'react-hot-toast';
 import { addCacheControlMetaTags, registerCacheEventListeners } from './utils/cacheControl';
+import { BrowserRouter } from 'react-router-dom';
 
 // For debugging purposes
 console.log("Main.tsx is rendering");
@@ -29,9 +30,11 @@ if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <AuthProvider>
-      <App />
-      <Toaster position="top-right" />
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <App />
+        <Toaster position="top-right" />
+      </AuthProvider>
+    </BrowserRouter>
   </React.StrictMode>
 );

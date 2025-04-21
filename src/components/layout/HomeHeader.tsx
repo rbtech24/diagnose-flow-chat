@@ -22,7 +22,7 @@ export default function HomeHeader() {
   }
 
   // Create a LinkOrAnchor component that conditionally renders Link or a based on router availability
-  const LinkOrAnchor = ({ to, className, children }) => {
+  const LinkOrAnchor = ({ to, className, children }: { to: string; className?: string; children: React.ReactNode }) => {
     return isRouterAvailable ? (
       <Link to={to} className={className}>{children}</Link>
     ) : (
