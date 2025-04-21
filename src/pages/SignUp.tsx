@@ -29,7 +29,7 @@ const FormSchema = z.object({
     message: "Phone number must be at least 10 digits."
   }).optional(),
   password: z.string().min(8, {
-    message: "Password must be at least 8 characters."
+    message: "Password must be at least 8 characters"
   }),
   confirmPassword: z.string(),
   role: z.enum(['company', 'tech'])
@@ -341,7 +341,14 @@ export default function SignUp() {
               </Button>
               
               <p className="text-xs text-gray-500 text-center">
-                By signing up, you agree to our Terms of Service and Privacy Policy.
+                By signing up, you agree to our{' '}
+                <Link to="/terms-of-use" className="text-blue-600 hover:underline">
+                  Terms of Service
+                </Link>{' '}
+                and{' '}
+                <Link to="/privacy-policy" className="text-blue-600 hover:underline">
+                  Privacy Policy
+                </Link>.
               </p>
             </form>
           </Form>
@@ -536,7 +543,14 @@ export default function SignUp() {
               </div>
               
               <p className="text-xs text-gray-500 text-center mt-4">
-                By signing up, you agree to our Terms of Service and Privacy Policy.
+                By signing up, you agree to our{' '}
+                <Link to="/terms-of-use" className="text-blue-600 hover:underline">
+                  Terms of Service
+                </Link>{' '}
+                and{' '}
+                <Link to="/privacy-policy" className="text-blue-600 hover:underline">
+                  Privacy Policy
+                </Link>.
               </p>
             </form>
           </Form>
