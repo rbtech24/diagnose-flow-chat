@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -13,14 +12,12 @@ export default function HelpCenter() {
   const handleSubmitTicket = (title: string, description: string, priority: any) => {
     setIsSubmitting(true);
     setError(undefined);
-    
+
     // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false);
-      // Show success message
-      toast.success("Support ticket submitted successfully!", {
-        description: "Our team will respond to your inquiry as soon as possible."
-      });
+      // Show success message (fix: remove invalid "description" key)
+      toast.success("Support ticket submitted successfully! Our team will respond to your inquiry as soon as possible.");
     }, 1500);
   };
 

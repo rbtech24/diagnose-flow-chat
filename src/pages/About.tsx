@@ -1,20 +1,38 @@
 
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Info } from "lucide-react";
 
 export default function About() {
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <header className="sticky top-0 z-10 border-b bg-white/95 backdrop-blur">
         <div className="container mx-auto flex h-24 items-center justify-between px-4">
-          <h1 className="text-xl font-bold">About</h1>
+          <div className="flex items-center gap-3">
+            <Info className="text-primary h-8 w-8" />
+            <h1 className="text-2xl font-bold">About Us</h1>
+          </div>
           <Button asChild variant="outline">
             <Link to="/"><ArrowLeft className="mr-2 h-4 w-4" />Back to Home</Link>
           </Button>
         </div>
       </header>
-      <main className="flex-1 container mx-auto px-4 py-8"></main>
+      <main className="flex-1 container mx-auto px-4 py-12">
+        <section className="max-w-2xl mx-auto">
+          <h2 className="text-3xl font-bold mb-4">Our Mission</h2>
+          <p className="mb-6 text-gray-700">
+            At Repair Auto Pilot, we're dedicated to streamlining appliance repair businesses by providing powerful, easy-to-use workflow and diagnostic tools. Our platform is built by repair professionals, for repair professionals—with the goal of saving time, reducing mistakes, and powering business growth.
+          </p>
+          <h2 className="text-2xl font-semibold mb-2 mt-6">Why Choose Us?</h2>
+          <ul className="list-disc pl-6 mb-4 text-gray-700">
+            <li>Industry-leading diagnostic workflows</li>
+            <li>Modern, mobile-friendly experience</li>
+            <li>Backed by a passionate, skilled support team</li>
+            <li>Continuous innovation based on real user feedback</li>
+          </ul>
+          <p className="text-gray-700">Founded in 2022 • Headquartered in the United States</p>
+        </section>
+      </main>
     </div>
   );
 }
