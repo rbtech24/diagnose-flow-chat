@@ -20,9 +20,9 @@ export default function HomeHeader() {
           <a href="/#features" className="text-gray-700 hover:text-blue-600 transition">
             Features
           </a>
-          <Link to="/testimonials" className="text-gray-700 hover:text-blue-600 transition">
+          <a href="/#testimonials" className="text-gray-700 hover:text-blue-600 transition">
             Testimonials
-          </Link>
+          </a>
           <Link to="/login" className="text-gray-700 hover:text-blue-600 transition">
             Login
           </Link>

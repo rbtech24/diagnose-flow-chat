@@ -22,14 +22,14 @@ export default function Index() {
               Streamline your repair operations with our diagnostic workflows. Boost first-time fix rates and keep your technicians at peak efficiency.
             </p>
             <div className="flex flex-wrap gap-4">
+              <a href="/#features">
+                <Button variant="outline" className="border-gray-300">
+                  See Features
+                </Button>
+              </a>
               <Link to="/signup">
                 <Button className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2">
                   Start Free Trial <span className="ml-1">→</span>
-                </Button>
-              </Link>
-              <Link to="/features">
-                <Button variant="outline" className="border-gray-300">
-                  See Features
                 </Button>
               </Link>
             </div>
@@ -81,7 +81,7 @@ export default function Index() {
       </section>
 
       {/* Why Choose Section */}
-      <section className="py-16">
+      <section id="features" className="py-16">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4 text-gray-900">Why Choose Repair Auto Pilot?</h2>
@@ -155,7 +155,7 @@ export default function Index() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-16 bg-gray-50">
+      <section id="testimonials" className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4 text-gray-900">What Our Customers Say</h2>
@@ -238,4 +238,3 @@ export default function Index() {
     </div>
   );
 }
-
