@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from "react";
+
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { cacheBustUrl } from "@/utils/cacheControl";
 import { Menu, X } from "lucide-react";
 
 export default function HomeHeader() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   // Debug log for component mounting
-  useEffect(() => {
+  React.useEffect(() => {
     console.log("HomeHeader component mounted");
   }, []);
 

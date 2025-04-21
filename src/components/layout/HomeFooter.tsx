@@ -1,11 +1,11 @@
 
-import React, { useEffect } from "react";
+import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { cacheBustUrl } from "@/utils/cacheControl";
 
 export default function HomeFooter() {
   // Debug log for component mounting
-  useEffect(() => {
+  React.useEffect(() => {
     console.log("HomeFooter component mounted");
   }, []);
 
