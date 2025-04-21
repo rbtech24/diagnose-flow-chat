@@ -1,3 +1,4 @@
+
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { Suspense, lazy, useEffect } from "react";
 import Index from "./pages/Index";
@@ -133,11 +134,11 @@ function App() {
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } />
+            
+            {/* Fix for protected profile route */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/profile" element={<Profile />} />
+            </Route>
 
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
               <Route path="/admin" element={<AdminLayout />}>
@@ -222,7 +223,6 @@ function App() {
             <Route path="/security" element={<Security />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfUse />} />
-            {/* Help Center page route exists as HelpCenter */}
             <Route path="/help" element={<HelpCenter />} />
 
             <Route path="*" element={<NotFound />} />
