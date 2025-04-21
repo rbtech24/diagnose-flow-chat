@@ -1,14 +1,7 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "react-hot-toast";
+import { showToast } from "@/utils/toast-helpers";
 import { User } from "@/types/user";
-
-// Helper function for showing toast messages
-const showToast = {
-  success: (message: string) => toast.success(message),
-  error: (message: string) => toast.error(message)
-};
 
 type UserRole = 'admin' | 'company' | 'tech' | null;
 

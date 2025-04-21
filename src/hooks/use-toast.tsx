@@ -1,4 +1,5 @@
 
+import React from "react";
 import { toast as hotToast } from "react-hot-toast";
 
 export interface ToastOptions {
