@@ -8,7 +8,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "react-hot-toast";
-import { sendPasswordResetEmail } from "@/utils/auth";
+import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 
 const passwordResetSchema = z.object({
   email: z.string().email({
@@ -33,15 +34,20 @@ export function PasswordResetForm() {
     setIsSubmitting(true);
     
     try {
-      const { error } = await sendPasswordResetEmail(values.email);
+      // Using Supabase directly for password reset
+      const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
       
       if (error) {
         toast.error(error.message);
+        console.error("Password reset error:", error);
       } else {
         setEmailSent(true);
         toast.success("Check your email for a link to reset your password.");
       }
     } catch (error) {
+      console.error("Unexpected error during password reset:", error);
       toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -49,13 +55,7 @@ export function PasswordResetForm() {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>Reset Password</CardTitle>
-        <CardDescription>
-          Enter your email address and we'll send you a link to reset your password.
-        </CardDescription>
-      </CardHeader>
+    <Card className="w-full border-0 shadow-none">
       <CardContent>
         {emailSent ? (
           <div className="text-center py-4">
@@ -81,7 +81,7 @@ export function PasswordResetForm() {
                 )}
               />
               
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
+              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isSubmitting}>
                 {isSubmitting ? "Sending..." : "Send Reset Link"}
               </Button>
             </form>
@@ -89,8 +89,10 @@ export function PasswordResetForm() {
         )}
       </CardContent>
       <CardFooter className="justify-center">
-        <Button variant="link" onClick={() => window.history.back()}>
-          Back to Login
+        <Button variant="link" asChild>
+          <Link to="/login">
+            Back to Login
+          </Link>
         </Button>
       </CardFooter>
     </Card>

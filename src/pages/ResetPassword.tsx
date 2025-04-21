@@ -1,31 +1,29 @@
 
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, ChevronLeft } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [token, setToken] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [isResetting, setIsResetting] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   
-  const { resetPassword } = useAuth();
-
   useEffect(() => {
-    // Extract token from URL
+    // Check if we have an access token in the URL fragment
     const params = new URLSearchParams(location.hash.substring(1));
     const accessToken = params.get("access_token");
-    if (accessToken) {
-      setToken(accessToken);
+    
+    if (!accessToken) {
+      console.log("No access token found in URL");
     }
   }, [location]);
 
@@ -43,24 +41,25 @@ export default function ResetPassword() {
       return;
     }
     
-    if (!token) {
-      setPasswordError("Reset token is missing. Please use the link from your email.");
-      toast.error("Reset token is missing. Please use the link from your email.");
-      return;
-    }
-    
     setIsResetting(true);
     try {
-      const success = await resetPassword(token, password);
+      // Update the user's password directly with Supabase
+      const { error } = await supabase.auth.updateUser({ 
+        password: password 
+      });
       
-      if (success) {
-        toast.success("Your password has been reset. You can now log in.");
-        navigate("/login");
+      if (error) {
+        console.error("Password reset error:", error);
+        toast.error(error.message || "Failed to reset password. Please try again.");
+        setPasswordError(error.message || "Failed to reset password");
       } else {
-        toast.error("Failed to reset password. Please try again.");
+        toast.success("Your password has been reset successfully. You can now log in.");
+        navigate("/login");
       }
-    } catch (error) {
-      toast.error("An unexpected error occurred. Please try again.");
+    } catch (error: any) {
+      console.error("Unexpected error during password reset:", error);
+      toast.error(error.message || "An unexpected error occurred. Please try again.");
+      setPasswordError("An unexpected error occurred");
     } finally {
       setIsResetting(false);
     }
@@ -77,9 +76,10 @@ export default function ResetPassword() {
           
           <div className="flex justify-center mb-4">
             <img 
-              src="/public/lovable-uploads/626e46ce-b31c-4656-8873-f950a140763f.png" 
-              alt="Repair Autopilot" 
-              className="h-16 w-auto" 
+              src="/lovable-uploads/5a6f684f-5f8a-4a11-b98b-107a464807d4.png" 
+              alt="Repair Auto Pilot" 
+              className="h-20 w-auto object-contain" 
+              style={{ maxWidth: 240 }}
             />
           </div>
           
