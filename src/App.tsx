@@ -4,6 +4,7 @@ import Index from "./pages/Index";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { Loader2 } from "lucide-react";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { BrowserRouter } from "react-router-dom";
 
 // Lazy load pages for better performance
 const Login = lazy(() => import("./pages/Login"));
@@ -116,111 +117,117 @@ function App() {
   }, []);
 
   return (
-    <ErrorBoundary>
-      <RouteChangeTracker />
-      <Suspense fallback={<LoadingFallback />}>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={
-            <ErrorBoundary>
-              <Login />
-            </ErrorBoundary>
-          } />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
+    <BrowserRouter>
+      <ErrorBoundary>
+        <RouteChangeTracker />
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={
+              <ErrorBoundary>
+                <Login />
+              </ErrorBoundary>
+            } />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
-          <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={
-                <ErrorBoundary>
-                  <AdminDashboard />
-                </ErrorBoundary>
-              } />
-              <Route path="users" element={<AdminUsers />} />
-              <Route path="users/new" element={<AdminUserNew />} />
-              <Route path="companies" element={<AdminCompanies />} />
-              <Route path="companies/:id" element={<AdminCompanyDetail />} />
-              <Route path="admin-accounts" element={<AdminAccounts />} />
-              <Route path="licenses" element={<AdminLicenses />} />
-              <Route path="workflows" element={<AdminWorkflows />} />
-              <Route path="workflow-editor" element={<WorkflowEditor />} />
-              <Route path="subscription-plans" element={<AdminSubscriptionPlans />} />
-              <Route path="support" element={<AdminSupport />} />
-              <Route path="feature-requests" element={<AdminFeatureRequests />} />
-              <Route path="feature-requests/:id" element={<AdminFeatureRequestDetail />} />
-              <Route path="community" element={<AdminCommunity />} />
-              <Route path="community/:postId" element={<AdminCommunityPostDetail />} />
-              <Route path="knowledge-base" element={<AdminKnowledgeBase />} />
-              <Route path="system-messages" element={<AdminSystemMessages />} />
-              <Route path="api-integrations" element={<AdminAPIIntegrations />} />
-              <Route path="api-keys" element={<AdminAPIKeys />} />
-              <Route path="profile" element={<AdminProfile />} />
+            <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={
+                  <ErrorBoundary>
+                    <AdminDashboard />
+                  </ErrorBoundary>
+                } />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="users/new" element={<AdminUserNew />} />
+                <Route path="companies" element={<AdminCompanies />} />
+                <Route path="companies/:id" element={<AdminCompanyDetail />} />
+                <Route path="admin-accounts" element={<AdminAccounts />} />
+                <Route path="licenses" element={<AdminLicenses />} />
+                <Route path="workflows" element={<AdminWorkflows />} />
+                <Route path="workflow-editor" element={<WorkflowEditor />} />
+                <Route path="subscription-plans" element={<AdminSubscriptionPlans />} />
+                <Route path="support" element={<AdminSupport />} />
+                <Route path="feature-requests" element={<AdminFeatureRequests />} />
+                <Route path="feature-requests/:id" element={<AdminFeatureRequestDetail />} />
+                <Route path="community" element={<AdminCommunity />} />
+                <Route path="community/:postId" element={<AdminCommunityPostDetail />} />
+                <Route path="knowledge-base" element={<AdminKnowledgeBase />} />
+                <Route path="system-messages" element={<AdminSystemMessages />} />
+                <Route path="api-integrations" element={<AdminAPIIntegrations />} />
+                <Route path="api-keys" element={<AdminAPIKeys />} />
+                <Route path="profile" element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                } />
+              </Route>
             </Route>
-          </Route>
 
-          <Route element={<ProtectedRoute allowedRoles={['company']} />}>
-            <Route path="/company" element={<CompanyLayout />}>
-              <Route index element={
-                <ErrorBoundary>
-                  <CompanyDashboard />
-                </ErrorBoundary>
-              } />
-              <Route path="technicians" element={
-                <ErrorBoundary>
-                  <ManageTechnicians />
-                </ErrorBoundary>
-              } />
-              <Route path="diagnostics" element={<CompanyDiagnostics />} />
-              <Route path="support" element={<CompanySupport />} />
-              <Route path="feature-requests" element={<CompanyFeatureRequests />} />
-              <Route path="feature-requests/:id" element={<CompanyFeatureRequestDetail />} />
-              <Route path="community" element={<CompanyCommunity />} />
+            <Route element={<ProtectedRoute allowedRoles={['company']} />}>
+              <Route path="/company" element={<CompanyLayout />}>
+                <Route index element={
+                  <ErrorBoundary>
+                    <CompanyDashboard />
+                  </ErrorBoundary>
+                } />
+                <Route path="technicians" element={
+                  <ErrorBoundary>
+                    <ManageTechnicians />
+                  </ErrorBoundary>
+                } />
+                <Route path="diagnostics" element={<CompanyDiagnostics />} />
+                <Route path="support" element={<CompanySupport />} />
+                <Route path="feature-requests" element={<CompanyFeatureRequests />} />
+                <Route path="feature-requests/:id" element={<CompanyFeatureRequestDetail />} />
+                <Route path="community" element={<CompanyCommunity />} />
+              </Route>
             </Route>
-          </Route>
 
-          <Route element={<ProtectedRoute allowedRoles={['tech']} />}>
-            <Route path="/tech" element={<TechLayout />}>
-              <Route index element={
-                <ErrorBoundary>
-                  <TechDashboard />
-                </ErrorBoundary>
-              } />
-              <Route path="profile" element={<TechProfile />} />
-              <Route path="tools" element={<TechTools />} />
-              <Route path="support" element={<TechSupport />} />
-              <Route path="support/:ticketId" element={<TechSupportTicketDetail />} />
-              <Route path="knowledge" element={<TechKnowledgePage />} />
-              <Route path="community" element={<TechCommunity />} />
-              <Route path="community/:postId" element={<TechCommunityPostDetail />} />
-              <Route path="feature-requests" element={<TechFeatureRequests />} />
-              <Route path="feature-requests/:id" element={<TechFeatureRequestDetail />} />
-              <Route path="diagnostics" element={<TechDiagnostics />} />
+            <Route element={<ProtectedRoute allowedRoles={['tech']} />}>
+              <Route path="/tech" element={<TechLayout />}>
+                <Route index element={
+                  <ErrorBoundary>
+                    <TechDashboard />
+                  </ErrorBoundary>
+                } />
+                <Route path="profile" element={<TechProfile />} />
+                <Route path="tools" element={<TechTools />} />
+                <Route path="support" element={<TechSupport />} />
+                <Route path="support/:ticketId" element={<TechSupportTicketDetail />} />
+                <Route path="knowledge" element={<TechKnowledgePage />} />
+                <Route path="community" element={<TechCommunity />} />
+                <Route path="community/:postId" element={<TechCommunityPostDetail />} />
+                <Route path="feature-requests" element={<TechFeatureRequests />} />
+                <Route path="feature-requests/:id" element={<TechFeatureRequestDetail />} />
+                <Route path="diagnostics" element={<TechDiagnostics />} />
+              </Route>
             </Route>
-          </Route>
 
-          <Route element={<ProtectedRoute allowedRoles={['admin', 'company']} />}>
-            <Route path="/workflow-editor" element={<WorkflowEditor />} />
-          </Route>
+            <Route element={<ProtectedRoute allowedRoles={['admin', 'company']} />}>
+              <Route path="/workflow-editor" element={<WorkflowEditor />} />
+            </Route>
 
-          <Route path="/features" element={<Features />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/careers" element={<Careers />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/community" element={<Community />} />
-          <Route path="/partners" element={<Partners />} />
-          <Route path="/security" element={<Security />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/terms" element={<TermsOfUse />} />
-          {/* Help Center page route exists as HelpCenter */}
-          <Route path="/help" element={<HelpCenter />} />
+            <Route path="/features" element={<Features />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/careers" element={<Careers />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/community" element={<Community />} />
+            <Route path="/partners" element={<Partners />} />
+            <Route path="/security" element={<Security />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfUse />} />
+            {/* Help Center page route exists as HelpCenter */}
+            <Route path="/help" element={<HelpCenter />} />
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
-    </ErrorBoundary>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
+    </BrowserRouter>
   );
 }
 
