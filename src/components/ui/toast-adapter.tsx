@@ -1,30 +1,30 @@
 
-import { ToastProps } from '@/hooks/use-toast';
-import toast from 'react-hot-toast';
+import { ToastProps, toast } from '@/hooks/use-toast';
 
 export const adaptToast = {
-  toast: (props: Partial<ToastProps> | string): string => {
+  toast: (props: Partial<ToastProps> | string): void => {
     if (typeof props === 'string') {
-      return toast(props);
+      toast({ description: props });
+      return;
     }
     
-    const { title, description, type, variant } = props;
-    const message = title 
-      ? description 
-        ? `${title}: ${description}` 
-        : title
-      : description || '';
-    
-    if (type === "error" || variant === "destructive") {
-      return toast.error(message);
-    } else if (type === "success") {
-      return toast.success(message);
-    }
-    
-    return toast(message);
+    toast(props);
   },
   
-  success: (message: string): string => toast.success(message),
-  error: (message: string): string => toast.error(message),
-  dismiss: toast.dismiss
+  success: (message: string): void => {
+    toast({ description: message, type: "success" });
+  },
+  
+  error: (message: string): void => {
+    toast({ description: message, type: "error" });
+  },
+  
+  dismiss: (id?: string): void => {
+    if (id) {
+      // Since our hooks/use-toast.tsx implementation wraps react-hot-toast,
+      // we need to handle this special case
+      const { toast: hotToast } = require("react-hot-toast");
+      hotToast.dismiss(id);
+    }
+  }
 };

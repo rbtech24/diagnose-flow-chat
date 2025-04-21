@@ -1,9 +1,10 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, LifeBuoy } from "lucide-react";
 import { NewTicketForm } from "@/components/support/NewTicketForm";
-import { toast } from "react-hot-toast";
+import { toast } from "@/hooks/use-toast";
 
 export default function HelpCenter() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -16,8 +17,12 @@ export default function HelpCenter() {
     // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false);
-      // Show success message (fix: remove invalid "description" key)
-      toast.success("Support ticket submitted successfully! Our team will respond to your inquiry as soon as possible.");
+      // Use our custom toast implementation instead of react-hot-toast directly
+      toast({
+        title: "Success",
+        description: "Support ticket submitted successfully! Our team will respond to your inquiry as soon as possible.",
+        type: "success"
+      });
     }, 1500);
   };
 
