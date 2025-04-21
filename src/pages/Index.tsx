@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+
+import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Check, Clock, Settings, Activity, Users, Shield } from "lucide-react";
@@ -6,11 +7,6 @@ import HomeHeader from "@/components/layout/HomeHeader";
 import HomeFooter from "@/components/layout/HomeFooter";
 
 export default function Index() {
-  useEffect(() => {
-    console.log("Index component mounted");
-    console.log("Trusted By section should be visible");
-  }, []);
-
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <HomeHeader />
@@ -19,22 +15,21 @@ export default function Index() {
       <section className="bg-gray-50 py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-8 items-center">
           <div className="space-y-6">
-            <h1 className="text-5xl md:text-6xl font-extrabold leading-tight text-gray-900">
-              Appliance Diagnostics on{" "}
-              <span className="text-[#1E40FF]">Auto Pilot</span>
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
+              Appliance Diagnostics on <span className="text-blue-600">Auto Pilot</span>
             </h1>
-            <p className="text-lg text-[#475569] max-w-xl">
+            <p className="text-lg text-gray-600">
               Streamline your repair operations with our diagnostic workflows. Boost first-time fix rates and keep your technicians at peak efficiency.
             </p>
             <div className="flex flex-wrap gap-4">
-              <a href="/#features">
-                <Button variant="outline" className="border-gray-300">
-                  See Features
-                </Button>
-              </a>
               <Link to="/signup">
                 <Button className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2">
                   Start Free Trial <span className="ml-1">→</span>
+                </Button>
+              </Link>
+              <Link to="/features">
+                <Button variant="outline" className="border-gray-300">
+                  See Features
                 </Button>
               </Link>
             </div>
@@ -63,10 +58,9 @@ export default function Index() {
               <div className="text-white text-sm">Appliance Repair</div>
             </div>
             <img 
-              src="/lovable-uploads/02e87b5f-b32c-4ab8-b1fe-f4cdd519689f.png"
-              alt="Technician diagnosing appliance circuit"
-              className="w-full h-auto rounded-b-md object-cover"
-              style={{maxHeight: 350, minHeight: 180}}
+              src="/lovable-uploads/c71206b9-55ab-4588-bbe9-2dcf1db816be.png" 
+              alt="Appliance repair diagnostic" 
+              className="w-full h-auto rounded-b-md"
             />
           </div>
         </div>
@@ -75,25 +69,18 @@ export default function Index() {
       {/* Trusted By Section */}
       <section className="py-12 border-t border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4">
-          <p className="text-center text-gray-500 mb-8" id="trusted-by-section">
-            Trusted by leading appliance service companies
-          </p>
+          <p className="text-center text-gray-500 mb-8">Trusted by leading appliance service companies</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center">
-            {console.log("Rendering trusted company logos")}
             <img src="/lovable-uploads/1961838b-05c5-44e0-a2c1-92dae3c80e1a.png" alt="Service company" className="h-12 object-contain" />
             <img src="/lovable-uploads/0ab0b549-2aff-4f8c-84d7-416bfc37ba6e.png" alt="Service company" className="h-14 object-contain" />
             <img src="/lovable-uploads/5e0204c2-ef16-48b1-8781-6e770f07a3ba.png" alt="Service company" className="h-12 object-contain" />
             <img src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" alt="Service company" className="h-16 object-contain" />
-            <img src="/lovable-uploads/4186b2a5-a05b-4181-bb97-9f5528f850ee.png" alt="Flat Rate Appliance Repair" className="h-16 object-contain" />
-            <img src="/lovable-uploads/556af458-1399-446b-b561-5af854db062c.png" alt="Rod's Appliance Repair" className="h-10 object-contain" />
-            <img src="/lovable-uploads/d96c1b7f-311e-4a12-a157-2eb257948eb0.png" alt="West Metro Appliance" className="h-12 object-contain" />
-            <img src="/lovable-uploads/d33e4b7b-e6af-45d3-9cdd-bd67e6717d6b.png" alt="Einstein Appliance Repair" className="h-10 object-contain" />
           </div>
         </div>
       </section>
 
       {/* Why Choose Section */}
-      <section id="features" className="py-16">
+      <section className="py-16">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4 text-gray-900">Why Choose Repair Auto Pilot?</h2>
@@ -167,7 +154,7 @@ export default function Index() {
       </section>
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-16 bg-gray-50">
+      <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4 text-gray-900">What Our Customers Say</h2>
