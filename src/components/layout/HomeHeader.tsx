@@ -9,7 +9,7 @@ export default function HomeHeader() {
       <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
         <Link to="/" className="flex items-center">
           <img 
-            src="/lovable-uploads/2afa0162-e41f-4454-a6c6-1ffa81bb72f5.png"
+            src="/lovable-uploads/629af177-1002-4110-97f9-4c8747ad00f6.png"
             alt="Repair Auto Pilot" 
             className="h-12 object-contain"
             style={{ maxWidth: 200 }}

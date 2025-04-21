@@ -46,9 +46,10 @@ export default function ForgotPassword() {
           
           <div className="flex justify-center mb-4">
             <img 
-              src="/lovable-uploads/626e46ce-b31c-4656-8873-f950a140763f.png" 
-              alt="Repair Autopilot" 
-              className="h-16 w-auto" 
+              src="/lovable-uploads/629af177-1002-4110-97f9-4c8747ad00f6.png" 
+              alt="Repair Auto Pilot" 
+              className="h-20 w-auto object-contain" 
+              style={{ maxWidth: 240 }}
             />
           </div>
           

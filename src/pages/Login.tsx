@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -101,8 +102,8 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-blue-50">
       <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
         <div className="flex justify-center mb-6">
-          <img 
-            src="/lovable-uploads/2afa0162-e41f-4454-a6c6-1ffa81bb72f5.png"
+          <img
+            src="/lovable-uploads/629af177-1002-4110-97f9-4c8747ad00f6.png"
             alt="Repair Auto Pilot Logo"
             className="h-20 w-auto object-contain"
             style={{ maxWidth: 240 }}
