@@ -52,23 +52,17 @@ toast.loading = (message: string, options?: ToastOptions) => {
 
 // Export the enhanced toast function
 export const useToast = () => {
-  const showSuccess = (message: string, options?: ToastOptions) => {
-    hotToast.success(message, options);
-  };
-
-  const showError = (message: string, options?: ToastOptions) => {
-    hotToast.error(message, options);
-  };
-
-  const showInfo = (message: string, options?: ToastOptions) => {
-    hotToast(message, options);
-  };
-
   return {
-    showSuccess,
-    showError,
-    showInfo,
-    toast
+    toast,
+    showSuccess: (message: string, options?: ToastOptions) => {
+      hotToast.success(message, options);
+    },
+    showError: (message: string, options?: ToastOptions) => {
+      hotToast.error(message, options);
+    },
+    showInfo: (message: string, options?: ToastOptions) => {
+      hotToast(message, options);
+    }
   };
 };
 
