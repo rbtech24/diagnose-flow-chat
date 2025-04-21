@@ -16,7 +16,7 @@ export interface ToastProps {
   position?: "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
 }
 
-// Create a toast function with success, error, and other methods attached
+// Create toast functions that don't use React hooks
 export const toast = (props: ToastProps | string) => {
   if (typeof props === 'string') {
     return hotToast(props);
@@ -51,16 +51,12 @@ toast.loading = (message: string, options?: ToastOptions) => {
   return hotToast.loading(message, options);
 };
 
-// Export the enhanced toast function
+// Export a hook that simply returns the toast functions
 export const useToast = () => {
   return {
     toast,
-    showSuccess: (message: string, options?: ToastOptions) => {
-      hotToast.success(message, options);
-    },
-    showError: (message: string, options?: ToastOptions) => {
-      hotToast.error(message, options);
-    },
+    showSuccess: toast.success,
+    showError: toast.error,
     showInfo: (message: string, options?: ToastOptions) => {
       hotToast(message, options);
     }
