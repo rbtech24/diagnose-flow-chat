@@ -7,10 +7,11 @@ export interface User {
   phone?: string;
   avatarUrl?: string;
   status: "active" | "inactive" | "pending" | "archived" | "deleted";
-  companyId?: string; // Added companyId
+  companyId?: string;
   subscriptionStatus?: string;
   trialEndsAt?: Date;
   planId?: string;
+  onboardingCompleted?: boolean;
 }
 
 export interface UserWithPassword extends User {
@@ -22,7 +23,7 @@ export interface TechnicianInvite {
   name: string;
   email: string;
   phone?: string;
-  companyId?: string; // Consistent naming convention
+  companyId?: string;
   createdAt: Date;
   expiresAt: Date;
   status: "pending" | "accepted" | "rejected" | "expired";

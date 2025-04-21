@@ -16,12 +16,14 @@ interface AuthContextType {
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<boolean>;
   login: (email: string, password: string) => Promise<boolean>; // Alias for signIn
-  signUp: (email: string, password: string, role: UserRole, additionalData?: any) => Promise<void>;
+  signUp: (email: string, password: string, role: UserRole, additionalData?: any) => Promise<any>;
   register: (email: string, password: string, additionalData?: any) => Promise<void>; // Alias for signUp
   signOut: () => Promise<void>;
   forgotPassword: (email: string) => Promise<boolean>;
   resetPassword: (token: string, newPassword: string) => Promise<boolean>;
   updateUser: (data: Partial<User>) => Promise<boolean>;
+  verifyEmail: (token: string) => Promise<boolean>;
+  resendVerificationEmail: (email: string) => Promise<boolean>;
 }
 
 // Create a context with a default value
@@ -67,7 +69,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             status: 'active',
             companyId: user.user_metadata?.company_id,
             subscriptionStatus: user.user_metadata?.subscription_status,
-            trialEndsAt: user.user_metadata?.trial_ends_at ? new Date(user.user_metadata.trial_ends_at) : undefined
+            trialEndsAt: user.user_metadata?.trial_ends_at ? new Date(user.user_metadata.trial_ends_at) : undefined,
+            onboardingCompleted: user.user_metadata?.onboardingCompleted || false
           });
           
           // Get user role from metadata or user table
@@ -100,7 +103,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             status: 'active',
             companyId: session.user.user_metadata?.company_id,
             subscriptionStatus: session.user.user_metadata?.subscription_status,
-            trialEndsAt: session.user.user_metadata?.trial_ends_at ? new Date(session.user.user_metadata.trial_ends_at) : undefined
+            trialEndsAt: session.user.user_metadata?.trial_ends_at ? new Date(session.user.user_metadata.trial_ends_at) : undefined,
+            onboardingCompleted: session.user.user_metadata?.onboardingCompleted || false
           });
           setUserRole(session.user.user_metadata?.role as UserRole || null);
           setIsAuthenticated(true);
@@ -108,6 +112,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(null);
           setUserRole(null);
           setIsAuthenticated(false);
+        } else if (event === 'USER_UPDATED') {
+          // Handle user data updates
+          if (session) {
+            setUser(prevUser => {
+              if (!prevUser) return null;
+              
+              return {
+                ...prevUser,
+                name: session.user.user_metadata?.name || prevUser.name,
+                avatarUrl: session.user.user_metadata?.avatar_url || prevUser.avatarUrl,
+                role: session.user.user_metadata?.role as UserRole || prevUser.role,
+                companyId: session.user.user_metadata?.company_id || prevUser.companyId,
+                subscriptionStatus: session.user.user_metadata?.subscription_status || prevUser.subscriptionStatus,
+                onboardingCompleted: session.user.user_metadata?.onboardingCompleted || prevUser.onboardingCompleted
+              };
+            });
+            console.log("User data updated");
+          }
+        } else if (event === 'PASSWORD_RECOVERY') {
+          console.log("Password recovery event received");
+          // Could navigate to reset password page
+        } else if (event === 'USER_DELETED') {
+          setUser(null);
+          setUserRole(null);
+          setIsAuthenticated(false);
+          console.log("User account deleted");
         }
       }
     );
@@ -150,7 +180,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = signIn;
   
   // Sign up handler
-  const signUp = async (email: string, password: string, role: UserRole, additionalData: any = {}): Promise<void> => {
+  const signUp = async (email: string, password: string, role: UserRole, additionalData: any = {}): Promise<any> => {
     try {
       console.log("Attempting to sign up:", email);
       const { data, error } = await supabase.auth.signUp({
@@ -161,30 +191,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             role: role,
             name: additionalData.fullName || additionalData.name,
             phone: additionalData.phoneNumber || additionalData.phone,
+            onboardingCompleted: false,
             ...additionalData
           },
+          emailRedirectTo: `${window.location.origin}/verify-email-success`,
         }
       });
       
       if (error) {
         showToast.error(error.message);
         console.error("Sign up error:", error);
-        throw error;
+        return { error };
       }
       
       if (data.user) {
         showToast.success('Signed up successfully. Please check your email for verification.');
         console.log("Sign up successful");
       }
+      
+      return { data };
     } catch (error: any) {
       console.error('Sign up error:', error);
-      throw error;
+      return { error };
     }
   };
   
   // Alias for signUp
   const register = async (email: string, password: string, additionalData: any = {}): Promise<void> => {
-    return signUp(email, password, additionalData.role || 'tech', additionalData);
+    await signUp(email, password, additionalData.role || 'tech', additionalData);
   };
   
   // Sign out handler
@@ -254,6 +288,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
   
+  // Email verification handler
+  const verifyEmail = async (token: string): Promise<boolean> => {
+    try {
+      console.log("Verifying email with token");
+      // This is handled by Supabase automatically via redirect URL
+      return true;
+    } catch (error: any) {
+      console.error('Email verification error:', error);
+      showToast.error(error.message || 'Failed to verify email');
+      return false;
+    }
+  };
+  
+  // Resend verification email handler
+  const resendVerificationEmail = async (email: string): Promise<boolean> => {
+    try {
+      console.log("Resending verification email to:", email);
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/verify-email-success`,
+        }
+      });
+      
+      if (error) {
+        showToast.error(error.message);
+        console.error("Resend verification email error:", error);
+        return false;
+      }
+      
+      showToast.success('Verification email has been resent');
+      console.log("Verification email resent successfully");
+      return true;
+    } catch (error: any) {
+      console.error('Resend verification email error:', error);
+      showToast.error(error.message || 'Failed to resend verification email');
+      return false;
+    }
+  };
+  
   // Update user handler
   const updateUser = async (data: Partial<User>): Promise<boolean> => {
     try {
@@ -293,7 +368,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOut,
     resetPassword,
     forgotPassword,
-    updateUser
+    updateUser,
+    verifyEmail,
+    resendVerificationEmail
   };
   
   console.log("AuthProvider rendering children");

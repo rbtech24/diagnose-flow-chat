@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -14,34 +15,60 @@ import {
   FormLabel, 
   FormMessage 
 } from '@/components/ui/form';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, Check, Building, Wrench, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertTriangle, Check, Building, Wrench, ArrowRight, ArrowLeft, Info } from 'lucide-react';
 import { showToast } from '@/utils/toast-helpers';
 
+// Enhanced form schema with stronger validation
 const FormSchema = z.object({
-  fullName: z.string().min(2, {
-    message: "Full name must be at least 2 characters."
-  }),
-  email: z.string().email({
-    message: "Please enter a valid email address."
-  }),
-  phoneNumber: z.string().min(10, {
-    message: "Phone number must be at least 10 digits."
-  }).optional(),
-  password: z.string().min(8, {
-    message: "Password must be at least 8 characters"
-  }),
+  fullName: z.string()
+    .min(2, "Full name must be at least 2 characters")
+    .max(100, "Full name is too long")
+    .regex(/^[a-zA-Z\s'-]+$/, "Name should only contain letters, spaces, hyphens, and apostrophes"),
+  
+  email: z.string()
+    .email("Please enter a valid email address")
+    .toLowerCase()
+    .refine(email => email.indexOf('@') > 0, "Please enter a valid email address"),
+  
+  phoneNumber: z.string()
+    .min(10, "Phone number must be at least 10 digits")
+    .max(20, "Phone number is too long")
+    .regex(/^[+]?[0-9\s()-]+$/, "Please enter a valid phone number")
+    .optional(),
+  
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number"),
+  
   confirmPassword: z.string(),
+  
   role: z.enum(['company', 'tech'])
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"]
 });
 
+// Error messages mapped to user-friendly descriptions
+const errorMessageMap: Record<string, string> = {
+  "Email already in use": "This email is already registered. Please use a different email or try logging in.",
+  "Invalid email": "The email address format is incorrect. Please check and try again.",
+  "weak-password": "The password you provided is too weak. Please make it stronger.",
+  "Password too short": "Your password needs to be at least 8 characters long.",
+  "Missing email": "Please provide an email address to continue.",
+  "Missing password": "Please provide a password to continue.",
+  "network-request-failed": "Network connection issue. Please check your internet connection and try again.",
+  "too-many-requests": "Too many attempts. Please try again later.",
+  "internal-error": "Something went wrong on our end. Please try again later.",
+};
+
 export default function SignUp() {
-  const { register } = useAuth();
+  const { register, signUp } = useAuth();
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -92,24 +119,45 @@ export default function SignUp() {
     console.log(`Role updated to: ${newRole}`);
   };
 
+  const getErrorMessage = (errorMsg: string): string => {
+    // Check if we have a custom message for this error
+    for (const [key, value] of Object.entries(errorMessageMap)) {
+      if (errorMsg.toLowerCase().includes(key.toLowerCase())) {
+        return value;
+      }
+    }
+    // Return the original message if no match found
+    return errorMsg;
+  };
+
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     setIsLoading(true);
     setError('');
     
     try {
       console.log("Submitting form with data:", { ...data, password: "********" });
-      await register(data.email, data.password, {
-        role: data.role,
+      
+      // Improved error handling during signup
+      const result = await signUp(data.email, data.password, data.role, {
         fullName: data.fullName,
         phoneNumber: data.phoneNumber
       });
       
-      navigate('/verify-email', { 
-        state: { email: data.email }
-      });
+      // If using the mock implementation that doesn't throw errors
+      if (result && !result.error) {
+        showToast.success('Account created successfully! Please verify your email.');
+        navigate('/verify-email', { 
+          state: { email: data.email }
+        });
+      } else if (result && result.error) {
+        // Handle specific error from the mock or real implementation
+        throw new Error(result.error.message || "An error occurred during sign up");
+      }
     } catch (err: any) {
       console.error('Sign up error:', err);
-      setError(err.message || 'An error occurred during sign up.');
+      const friendlyErrorMessage = getErrorMessage(err.message || 'An error occurred during sign up.');
+      setError(friendlyErrorMessage);
+      showToast.error(friendlyErrorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -203,6 +251,7 @@ export default function SignUp() {
           {error && (
             <Alert variant="destructive" className="mb-6">
               <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Registration Error</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
@@ -304,6 +353,7 @@ export default function SignUp() {
                         type="password" 
                         placeholder="••••••••" 
                         {...field}
+                        onFocus={() => setShowPasswordRequirements(true)}
                         disabled={isLoading}
                       />
                     </FormControl>
@@ -311,6 +361,33 @@ export default function SignUp() {
                   </FormItem>
                 )}
               />
+              
+              {showPasswordRequirements && (
+                <div className="bg-blue-50 p-3 rounded-md">
+                  <h4 className="text-sm font-medium flex items-center mb-2">
+                    <Info className="h-4 w-4 mr-1 text-blue-600" />
+                    Password Requirements
+                  </h4>
+                  <ul className="text-xs space-y-1 text-gray-600">
+                    <li className="flex items-start">
+                      <Check className="h-3 w-3 text-green-600 mt-0.5 mr-1" />
+                      <span>At least 8 characters</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-3 w-3 text-green-600 mt-0.5 mr-1" />
+                      <span>At least one uppercase letter (A-Z)</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-3 w-3 text-green-600 mt-0.5 mr-1" />
+                      <span>At least one lowercase letter (a-z)</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-3 w-3 text-green-600 mt-0.5 mr-1" />
+                      <span>At least one number (0-9)</span>
+                    </li>
+                  </ul>
+                </div>
+              )}
               
               <FormField
                 control={form.control}
@@ -344,11 +421,11 @@ export default function SignUp() {
               
               <p className="text-xs text-gray-500 text-center">
                 By signing up, you agree to our{' '}
-                <Link to="/terms-of-use" className="text-blue-600 hover:underline">
+                <Link to="/terms" className="text-blue-600 hover:underline">
                   Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link to="/privacy-policy" className="text-blue-600 hover:underline">
+                <Link to="/privacy" className="text-blue-600 hover:underline">
                   Privacy Policy
                 </Link>.
               </p>
@@ -379,6 +456,7 @@ export default function SignUp() {
           {error && (
             <Alert variant="destructive" className="mb-6">
               <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Registration Error</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
@@ -480,6 +558,7 @@ export default function SignUp() {
                         type="password" 
                         placeholder="••••••••" 
                         {...field}
+                        onFocus={() => setShowPasswordRequirements(true)}
                         disabled={isLoading}
                       />
                     </FormControl>
@@ -487,6 +566,33 @@ export default function SignUp() {
                   </FormItem>
                 )}
               />
+              
+              {showPasswordRequirements && (
+                <div className="bg-blue-50 p-3 rounded-md">
+                  <h4 className="text-sm font-medium flex items-center mb-2">
+                    <Info className="h-4 w-4 mr-1 text-blue-600" />
+                    Password Requirements
+                  </h4>
+                  <ul className="text-xs space-y-1 text-gray-600">
+                    <li className="flex items-start">
+                      <Check className="h-3 w-3 text-green-600 mt-0.5 mr-1" />
+                      <span>At least 8 characters</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-3 w-3 text-green-600 mt-0.5 mr-1" />
+                      <span>At least one uppercase letter (A-Z)</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-3 w-3 text-green-600 mt-0.5 mr-1" />
+                      <span>At least one lowercase letter (a-z)</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-3 w-3 text-green-600 mt-0.5 mr-1" />
+                      <span>At least one number (0-9)</span>
+                    </li>
+                  </ul>
+                </div>
+              )}
               
               <FormField
                 control={form.control}
@@ -546,11 +652,11 @@ export default function SignUp() {
               
               <p className="text-xs text-gray-500 text-center mt-4">
                 By signing up, you agree to our{' '}
-                <Link to="/terms-of-use" className="text-blue-600 hover:underline">
+                <Link to="/terms" className="text-blue-600 hover:underline">
                   Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link to="/privacy-policy" className="text-blue-600 hover:underline">
+                <Link to="/privacy" className="text-blue-600 hover:underline">
                   Privacy Policy
                 </Link>.
               </p>

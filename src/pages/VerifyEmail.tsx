@@ -1,12 +1,39 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { Mail, ArrowLeft } from 'lucide-react';
+import { Mail, ArrowLeft, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/AuthContext';
+import { showToast } from '@/utils/toast-helpers';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function VerifyEmail() {
   const location = useLocation();
-  const email = location.state?.email || 'your email';
+  const email = location.state?.email || '';
+  const { resendVerificationEmail } = useAuth();
+  const [isResending, setIsResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  
+  const handleResendVerification = async () => {
+    if (!email) {
+      showToast.error("Email address not found. Please try signing up again.");
+      return;
+    }
+    
+    setIsResending(true);
+    try {
+      const success = await resendVerificationEmail(email);
+      if (success) {
+        setResendSuccess(true);
+        showToast.success("Verification email has been resent");
+      }
+    } catch (error) {
+      console.error("Error resending verification email:", error);
+      showToast.error("Failed to resend verification email");
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-blue-50 px-4 py-12">
@@ -36,12 +63,41 @@ export default function VerifyEmail() {
             Please check your email and click the link to verify your account.
           </p>
           
+          {resendSuccess && (
+            <Alert className="mb-6 bg-green-50 border-green-200">
+              <AlertDescription className="text-green-700">
+                We've sent you a new verification link. Please check your inbox.
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <div className="space-y-4">
-            <p className="text-sm text-gray-500 text-center">
-              Didn't receive an email? Check your spam folder or try again in a few minutes.
-            </p>
+            <div className="flex flex-col items-center gap-6">
+              <Button 
+                variant="outline" 
+                onClick={handleResendVerification}
+                disabled={isResending}
+                className="flex items-center gap-2"
+              >
+                {isResending ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4" />
+                    Resend verification email
+                  </>
+                )}
+              </Button>
+              
+              <p className="text-sm text-gray-500 text-center">
+                Didn't receive an email? Check your spam folder or try resending the verification link.
+              </p>
+            </div>
             
-            <div className="flex justify-center">
+            <div className="flex justify-center mt-6">
               <Link to="/login" className="flex items-center text-blue-600 hover:text-blue-800">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to sign in
