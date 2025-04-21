@@ -11,13 +11,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true
-  },
-  global: {
-    headers: {
-      'x-application-name': 'repair-auto-pilot',
-      'apikey': supabaseAnonKey,  // Add the API key explicitly to the headers
-      'Authorization': `Bearer ${supabaseAnonKey}` // Add explicit Bearer authorization
-    }
   }
 });
 
@@ -28,3 +21,31 @@ console.log("Supabase auth configuration:", {
   autoRefreshToken: true,
   detectSessionInUrl: true
 });
+
+// Export a function to handle sign-in for better error tracking
+export const signInWithEmail = async (email: string, password: string) => {
+  console.log(`Attempting to sign in with email: ${email}`);
+  
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+    
+    if (error) {
+      console.error("Sign in error details:", error);
+      return { data, error };
+    }
+    
+    console.log("Sign in successful, user data:", data.user);
+    return { data, error: null };
+  } catch (e) {
+    console.error("Unexpected error during sign in:", e);
+    return { 
+      data: null, 
+      error: { 
+        message: "An unexpected error occurred during sign in. Please try again." 
+      } 
+    };
+  }
+};

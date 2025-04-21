@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Wrench, Building, LayoutDashboard } from "lucide-react";
 import { toast } from 'react-hot-toast';
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, signInWithEmail } from "@/integrations/supabase/client";
 
 export default function Login() {
   const [email, setEmail] = React.useState("");
@@ -89,21 +89,19 @@ export default function Login() {
       
       console.log("Attempting sign in with email:", emailToUse);
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: emailToUse,
-        password
-      });
+      // Use our enhanced sign-in function
+      const { data, error } = await signInWithEmail(emailToUse, password);
       
       if (error) {
         console.error("Sign in error:", error);
         
         // More detailed error handling
-        if (error.message.includes("Invalid login credentials")) {
+        if (error.message?.includes("Invalid login credentials")) {
           toast.error("Invalid email or password. Please check and try again.");
-        } else if (error.message.includes("No API key found in request")) {
-          toast.error("Authentication configuration error. Please contact support.");
-          console.error("Supabase API key configuration issue");
-        } else if (error.message.includes("Network error")) {
+        } else if (error.message?.includes("No API key found")) {
+          toast.error("Authentication configuration error. Please try again later.");
+          console.error("Supabase API key configuration issue - please check client setup");
+        } else if (error.message?.includes("Network error")) {
           toast.error("Network error. Please check your connection.");
         } else {
           toast.error(error.message || "Failed to sign in");
@@ -111,7 +109,7 @@ export default function Login() {
         return;
       }
       
-      if (data.user) {
+      if (data?.user) {
         toast.success('Signed in successfully');
         console.log("Login successful, user:", data.user);
         
