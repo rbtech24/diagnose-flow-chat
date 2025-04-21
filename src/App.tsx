@@ -14,6 +14,7 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const WorkflowEditor = lazy(() => import("./pages/WorkflowEditor"));
+const Profile = lazy(() => import("./pages/Profile"));
 
 // Direct imports for layout components
 import { AdminLayout } from "./components/admin/AdminLayout";
@@ -132,6 +133,11 @@ function App() {
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
 
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
               <Route path="/admin" element={<AdminLayout />}>
@@ -158,11 +164,7 @@ function App() {
                 <Route path="system-messages" element={<AdminSystemMessages />} />
                 <Route path="api-integrations" element={<AdminAPIIntegrations />} />
                 <Route path="api-keys" element={<AdminAPIKeys />} />
-                <Route path="profile" element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                } />
+                <Route path="profile" element={<Profile />} />
               </Route>
             </Route>
 
