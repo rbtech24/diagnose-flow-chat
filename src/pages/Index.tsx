@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Check, Clock, Settings, Activity, Users, Shield } from "lucide-react";
@@ -7,15 +7,6 @@ import HomeHeader from "@/components/layout/HomeHeader";
 import HomeFooter from "@/components/layout/HomeFooter";
 
 export default function Index() {
-  // Add debug logging when component mounts
-  useEffect(() => {
-    console.log("Index component mounted");
-    
-    // Log trusted companies section
-    const trustedSection = document.querySelector('.py-12.border-t.border-b.border-gray-100');
-    console.log("Trusted section found:", !!trustedSection);
-  }, []);
-
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <HomeHeader />
@@ -45,7 +36,7 @@ export default function Index() {
             <div className="flex flex-wrap items-center gap-4 pt-2">
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Check className="h-5 w-5 text-green-500" />
-                <span>30-day trial</span>
+                <span>30=day trial</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Check className="h-5 w-5 text-green-500" />
@@ -80,7 +71,6 @@ export default function Index() {
         <div className="max-w-7xl mx-auto px-4">
           <p className="text-center text-gray-500 mb-8">Trusted by leading appliance service companies</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center">
-            {/* Fixed the ReactNode error by using proper JSX elements instead of function calls */}
             <img src="/lovable-uploads/1961838b-05c5-44e0-a2c1-92dae3c80e1a.png" alt="Service company" className="h-12 object-contain" />
             <img src="/lovable-uploads/0ab0b549-2aff-4f8c-84d7-416bfc37ba6e.png" alt="Service company" className="h-14 object-contain" />
             <img src="/lovable-uploads/5e0204c2-ef16-48b1-8781-6e770f07a3ba.png" alt="Service company" className="h-12 object-contain" />
