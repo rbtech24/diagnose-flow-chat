@@ -69,12 +69,19 @@ export default function Index() {
       {/* Trusted By Section */}
       <section className="py-12 border-t border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4">
-          <p className="text-center text-gray-500 mb-8">Trusted by leading appliance service companies</p>
+          <p className="text-center text-gray-500 mb-8">
+            Trusted by leading appliance service companies
+          </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center">
             <img src="/lovable-uploads/1961838b-05c5-44e0-a2c1-92dae3c80e1a.png" alt="Service company" className="h-12 object-contain" />
             <img src="/lovable-uploads/0ab0b549-2aff-4f8c-84d7-416bfc37ba6e.png" alt="Service company" className="h-14 object-contain" />
             <img src="/lovable-uploads/5e0204c2-ef16-48b1-8781-6e770f07a3ba.png" alt="Service company" className="h-12 object-contain" />
             <img src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" alt="Service company" className="h-16 object-contain" />
+
+            <img src="/lovable-uploads/4186b2a5-a05b-4181-bb97-9f5528f850ee.png" alt="Flat Rate Appliance Repair" className="h-16 object-contain" />
+            <img src="/lovable-uploads/556af458-1399-446b-b561-5af854db062c.png" alt="Rod's Appliance Repair" className="h-10 object-contain" />
+            <img src="/lovable-uploads/d96c1b7f-311e-4a12-a157-2eb257948eb0.png" alt="West Metro Appliance" className="h-12 object-contain" />
+            <img src="/lovable-uploads/d33e4b7b-e6af-45d3-9cdd-bd67e6717d6b.png" alt="Einstein Appliance Repair" className="h-10 object-contain" />
           </div>
         </div>
       </section>
