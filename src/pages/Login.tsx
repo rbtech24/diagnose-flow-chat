@@ -14,6 +14,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("tech"); // Default role: tech
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [connectionError, setConnectionError] = useState(false);
   const { login, isAuthenticated, userRole } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -36,7 +37,20 @@ export default function Login() {
       "state:", location.state,
       "query params:", Object.fromEntries(searchParams.entries()),
       "selected role:", role);
-  }, [location, searchParams, from]);
+      
+    // Check if Supabase is connected
+    const checkConnection = async () => {
+      try {
+        await supabase.auth.getSession();
+        setConnectionError(false);
+      } catch (error) {
+        console.error("Supabase connection error:", error);
+        setConnectionError(true);
+      }
+    };
+    
+    checkConnection();
+  }, [location, searchParams, from, role]);
 
   const updateRoleAndUrl = (newRole: string) => {
     setRole(newRole);
@@ -62,6 +76,8 @@ export default function Login() {
           : `${email}-${role}@example.com`;
       }
       
+      console.log("Attempting sign in with email:", emailToUse);
+      
       // Direct Supabase auth login instead of using context
       const { data, error } = await supabase.auth.signInWithPassword({
         email: emailToUse,
@@ -72,6 +88,7 @@ export default function Login() {
         console.error("Sign in error:", error);
         if (error.message.includes("Network error")) {
           toast.error("Network error. Please check your connection and try again.");
+          setConnectionError(true);
         } else {
           toast.error(error.message || "Failed to sign in");
         }
@@ -80,7 +97,7 @@ export default function Login() {
       
       if (data.user) {
         toast.success('Signed in successfully');
-        console.log("Login successful, will redirect to:", from);
+        console.log("Login successful, user:", data.user);
         
         // Update user role from Supabase metadata
         const userRole = data.user.user_metadata?.role || null;
@@ -138,6 +155,13 @@ export default function Login() {
         <p className="text-center text-gray-600 mb-6">
           Start with a 30-day free trial, no credit card required
         </p>
+        
+        {connectionError && (
+          <div className="bg-red-50 text-red-700 p-3 rounded border border-red-200 mb-4">
+            <p className="text-sm font-medium">Connection to authentication server failed</p>
+            <p className="text-xs mt-1">Please check your internet connection and try again. If the problem persists, please contact support.</p>
+          </div>
+        )}
         
         <div className="mb-6">
           <div className="text-sm font-medium mb-2">Select your role</div>
