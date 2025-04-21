@@ -40,6 +40,13 @@ export const addCacheControlMetaTags = () => {
  * Generate a cache-busting URL by appending a timestamp
  */
 export const cacheBustUrl = (url: string) => {
+  if (!url) return url;
+  
+  // Skip cache busting for external URLs
+  if (url.startsWith('http') && !url.includes(window.location.hostname)) {
+    return url;
+  }
+  
   const separator = url.includes('?') ? '&' : '?';
   return `${url}${separator}t=${Date.now()}`;
 };
@@ -118,4 +125,48 @@ export const updateResourcesWithCacheBusting = (resourceUrls: string[]) => {
       img.setAttribute('src', cacheBustUrl(src));
     }
   });
+};
+
+/**
+ * Preload critical assets to ensure they're cached
+ * @param assetUrls Array of asset URLs to preload
+ */
+export const preloadCriticalAssets = (assetUrls: string[]) => {
+  assetUrls.forEach(url => {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    
+    // Determine the correct as attribute based on file extension
+    if (url.endsWith('.js')) {
+      link.as = 'script';
+    } else if (url.endsWith('.css')) {
+      link.as = 'style';
+    } else if (/\.(png|jpg|jpeg|gif|webp|svg)$/.test(url)) {
+      link.as = 'image';
+    }
+    
+    link.href = cacheBustUrl(url);
+    document.head.appendChild(link);
+  });
+};
+
+/**
+ * Test image loading and log results
+ * @param imagePaths Array of image paths to test
+ */
+export const testImageLoading = (imagePaths: string[]) => {
+  return Promise.all(imagePaths.map((path, index) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        console.log(`Image ${index + 1} loaded successfully:`, path);
+        resolve(true);
+      };
+      img.onerror = (error) => {
+        console.error(`Image ${index + 1} failed to load:`, path, error);
+        reject(error);
+      };
+      img.src = cacheBustUrl(path);
+    });
+  }));
 };
