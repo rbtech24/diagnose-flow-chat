@@ -7,12 +7,12 @@ export default function HomeHeader() {
   return (
     <header className="w-full bg-white py-4 border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
-        <Link to="/" className="flex items-center">
+        <Link to="/" className="flex items-center" aria-label="Home">
           <img 
             src="/lovable-uploads/28cef98f-7973-4892-9eb5-f0e02978d22e.png"
-            alt="Repair Auto Pilot" 
-            className="h-20 object-contain"
-            style={{ maxWidth: 320 }}
+            alt="Repair Auto Pilot logo" 
+            className="h-16 w-auto object-contain"
+            style={{ maxWidth: 200 }}
           />
         </Link>
         

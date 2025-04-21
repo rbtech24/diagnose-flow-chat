@@ -15,8 +15,9 @@ export default function VerifyEmail() {
           <div className="flex justify-center mb-6">
             <img 
               src="/lovable-uploads/28cef98f-7973-4892-9eb5-f0e02978d22e.png" 
-              alt="Repair Autopilot" 
-              className="h-16 w-auto" 
+              alt="Repair Auto Pilot logo" 
+              className="h-14 w-auto object-contain"
+              style={{ maxWidth: 160 }}
             />
           </div>
           

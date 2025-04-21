@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Twitter, Linkedin, Facebook } from "lucide-react";
@@ -8,12 +9,12 @@ export default function HomeFooter() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           <div className="col-span-1">
-            <Link to="/" className="flex flex-col items-start">
+            <Link to="/" className="flex flex-col items-start" aria-label="Home">
               <img 
-                src="/lovable-uploads/5ff437db-c192-43bd-b173-2a38ddb4b6ab.png"
-                alt="Repair Auto Pilot" 
-                className="h-24 mb-3 object-contain"
-                style={{ maxWidth: 380 }}
+                src="/lovable-uploads/28cef98f-7973-4892-9eb5-f0e02978d22e.png"
+                alt="Repair Auto Pilot logo" 
+                className="h-16 mb-3 object-contain"
+                style={{ maxWidth: 200 }}
               />
               <p className="text-gray-600 text-sm">
                 The ultimate appliance repair diagnostic solution for modern service businesses.

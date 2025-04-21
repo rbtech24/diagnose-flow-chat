@@ -1,13 +1,7 @@
 
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, ChevronLeft } from "lucide-react";
-import { toast } from "react-hot-toast";
+import { ChevronLeft } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PasswordResetForm } from "@/components/auth/PasswordResetForm";
 
 export default function ForgotPassword() {
@@ -23,9 +17,9 @@ export default function ForgotPassword() {
           <div className="flex justify-center mb-4">
             <img 
               src="/lovable-uploads/28cef98f-7973-4892-9eb5-f0e02978d22e.png" 
-              alt="Repair Auto Pilot" 
-              className="h-20 w-auto object-contain" 
-              style={{ maxWidth: 240 }}
+              alt="Repair Auto Pilot logo" 
+              className="h-14 w-auto object-contain" 
+              style={{ maxWidth: 160 }}
             />
           </div>
           
