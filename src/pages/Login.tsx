@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -6,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Wrench, Building, LayoutDashboard } from "lucide-react";
 import { toast } from 'react-hot-toast';
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -60,13 +62,46 @@ export default function Login() {
           : `${email}-${role}@example.com`;
       }
       
-      const success = await login(emailToUse, password);
+      // Direct Supabase auth login instead of using context
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: emailToUse,
+        password
+      });
       
-      if (success) {
-        console.log("Login successful, will redirect to:", from);
+      if (error) {
+        console.error("Sign in error:", error);
+        if (error.message.includes("Network error")) {
+          toast.error("Network error. Please check your connection and try again.");
+        } else {
+          toast.error(error.message || "Failed to sign in");
+        }
+        return false;
       }
+      
+      if (data.user) {
+        toast.success('Signed in successfully');
+        console.log("Login successful, will redirect to:", from);
+        
+        // Update user role from Supabase metadata
+        const userRole = data.user.user_metadata?.role || null;
+        
+        // Navigate to the appropriate dashboard based on user role
+        if (from && from !== "/") {
+          navigate(from, { replace: true });
+        } else if (userRole) {
+          navigate(`/${userRole}`, { replace: true });
+        } else {
+          navigate("/", { replace: true });
+        }
+        
+        return true;
+      }
+      
+      return false;
     } catch (error: any) {
-      console.error("Login error:", error);
+      console.error('Login error:', error);
+      toast.error("Login failed. Please try again.");
+      return false;
     } finally {
       setIsLoggingIn(false);
     }
