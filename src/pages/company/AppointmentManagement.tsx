@@ -9,7 +9,40 @@ import { PlusCircle, Calendar, Tag, AlertTriangle, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
+// Define the mock technicians data that was missing
+interface Technician {
+  id: string;
+  name: string;
+  specialization: string;
+  status: 'available' | 'busy' | 'on-leave';
+}
 
+const mockTechnicians: Technician[] = [
+  {
+    id: "1",
+    name: "John Smith",
+    specialization: "Refrigeration",
+    status: 'available'
+  },
+  {
+    id: "2",
+    name: "Maria Garcia",
+    specialization: "Washing Machines",
+    status: 'available'
+  },
+  {
+    id: "3",
+    name: "David Johnson",
+    specialization: "HVAC",
+    status: 'busy'
+  },
+  {
+    id: "4",
+    name: "Sarah Williams",
+    specialization: "Kitchen Appliances",
+    status: 'on-leave'
+  }
+];
 
 interface Appointment {
   id: string;
