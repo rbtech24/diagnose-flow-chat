@@ -58,9 +58,10 @@ export default function Index() {
               <div className="text-white text-sm">Appliance Repair</div>
             </div>
             <img 
-              src="/lovable-uploads/c71206b9-55ab-4588-bbe9-2dcf1db816be.png" 
-              alt="Appliance repair diagnostic" 
-              className="w-full h-auto rounded-b-md"
+              src="/lovable-uploads/02e87b5f-b32c-4ab8-b1fe-f4cdd519689f.png"
+              alt="Technician diagnosing appliance circuit"
+              className="w-full h-auto rounded-b-md object-cover"
+              style={{maxHeight: 350, minHeight: 180}}
             />
           </div>
         </div>
@@ -237,3 +238,4 @@ export default function Index() {
     </div>
   );
 }
+
