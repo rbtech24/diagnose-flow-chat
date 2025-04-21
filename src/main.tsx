@@ -8,8 +8,9 @@ import { Toaster } from 'react-hot-toast';
 import { addCacheControlMetaTags, registerCacheEventListeners } from './utils/cacheControl';
 import { BrowserRouter } from 'react-router-dom';
 
-// For debugging purposes
+// For debugging purposes and to make React globally available
 console.log("Main.tsx is rendering, React version:", React.version);
+window.React = React; // Make React available globally for debugging
 
 // Apply cache control meta tags on startup
 addCacheControlMetaTags();
@@ -27,9 +28,6 @@ if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       console.error('Service Worker registration failed:', error);
     });
 }
-
-// We need to make sure React is properly initialized before rendering
-window.React = React; // Make React available globally for debugging
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>

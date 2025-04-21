@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -10,11 +9,11 @@ import { toast } from 'react-hot-toast';
 import { supabase } from "@/integrations/supabase/client";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState("tech"); // Default role: tech
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [connectionError, setConnectionError] = useState(false);
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [role, setRole] = React.useState("tech"); // Default role: tech
+  const [isLoggingIn, setIsLoggingIn] = React.useState(false);
+  const [connectionError, setConnectionError] = React.useState(false);
   const { login, isAuthenticated, userRole } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -22,7 +21,7 @@ export default function Login() {
 
   const from = location.state?.from || "/";
   
-  useEffect(() => {
+  React.useEffect(() => {
     if (location.state?.role && ['admin', 'company', 'tech'].includes(location.state.role)) {
       setRole(location.state.role);
     } 
