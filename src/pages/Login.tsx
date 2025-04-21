@@ -41,11 +41,21 @@ export default function Login() {
     // Check if Supabase is connected
     const checkConnection = async () => {
       try {
-        await supabase.auth.getSession();
-        setConnectionError(false);
+        console.log("Checking Supabase connection...");
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Supabase connection error:", error);
+          setConnectionError(true);
+          toast.error("Connection to authentication service failed. Please try again later.");
+        } else {
+          console.log("Supabase connection successful, session data:", data);
+          setConnectionError(false);
+        }
       } catch (error) {
-        console.error("Supabase connection error:", error);
+        console.error("Supabase connection check failed:", error);
         setConnectionError(true);
+        toast.error("Connection to authentication service failed. Please check your internet connection.");
       }
     };
     
@@ -86,9 +96,12 @@ export default function Login() {
       
       if (error) {
         console.error("Sign in error:", error);
-        if (error.message.includes("Network error")) {
+        if (error.message.includes("Network error") || error.message.includes("Failed to fetch")) {
           toast.error("Network error. Please check your connection and try again.");
           setConnectionError(true);
+        } else if (error.message.includes("No API key")) {
+          toast.error("Authentication configuration error. Please contact support.");
+          console.error("Supabase API key error. Check your environment variables or Supabase client initialization.");
         } else {
           toast.error(error.message || "Failed to sign in");
         }
