@@ -63,7 +63,9 @@ export default function SignUp() {
   }, []);
 
   useEffect(() => {
-    form.setValue('role', currentRole);
+    if (form) {
+      form.setValue('role', currentRole);
+    }
   }, [currentRole]);
 
   const form = useForm<z.infer<typeof FormSchema>>({
