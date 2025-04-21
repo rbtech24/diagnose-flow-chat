@@ -1,12 +1,33 @@
 
 import React, { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { cacheBustUrl } from "@/utils/cacheControl";
 
 export default function HomeFooter() {
   // Debug log for component mounting
   useEffect(() => {
     console.log("HomeFooter component mounted");
   }, []);
+
+  // Check if we're within a Router context by attempting to use useNavigate
+  // If it fails, we'll use regular <a> tags instead of <Link>
+  let isRouterAvailable = true;
+  try {
+    // This will throw an error if not in a router context
+    useNavigate();
+  } catch (e) {
+    console.log("Router context not available in HomeFooter, falling back to <a> tags");
+    isRouterAvailable = false;
+  }
+
+  // Create a LinkOrAnchor component that conditionally renders Link or a based on router availability
+  const LinkOrAnchor = ({ to, className, children }) => {
+    return isRouterAvailable ? (
+      <Link to={to} className={className}>{children}</Link>
+    ) : (
+      <a href={to} className={className}>{children}</a>
+    );
+  };
 
   return (
     <footer className="bg-gray-50 border-t border-gray-100 py-12">
@@ -15,36 +36,36 @@ export default function HomeFooter() {
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">Product</h3>
             <ul className="space-y-2">
-              <li><Link to="/" className="text-gray-600 hover:text-blue-600 transition">Home</Link></li>
-              <li><Link to="/features" className="text-gray-600 hover:text-blue-600 transition">Features</Link></li>
-              <li><Link to="/pricing" className="text-gray-600 hover:text-blue-600 transition">Pricing</Link></li>
+              <li><LinkOrAnchor to="/" className="text-gray-600 hover:text-blue-600 transition">Home</LinkOrAnchor></li>
+              <li><LinkOrAnchor to="/features" className="text-gray-600 hover:text-blue-600 transition">Features</LinkOrAnchor></li>
+              <li><LinkOrAnchor to="/pricing" className="text-gray-600 hover:text-blue-600 transition">Pricing</LinkOrAnchor></li>
             </ul>
           </div>
           
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">Company</h3>
             <ul className="space-y-2">
-              <li><Link to="/about" className="text-gray-600 hover:text-blue-600 transition">About</Link></li>
-              <li><Link to="/careers" className="text-gray-600 hover:text-blue-600 transition">Careers</Link></li>
-              <li><Link to="/contact" className="text-gray-600 hover:text-blue-600 transition">Contact</Link></li>
+              <li><LinkOrAnchor to="/about" className="text-gray-600 hover:text-blue-600 transition">About</LinkOrAnchor></li>
+              <li><LinkOrAnchor to="/careers" className="text-gray-600 hover:text-blue-600 transition">Careers</LinkOrAnchor></li>
+              <li><LinkOrAnchor to="/contact" className="text-gray-600 hover:text-blue-600 transition">Contact</LinkOrAnchor></li>
             </ul>
           </div>
           
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">Resources</h3>
             <ul className="space-y-2">
-              <li><Link to="/help" className="text-gray-600 hover:text-blue-600 transition">Help Center</Link></li>
-              <li><Link to="/community" className="text-gray-600 hover:text-blue-600 transition">Community</Link></li>
-              <li><Link to="/partners" className="text-gray-600 hover:text-blue-600 transition">Partners</Link></li>
+              <li><LinkOrAnchor to="/help" className="text-gray-600 hover:text-blue-600 transition">Help Center</LinkOrAnchor></li>
+              <li><LinkOrAnchor to="/community" className="text-gray-600 hover:text-blue-600 transition">Community</LinkOrAnchor></li>
+              <li><LinkOrAnchor to="/partners" className="text-gray-600 hover:text-blue-600 transition">Partners</LinkOrAnchor></li>
             </ul>
           </div>
           
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">Legal</h3>
             <ul className="space-y-2">
-              <li><Link to="/privacy" className="text-gray-600 hover:text-blue-600 transition">Privacy Policy</Link></li>
-              <li><Link to="/terms" className="text-gray-600 hover:text-blue-600 transition">Terms of Service</Link></li>
-              <li><Link to="/security" className="text-gray-600 hover:text-blue-600 transition">Security</Link></li>
+              <li><LinkOrAnchor to="/privacy" className="text-gray-600 hover:text-blue-600 transition">Privacy Policy</LinkOrAnchor></li>
+              <li><LinkOrAnchor to="/terms" className="text-gray-600 hover:text-blue-600 transition">Terms of Service</LinkOrAnchor></li>
+              <li><LinkOrAnchor to="/security" className="text-gray-600 hover:text-blue-600 transition">Security</LinkOrAnchor></li>
             </ul>
           </div>
         </div>
