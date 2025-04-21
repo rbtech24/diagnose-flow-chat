@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -90,7 +89,6 @@ export default function Login() {
       
       console.log("Attempting sign in with email:", emailToUse);
       
-      // Direct Supabase auth login for better error handling
       const { data, error } = await supabase.auth.signInWithPassword({
         email: emailToUse,
         password
@@ -98,12 +96,15 @@ export default function Login() {
       
       if (error) {
         console.error("Sign in error:", error);
-        if (error.message.includes("Network error") || error.message.includes("Failed to fetch")) {
-          toast.error("Network error. Please check your connection and try again.");
-          setConnectionError(true);
-        } else if (error.message.includes("No API key")) {
+        
+        // More detailed error handling
+        if (error.message.includes("Invalid login credentials")) {
+          toast.error("Invalid email or password. Please check and try again.");
+        } else if (error.message.includes("No API key found in request")) {
           toast.error("Authentication configuration error. Please contact support.");
-          console.error("Supabase API key error. Check your environment variables or Supabase client initialization.");
+          console.error("Supabase API key configuration issue");
+        } else if (error.message.includes("Network error")) {
+          toast.error("Network error. Please check your connection.");
         } else {
           toast.error(error.message || "Failed to sign in");
         }
@@ -114,10 +115,9 @@ export default function Login() {
         toast.success('Signed in successfully');
         console.log("Login successful, user:", data.user);
         
-        // Update user role from Supabase metadata
+        // Navigate based on user role
         const userRole = data.user.user_metadata?.role || null;
         
-        // Navigate to the appropriate dashboard based on user role
         if (from && from !== "/") {
           navigate(from, { replace: true });
         } else if (userRole) {
