@@ -1,17 +1,17 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Check, Clock, Settings, Activity, Users, Shield } from "lucide-react";
 import HomeHeader from "@/components/layout/HomeHeader";
 import HomeFooter from "@/components/layout/HomeFooter";
-import { cacheBustUrl, addCacheControlMetaTags, clearAllCaches } from "@/utils/cacheControl";
+import { cacheBustUrl } from "@/utils/cacheControl";
 
 export default function Index() {
-  useEffect(() => {
+  React.useEffect(() => {
     console.log("Index component mounted - Version: " + Date.now());
     
     // Apply cache control meta tags
-    addCacheControlMetaTags();
+    // addCacheControlMetaTags();
     
     // Debug image paths
     const imagePaths = [
@@ -32,19 +32,19 @@ export default function Index() {
     });
     
     // Attempt to clear caches on first load
-    const attemptCacheClear = async () => {
-      try {
-        await clearAllCaches();
-        console.log("Cache cleared on component mount");
-      } catch (error) {
-        console.error("Failed to clear cache:", error);
-      }
-    };
+    // const attemptCacheClear = async () => {
+    //   try {
+    //     await clearAllCaches();
+    //     console.log("Cache cleared on component mount");
+    //   } catch (error) {
+    //     console.error("Failed to clear cache:", error);
+    //   }
+    // };
     
     // Only clear cache if this appears to be a fresh page load
-    if (performance.navigation && performance.navigation.type === 0) {
-      attemptCacheClear();
-    }
+    // if (performance.navigation && performance.navigation.type === 0) {
+    //   attemptCacheClear();
+    // }
     
     return () => {
       console.log("Index component unmounting");
