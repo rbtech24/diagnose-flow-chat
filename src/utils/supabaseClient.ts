@@ -12,6 +12,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: false
   },
   global: {
-    fetch: (...args) => fetch(...args)
+    fetch: (url: string, options?: RequestInit) => fetch(url, options)
   }
 });
