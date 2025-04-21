@@ -13,7 +13,10 @@ export default function Community() {
             <h1 className="text-2xl font-bold">Community</h1>
           </div>
           <Button asChild variant="outline">
-            <Link to="/"><ArrowLeft className="mr-2 h-4 w-4" />Back to Home</Link>
+            <Link to="/">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Home
+            </Link>
           </Button>
         </div>
       </header>

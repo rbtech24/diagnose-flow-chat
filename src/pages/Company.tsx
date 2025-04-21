@@ -13,7 +13,10 @@ export default function Company() {
             <h1 className="text-2xl font-bold">Our Company</h1>
           </div>
           <Button asChild variant="outline">
-            <Link to="/"><ArrowLeft className="mr-2 h-4 w-4" />Back to Home</Link>
+            <Link to="/">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Home
+            </Link>
           </Button>
         </div>
       </header>
@@ -30,7 +33,9 @@ export default function Company() {
             <li>Continuous Improvement</li>
             <li>Community and Collaboration</li>
           </ul>
-          <p className="text-gray-700">For media and investor relations, email <a href="mailto:info@repairautopilot.com" className="text-blue-600 underline">info@repairautopilot.com</a></p>
+          <p className="text-gray-700">
+            For media and investor relations, please email <a href="mailto:info@repairautopilot.com" className="text-blue-600 underline">info@repairautopilot.com</a>.
+          </p>
         </section>
       </main>
     </div>

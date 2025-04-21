@@ -17,7 +17,6 @@ export default function HelpCenter() {
     // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false);
-      // Use our custom toast implementation instead of react-hot-toast directly
       toast({
         title: "Success",
         description: "Support ticket submitted successfully! Our team will respond to your inquiry as soon as possible.",
@@ -45,7 +44,7 @@ export default function HelpCenter() {
           </Button>
         </div>
       </header>
-      
+
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-3 mb-6">
@@ -54,23 +53,22 @@ export default function HelpCenter() {
             </div>
             <div>
               <h1 className="text-3xl font-bold">Help Center</h1>
-              <p className="text-gray-600">Submit a support ticket and we'll get back to you shortly</p>
+              <p className="text-gray-600">Submit a support ticket and we'll get back to you shortly.</p>
             </div>
           </div>
-          
+
           <div className="mt-6 mb-12">
-            <NewTicketForm 
+            <NewTicketForm
               onSubmit={handleSubmitTicket}
               isSubmitting={isSubmitting}
               error={error}
             />
           </div>
-          
+
           <div className="bg-gray-50 rounded-lg p-6 my-6">
             <h2 className="text-xl font-semibold mb-3">Contact Information</h2>
             <p className="mb-4">
-              Our support team is available Monday through Friday, 9am to 5pm EST.
-              We typically respond to all inquiries within 24 hours.
+              Our support team is available Monday through Friday, 9am to 5pm EST. We typically respond to all inquiries within 24 hours.
             </p>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
@@ -85,17 +83,6 @@ export default function HelpCenter() {
           </div>
         </div>
       </main>
-      
-      <footer className="border-t bg-white py-6">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-sm text-gray-500">© 2023 Repair Auto Pilot. All rights reserved.</p>
-          <div className="flex justify-center gap-4 mt-4">
-            <Link to="/terms-of-use" onClick={() => window.scrollTo(0, 0)} className="text-sm text-gray-500 hover:text-blue-600">Terms of Use</Link>
-            <span className="text-gray-400">|</span>
-            <Link to="/privacy-policy" onClick={() => window.scrollTo(0, 0)} className="text-sm text-gray-500 hover:text-blue-600">Privacy Policy</Link>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

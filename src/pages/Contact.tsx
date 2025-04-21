@@ -13,7 +13,10 @@ export default function Contact() {
             <h1 className="text-2xl font-bold">Contact</h1>
           </div>
           <Button asChild variant="outline">
-            <Link to="/"><ArrowLeft className="mr-2 h-4 w-4" />Back to Home</Link>
+            <Link to="/">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Home
+            </Link>
           </Button>
         </div>
       </header>
@@ -23,17 +26,19 @@ export default function Contact() {
           <p className="mb-4 text-gray-700">Reach out to us for any questions—business or technical!</p>
           <div className="mb-4">
             <p className="font-semibold">Support:</p>
-            <a className="text-blue-600 underline" href="mailto:support@repairautopilot.com">support@repairautopilot.com</a>
+            <a href="mailto:support@repairautopilot.com" className="text-blue-600 underline">support@repairautopilot.com</a>
           </div>
           <div className="mb-4">
             <p className="font-semibold">Sales:</p>
-            <a className="text-blue-600 underline" href="mailto:sales@repairautopilot.com">sales@repairautopilot.com</a>
+            <a href="mailto:sales@repairautopilot.com" className="text-blue-600 underline">sales@repairautopilot.com</a>
           </div>
           <div className="mb-4">
             <p className="font-semibold">Phone:</p>
             <span className="text-gray-700">(800) 555-1234</span>
           </div>
-          <p className="mt-8 text-gray-500">Visit our <Link to="/help" className="text-blue-600 underline">Help Center</Link> for FAQs.</p>
+          <p className="mt-8 text-gray-500">
+            Visit our <Link to="/help" className="text-blue-600 underline">Help Center</Link> for FAQs and support resources.
+          </p>
         </section>
       </main>
     </div>

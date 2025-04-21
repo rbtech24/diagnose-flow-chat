@@ -13,7 +13,10 @@ export default function About() {
             <h1 className="text-2xl font-bold">About Us</h1>
           </div>
           <Button asChild variant="outline">
-            <Link to="/"><ArrowLeft className="mr-2 h-4 w-4" />Back to Home</Link>
+            <Link to="/">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Home
+            </Link>
           </Button>
         </div>
       </header>
@@ -21,7 +24,7 @@ export default function About() {
         <section className="max-w-2xl mx-auto">
           <h2 className="text-3xl font-bold mb-4">Our Mission</h2>
           <p className="mb-6 text-gray-700">
-            At Repair Auto Pilot, we're dedicated to streamlining appliance repair businesses by providing powerful, easy-to-use workflow and diagnostic tools. Our platform is built by repair professionals, for repair professionals—with the goal of saving time, reducing mistakes, and powering business growth.
+            At Repair Auto Pilot, we are dedicated to streamlining appliance repair businesses by providing powerful, easy-to-use workflow and diagnostic tools. Our platform is built by repair professionals, for repair professionals—with the goal of saving time, reducing errors, and powering business growth.
           </p>
           <h2 className="text-2xl font-semibold mb-2 mt-6">Why Choose Us?</h2>
           <ul className="list-disc pl-6 mb-4 text-gray-700">
