@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
@@ -15,14 +16,13 @@ interface TechMetrics {
   error: Error | null;
 }
 
-function isMetadataWithFirstTimeFix(
-  metadata: unknown
-): metadata is { first_time_fix: boolean } {
+// Ensure proper check: metadata must have first_time_fix and be object, not array
+function isMetadataWithFirstTimeFix(metadata: unknown): metadata is { first_time_fix: boolean } {
   return (
     metadata !== null &&
     typeof metadata === "object" &&
     !Array.isArray(metadata) &&
-    "first_time_fix" in metadata &&
+    "first_time_fix" in (metadata as object) &&
     typeof (metadata as any).first_time_fix === "boolean"
   );
 }
@@ -32,8 +32,8 @@ export function useTechMetrics(): TechMetrics {
   const [metrics, setMetrics] = useState<TechMetrics>({
     assignedJobs: 0,
     completedJobs: 0,
-    avgCompletionTime: "0 hrs",
-    responseTime: "0 hrs",
+    avgCompletionTime: "N/A",
+    responseTime: "N/A",
     satisfaction: 0,
     firstTimeFixRate: 0,
     openIssues: 0,
@@ -43,10 +43,17 @@ export function useTechMetrics(): TechMetrics {
 
   useEffect(() => {
     async function fetchMetrics() {
-      if (!user?.id) return;
+      if (!user?.id) {
+        setMetrics((prev) => ({
+          ...prev,
+          isLoading: false,
+          error: new Error("User not found"),
+        }));
+        return;
+      }
 
       try {
-        // Fetch assigned jobs
+        // Assigned repair jobs
         const { count: assignedCount, error: assignedError } = await supabase
           .from("repairs")
           .select("*", { count: "exact", head: true })
@@ -55,7 +62,7 @@ export function useTechMetrics(): TechMetrics {
 
         if (assignedError) throw assignedError;
 
-        // Fetch completed jobs
+        // Completed repair jobs
         const { count: completedCount, error: completedError } = await supabase
           .from("repairs")
           .select("*", { count: "exact", head: true })
@@ -64,16 +71,16 @@ export function useTechMetrics(): TechMetrics {
 
         if (completedError) throw completedError;
 
-        // Fetch open issues/tickets
-        const { count: openIssuesCount, error: issuesError } = await supabase
+        // Open support tickets/issues
+        const { count: openIssuesCount, error: openIssuesError } = await supabase
           .from("support_tickets")
           .select("*", { count: "exact", head: true })
           .eq("assigned_to", user.id)
           .in("status", ["open", "in_progress"]);
 
-        if (issuesError) throw issuesError;
+        if (openIssuesError) throw openIssuesError;
 
-        // Get average completion time
+        // Actual completion times (intervals) for completed repairs
         const { data: timeData, error: timeError } = await supabase
           .from("repairs")
           .select("actual_duration")
@@ -83,7 +90,7 @@ export function useTechMetrics(): TechMetrics {
 
         if (timeError) throw timeError;
 
-        // Get response time
+        // Response times
         const { data: responseTimeData, error: respTimeError } = await supabase
           .from("repairs")
           .select("scheduled_at, started_at")
@@ -95,7 +102,7 @@ export function useTechMetrics(): TechMetrics {
 
         if (respTimeError) throw respTimeError;
 
-        // Get first time fix rate
+        // First-time fix rate from repair metadata
         const { data: fixRateData, error: fixRateError } = await supabase
           .from("repairs")
           .select("metadata")
@@ -104,7 +111,7 @@ export function useTechMetrics(): TechMetrics {
 
         if (fixRateError) throw fixRateError;
 
-        // Get customer satisfaction from service records
+        // Customer satisfaction ratings
         const { data: ratingData, error: ratingError } = await supabase
           .from("service_records")
           .select("rating")
@@ -113,28 +120,43 @@ export function useTechMetrics(): TechMetrics {
 
         if (ratingError) throw ratingError;
 
-        // Calculate average satisfaction
+        // Compute satisfaction average (if data available)
         let satisfactionScore = 0;
         if (ratingData && ratingData.length > 0) {
           const sum = ratingData.reduce((acc, record) => acc + record.rating, 0);
           const avgRating = sum / ratingData.length;
-          // Convert 5-star rating to percentage (5 stars = 100%)
           satisfactionScore = Math.round((avgRating / 5) * 100);
         }
 
-        // Calculate average completion time
-        let avgTime = "0 hrs";
+        // Actual average completion time calculation (intervals)
+        let avgTime = "N/A";
         if (timeData && timeData.length > 0) {
-          // In a real implementation, we'd parse the intervals
-          // For now, use the data length to generate a reasonable value based on the data
-          const avgHours = (3 + (timeData.length % 3)) / 2;
-          avgTime = `${avgHours.toFixed(1)} hrs`;
+          // Attempt to parse PostgreSQL interval strings: sum total minutes/hours
+          let totalMinutes = 0;
+          let count = 0;
+          timeData.forEach((row) => {
+            const val = row.actual_duration;
+            if (typeof val === "string") {
+              // Simple regex for extracting hours and minutes
+              const match = val.match(/(\d+)\s+hours?/i);
+              const mins = val.match(/(\d+)\s+mins?/i) || val.match(/(\d+)\s+minutes?/i);
+              const hours = match ? parseInt(match[1], 10) : 0;
+              const minutes = mins ? parseInt(mins[1], 10) : 0;
+              totalMinutes += hours * 60 + minutes;
+              count++;
+            }
+          });
+          if (count > 0) {
+            const avgMins = totalMinutes / count;
+            const avgHr = Math.floor(avgMins / 60);
+            const avgMin = Math.round(avgMins % 60);
+            avgTime = `${avgHr}h ${avgMin}m`;
+          }
         }
 
-        // Calculate response time
-        let respTime = "0 hrs";
+        // Compute average response time
+        let respTime = "N/A";
         if (responseTimeData && responseTimeData.length > 0) {
-          // Calculate average difference between scheduled and started times
           let totalResponseTime = 0;
           let validRecords = 0;
 
@@ -142,39 +164,39 @@ export function useTechMetrics(): TechMetrics {
             if (record.scheduled_at && record.started_at) {
               const scheduledTime = new Date(record.scheduled_at).getTime();
               const startedTime = new Date(record.started_at).getTime();
-              if (startedTime >= scheduledTime) {
-                totalResponseTime += (startedTime - scheduledTime) / (1000 * 60 * 60); // Convert to hours
+              if (!isNaN(scheduledTime) && !isNaN(startedTime) && startedTime >= scheduledTime) {
+                totalResponseTime += (startedTime - scheduledTime) / (1000 * 60); // minutes
                 validRecords++;
               }
             }
           });
 
           if (validRecords > 0) {
-            const avgResponseHours = totalResponseTime / validRecords;
-            respTime = `${avgResponseHours.toFixed(1)} hrs`;
-          } else {
-            respTime = "1.2 hrs"; // Fallback if no valid records
+            const avgMins = totalResponseTime / validRecords;
+            const avgHr = Math.floor(avgMins / 60);
+            const avgMin = Math.round(avgMins % 60);
+            respTime = `${avgHr}h ${avgMin}m`;
           }
-        } else {
-          respTime = "1.2 hrs"; // Fallback if no data
         }
 
-        // Calculate first-time fix rate
+        // Compute first-time fix rate
         let firstTimeFixRate = 0;
         if (fixRateData && fixRateData.length > 0) {
           const fixedFirstTime = fixRateData.filter((record) => {
             const m = record.metadata;
-
-            if (isMetadataWithFirstTimeFix(m)) {
-              return m.first_time_fix === true;
+            if (
+              m &&
+              typeof m === "object" &&
+              !Array.isArray(m) &&
+              "first_time_fix" in m &&
+              typeof (m as any).first_time_fix === "boolean"
+            ) {
+              return (m as any).first_time_fix === true;
             }
-
             return false;
           }).length;
 
           firstTimeFixRate = Math.round((fixedFirstTime / fixRateData.length) * 100);
-        } else {
-          firstTimeFixRate = 94; // Fallback if no data
         }
 
         setMetrics({
@@ -182,19 +204,18 @@ export function useTechMetrics(): TechMetrics {
           completedJobs: completedCount || 0,
           avgCompletionTime: avgTime,
           responseTime: respTime,
-          satisfaction: satisfactionScore || 92,
-          firstTimeFixRate: firstTimeFixRate,
+          satisfaction: satisfactionScore,
+          firstTimeFixRate,
           openIssues: openIssuesCount || 0,
           isLoading: false,
           error: null,
         });
       } catch (error) {
-        console.error("Error fetching tech metrics:", error);
         setMetrics({
           assignedJobs: 0,
           completedJobs: 0,
-          avgCompletionTime: "0 hrs",
-          responseTime: "0 hrs",
+          avgCompletionTime: "N/A",
+          responseTime: "N/A",
           satisfaction: 0,
           firstTimeFixRate: 0,
           openIssues: 0,
