@@ -11,8 +11,8 @@ export default function HomeHeader() {
           <img 
             src="/lovable-uploads/5a6f684f-5f8a-4a11-b98b-107a464807d4.png"
             alt="Repair Auto Pilot" 
-            className="h-12 object-contain"
-            style={{ maxWidth: 200 }}
+            className="h-20 object-contain"
+            style={{ maxWidth: 320 }}
           />
         </Link>
         

@@ -13,8 +13,8 @@ export default function HomeFooter() {
               <img 
                 src="/lovable-uploads/629af177-1002-4110-97f9-4c8747ad00f6.png"
                 alt="Repair Auto Pilot" 
-                className="h-14 mb-3 object-contain"
-                style={{ maxWidth: 220 }}
+                className="h-24 mb-3 object-contain"
+                style={{ maxWidth: 380 }}
               />
               <p className="text-gray-600 text-sm">
                 The ultimate appliance repair diagnostic solution for modern service businesses.
