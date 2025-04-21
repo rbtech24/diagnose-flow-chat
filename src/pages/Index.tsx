@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -16,10 +15,10 @@ export default function Index() {
     
     // Debug image paths
     const imagePaths = [
-      "/lovable-uploads/1961838b-05c5-44e0-a2c1-92dae3c80e1a.png", // Company logo 1
-      "/lovable-uploads/0ab0b549-2aff-4f8c-84d7-416bfc37ba6e.png", // Company logo 2
-      "/lovable-uploads/5e0204c2-ef16-48b1-8781-6e770f07a3ba.png", // Company logo 3
-      "/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png"  // Company logo 4
+      "/lovable-uploads/12ec9a66-cdee-4b7d-b274-39e96fc017d3.png", // Einstein Appliance Repair
+      "/lovable-uploads/139f873f-d38b-4ef9-b97c-637898f9d490.png", // Rod's Appliance Repair
+      "/lovable-uploads/09b3be28-5af8-4637-951c-d5563c973c6f.png", // West Metro Appliance
+      "/lovable-uploads/27b22001-f939-4788-9daa-943acfcbfe7d.png"  // Flat Rate Appliance Repair
     ];
     
     console.log("Image paths to load:", imagePaths);
@@ -121,55 +120,55 @@ export default function Index() {
         <div className="max-w-7xl mx-auto px-4">
           <p className="text-center text-gray-500 mb-8">Trusted by leading appliance service companies</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center">
-            {/* Company 1 */}
-            <div className="h-12 flex items-center justify-center">
-              <img 
-                src={cacheBustUrl("/lovable-uploads/1961838b-05c5-44e0-a2c1-92dae3c80e1a.png")}
-                alt="Service company" 
-                className="h-full w-auto object-contain" 
-                onLoad={() => console.log("Logo 1 loaded")}
-                onError={(e) => {
-                  console.error("Logo 1 failed to load");
-                  e.currentTarget.src = "https://via.placeholder.com/150x50?text=Company+Logo";
-                }}
-              />
-            </div>
-            {/* Company 2 */}
-            <div className="h-14 flex items-center justify-center">
-              <img 
-                src={cacheBustUrl("/lovable-uploads/0ab0b549-2aff-4f8c-84d7-416bfc37ba6e.png")} 
-                alt="Service company" 
-                className="h-full w-auto object-contain" 
-                onLoad={() => console.log("Logo 2 loaded")}
-                onError={(e) => {
-                  console.error("Logo 2 failed to load");
-                  e.currentTarget.src = "https://via.placeholder.com/150x50?text=Company+Logo";
-                }}
-              />
-            </div>
-            {/* Company 3 */}
-            <div className="h-12 flex items-center justify-center">
-              <img 
-                src={cacheBustUrl("/lovable-uploads/5e0204c2-ef16-48b1-8781-6e770f07a3ba.png")} 
-                alt="Service company" 
-                className="h-full w-auto object-contain" 
-                onLoad={() => console.log("Logo 3 loaded")}
-                onError={(e) => {
-                  console.error("Logo 3 failed to load");
-                  e.currentTarget.src = "https://via.placeholder.com/150x50?text=Company+Logo";
-                }}
-              />
-            </div>
-            {/* Company 4 */}
+            {/* Einstein Appliance Repair */}
             <div className="h-16 flex items-center justify-center">
               <img 
-                src={cacheBustUrl("/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png")} 
-                alt="Service company" 
+                src={cacheBustUrl("/lovable-uploads/12ec9a66-cdee-4b7d-b274-39e96fc017d3.png")}
+                alt="Einstein Appliance Repair" 
                 className="h-full w-auto object-contain" 
-                onLoad={() => console.log("Logo 4 loaded")}
+                onLoad={() => console.log("Einstein logo loaded")}
                 onError={(e) => {
-                  console.error("Logo 4 failed to load");
-                  e.currentTarget.src = "https://via.placeholder.com/150x50?text=Company+Logo";
+                  console.error("Einstein logo failed to load");
+                  e.currentTarget.src = "https://via.placeholder.com/150x50?text=Einstein+Repair";
+                }}
+              />
+            </div>
+            {/* Rod's Appliance Repair */}
+            <div className="h-14 flex items-center justify-center">
+              <img 
+                src={cacheBustUrl("/lovable-uploads/139f873f-d38b-4ef9-b97c-637898f9d490.png")} 
+                alt="Rod's Appliance Repair" 
+                className="h-full w-auto object-contain" 
+                onLoad={() => console.log("Rod's logo loaded")}
+                onError={(e) => {
+                  console.error("Rod's logo failed to load");
+                  e.currentTarget.src = "https://via.placeholder.com/150x50?text=Rods+Repair";
+                }}
+              />
+            </div>
+            {/* West Metro Appliance */}
+            <div className="h-14 flex items-center justify-center">
+              <img 
+                src={cacheBustUrl("/lovable-uploads/09b3be28-5af8-4637-951c-d5563c973c6f.png")} 
+                alt="West Metro Appliance" 
+                className="h-full w-auto object-contain" 
+                onLoad={() => console.log("West Metro logo loaded")}
+                onError={(e) => {
+                  console.error("West Metro logo failed to load");
+                  e.currentTarget.src = "https://via.placeholder.com/150x50?text=West+Metro";
+                }}
+              />
+            </div>
+            {/* Flat Rate Appliance Repair */}
+            <div className="h-18 flex items-center justify-center">
+              <img 
+                src={cacheBustUrl("/lovable-uploads/27b22001-f939-4788-9daa-943acfcbfe7d.png")} 
+                alt="Flat Rate Appliance Repair" 
+                className="h-full w-auto object-contain max-h-24" 
+                onLoad={() => console.log("Flat Rate logo loaded")}
+                onError={(e) => {
+                  console.error("Flat Rate logo failed to load");
+                  e.currentTarget.src = "https://via.placeholder.com/150x50?text=Flat+Rate";
                 }}
               />
             </div>
@@ -335,4 +334,3 @@ export default function Index() {
     </div>
   );
 }
-
