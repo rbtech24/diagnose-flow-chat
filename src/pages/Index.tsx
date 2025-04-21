@@ -5,10 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Check, Clock, Settings, Activity, Users, Shield } from "lucide-react";
 import HomeHeader from "@/components/layout/HomeHeader";
 import HomeFooter from "@/components/layout/HomeFooter";
+import { cacheBustUrl, addCacheControlMetaTags, clearAllCaches } from "@/utils/cacheControl";
 
 export default function Index() {
   useEffect(() => {
-    console.log("Index component mounted");
+    console.log("Index component mounted - Version: " + Date.now());
+    
+    // Apply cache control meta tags
+    addCacheControlMetaTags();
     
     // Debug image paths
     const imagePaths = [
@@ -20,23 +24,31 @@ export default function Index() {
     
     console.log("Image paths to load:", imagePaths);
     
-    // Test if images are accessible
+    // Test if images are accessible with cache busting
     imagePaths.forEach((path, index) => {
       const img = new Image();
       img.onload = () => console.log(`Image ${index + 1} loaded successfully:`, path);
       img.onerror = () => console.error(`Image ${index + 1} failed to load:`, path);
-      img.src = path;
+      img.src = cacheBustUrl(path);
     });
     
-    // Force cache refresh for this component
-    const meta = document.createElement('meta');
-    meta.httpEquiv = 'Cache-Control';
-    meta.content = 'no-cache, no-store, must-revalidate';
-    document.head.appendChild(meta);
+    // Attempt to clear caches on first load
+    const attemptCacheClear = async () => {
+      try {
+        await clearAllCaches();
+        console.log("Cache cleared on component mount");
+      } catch (error) {
+        console.error("Failed to clear cache:", error);
+      }
+    };
+    
+    // Only clear cache if this appears to be a fresh page load
+    if (performance.navigation && performance.navigation.type === 0) {
+      attemptCacheClear();
+    }
     
     return () => {
-      // Clean up added meta tag when component unmounts
-      document.head.removeChild(meta);
+      console.log("Index component unmounting");
     };
   }, []);
 
@@ -91,7 +103,7 @@ export default function Index() {
               <div className="text-white text-sm">Appliance Repair</div>
             </div>
             <img 
-              src="/lovable-uploads/c71206b9-55ab-4588-bbe9-2dcf1db816be.png" 
+              src={cacheBustUrl("/lovable-uploads/c71206b9-55ab-4588-bbe9-2dcf1db816be.png")}
               alt="Appliance repair diagnostic" 
               className="w-full h-auto rounded-b-md"
             />

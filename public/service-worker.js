@@ -1,9 +1,9 @@
 // Service Worker for Repair Auto Pilot
 
-const CACHE_NAME = 'repair-auto-pilot-v2';
-const DYNAMIC_CACHE = 'dynamic-cache-v1';
-const KNOWLEDGE_CACHE = 'knowledge-cache-v1';
-const COMMUNITY_CACHE = 'community-cache-v1';
+const CACHE_NAME = 'repair-auto-pilot-v3'; // Incrementing version
+const DYNAMIC_CACHE = 'dynamic-cache-v2';
+const KNOWLEDGE_CACHE = 'knowledge-cache-v2';
+const COMMUNITY_CACHE = 'community-cache-v2';
 
 // Assets that should be cached immediately on install
 const STATIC_ASSETS = [
@@ -26,7 +26,7 @@ const SYNC_KNOWLEDGE_TAG = 'sync-knowledge-updates';
 const SYNC_WORKFLOW_TAG = 'sync-workflow-updates';
 const SYNC_COMMUNITY_TAG = 'sync-community-updates';
 
-// Install event - cache core assets
+// Install event - cache core assets and clean older caches
 self.addEventListener('install', event => {
   console.log('[Service Worker] Installing Service Worker...');
   event.waitUntil(
@@ -37,7 +37,7 @@ self.addEventListener('install', event => {
       })
       .then(() => {
         console.log('[Service Worker] Successfully installed');
-        return self.skipWaiting();
+        return self.skipWaiting(); // Force activation on all clients
       })
   );
 });
@@ -60,7 +60,7 @@ self.addEventListener('activate', event => {
     })
     .then(() => {
       console.log('[Service Worker] Service Worker activated');
-      return self.clients.claim();
+      return self.clients.claim(); // Take control of all clients
     })
   );
 });
@@ -77,10 +77,40 @@ const getRequestType = (url) => {
   return 'other';
 };
 
+// Network first strategy for critical assets
+const handleCriticalAssets = (event) => {
+  event.respondWith(
+    fetch(event.request)
+      .then(response => {
+        // Cache successful response
+        const clonedResponse = response.clone();
+        caches.open(DYNAMIC_CACHE)
+          .then(cache => {
+            cache.put(event.request, clonedResponse);
+          });
+        return response;
+      })
+      .catch(() => {
+        // If network fails, try to return from cache
+        return caches.match(event.request);
+      })
+  );
+};
+
 // Cache then network strategy for API requests
 const handleApiRequest = (event, cacheKey) => {
+  // Add timestamp to bust cache
+  const url = new URL(event.request.url);
+  url.searchParams.set('_t', Date.now());
+  const timestampedRequest = new Request(url.toString(), {
+    method: event.request.method,
+    headers: event.request.headers,
+    mode: event.request.mode,
+    credentials: event.request.credentials
+  });
+
   // Try to get from network and update cache
-  const networkResponse = fetch(event.request)
+  const networkResponse = fetch(timestampedRequest)
     .then(response => {
       const clonedResponse = response.clone();
       caches.open(cacheKey)
@@ -107,6 +137,13 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   const requestType = getRequestType(url.pathname);
   
+  // Skip cache for all HTML requests
+  if (event.request.mode === 'navigate' || 
+      (event.request.method === 'GET' && 
+       event.request.headers.get('accept').includes('text/html'))) {
+    return handleCriticalAssets(event);
+  }
+  
   // Handle API requests with cache-then-network strategy
   if (requestType === 'knowledge') {
     return handleApiRequest(event, KNOWLEDGE_CACHE);
@@ -116,28 +153,11 @@ self.addEventListener('fetch', event => {
   
   // For API requests, use network-first strategy
   if (isApiRequest(url.pathname)) {
-    event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          // Cache successful GET responses in dynamic cache
-          if (event.request.method === 'GET') {
-            const clonedResponse = response.clone();
-            caches.open(DYNAMIC_CACHE)
-              .then(cache => {
-                cache.put(event.request, clonedResponse);
-              });
-          }
-          return response;
-        })
-        .catch(() => {
-          // If network fails, try to return from cache
-          return caches.match(event.request);
-        })
-    );
+    handleCriticalAssets(event);
     return;
   }
   
-  // For static assets, use cache-first strategy
+  // For static assets, use cache-first strategy with timestamp
   event.respondWith(
     caches.match(event.request)
       .then(cachedResponse => {
@@ -145,11 +165,19 @@ self.addEventListener('fetch', event => {
           return cachedResponse;
         }
         
+        // Add cache busting parameter for non-cached resources
+        const urlToFetch = url.pathname.endsWith('.js') || 
+                           url.pathname.endsWith('.css') || 
+                           url.pathname.endsWith('.png') || 
+                           url.pathname.endsWith('.jpg') ? 
+                           `${url.origin}${url.pathname}?_t=${Date.now()}${url.search}` : 
+                           event.request.url;
+        
         // Not in cache, get from network
-        return fetch(event.request)
+        return fetch(urlToFetch)
           .then(response => {
             // Cache successful GET responses in dynamic cache
-            if (event.request.method === 'GET') {
+            if (event.request.method === 'GET' && response.status === 200) {
               const clonedResponse = response.clone();
               caches.open(DYNAMIC_CACHE)
                 .then(cache => {
@@ -175,16 +203,41 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// Background sync for offline actions
-self.addEventListener('sync', event => {
-  console.log('[Service Worker] Background Sync event:', event.tag);
+// Message handler to force cache clearing
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'CLEAR_CACHES') {
+    console.log('[Service Worker] Clearing all caches by request');
+    event.waitUntil(
+      caches.keys().then(cacheNames => {
+        return Promise.all(
+          cacheNames.map(cacheName => caches.delete(cacheName))
+        ).then(() => {
+          // Notify clients that caches were cleared
+          self.clients.matchAll().then(clients => {
+            clients.forEach(client => {
+              client.postMessage({
+                type: 'CACHES_CLEARED'
+              });
+            });
+          });
+        });
+      })
+    );
+  }
   
-  if (event.tag === SYNC_KNOWLEDGE_TAG) {
-    event.waitUntil(syncKnowledgeUpdates());
-  } else if (event.tag === SYNC_WORKFLOW_TAG) {
-    event.waitUntil(syncWorkflowUpdates());
-  } else if (event.tag === SYNC_COMMUNITY_TAG) {
-    event.waitUntil(syncCommunityUpdates());
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  
+  // Handle manual sync requests
+  if (event.data && event.data.type === 'MANUAL_SYNC') {
+    if (event.data.tag === SYNC_KNOWLEDGE_TAG) {
+      syncKnowledgeUpdates();
+    } else if (event.data.tag === SYNC_WORKFLOW_TAG) {
+      syncWorkflowUpdates();
+    } else if (event.data.tag === SYNC_COMMUNITY_TAG) {
+      syncCommunityUpdates();
+    }
   }
 });
 

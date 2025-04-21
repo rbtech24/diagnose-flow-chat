@@ -1,5 +1,9 @@
 
 /*    /index.html   200
-# Add cache control headers
-/*.js   /index.html   200   Cache-Control: public, max-age=0, must-revalidate
-/*.css  /index.html   200   Cache-Control: public, max-age=0, must-revalidate
+
+# Add strict cache control headers
+/*.js   /index.html   200   Cache-Control: no-cache, no-store, must-revalidate
+/*.css  /index.html   200   Cache-Control: no-cache, no-store, must-revalidate
+/*.png  /index.html   200   Cache-Control: public, max-age=86400
+/*.jpg  /index.html   200   Cache-Control: public, max-age=86400
+/*.svg  /index.html   200   Cache-Control: public, max-age=86400
