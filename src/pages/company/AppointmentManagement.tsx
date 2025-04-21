@@ -9,13 +9,7 @@ import { PlusCircle, Calendar, Tag, AlertTriangle, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
-// Mock data for technicians
-const mockTechnicians = [
-  { id: "1", name: "John Doe", specialization: "HVAC" },
-  { id: "2", name: "Jane Smith", specialization: "Refrigeration" },
-  { id: "3", name: "Mike Johnson", specialization: "General Appliances" },
-  { id: "4", name: "Lisa Chen", specialization: "Commercial Equipment" }
-];
+
 
 interface Appointment {
   id: string;
