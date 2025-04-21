@@ -154,8 +154,12 @@ export function useTechMetrics(): TechMetrics {
           const fixedFirstTime = fixRateData.filter(record => {
             // Check if metadata exists and is an object
             if (record.metadata && typeof record.metadata === 'object') {
-              // Check if first_time_fix property exists and is true
-              return record.metadata.first_time_fix === true;
+              // Check it's not an array
+              if (!Array.isArray(record.metadata)) {
+                // Safely check for first_time_fix property
+                return record.metadata.hasOwnProperty('first_time_fix') && 
+                       record.metadata.first_time_fix === true;
+              }
             }
             return false;
           }).length;
