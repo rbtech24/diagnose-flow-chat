@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { User, UserPlus } from "lucide-react";
 import { useUserManagementStore } from "@/store/userManagementStore";
 import { toast } from "@/hooks/use-toast";
+import { UserWithPassword } from "@/types/user";
 
 export function TechnicianOnboarding() {
   const [step, setStep] = useState(1);
@@ -25,11 +25,17 @@ export function TechnicianOnboarding() {
     setIsSubmitting(true);
     
     try {
+      const tempPassword = "ChangeMe" + Math.floor(Math.random() * 10000);
+      
       await addUser({
-        ...formData,
+        id: crypto.randomUUID(),
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
         status: 'pending',
-        role: 'tech'
-      });
+        role: 'tech',
+        password: tempPassword
+      } as UserWithPassword);
       
       toast({
         title: "Success",
