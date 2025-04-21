@@ -17,9 +17,9 @@ export default function HomeHeader() {
         </Link>
         
         <nav className="hidden md:flex items-center space-x-8">
-          <Link to="/features" className="text-gray-700 hover:text-blue-600 transition">
+          <a href="/#features" className="text-gray-700 hover:text-blue-600 transition">
             Features
-          </Link>
+          </a>
           <Link to="/testimonials" className="text-gray-700 hover:text-blue-600 transition">
             Testimonials
           </Link>

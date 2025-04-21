@@ -19,6 +19,9 @@ export default function HomeFooter() {
                 The ultimate appliance repair diagnostic solution for modern service businesses.
               </p>
               <div className="flex space-x-4 mt-4">
+                <a href="/#features" aria-label="Features" className="text-gray-400 hover:text-gray-600 cursor-pointer">
+                  Features
+                </a>
                 <a href="https://twitter.com" aria-label="Twitter" className="text-gray-400 hover:text-gray-600">
                   <Twitter size={20} />
                 </a>
@@ -35,7 +38,7 @@ export default function HomeFooter() {
           <div className="col-span-1">
             <h3 className="font-medium text-gray-900 mb-4">Product</h3>
             <ul className="space-y-2">
-              <li><Link to="/features" className="text-gray-600 hover:text-blue-600 text-sm">Features</Link></li>
+              <li><a href="/#features" className="text-gray-600 hover:text-blue-600 text-sm">Features</a></li>
               <li><Link to="/case-studies" className="text-gray-600 hover:text-blue-600 text-sm">Case Studies</Link></li>
               <li><Link to="/reviews" className="text-gray-600 hover:text-blue-600 text-sm">Reviews</Link></li>
               <li><Link to="/updates" className="text-gray-600 hover:text-blue-600 text-sm">Updates</Link></li>
