@@ -4,12 +4,23 @@ import { Button } from "@/components/ui/button";
 import { MessageSquare, Users, Star } from "lucide-react";
 import HomeHeader from "@/components/layout/HomeHeader";
 import HomeFooter from "@/components/layout/HomeFooter";
+import { Badge } from "@/components/ui/badge";
 
 export default function Community() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <HomeHeader />
       <main className="flex-1">
+        {/* Coming Soon Banner */}
+        <div className="bg-yellow-50 border-b border-yellow-200 py-3 text-center">
+          <Badge variant="default" className="bg-yellow-600 hover:bg-yellow-700">
+            Coming Soon
+          </Badge>
+          <p className="text-yellow-800 text-sm mt-2">
+            We're working on building an amazing community platform. Stay tuned for updates!
+          </p>
+        </div>
+
         <section className="py-16 md:py-24 bg-gradient-to-b from-blue-50 to-white">
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center mb-12">
@@ -105,3 +116,4 @@ export default function Community() {
     </div>
   );
 }
+
