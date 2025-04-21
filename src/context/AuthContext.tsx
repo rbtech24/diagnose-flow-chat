@@ -1,8 +1,10 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { showToast } from "@/utils/toast-helpers";
 import { User } from "@/types/user";
+
+// Debug log for AuthContext loading
+console.log("AuthContext is being imported");
 
 type UserRole = 'admin' | 'company' | 'tech' | null;
 
@@ -26,6 +28,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Provider component that wraps app and provides auth context
 export function AuthProvider({ children }: { children: ReactNode }) {
+  // Debug log for AuthProvider rendering
+  console.log("AuthProvider is rendering");
+  
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<UserRole>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,10 +38,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Initialize auth state from session
   useEffect(() => {
+    console.log("AuthProvider useEffect running");
+    
     const checkSession = async () => {
       setIsLoading(true);
       
       try {
+        console.log("Checking user session");
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -45,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         
         if (data.session) {
+          console.log("User session found");
           const { user } = data.session;
           
           // Set user data
@@ -63,6 +72,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Get user role from metadata or user table
           setUserRole(user.user_metadata?.role as UserRole || null);
           setIsAuthenticated(true);
+        } else {
+          console.log("No user session found");
         }
       } catch (error) {
         console.error('Session check error:', error);
@@ -108,6 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Sign in handler
   const signIn = async (email: string, password: string): Promise<boolean> => {
     try {
+      console.log("Attempting to sign in:", email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -115,11 +127,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (error) {
         showToast.error(error.message);
+        console.error("Sign in error:", error);
         return false;
       }
       
       if (data.user) {
         showToast.success('Signed in successfully');
+        console.log("Sign in successful");
         return true;
       }
       
@@ -137,6 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Sign up handler
   const signUp = async (email: string, password: string, role: UserRole, additionalData: any = {}): Promise<void> => {
     try {
+      console.log("Attempting to sign up:", email);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -152,11 +167,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (error) {
         showToast.error(error.message);
+        console.error("Sign up error:", error);
         throw error;
       }
       
       if (data.user) {
         showToast.success('Signed up successfully. Please check your email for verification.');
+        console.log("Sign up successful");
       }
     } catch (error: any) {
       console.error('Sign up error:', error);
@@ -172,14 +189,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Sign out handler
   const signOut = async () => {
     try {
+      console.log("Attempting to sign out");
       const { error } = await supabase.auth.signOut();
       
       if (error) {
         showToast.error(error.message);
+        console.error("Sign out error:", error);
         throw error;
       }
       
       showToast.success('Signed out successfully');
+      console.log("Sign out successful");
     } catch (error: any) {
       console.error('Sign out error:', error);
       throw error;
@@ -189,16 +209,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Reset password handler
   const resetPassword = async (token: string, newPassword: string): Promise<boolean> => {
     try {
+      console.log("Attempting to reset password");
       const { error } = await supabase.auth.updateUser({ 
         password: newPassword 
       });
       
       if (error) {
         showToast.error(error.message);
+        console.error("Password reset error:", error);
         return false;
       }
       
       showToast.success('Password has been reset successfully');
+      console.log("Password reset successful");
       return true;
     } catch (error: any) {
       console.error('Password reset error:', error);
@@ -210,15 +233,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Forgot password handler
   const forgotPassword = async (email: string): Promise<boolean> => {
     try {
+      console.log("Attempting to send password reset email to:", email);
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       
       if (error) {
         showToast.error(error.message);
+        console.error("Forgot password error:", error);
         return false;
       }
       
+      console.log("Password reset email sent");
       return true;
     } catch (error: any) {
       console.error('Forgot password error:', error);
@@ -230,6 +256,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Update user handler
   const updateUser = async (data: Partial<User>): Promise<boolean> => {
     try {
+      console.log("Attempting to update user with data:", data);
       const { error } = await supabase.auth.updateUser({
         data: {
           ...data
@@ -238,18 +265,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (error) {
         showToast.error(error.message);
+        console.error("Update user error:", error);
         return false;
       }
       
-      // Update local state
-      if (user) {
-        setUser({
-          ...user,
-          ...data
-        });
-      }
-      
       showToast.success('User profile updated successfully');
+      console.log("User profile updated successfully");
       return true;
     } catch (error: any) {
       console.error('Update user error:', error);
@@ -274,6 +295,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updateUser
   };
   
+  console.log("AuthProvider rendering children");
   return (
     <AuthContext.Provider value={contextValue}>
       {children}

@@ -1,9 +1,14 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
 export default function HomeHeader() {
+  // Debug log for component mounting
+  useEffect(() => {
+    console.log("HomeHeader component mounted");
+  }, []);
+
   return (
     <header className="w-full bg-white py-4 border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">

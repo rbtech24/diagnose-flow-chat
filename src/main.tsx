@@ -6,6 +6,9 @@ import './index.css';
 import { AuthProvider } from './context/AuthContext';
 import { Toaster } from 'react-hot-toast';
 
+// For debugging purposes
+console.log("Main.tsx is rendering");
+
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <AuthProvider>

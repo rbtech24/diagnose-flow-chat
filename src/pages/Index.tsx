@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Check, Clock, Settings, Activity, Users, Shield } from "lucide-react";
@@ -6,6 +6,11 @@ import HomeHeader from "@/components/layout/HomeHeader";
 import HomeFooter from "@/components/layout/HomeFooter";
 
 export default function Index() {
+  useEffect(() => {
+    console.log("Index component mounted");
+    console.log("Trusted By section should be visible");
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <HomeHeader />
@@ -70,10 +75,11 @@ export default function Index() {
       {/* Trusted By Section */}
       <section className="py-12 border-t border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4">
-          <p className="text-center text-gray-500 mb-8">
+          <p className="text-center text-gray-500 mb-8" id="trusted-by-section">
             Trusted by leading appliance service companies
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center">
+            {console.log("Rendering trusted company logos")}
             <img src="/lovable-uploads/1961838b-05c5-44e0-a2c1-92dae3c80e1a.png" alt="Service company" className="h-12 object-contain" />
             <img src="/lovable-uploads/0ab0b549-2aff-4f8c-84d7-416bfc37ba6e.png" alt="Service company" className="h-14 object-contain" />
             <img src="/lovable-uploads/5e0204c2-ef16-48b1-8781-6e770f07a3ba.png" alt="Service company" className="h-12 object-contain" />
