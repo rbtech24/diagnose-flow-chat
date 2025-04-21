@@ -76,12 +76,14 @@ export const getFolders = async (): Promise<string[]> => {
     const folderSet = new Set<string>();
     
     workflows?.forEach(workflow => {
-      // Fix: properly type check and access the workflow_categories property
-      if (workflow.workflow_categories && typeof workflow.workflow_categories === 'object') {
-        // Access the name directly from the object (not as an array)
-        const categoryName = workflow.workflow_categories.name;
-        if (categoryName) {
-          folderSet.add(categoryName);
+      // Handle the case where workflow_categories is properly typed
+      // In the Supabase response, it could be an object with a direct name property
+      const categories = workflow.workflow_categories;
+      
+      if (categories && typeof categories === 'object') {
+        // If it's a direct object with name property
+        if ('name' in categories && typeof categories.name === 'string') {
+          folderSet.add(categories.name);
         }
       }
     });
