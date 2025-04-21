@@ -14,7 +14,7 @@ export default function VerifyEmail() {
         <div className="bg-white rounded-lg shadow-md p-8">
           <div className="flex justify-center mb-6">
             <img 
-              src="/lovable-uploads/626e46ce-b31c-4656-8873-f950a140763f.png" 
+              src="/lovable-uploads/28cef98f-7973-4892-9eb5-f0e02978d22e.png" 
               alt="Repair Autopilot" 
               className="h-16 w-auto" 
             />

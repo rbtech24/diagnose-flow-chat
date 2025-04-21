@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -20,13 +19,10 @@ export default function Login() {
 
   const from = location.state?.from || "/";
   
-  // Set initial role based on location state or query parameters
   useEffect(() => {
-    // First check location state
     if (location.state?.role && ['admin', 'company', 'tech'].includes(location.state.role)) {
       setRole(location.state.role);
     } 
-    // Then check URL query parameters
     else {
       const roleParam = searchParams.get('role');
       if (roleParam && ['admin', 'company', 'tech'].includes(roleParam)) {
@@ -40,11 +36,9 @@ export default function Login() {
       "selected role:", role);
   }, [location, searchParams, from]);
 
-  // Update URL when role is changed through UI
   const updateRoleAndUrl = (newRole: string) => {
     setRole(newRole);
     
-    // Update URL query parameter without full navigation
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.set('role', newRole);
     navigate(`?${newSearchParams.toString()}`, { replace: true, state: { ...location.state, role: newRole } });
@@ -59,10 +53,8 @@ export default function Login() {
     
     setIsLoggingIn(true);
     try {
-      // Modify email if needed to match the role for demo purposes
       let emailToUse = email;
       if (!emailToUse.includes(role) && role !== "") {
-        // For demo, append role to email if not already present
         emailToUse = email.includes('@') 
           ? email.split('@')[0] + `-${role}@` + email.split('@')[1]
           : `${email}-${role}@example.com`;
@@ -71,30 +63,24 @@ export default function Login() {
       const success = await login(emailToUse, password);
       
       if (success) {
-        // Let the automatic redirect in the useEffect handle navigation
         console.log("Login successful, will redirect to:", from);
       }
     } catch (error: any) {
       console.error("Login error:", error);
-      // Error toast is shown in the AuthContext
     } finally {
       setIsLoggingIn(false);
     }
   };
 
-  // Redirect if already authenticated
   if (isAuthenticated) {
     console.log("User authenticated with role:", userRole, "redirecting to:", from || `/${userRole}`);
     
-    // Prioritize the saved "from" path if exists, otherwise redirect based on role
     if (from && from !== "/") return <Navigate to={from} replace />;
     
-    // Ensure each role goes to their correct dashboard
     if (userRole === "admin") return <Navigate to="/admin" replace />;
     if (userRole === "company") return <Navigate to="/company" replace />;
     if (userRole === "tech") return <Navigate to="/tech" replace />;
     
-    // Fallback to home
     return <Navigate to="/" replace />;
   }
 
@@ -103,7 +89,7 @@ export default function Login() {
       <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
         <div className="flex justify-center mb-6">
           <img
-            src="/lovable-uploads/629af177-1002-4110-97f9-4c8747ad00f6.png"
+            src="/lovable-uploads/28cef98f-7973-4892-9eb5-f0e02978d22e.png"
             alt="Repair Auto Pilot Logo"
             className="h-20 w-auto object-contain"
             style={{ maxWidth: 240 }}

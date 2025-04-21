@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Twitter, Linkedin, Facebook } from "lucide-react";
@@ -11,7 +10,7 @@ export default function HomeFooter() {
           <div className="col-span-1">
             <Link to="/" className="flex flex-col items-start">
               <img 
-                src="/lovable-uploads/629af177-1002-4110-97f9-4c8747ad00f6.png"
+                src="/lovable-uploads/5ff437db-c192-43bd-b173-2a38ddb4b6ab.png"
                 alt="Repair Auto Pilot" 
                 className="h-24 mb-3 object-contain"
                 style={{ maxWidth: 380 }}

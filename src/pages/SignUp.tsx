@@ -123,7 +123,7 @@ export default function SignUp() {
         
         <div className="flex justify-center mb-8">
           <img 
-            src="/lovable-uploads/2afa0162-e41f-4454-a6c6-1ffa81bb72f5.png"
+            src="/lovable-uploads/28cef98f-7973-4892-9eb5-f0e02978d22e.png"
             alt="Repair Auto Pilot Logo" 
             className="h-16 w-auto object-contain"
             style={{ maxWidth: 250 }}
@@ -364,7 +364,7 @@ export default function SignUp() {
 
           <div className="flex justify-center mb-6">
             <img 
-              src="/lovable-uploads/2afa0162-e41f-4454-a6c6-1ffa81bb72f5.png"
+              src="/lovable-uploads/28cef98f-7973-4892-9eb5-f0e02978d22e.png"
               alt="Repair Auto Pilot Logo"
               className="h-16 w-auto object-contain"
               style={{ maxWidth: 200 }}

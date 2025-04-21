@@ -76,7 +76,7 @@ export default function ResetPassword() {
           
           <div className="flex justify-center mb-4">
             <img 
-              src="/lovable-uploads/5a6f684f-5f8a-4a11-b98b-107a464807d4.png" 
+              src="/lovable-uploads/28cef98f-7973-4892-9eb5-f0e02978d22e.png" 
               alt="Repair Auto Pilot" 
               className="h-20 w-auto object-contain" 
               style={{ maxWidth: 240 }}
