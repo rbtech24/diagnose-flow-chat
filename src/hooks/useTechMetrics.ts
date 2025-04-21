@@ -151,10 +151,14 @@ export function useTechMetrics(): TechMetrics {
         // Calculate first-time fix rate
         let firstTimeFixRate = 0;
         if (fixRateData && fixRateData.length > 0) {
-          const fixedFirstTime = fixRateData.filter(record => 
-            record.metadata && 
-            record.metadata.first_time_fix === true
-          ).length;
+          const fixedFirstTime = fixRateData.filter(record => {
+            // Check if metadata exists and is an object
+            if (record.metadata && typeof record.metadata === 'object') {
+              // Check if first_time_fix property exists and is true
+              return record.metadata.first_time_fix === true;
+            }
+            return false;
+          }).length;
           
           firstTimeFixRate = Math.round((fixedFirstTime / fixRateData.length) * 100);
         } else {
