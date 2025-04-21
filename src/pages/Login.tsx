@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -79,6 +80,8 @@ export default function Login() {
     setIsLoggingIn(true);
     try {
       let emailToUse = email;
+      
+      // Add role suffix to email if not already present
       if (!emailToUse.includes(role) && role !== "") {
         emailToUse = email.includes('@') 
           ? email.split('@')[0] + `-${role}@` + email.split('@')[1]
@@ -87,7 +90,7 @@ export default function Login() {
       
       console.log("Attempting sign in with email:", emailToUse);
       
-      // Direct Supabase auth login instead of using context
+      // Direct Supabase auth login for better error handling
       const { data, error } = await supabase.auth.signInWithPassword({
         email: emailToUse,
         password
@@ -104,7 +107,7 @@ export default function Login() {
         } else {
           toast.error(error.message || "Failed to sign in");
         }
-        return false;
+        return;
       }
       
       if (data.user) {
@@ -122,15 +125,10 @@ export default function Login() {
         } else {
           navigate("/", { replace: true });
         }
-        
-        return true;
       }
-      
-      return false;
     } catch (error: any) {
       console.error('Login error:', error);
       toast.error("Login failed. Please try again.");
-      return false;
     } finally {
       setIsLoggingIn(false);
     }

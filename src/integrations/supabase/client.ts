@@ -10,10 +10,12 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: false
+    detectSessionInUrl: true
   },
   global: {
-    fetch: (url: string, options?: RequestInit) => fetch(url, options)
+    headers: {
+      'x-application-name': 'repair-auto-pilot'
+    }
   }
 });
 
@@ -22,5 +24,5 @@ console.log("Supabase client initialized with URL:", supabaseUrl);
 console.log("Supabase auth configuration:", {
   persistSession: true,
   autoRefreshToken: true,
-  detectSessionInUrl: false
+  detectSessionInUrl: true
 });
