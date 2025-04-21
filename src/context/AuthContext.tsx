@@ -34,13 +34,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Debug log for AuthProvider rendering
   console.log("AuthProvider is rendering");
   
-  const [user, setUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<UserRole>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = React.useState<User | null>(null);
+  const [userRole, setUserRole] = React.useState<UserRole>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
 
   // Initialize auth state from session
-  useEffect(() => {
+  React.useEffect(() => {
     console.log("AuthProvider useEffect running");
     
     const checkSession = async () => {
