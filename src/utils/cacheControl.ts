@@ -1,183 +1,67 @@
 
 /**
- * Utility to control browser caching behavior
+ * Utility functions for cache control
  */
 
-/**
- * Force a refresh of the current page bypassing the cache
- */
-export const forcePageRefresh = () => {
-  // Clear any session storage cache
-  sessionStorage.clear();
-  
-  // Force reload bypassing cache
-  window.location.reload();
-};
-
-/**
- * Add cache control meta tags to the document head
- */
-export const addCacheControlMetaTags = () => {
-  const metaTags = [
-    { httpEquiv: 'Cache-Control', content: 'no-cache, no-store, must-revalidate' },
-    { httpEquiv: 'Pragma', content: 'no-cache' },
-    { httpEquiv: 'Expires', content: '0' }
-  ];
-  
-  metaTags.forEach(tag => {
-    // Check if tag already exists
-    const existingTag = document.querySelector(`meta[http-equiv="${tag.httpEquiv}"]`);
-    if (!existingTag) {
-      const meta = document.createElement('meta');
-      meta.httpEquiv = tag.httpEquiv;
-      meta.content = tag.content;
-      document.head.appendChild(meta);
-    }
-  });
-};
-
-/**
- * Generate a cache-busting URL by appending a timestamp
- */
-export const cacheBustUrl = (url: string) => {
+// Add cache busting parameter to URL to prevent caching
+export const cacheBustUrl = (url: string): string => {
   if (!url) return url;
-  
-  // Skip cache busting for external URLs
-  if (url.startsWith('http') && !url.includes(window.location.hostname)) {
-    return url;
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}v=${Date.now()}`;
+};
+
+// Add cache control meta tags to document head
+export const addCacheControlMetaTags = (): void => {
+  // Add cache control meta tags if they don't exist
+  if (!document.querySelector('meta[http-equiv="Cache-Control"]')) {
+    const cacheControlMeta = document.createElement('meta');
+    cacheControlMeta.setAttribute('http-equiv', 'Cache-Control');
+    cacheControlMeta.setAttribute('content', 'no-cache, no-store, must-revalidate');
+    document.head.appendChild(cacheControlMeta);
   }
   
-  const separator = url.includes('?') ? '&' : '?';
-  return `${url}${separator}t=${Date.now()}`;
+  if (!document.querySelector('meta[http-equiv="Pragma"]')) {
+    const pragmaMeta = document.createElement('meta');
+    pragmaMeta.setAttribute('http-equiv', 'Pragma');
+    pragmaMeta.setAttribute('content', 'no-cache');
+    document.head.appendChild(pragmaMeta);
+  }
+  
+  if (!document.querySelector('meta[http-equiv="Expires"]')) {
+    const expiresMeta = document.createElement('meta');
+    expiresMeta.setAttribute('http-equiv', 'Expires');
+    expiresMeta.setAttribute('content', '0');
+    document.head.appendChild(expiresMeta);
+  }
 };
 
-/**
- * Clear all application caches
- */
-export const clearAllCaches = async () => {
-  // Clear localStorage
-  localStorage.clear();
-  
-  // Clear sessionStorage
-  sessionStorage.clear();
-  
-  // Clear application cache via service worker
-  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage({
-      type: 'CLEAR_CACHES'
+// Register cache event listeners for service workers
+export const registerCacheEventListeners = (): void => {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'CACHE_UPDATED') {
+        console.log('Cache updated:', event.data.url);
+      }
     });
   }
-  
-  // Use the Cache API directly if available
+};
+
+// Clear all browser caches - useful for troubleshooting
+export const clearAllCaches = async (): Promise<void> => {
   if ('caches' in window) {
     try {
-      const cacheNames = await caches.keys();
-      await Promise.all(cacheNames.map(name => caches.delete(name)));
+      const cacheNames = await window.caches.keys();
+      await Promise.all(
+        cacheNames.map(cacheName => window.caches.delete(cacheName))
+      );
       console.log('All caches cleared successfully');
+      return Promise.resolve();
     } catch (error) {
-      console.error('Error clearing caches:', error);
+      console.error('Failed to clear caches:', error);
+      return Promise.reject(error);
     }
+  } else {
+    console.warn('Cache API not supported in this browser');
+    return Promise.resolve();
   }
-  
-  console.log('Cache clearing complete');
-  return true;
-};
-
-/**
- * Register event listener for service worker messages
- */
-export const registerCacheEventListeners = () => {
-  navigator.serviceWorker.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'CACHES_CLEARED') {
-      console.log('All caches have been cleared by service worker');
-    }
-  });
-};
-
-/**
- * Update resources with cache-busting URLs 
- * @param resourceUrls Array of resource URLs to be updated with cache-busting
- */
-export const updateResourcesWithCacheBusting = (resourceUrls: string[]) => {
-  // For scripts
-  const scripts = document.querySelectorAll('script[src]');
-  scripts.forEach(script => {
-    const src = script.getAttribute('src');
-    if (src && resourceUrls.some(url => src.includes(url))) {
-      script.setAttribute('src', cacheBustUrl(src));
-    }
-  });
-  
-  // For stylesheets
-  const links = document.querySelectorAll('link[rel="stylesheet"]');
-  links.forEach(link => {
-    const href = link.getAttribute('href');
-    if (href && resourceUrls.some(url => href.includes(url))) {
-      link.setAttribute('href', cacheBustUrl(href));
-    }
-  });
-  
-  // For images
-  const images = document.querySelectorAll('img[src]');
-  images.forEach(img => {
-    const src = img.getAttribute('src');
-    if (src && resourceUrls.some(url => src.includes(url))) {
-      img.setAttribute('src', cacheBustUrl(src));
-    }
-  });
-};
-
-/**
- * Preload critical assets to ensure they're cached
- * @param assetUrls Array of asset URLs to preload
- */
-export const preloadCriticalAssets = (assetUrls: string[]) => {
-  assetUrls.forEach(url => {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    
-    // Determine the correct as attribute based on file extension
-    if (url.endsWith('.js')) {
-      link.as = 'script';
-    } else if (url.endsWith('.css')) {
-      link.as = 'style';
-    } else if (/\.(png|jpg|jpeg|gif|webp|svg)$/.test(url)) {
-      link.as = 'image';
-    }
-    
-    link.href = cacheBustUrl(url);
-    document.head.appendChild(link);
-  });
-};
-
-/**
- * Test image loading and log results
- * @param imagePaths Array of image paths to test
- */
-export const testImageLoading = (imagePaths: string[]) => {
-  return Promise.all(imagePaths.map((path, index) => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        console.log(`Image ${index + 1} loaded successfully:`, path);
-        resolve(true);
-      };
-      img.onerror = (error) => {
-        console.error(`Image ${index + 1} failed to load:`, path, error);
-        reject(error);
-      };
-      img.src = cacheBustUrl(path);
-    });
-  }));
-};
-
-/**
- * Force reload of image with cache busting
- * @param imgElement Image element to reload
- */
-export const reloadImage = (imgElement: HTMLImageElement) => {
-  if (!imgElement || !imgElement.src) return;
-  
-  const originalSrc = imgElement.src.split('?')[0]; // Remove any existing query params
-  imgElement.src = cacheBustUrl(originalSrc);
 };

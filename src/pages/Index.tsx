@@ -10,9 +10,6 @@ export default function Index() {
   React.useEffect(() => {
     console.log("Index component mounted - Version: " + Date.now());
     
-    // Apply cache control meta tags
-    // addCacheControlMetaTags();
-    
     // Debug image paths
     const imagePaths = [
       "/lovable-uploads/12ec9a66-cdee-4b7d-b274-39e96fc017d3.png", // Einstein Appliance Repair
@@ -30,21 +27,6 @@ export default function Index() {
       img.onerror = () => console.error(`Image ${index + 1} failed to load:`, path);
       img.src = cacheBustUrl(path);
     });
-    
-    // Attempt to clear caches on first load
-    // const attemptCacheClear = async () => {
-    //   try {
-    //     await clearAllCaches();
-    //     console.log("Cache cleared on component mount");
-    //   } catch (error) {
-    //     console.error("Failed to clear cache:", error);
-    //   }
-    // };
-    
-    // Only clear cache if this appears to be a fresh page load
-    // if (performance.navigation && performance.navigation.type === 0) {
-    //   attemptCacheClear();
-    // }
     
     return () => {
       console.log("Index component unmounting");
@@ -120,7 +102,6 @@ export default function Index() {
         <div className="max-w-7xl mx-auto px-4">
           <p className="text-center text-gray-500 mb-8">Trusted by leading appliance service companies</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center">
-            {/* Einstein Appliance Repair */}
             <div className="h-16 flex items-center justify-center">
               <img 
                 src={cacheBustUrl("/lovable-uploads/12ec9a66-cdee-4b7d-b274-39e96fc017d3.png")}
@@ -133,7 +114,6 @@ export default function Index() {
                 }}
               />
             </div>
-            {/* Rod's Appliance Repair */}
             <div className="h-14 flex items-center justify-center">
               <img 
                 src={cacheBustUrl("/lovable-uploads/139f873f-d38b-4ef9-b97c-637898f9d490.png")} 
@@ -146,7 +126,6 @@ export default function Index() {
                 }}
               />
             </div>
-            {/* West Metro Appliance */}
             <div className="h-14 flex items-center justify-center">
               <img 
                 src={cacheBustUrl("/lovable-uploads/09b3be28-5af8-4637-951c-d5563c973c6f.png")} 
@@ -159,7 +138,6 @@ export default function Index() {
                 }}
               />
             </div>
-            {/* Flat Rate Appliance Repair */}
             <div className="h-18 flex items-center justify-center">
               <img 
                 src={cacheBustUrl("/lovable-uploads/27b22001-f939-4788-9daa-943acfcbfe7d.png")} 

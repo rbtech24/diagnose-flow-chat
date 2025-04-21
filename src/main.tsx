@@ -8,9 +8,11 @@ import { Toaster } from 'react-hot-toast';
 import { addCacheControlMetaTags, registerCacheEventListeners } from './utils/cacheControl';
 import { BrowserRouter } from 'react-router-dom';
 
-// For debugging purposes and to make React globally available
+// For debugging purposes
 console.log("Main.tsx is rendering, React version:", React.version);
-window.React = React; // Make React available globally for debugging
+
+// Make React available globally for debugging - useful for the error we're fixing
+window.React = React;
 
 // Apply cache control meta tags on startup
 addCacheControlMetaTags();
