@@ -21,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 const featureRequestSchema = z.object({
   title: z.string().min(5, { message: "Title must be at least 5 characters" }),
@@ -48,12 +47,12 @@ export function NewFeatureRequestForm({ onSubmit, isSubmitting = false }: NewFea
 
   return (
     <div>
-      <DialogHeader>
-        <DialogTitle>Request a New Feature</DialogTitle>
-        <DialogDescription>
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold">Request a New Feature</h2>
+        <p className="text-sm text-muted-foreground">
           Describe the feature you'd like to see added to the platform
-        </DialogDescription>
-      </DialogHeader>
+        </p>
+      </div>
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">

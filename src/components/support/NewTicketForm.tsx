@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -20,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 const ticketSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters long").max(100, "Title must be less than 100 characters"),
@@ -54,12 +54,12 @@ export function NewTicketForm({ onSubmit, isSubmitting, error }: NewTicketFormPr
 
   return (
     <div className="space-y-4">
-      <DialogHeader>
-        <DialogTitle>Create New Support Ticket</DialogTitle>
-        <DialogDescription>
+      <div>
+        <h2 className="text-lg font-semibold">Create New Support Ticket</h2>
+        <p className="text-sm text-muted-foreground">
           Fill out the form below to create a new support ticket. Our team will respond as soon as possible.
-        </DialogDescription>
-      </DialogHeader>
+        </p>
+      </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">

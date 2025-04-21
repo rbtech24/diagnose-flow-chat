@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, LifeBuoy } from "lucide-react";
 import { NewTicketForm } from "@/components/support/NewTicketForm";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 
 export default function HelpCenter() {
   const [isSubmitting, setIsSubmitting] = useState(false);
