@@ -14,10 +14,11 @@ export default function Index() {
       <section className="bg-gray-50 py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-8 items-center">
           <div className="space-y-6">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
-              Appliance Diagnostics on <span className="text-blue-600">Auto Pilot</span>
+            <h1 className="text-5xl md:text-6xl font-extrabold leading-tight text-gray-900">
+              Appliance Diagnostics on{" "}
+              <span className="text-[#1E40FF]">Auto Pilot</span>
             </h1>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-[#475569] max-w-xl">
               Streamline your repair operations with our diagnostic workflows. Boost first-time fix rates and keep your technicians at peak efficiency.
             </p>
             <div className="flex flex-wrap gap-4">
@@ -77,7 +78,6 @@ export default function Index() {
             <img src="/lovable-uploads/0ab0b549-2aff-4f8c-84d7-416bfc37ba6e.png" alt="Service company" className="h-14 object-contain" />
             <img src="/lovable-uploads/5e0204c2-ef16-48b1-8781-6e770f07a3ba.png" alt="Service company" className="h-12 object-contain" />
             <img src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" alt="Service company" className="h-16 object-contain" />
-
             <img src="/lovable-uploads/4186b2a5-a05b-4181-bb97-9f5528f850ee.png" alt="Flat Rate Appliance Repair" className="h-16 object-contain" />
             <img src="/lovable-uploads/556af458-1399-446b-b561-5af854db062c.png" alt="Rod's Appliance Repair" className="h-10 object-contain" />
             <img src="/lovable-uploads/d96c1b7f-311e-4a12-a157-2eb257948eb0.png" alt="West Metro Appliance" className="h-12 object-contain" />
