@@ -3,12 +3,12 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
-export default function Careers() {
+export default function Community() {
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <header className="sticky top-0 z-10 border-b bg-white/95 backdrop-blur">
         <div className="container mx-auto flex h-24 items-center justify-between px-4">
-          <h1 className="text-xl font-bold">Careers</h1>
+          <h1 className="text-xl font-bold">Community</h1>
           <Button asChild variant="outline">
             <Link to="/"><ArrowLeft className="mr-2 h-4 w-4" />Back to Home</Link>
           </Button>

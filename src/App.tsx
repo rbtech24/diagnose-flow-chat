@@ -1,4 +1,3 @@
-
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { Suspense, lazy, useEffect } from "react";
 import Index from "./pages/Index";
@@ -98,6 +97,19 @@ function RouteChangeTracker() {
   return null;
 }
 
+// Add new imports for the new pages
+import Features from "./pages/Features";
+import Pricing from "./pages/Pricing";
+import About from "./pages/About";
+import Careers from "./pages/Careers";
+import Contact from "./pages/Contact";
+import Community from "./pages/Community";
+import Partners from "./pages/Partners";
+import Security from "./pages/Security";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfUse from "./pages/TermsOfUse";
+import HelpCenter from "./pages/HelpCenter";
+
 function App() {
   useEffect(() => {
     console.log("App mounted, current path:", window.location.pathname);
@@ -191,6 +203,19 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={['admin', 'company']} />}>
             <Route path="/workflow-editor" element={<WorkflowEditor />} />
           </Route>
+
+          <Route path="/features" element={<Features />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/careers" element={<Careers />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/partners" element={<Partners />} />
+          <Route path="/security" element={<Security />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfUse />} />
+          {/* Help Center page route exists as HelpCenter */}
+          <Route path="/help" element={<HelpCenter />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
