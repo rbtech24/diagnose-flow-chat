@@ -71,11 +71,11 @@ export default function Index() {
                   Start Free Trial <span className="ml-1">→</span>
                 </Button>
               </Link>
-              <Link to="/features">
+              <a href="#features">
                 <Button variant="outline" className="border-gray-300">
                   See Features
                 </Button>
-              </Link>
+              </a>
             </div>
             <div className="flex flex-wrap items-center gap-4 pt-2">
               <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -116,7 +116,7 @@ export default function Index() {
       </section>
 
       {/* Trusted By Section */}
-      <section className="py-12 border-t border-b border-gray-100">
+      <section id="features" className="py-12 border-t border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4">
           <p className="text-center text-gray-500 mb-8">Trusted by leading appliance service companies</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center">
