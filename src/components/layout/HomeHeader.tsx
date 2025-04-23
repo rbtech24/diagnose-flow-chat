@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
@@ -25,7 +24,6 @@ export default function HomeHeader() {
   }
 
   // Create a LinkOrAnchor component that conditionally renders Link or a based on router availability
-  // Updated to accept onClick prop
   const LinkOrAnchor = ({ 
     to, 
     className, 
