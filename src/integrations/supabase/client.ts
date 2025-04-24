@@ -19,10 +19,14 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 // Set the site URL for authentication redirects
 // This can be accessed by Supabase auth functions that need redirect URLs
-export const siteUrl = 'https://repairautopilot.com';
+// Use window.location.origin for development to work with any environment
+export const siteUrl = typeof window !== 'undefined' 
+  ? window.location.origin 
+  : 'https://repairautopilot.com';
 
 // Debug log initialization
 console.log("Supabase client initialized with URL:", supabaseUrl);
+console.log("Site URL for redirects:", siteUrl);
 console.log("Supabase auth configuration:", {
   persistSession: true,
   autoRefreshToken: true,
@@ -56,4 +60,3 @@ export const signInWithEmail = async (email: string, password: string) => {
     };
   }
 };
-

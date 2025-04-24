@@ -40,6 +40,9 @@ export function PasswordResetForm() {
     setIsSubmitting(true);
     
     try {
+      console.log(`Sending password reset email to: ${values.email}`);
+      console.log(`Using redirect URL: ${siteUrl}/reset-password`);
+      
       const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
         redirectTo: `${siteUrl}/reset-password`,
       });
