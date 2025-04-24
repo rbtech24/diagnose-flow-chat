@@ -6,8 +6,8 @@ import { AuthLayout } from "@/components/auth/AuthLayout";
 export default function ForgotPassword() {
   return (
     <AuthLayout 
-      title="Forgot password"
-      description="Enter your email address and we'll send you a link to reset your password"
+      title="Reset your password"
+      description="Enter your email and we'll send you a link to reset your password"
       showSalesContent={false}
     >
       <PasswordResetForm />

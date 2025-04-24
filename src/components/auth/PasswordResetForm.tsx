@@ -4,7 +4,14 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "react-hot-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,7 +40,6 @@ export function PasswordResetForm() {
     setIsSubmitting(true);
     
     try {
-      // Using Supabase directly for password reset
       const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
@@ -58,7 +64,7 @@ export function PasswordResetForm() {
       {emailSent ? (
         <div className="text-center py-4">
           <h3 className="text-lg font-medium">Check your email</h3>
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-gray-500">
             We've sent a password reset link to your email address.
           </p>
         </div>
@@ -72,14 +78,23 @@ export function PasswordResetForm() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="your@email.com" {...field} />
+                    <Input 
+                      type="email" 
+                      placeholder="your@email.com" 
+                      autoComplete="email"
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             
-            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isSubmitting}>
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={isSubmitting}
+            >
               {isSubmitting ? "Sending..." : "Send Reset Link"}
             </Button>
           </form>
@@ -88,9 +103,7 @@ export function PasswordResetForm() {
       
       <div className="mt-4 text-center">
         <Button variant="link" asChild>
-          <Link to="/login">
-            Back to Login
-          </Link>
+          <Link to="/login">Back to Login</Link>
         </Button>
       </div>
     </div>
