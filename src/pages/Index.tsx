@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Check, Clock, Settings, Activity, Users, Shield } from "lucide-react";
@@ -8,8 +8,8 @@ import HomeFooter from "@/components/layout/HomeFooter";
 import { cacheBustUrl } from "@/utils/cacheControl";
 
 export default function Index() {
-  // Using direct React.useEffect reference
-  React.useEffect(() => {
+  // Using explicit useEffect import instead of React.useEffect
+  useEffect(() => {
     console.log("Index component mounted - Version: " + Date.now());
     
     // Debug image paths
