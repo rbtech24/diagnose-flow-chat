@@ -8,7 +8,7 @@ import HomeFooter from "@/components/layout/HomeFooter";
 import { cacheBustUrl } from "@/utils/cacheControl";
 
 export default function Index() {
-  // Explicitly use React.useEffect to ensure proper reference
+  // Using direct React.useEffect reference
   React.useEffect(() => {
     console.log("Index component mounted - Version: " + Date.now());
     

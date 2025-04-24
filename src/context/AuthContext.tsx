@@ -1,5 +1,6 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { showToast } from "@/utils/toast-helpers";
 import { User } from "@/types/user";
@@ -19,12 +20,14 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<'admin' | 'company' | 'tech' | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // Use React.useState to ensure we're not relying on imported hooks
+  const [user, setUser] = React.useState<User | null>(null);
+  const [userRole, setUserRole] = React.useState<'admin' | 'company' | 'tech' | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
 
-  useEffect(() => {
+  // Use React.useEffect to ensure we're not relying on imported hooks
+  React.useEffect(() => {
     console.log("AuthProvider is rendering");
     
     // Check current session

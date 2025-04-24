@@ -31,6 +31,7 @@ if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
     });
 }
 
+// Create the root with explicit React reference
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <BrowserRouter>
@@ -41,3 +42,10 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     </BrowserRouter>
   </React.StrictMode>
 );
+
+// Add a declaration for the window.React property
+declare global {
+  interface Window {
+    React: typeof React;
+  }
+}
