@@ -1,4 +1,3 @@
-
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { Suspense, lazy, useEffect } from "react";
 import Index from "./pages/Index";
@@ -123,12 +122,9 @@ function App() {
       <RouteChangeTracker />
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
+          {/* Public routes */}
           <Route path="/" element={<Index />} />
-          <Route path="/login" element={
-            <ErrorBoundary>
-              <Login />
-            </ErrorBoundary>
-          } />
+          <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/verify-email-success" element={<VerifyEmailSuccess />} />

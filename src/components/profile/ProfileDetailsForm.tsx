@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/form";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "react-hot-toast";
 
 const profileFormSchema = z.object({
   name: z.string().min(2, {
@@ -23,9 +22,6 @@ const profileFormSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
-  phone: z.string().min(10, {
-    message: "Phone number must be at least 10 digits.",
-  }).optional(),
 });
 
 export function ProfileDetailsForm() {
@@ -36,25 +32,18 @@ export function ProfileDetailsForm() {
     defaultValues: {
       name: user?.name || "",
       email: user?.email || "",
-      phone: user?.phone || "",
     },
   });
 
   const onSubmit = async (values: z.infer<typeof profileFormSchema>) => {
-    try {
-      await updateUser(values);
-      toast.success("Profile updated successfully");
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      toast.error("Failed to update profile");
-    }
+    await updateUser(values);
   };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Personal Information</CardTitle>
-        <CardDescription>Update your personal details here.</CardDescription>
+        <CardDescription>Update your profile details here.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -80,21 +69,7 @@ export function ProfileDetailsForm() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input {...field} type="email" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="tel" />
+                    <Input {...field} type="email" disabled />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
