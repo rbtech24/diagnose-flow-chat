@@ -1,38 +1,37 @@
 
-import { useState } from "react";
+import React from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Loader2, Phone } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 
 export default function SignUp() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState("");
-  const [role, setRole] = useState<'tech' | 'company'>('tech');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [phoneNumber, setPhoneNumber] = React.useState("");
+  const [role, setRole] = React.useState<'tech' | 'company'>('tech');
+  const [isLoading, setIsLoading] = React.useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null);
     
     try {
-      const success = await signUp(email, password, role);
+      const success = await signUp(email, password, role, {
+        phoneNumber,
+      });
+      
       if (success) {
         navigate('/verify-email', { 
           state: { email }
         });
       }
-    } catch (err: any) {
-      setError(err.message || "An error occurred during sign up");
     } finally {
       setIsLoading(false);
     }
@@ -44,16 +43,14 @@ export default function SignUp() {
       description="Sign up for a 30-day free trial"
       showSalesContent={true}
     >
-      {error && (
-        <div className="p-3 mb-4 text-sm bg-red-50 border border-red-100 text-red-600 rounded-md">
-          {error}
-        </div>
-      )}
-      
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label>I am a...</Label>
-          <RadioGroup defaultValue="tech" onValueChange={(value) => setRole(value as 'tech' | 'company')} className="grid grid-cols-2 gap-4">
+          <RadioGroup 
+            defaultValue="tech" 
+            onValueChange={(value) => setRole(value as 'tech' | 'company')} 
+            className="grid grid-cols-2 gap-4"
+          >
             <div>
               <RadioGroupItem value="tech" id="tech" className="peer sr-only" />
               <Label
@@ -89,20 +86,15 @@ export default function SignUp() {
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="phone">Phone Number</Label>
-          <div className="relative">
-            <Input
-              id="phone"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="(123) 456-7890"
-              required
-              disabled={isLoading}
-              className="pl-10"
-            />
-            <Phone className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-          </div>
+          <Label htmlFor="phoneNumber">Phone Number</Label>
+          <Input
+            id="phoneNumber"
+            type="tel"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            placeholder="(123) 456-7890"
+            disabled={isLoading}
+          />
         </div>
         
         <div className="space-y-2">

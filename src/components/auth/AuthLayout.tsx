@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Link } from "react-router-dom";
 
 interface AuthLayoutProps {
@@ -8,7 +9,11 @@ interface AuthLayoutProps {
   showSalesContent?: boolean;
 }
 
-export function AuthLayout({ children, title, description, showSalesContent }: AuthLayoutProps) {
+export function AuthLayout({ children, title, description, showSalesContent = false }: AuthLayoutProps) {
+  React.useEffect(() => {
+    console.log("AuthLayout mounted", { showSalesContent });
+  }, [showSalesContent]);
+
   return (
     <div className="flex min-h-screen">
       {showSalesContent && (

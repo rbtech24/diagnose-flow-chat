@@ -131,7 +131,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           
-          {/* Fix for protected profile route */}
+          {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="/profile" element={<Profile />} />
           </Route>
@@ -209,6 +209,7 @@ function App() {
             <Route path="/workflow-editor" element={<WorkflowEditor />} />
           </Route>
 
+          {/* Public information pages */}
           <Route path="/features" element={<Features />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/about" element={<About />} />
