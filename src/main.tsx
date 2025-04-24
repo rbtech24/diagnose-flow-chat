@@ -32,11 +32,12 @@ if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
 }
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  // Removed StrictMode temporarily to help debug hook issues
-  <BrowserRouter>
-    <AuthProvider>
-      <App />
-      <Toaster position="top-right" />
-    </AuthProvider>
-  </BrowserRouter>
+  <React.StrictMode>
+    <BrowserRouter>
+      <AuthProvider>
+        <App />
+        <Toaster position="top-right" />
+      </AuthProvider>
+    </BrowserRouter>
+  </React.StrictMode>
 );
