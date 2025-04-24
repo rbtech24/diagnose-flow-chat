@@ -11,10 +11,8 @@ interface AuthLayoutProps {
 }
 
 export function AuthLayout({ children, title, description, showSalesContent = false }: AuthLayoutProps) {
-  React.useEffect(() => {
-    console.log("AuthLayout mounted", { showSalesContent });
-  }, [showSalesContent]);
-
+  // Remove the problematic useEffect call that's causing the error
+  
   return (
     <div className="flex min-h-screen">
       {showSalesContent && (
