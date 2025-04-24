@@ -8,13 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { toast } from 'react-hot-toast';
-import { signInWithEmail } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Login() {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
-  const { signIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -25,8 +24,12 @@ export default function Login() {
     setIsLoading(true);
     
     try {
-      // Use the direct signInWithEmail function to debug any issues
-      const { data, error } = await signInWithEmail(email, password);
+      console.log("Attempting login with email:", email);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
       if (error) {
         toast.error(error.message || "Failed to sign in");

@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Loader2 } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from 'react-hot-toast';
 
 export default function SignUp() {
   const [email, setEmail] = React.useState("");
@@ -27,15 +29,36 @@ export default function SignUp() {
     setIsLoading(true);
     
     try {
-      const success = await signUp(email, password, role, {
-        phoneNumber,
+      console.log("Starting signup with:", { email, role });
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            role: role,
+            phoneNumber,
+          }
+        }
       });
       
-      if (success) {
-        navigate('/verify-email', { 
-          state: { email }
-        });
+      if (error) {
+        console.error("Signup error:", error);
+        toast.error(error.message);
+        setIsLoading(false);
+        return;
       }
+      
+      console.log("Signup successful:", data);
+      toast.success("Please check your email for verification");
+      
+      // Redirect to verification page
+      navigate('/verify-email', { 
+        state: { email }
+      });
+    } catch (err: any) {
+      console.error("Unexpected error during signup:", err);
+      toast.error(err.message || "An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
