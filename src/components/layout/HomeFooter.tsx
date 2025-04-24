@@ -1,10 +1,10 @@
 
-import React from 'react';
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function HomeFooter() {
-  // Use React.useEffect for the footer if needed
-  React.useEffect(() => {
+  // Use useEffect for the footer if needed
+  useEffect(() => {
     console.log('HomeFooter component mounted');
     return () => {
       console.log('HomeFooter component unmounting');
