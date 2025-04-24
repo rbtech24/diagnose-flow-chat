@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

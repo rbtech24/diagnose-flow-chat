@@ -1,10 +1,9 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "react-hot-toast";
@@ -46,7 +45,7 @@ export function PasswordResetForm() {
         setEmailSent(true);
         toast.success("Check your email for a link to reset your password.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Unexpected error during password reset:", error);
       toast.error("An unexpected error occurred. Please try again.");
     } finally {
@@ -55,46 +54,45 @@ export function PasswordResetForm() {
   }
 
   return (
-    <Card className="w-full border-0 shadow-none">
-      <CardContent>
-        {emailSent ? (
-          <div className="text-center py-4">
-            <h3 className="text-lg font-medium">Check your email</h3>
-            <p className="mt-2 text-sm text-gray-500">
-              We've sent a password reset link to your email address.
-            </p>
-          </div>
-        ) : (
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="your@email.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isSubmitting}>
-                {isSubmitting ? "Sending..." : "Send Reset Link"}
-              </Button>
-            </form>
-          </Form>
-        )}
-      </CardContent>
-      <CardFooter className="justify-center">
+    <div className="w-full">
+      {emailSent ? (
+        <div className="text-center py-4">
+          <h3 className="text-lg font-medium">Check your email</h3>
+          <p className="mt-2 text-sm text-gray-500">
+            We've sent a password reset link to your email address.
+          </p>
+        </div>
+      ) : (
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="your@email.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isSubmitting}>
+              {isSubmitting ? "Sending..." : "Send Reset Link"}
+            </Button>
+          </form>
+        </Form>
+      )}
+      
+      <div className="mt-4 text-center">
         <Button variant="link" asChild>
           <Link to="/login">
             Back to Login
           </Link>
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }
