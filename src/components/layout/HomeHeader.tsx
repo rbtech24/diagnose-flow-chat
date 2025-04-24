@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
@@ -15,9 +16,11 @@ export default function HomeHeader() {
   // Check if we're within a Router context by attempting to use useNavigate
   // If it fails, we'll use regular <a> tags instead of <Link>
   let isRouterAvailable = true;
+  let navigate;
+  
   try {
     // This will throw an error if not in a router context
-    useNavigate();
+    navigate = useNavigate();
   } catch (e) {
     console.log("Router context not available in HomeHeader, falling back to <a> tags");
     isRouterAvailable = false;
