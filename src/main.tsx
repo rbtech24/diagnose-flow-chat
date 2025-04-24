@@ -11,7 +11,7 @@ import { BrowserRouter } from 'react-router-dom';
 // For debugging purposes
 console.log("Main.tsx is rendering, React version:", React.version);
 
-// Make React available globally for debugging - useful for the error we're fixing
+// Make React available globally for debugging
 window.React = React;
 
 // Apply cache control meta tags on startup
@@ -32,12 +32,11 @@ if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
 }
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <App />
-        <Toaster position="top-right" />
-      </AuthProvider>
-    </BrowserRouter>
-  </React.StrictMode>
+  // Removed StrictMode temporarily to help debug hook issues
+  <BrowserRouter>
+    <AuthProvider>
+      <App />
+      <Toaster position="top-right" />
+    </AuthProvider>
+  </BrowserRouter>
 );

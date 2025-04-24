@@ -10,10 +10,8 @@ export default function HomeHeader() {
   const { isAuthenticated, signOut } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    console.log("HomeHeader component mounted");
-  }, []);
-
+  // Removed potentially problematic useEffect
+  
   const handleLogout = async () => {
     try {
       await signOut();
@@ -52,7 +50,6 @@ export default function HomeHeader() {
             alt="Repair Auto Pilot logo" 
             className="h-16 w-auto object-contain"
             style={{ maxWidth: 200 }}
-            onLoad={() => console.log("Header logo loaded")}
             onError={(e) => {
               console.error("Header logo failed to load");
               e.currentTarget.src = "https://via.placeholder.com/200x60?text=Repair+Auto+Pilot";
