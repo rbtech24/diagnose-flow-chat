@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -13,7 +14,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "react-hot-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, siteUrl } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 
 const passwordResetSchema = z.object({
@@ -40,7 +41,7 @@ export function PasswordResetForm() {
     
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
-        redirectTo: 'https://repairautopilot.com/reset-password',
+        redirectTo: `${siteUrl}/reset-password`,
       });
       
       if (error) {
