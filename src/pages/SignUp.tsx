@@ -1,11 +1,10 @@
 
 import React from 'react';
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Toggle } from "@/components/ui/toggle";
 import { Loader2 } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,12 +16,7 @@ export default function SignUp() {
   const [phoneNumber, setPhoneNumber] = React.useState("");
   const [role, setRole] = React.useState<'tech' | 'company'>('tech');
   const [isLoading, setIsLoading] = React.useState(false);
-  const { signUp } = useAuth();
   const navigate = useNavigate();
-
-  React.useEffect(() => {
-    console.log("Current role selected:", role);
-  }, [role]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +46,6 @@ export default function SignUp() {
       console.log("Signup successful:", data);
       toast.success("Please check your email for verification");
       
-      // Redirect to verification page
       navigate('/verify-email', { 
         state: { email }
       });
@@ -73,30 +66,22 @@ export default function SignUp() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label>I am a...</Label>
-          <RadioGroup 
-            value={role}
-            onValueChange={(value) => setRole(value as 'tech' | 'company')} 
-            className="grid grid-cols-2 gap-4"
-          >
-            <div>
-              <RadioGroupItem value="tech" id="tech" className="peer sr-only" />
-              <Label
-                htmlFor="tech"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-transparent p-4 hover:bg-muted peer-checked:border-primary [&:has([data-state=checked])]:border-primary"
-              >
-                <span className="text-sm font-medium">Technician</span>
-              </Label>
-            </div>
-            <div>
-              <RadioGroupItem value="company" id="company" className="peer sr-only" />
-              <Label
-                htmlFor="company"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-transparent p-4 hover:bg-muted peer-checked:border-primary [&:has([data-state=checked])]:border-primary"
-              >
-                <span className="text-sm font-medium">Company</span>
-              </Label>
-            </div>
-          </RadioGroup>
+          <div className="flex gap-4">
+            <Toggle
+              pressed={role === 'tech'}
+              onPressedChange={() => setRole('tech')}
+              className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            >
+              Technician
+            </Toggle>
+            <Toggle
+              pressed={role === 'company'}
+              onPressedChange={() => setRole('company')}
+              className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            >
+              Company
+            </Toggle>
+          </div>
         </div>
         
         <div className="space-y-2">
