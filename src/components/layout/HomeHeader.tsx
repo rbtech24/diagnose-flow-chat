@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { cacheBustUrl } from "@/utils/cacheControl";
@@ -7,24 +7,24 @@ import { Menu, X } from "lucide-react";
 
 export default function HomeHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isRouterAvailable, setIsRouterAvailable] = useState(true);
 
   // Debug log for component mounting
-  React.useEffect(() => {
+  useEffect(() => {
     console.log("HomeHeader component mounted");
   }, []);
 
-  // Check if we're within a Router context by attempting to use useNavigate
-  // If it fails, we'll use regular <a> tags instead of <Link>
-  let isRouterAvailable = true;
-  let navigate;
-  
-  try {
-    // This will throw an error if not in a router context
-    navigate = useNavigate();
-  } catch (e) {
-    console.log("Router context not available in HomeHeader, falling back to <a> tags");
-    isRouterAvailable = false;
-  }
+  // Check if we're within a Router context
+  useEffect(() => {
+    try {
+      // This is just to see if Router context is available
+      // If this doesn't throw, we're in a Router context
+      require('react-router-dom').useRouteMatch;
+    } catch (e) {
+      console.log("Router context not available in HomeHeader, falling back to <a> tags");
+      setIsRouterAvailable(false);
+    }
+  }, []);
 
   // Create a LinkOrAnchor component that conditionally renders Link or a based on router availability
   const LinkOrAnchor = ({ 

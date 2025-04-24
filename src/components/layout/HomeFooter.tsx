@@ -1,27 +1,29 @@
 
-import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { cacheBustUrl } from "@/utils/cacheControl";
 
 export default function HomeFooter() {
+  const [isRouterAvailable, setIsRouterAvailable] = useState(true);
+  
   // Debug log for component mounting
-  React.useEffect(() => {
+  useEffect(() => {
     console.log("HomeFooter component mounted");
   }, []);
 
-  // Check if we're within a Router context by attempting to use useNavigate
-  // If it fails, we'll use regular <a> tags instead of <Link>
-  let isRouterAvailable = true;
-  try {
-    // This will throw an error if not in a router context
-    useNavigate();
-  } catch (e) {
-    console.log("Router context not available in HomeFooter, falling back to <a> tags");
-    isRouterAvailable = false;
-  }
+  // Check if we're within a Router context
+  useEffect(() => {
+    try {
+      // This is just to see if Router context is available
+      // If this doesn't throw, we're in a Router context
+      require('react-router-dom').useRouteMatch;
+    } catch (e) {
+      console.log("Router context not available in HomeFooter, falling back to <a> tags");
+      setIsRouterAvailable(false);
+    }
+  }, []);
 
   // Create a LinkOrAnchor component that conditionally renders Link or a based on router availability
-  // Updated to accept onClick prop for consistency with HomeHeader
   const LinkOrAnchor = ({ 
     to, 
     className, 
