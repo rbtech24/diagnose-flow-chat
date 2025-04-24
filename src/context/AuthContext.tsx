@@ -19,12 +19,14 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = React.useState<User | null>(null);
-  const [userRole, setUserRole] = React.useState<'admin' | 'company' | 'tech' | null>(null);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [userRole, setUserRole] = useState<'admin' | 'company' | 'tech' | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
+    console.log("AuthProvider is rendering");
+    
     // Check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
