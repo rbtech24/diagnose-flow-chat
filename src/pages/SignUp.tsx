@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { AuthLayout } from "@/components/auth/AuthLayout";
 import { toast } from 'react-hot-toast';
 import { useAuth } from "@/context/AuthContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function SignUp() {
   // Form state
@@ -65,6 +67,11 @@ export default function SignUp() {
     try {
       console.log("Starting signup with:", { email, role });
       
+      // Check if the Supabase client is properly initialized
+      if (!supabase) {
+        throw new Error("Authentication service is not available");
+      }
+      
       const success = await signUp(email, password, role, { phoneNumber });
       
       if (success) {
@@ -80,8 +87,15 @@ export default function SignUp() {
       }
     } catch (err: any) {
       console.error("Unexpected error during signup:", err);
-      setError(err.message || "An unexpected error occurred");
-      toast.error(err.message || "An unexpected error occurred");
+      
+      // Handle specific errors
+      if (err.message?.includes("API key")) {
+        setError("Authentication service configuration error. Please contact support.");
+        toast.error("Authentication service configuration error");
+      } else {
+        setError(err.message || "An unexpected error occurred");
+        toast.error(err.message || "An unexpected error occurred");
+      }
     } finally {
       setIsLoading(false);
     }

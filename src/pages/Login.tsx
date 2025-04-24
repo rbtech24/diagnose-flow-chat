@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -8,6 +9,7 @@ import { Loader2, AlertCircle } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { toast } from 'react-hot-toast';
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Login() {
   // Form state
@@ -50,6 +52,11 @@ export default function Login() {
     try {
       console.log("Attempting login with email:", email);
       
+      // Check if the Supabase client is properly initialized
+      if (!supabase) {
+        throw new Error("Authentication service is not available");
+      }
+      
       const success = await signIn(email, password);
       
       if (success) {
@@ -61,6 +68,14 @@ export default function Login() {
         setIsLoading(false);
       }
     } catch (error: any) {
+      // Handle API key error specifically
+      if (error.message?.includes("API key")) {
+        setError("Authentication service configuration error. Please contact support.");
+        toast.error("Authentication service configuration error");
+        setIsLoading(false);
+        return;
+      }
+      
       // Check if this is an email verification error
       if (error.message?.includes("email") && error.message?.includes("verify")) {
         // Store email for verification page
