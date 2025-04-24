@@ -12,7 +12,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn } = useAuth(); // Changed from login to signIn
+  const { signIn } = useAuth(); // Using signIn instead of login
   const navigate = useNavigate();
   const location = useLocation();
 
