@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { toast } from 'react-hot-toast';
-import { supabase } from "@/integrations/supabase/client";
 
 export default function Login() {
   const [email, setEmail] = React.useState("");
@@ -16,6 +15,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = React.useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { signIn } = useAuth();
 
   const from = location.state?.from || "/";
 
@@ -26,25 +26,14 @@ export default function Login() {
     try {
       console.log("Attempting login with email:", email);
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      const success = await signIn(email, password);
       
-      if (error) {
-        toast.error(error.message || "Failed to sign in");
-        console.error("Login error:", error);
-        setIsLoading(false);
-        return;
-      }
-      
-      if (data?.user) {
+      if (success) {
         toast.success("Signed in successfully!");
         console.log("Login successful, redirecting to:", from);
         navigate(from, { replace: true });
       } else {
-        toast.error("Something went wrong. Please try again.");
-        console.error("No user data returned on login");
+        toast.error("Failed to sign in. Please check your credentials.");
         setIsLoading(false);
       }
     } catch (error: any) {

@@ -9,6 +9,7 @@ import { Loader2 } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from 'react-hot-toast';
+import { useAuth } from "@/context/AuthContext";
 
 export default function SignUp() {
   const [email, setEmail] = React.useState("");
@@ -17,6 +18,7 @@ export default function SignUp() {
   const [role, setRole] = React.useState<'tech' | 'company'>('tech');
   const [isLoading, setIsLoading] = React.useState(false);
   const navigate = useNavigate();
+  const { signUp } = useAuth(); // Use the auth context for signup
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,30 +27,16 @@ export default function SignUp() {
     try {
       console.log("Starting signup with:", { email, role });
       
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            role: role,
-            phoneNumber,
-          }
-        }
-      });
+      const success = await signUp(email, password, role, { phoneNumber });
       
-      if (error) {
-        console.error("Signup error:", error);
-        toast.error(error.message);
-        setIsLoading(false);
-        return;
+      if (success) {
+        console.log("Signup successful");
+        toast.success("Please check your email for verification");
+        
+        navigate('/verify-email', { 
+          state: { email }
+        });
       }
-      
-      console.log("Signup successful:", data);
-      toast.success("Please check your email for verification");
-      
-      navigate('/verify-email', { 
-        state: { email }
-      });
     } catch (err: any) {
       console.error("Unexpected error during signup:", err);
       toast.error(err.message || "An unexpected error occurred");
