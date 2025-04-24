@@ -14,14 +14,14 @@ export default function SignUp() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<'tech' | 'company'>('tech');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null); // Added error state 
-  const { signUp } = useAuth(); // Changed from register to signUp
+  const [error, setError] = useState<string | null>(null);
+  const { signUp } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null); // Reset error state
+    setError(null);
     
     try {
       const success = await signUp(email, password, role);
@@ -31,7 +31,6 @@ export default function SignUp() {
         });
       }
     } catch (err: any) {
-      // Handle any errors that might be thrown
       setError(err.message || "An error occurred during sign up");
     } finally {
       setIsLoading(false);
