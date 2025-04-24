@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
+import { toast } from 'react-hot-toast';
+import { signInWithEmail } from "@/integrations/supabase/client";
 
 export default function Login() {
   const [email, setEmail] = React.useState("");
@@ -23,11 +25,28 @@ export default function Login() {
     setIsLoading(true);
     
     try {
-      const success = await signIn(email, password);
-      if (success) {
-        navigate(from, { replace: true });
+      // Use the direct signInWithEmail function to debug any issues
+      const { data, error } = await signInWithEmail(email, password);
+      
+      if (error) {
+        toast.error(error.message || "Failed to sign in");
+        console.error("Login error:", error);
+        setIsLoading(false);
+        return;
       }
-    } finally {
+      
+      if (data?.user) {
+        toast.success("Signed in successfully!");
+        console.log("Login successful, redirecting to:", from);
+        navigate(from, { replace: true });
+      } else {
+        toast.error("Something went wrong. Please try again.");
+        console.error("No user data returned on login");
+        setIsLoading(false);
+      }
+    } catch (error: any) {
+      toast.error(error.message || "An unexpected error occurred");
+      console.error("Login exception:", error);
       setIsLoading(false);
     }
   };

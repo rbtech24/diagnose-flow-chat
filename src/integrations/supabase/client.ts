@@ -38,6 +38,7 @@ export const signInWithEmail = async (email: string, password: string) => {
   console.log(`Attempting to sign in with email: ${email}`);
   
   try {
+    // Make sure we're including the apikey in all requests
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password

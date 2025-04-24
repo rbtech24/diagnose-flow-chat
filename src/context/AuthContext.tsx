@@ -1,4 +1,3 @@
-
 import React from "react";
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,18 +19,41 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Use React.useState to ensure we're not relying on imported hooks
   const [user, setUser] = React.useState<User | null>(null);
   const [userRole, setUserRole] = React.useState<'admin' | 'company' | 'tech' | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
 
-  // Use React.useEffect to ensure we're not relying on imported hooks
   React.useEffect(() => {
     console.log("AuthProvider is rendering");
     
-    // Check current session
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event);
+      
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata?.name || '',
+          role: session.user.user_metadata?.role || 'tech',
+          status: 'active',
+          avatarUrl: session.user.user_metadata?.avatar_url,
+          companyId: session.user.user_metadata?.company_id,
+        });
+        setUserRole(session.user.user_metadata?.role || 'tech');
+        setIsAuthenticated(true);
+        console.log("User authenticated:", session.user);
+      } else {
+        setUser(null);
+        setUserRole(null);
+        setIsAuthenticated(false);
+        console.log("User not authenticated");
+      }
+    });
+
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Initial session check:", session ? "Session found" : "No session");
+      
       if (session?.user) {
         setUser({
           id: session.user.id,
@@ -48,29 +70,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
     });
 
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", event);
-      
-      if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.user_metadata?.name || '',
-          role: session.user.user_metadata?.role || 'tech',
-          status: 'active',
-          avatarUrl: session.user.user_metadata?.avatar_url,
-          companyId: session.user.user_metadata?.company_id,
-        });
-        setUserRole(session.user.user_metadata?.role || 'tech');
-        setIsAuthenticated(true);
-      } else {
-        setUser(null);
-        setUserRole(null);
-        setIsAuthenticated(false);
-      }
-    });
-
     return () => {
       subscription.unsubscribe();
     };
@@ -78,6 +77,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log("AuthContext: signIn called with email:", email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -85,17 +86,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         showToast.error(error.message);
+        console.error("AuthContext: Sign in error:", error);
         return false;
       }
 
       if (data.user) {
         showToast.success('Signed in successfully');
+        console.log("AuthContext: Sign in successful for:", data.user.email);
         return true;
       }
 
       return false;
     } catch (error: any) {
       showToast.error(error.message || 'Sign in failed');
+      console.error("AuthContext: Sign in exception:", error);
       return false;
     }
   };
