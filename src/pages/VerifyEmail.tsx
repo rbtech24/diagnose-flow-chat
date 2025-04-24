@@ -1,111 +1,93 @@
 
-import React, { useState } from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import { Mail, ArrowLeft, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/context/AuthContext';
-import { showToast } from '@/utils/toast-helpers';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useState, useEffect } from "react";
+import { useLocation, Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Loader2, CheckCircle, MailIcon } from "lucide-react";
+import { AuthLayout } from "@/components/auth/AuthLayout";
 
 export default function VerifyEmail() {
   const location = useLocation();
-  const email = location.state?.email || '';
   const { resendVerificationEmail } = useAuth();
-  const [isResending, setIsResending] = useState(false);
-  const [resendSuccess, setResendSuccess] = useState(false);
-  
-  const handleResendVerification = async () => {
-    if (!email) {
-      showToast.error("Email address not found. Please try signing up again.");
-      return;
+  const [email, setEmail] = useState<string>("");
+  const [isSending, setIsSending] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  useEffect(() => {
+    // Get email from location state if available
+    if (location.state?.email) {
+      setEmail(location.state.email);
     }
+  }, [location]);
+
+  const handleResend = async () => {
+    if (!email) return;
     
-    setIsResending(true);
+    setIsSending(true);
     try {
       const success = await resendVerificationEmail(email);
       if (success) {
-        setResendSuccess(true);
-        showToast.success("Verification email has been resent");
+        setIsSuccess(true);
+        setTimeout(() => {
+          setIsSuccess(false);
+        }, 3000);
       }
-    } catch (error) {
-      console.error("Error resending verification email:", error);
-      showToast.error("Failed to resend verification email");
     } finally {
-      setIsResending(false);
+      setIsSending(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-blue-50 px-4 py-12">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <div className="flex justify-center mb-6">
-            <img 
-              src="/lovable-uploads/28cef98f-7973-4892-9eb5-f0e02978d22e.png" 
-              alt="Repair Auto Pilot logo" 
-              className="h-14 w-auto object-contain"
-              style={{ maxWidth: 160 }}
-            />
+    <AuthLayout 
+      title="Verify your email"
+      description="Check your inbox for a verification link"
+    >
+      <div className="flex flex-col items-center py-6">
+        <div className="h-16 w-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+          <MailIcon className="h-8 w-8 text-blue-600" />
+        </div>
+        
+        <h2 className="text-xl font-medium mb-2">Check your inbox</h2>
+        <p className="text-gray-600 text-center mb-6">
+          We've sent a verification link to{" "}
+          <span className="font-medium">{email}</span>
+        </p>
+
+        <p className="text-gray-600 text-sm text-center mb-6">
+          Click the link in the email to verify your account and continue. 
+          If you don't see the email, check your spam folder.
+        </p>
+
+        {isSuccess && (
+          <div className="flex items-center gap-2 text-green-600 mb-4">
+            <CheckCircle className="h-5 w-5" />
+            <span>Email sent successfully!</span>
           </div>
-          
-          <div className="flex justify-center mb-6">
-            <div className="bg-blue-100 rounded-full p-4">
-              <Mail className="h-12 w-12 text-blue-600" />
-            </div>
-          </div>
-          
-          <h1 className="text-center text-2xl font-bold mb-4">
-            Check your email
-          </h1>
-          
-          <p className="text-center text-gray-600 mb-6">
-            We sent a verification link to <span className="font-medium">{email}</span>. 
-            Please check your email and click the link to verify your account.
-          </p>
-          
-          {resendSuccess && (
-            <Alert className="mb-6 bg-green-50 border-green-200">
-              <AlertDescription className="text-green-700">
-                We've sent you a new verification link. Please check your inbox.
-              </AlertDescription>
-            </Alert>
-          )}
-          
-          <div className="space-y-4">
-            <div className="flex flex-col items-center gap-6">
-              <Button 
-                variant="outline" 
-                onClick={handleResendVerification}
-                disabled={isResending}
-                className="flex items-center gap-2"
-              >
-                {isResending ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="h-4 w-4" />
-                    Resend verification email
-                  </>
-                )}
-              </Button>
-              
-              <p className="text-sm text-gray-500 text-center">
-                Didn't receive an email? Check your spam folder or try resending the verification link.
-              </p>
-            </div>
-            
-            <div className="flex justify-center mt-6">
-              <Link to="/login" className="flex items-center text-blue-600 hover:text-blue-800">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to sign in
-              </Link>
-            </div>
-          </div>
+        )}
+        
+        <Button 
+          onClick={handleResend}
+          variant="outline" 
+          className="w-full"
+          disabled={isSending}
+        >
+          {isSending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Sending...
+            </>
+          ) : "Resend verification email"}
+        </Button>
+
+        <div className="mt-6 text-center text-sm">
+          <span className="text-gray-600">
+            Already verified?{" "}
+          </span>
+          <Link to="/login" className="text-blue-600 hover:underline font-medium">
+            Sign in
+          </Link>
         </div>
       </div>
-    </div>
+    </AuthLayout>
   );
 }
