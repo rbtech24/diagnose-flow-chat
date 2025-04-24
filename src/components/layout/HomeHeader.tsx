@@ -1,24 +1,22 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { cacheBustUrl } from "@/utils/cacheControl";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function HomeHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRouterAvailable, setIsRouterAvailable] = useState(true);
+  const { isAuthenticated, signOut } = useAuth();
+  const navigate = useNavigate();
 
-  // Debug log for component mounting
   useEffect(() => {
     console.log("HomeHeader component mounted");
   }, []);
 
-  // Check if we're within a Router context
   useEffect(() => {
     try {
-      // This is just to see if Router context is available
-      // If this doesn't throw, we're in a Router context
       require('react-router-dom').useRouteMatch;
     } catch (e) {
       console.log("Router context not available in HomeHeader, falling back to <a> tags");
@@ -26,7 +24,15 @@ export default function HomeHeader() {
     }
   }, []);
 
-  // Create a LinkOrAnchor component that conditionally renders Link or a based on router availability
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
   const LinkOrAnchor = ({ 
     to, 
     className, 
@@ -66,7 +72,6 @@ export default function HomeHeader() {
           />
         </LinkOrAnchor>
         
-        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
           <a href="#features" className="text-gray-700 hover:text-blue-600 transition">
             Features
@@ -74,17 +79,35 @@ export default function HomeHeader() {
           <a href="#testimonials" className="text-gray-700 hover:text-blue-600 transition">
             Testimonials
           </a>
-          <LinkOrAnchor to="/login" className="text-gray-700 hover:text-blue-600 transition">
-            Login
-          </LinkOrAnchor>
-          <LinkOrAnchor to="/signup">
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              Get Started
-            </Button>
-          </LinkOrAnchor>
+          {isAuthenticated ? (
+            <div className="flex items-center space-x-4">
+              <LinkOrAnchor to="/profile" className="text-gray-700 hover:text-blue-600 transition">
+                Profile
+              </LinkOrAnchor>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleLogout}
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign out
+              </Button>
+            </div>
+          ) : (
+            <>
+              <LinkOrAnchor to="/login" className="text-gray-700 hover:text-blue-600 transition">
+                Login
+              </LinkOrAnchor>
+              <LinkOrAnchor to="/signup">
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  Get Started
+                </Button>
+              </LinkOrAnchor>
+            </>
+          )}
         </nav>
 
-        {/* Mobile Menu Button */}
         <button 
           className="md:hidden p-2 text-gray-700 rounded-md hover:bg-gray-100"
           onClick={toggleMenu}
@@ -97,7 +120,6 @@ export default function HomeHeader() {
           )}
         </button>
 
-        {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden absolute top-[76px] left-0 right-0 bg-white border-b border-gray-200 z-50">
             <div className="flex flex-col px-4 py-4 space-y-4">
@@ -115,21 +137,46 @@ export default function HomeHeader() {
               >
                 Testimonials
               </a>
-              <LinkOrAnchor 
-                to="/login" 
-                className="text-gray-700 hover:text-blue-600 transition py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Login
-              </LinkOrAnchor>
-              <LinkOrAnchor 
-                to="/signup"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <Button className="bg-blue-600 hover:bg-blue-700 w-full">
-                  Get Started
-                </Button>
-              </LinkOrAnchor>
+              {isAuthenticated ? (
+                <>
+                  <LinkOrAnchor 
+                    to="/profile" 
+                    className="text-gray-700 hover:text-blue-600 transition py-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Profile
+                  </LinkOrAnchor>
+                  <Button 
+                    variant="ghost" 
+                    className="flex items-center gap-2 justify-start py-2"
+                    onClick={() => {
+                      handleLogout();
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <LinkOrAnchor 
+                    to="/login" 
+                    className="text-gray-700 hover:text-blue-600 transition py-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Login
+                  </LinkOrAnchor>
+                  <LinkOrAnchor 
+                    to="/signup"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Button className="bg-blue-600 hover:bg-blue-700 w-full">
+                      Get Started
+                    </Button>
+                  </LinkOrAnchor>
+                </>
+              )}
             </div>
           </div>
         )}
