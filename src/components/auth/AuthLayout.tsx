@@ -75,4 +75,3 @@ export function AuthLayout({ children, title, description, showSalesContent = fa
     </div>
   );
 }
-

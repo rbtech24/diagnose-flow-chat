@@ -63,7 +63,6 @@ export function PasswordResetForm() {
           </p>
         </div>
       ) : (
-        // The issue was here - we need to ensure the Form component properly wraps the form element
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField
