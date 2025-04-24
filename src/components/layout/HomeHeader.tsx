@@ -7,21 +7,11 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function HomeHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isRouterAvailable, setIsRouterAvailable] = useState(true);
   const { isAuthenticated, signOut } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     console.log("HomeHeader component mounted");
-  }, []);
-
-  useEffect(() => {
-    try {
-      require('react-router-dom').useRouteMatch;
-    } catch (e) {
-      console.log("Router context not available in HomeHeader, falling back to <a> tags");
-      setIsRouterAvailable(false);
-    }
   }, []);
 
   const handleLogout = async () => {
@@ -44,10 +34,8 @@ export default function HomeHeader() {
     children: React.ReactNode;
     onClick?: () => void;
   }) => {
-    return isRouterAvailable ? (
+    return (
       <Link to={to} className={className} onClick={onClick}>{children}</Link>
-    ) : (
-      <a href={to} className={className} onClick={onClick}>{children}</a>
     );
   };
 
