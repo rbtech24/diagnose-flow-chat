@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import HomeFooter from "@/components/layout/HomeFooter";
 import { cacheBustUrl } from "@/utils/cacheControl";
 
 export default function Index() {
+  // Explicitly use React.useEffect to ensure proper reference
   React.useEffect(() => {
     console.log("Index component mounted - Version: " + Date.now());
     
