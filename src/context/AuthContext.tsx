@@ -10,9 +10,10 @@ type AuthContextType = {
   isAuthenticated: boolean;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<boolean>;
-  signUp: (email: string, password: string, role: 'admin' | 'company' | 'tech') => Promise<boolean>;
+  signUp: (email: string, password: string, role: 'admin' | 'company' | 'tech', userData?: Record<string, any>) => Promise<boolean>;
   signOut: () => Promise<void>;
   updateUser: (data: Partial<User>) => Promise<boolean>;
+  resendVerificationEmail: (email: string) => Promise<boolean>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -94,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, password: string, role: 'admin' | 'company' | 'tech') => {
+  const signUp = async (email: string, password: string, role: 'admin' | 'company' | 'tech', userData?: Record<string, any>) => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -102,7 +103,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         options: {
           data: {
             role: role,
-            name: email.split('@')[0],
+            name: userData?.fullName || email.split('@')[0],
+            ...(userData || {}),
           }
         }
       });
@@ -161,6 +163,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const resendVerificationEmail = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+      });
+
+      if (error) {
+        showToast.error(error.message);
+        return false;
+      }
+
+      return true;
+    } catch (error: any) {
+      showToast.error(error.message || 'Failed to resend verification email');
+      return false;
+    }
+  };
+
   return (
     <AuthContext.Provider 
       value={{
@@ -171,7 +192,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signIn,
         signUp,
         signOut,
-        updateUser
+        updateUser,
+        resendVerificationEmail
       }}
     >
       {children}
