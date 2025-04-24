@@ -1,3 +1,3 @@
 
-// This file can be removed as we now use src/pages/SignUp.tsx
+// This file redirects to the main SignUp page
 export { default } from '../SignUp';

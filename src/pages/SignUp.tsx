@@ -18,6 +18,10 @@ export default function SignUp() {
   const { signUp } = useAuth();
   const navigate = useNavigate();
 
+  React.useEffect(() => {
+    console.log("Current role selected:", role);
+  }, [role]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -47,7 +51,7 @@ export default function SignUp() {
         <div className="space-y-2">
           <Label>I am a...</Label>
           <RadioGroup 
-            defaultValue="tech" 
+            value={role}
             onValueChange={(value) => setRole(value as 'tech' | 'company')} 
             className="grid grid-cols-2 gap-4"
           >
