@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Link } from "react-router-dom";
+import { Home } from 'lucide-react'; // Import Home icon from lucide-react
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -46,7 +47,16 @@ export function AuthLayout({ children, title, description, showSalesContent = fa
         </div>
       )}
       <div className={`flex-1 flex items-center justify-center p-6 ${showSalesContent ? 'lg:w-1/2' : ''}`}>
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md relative">
+          {/* Add home button/link to the top left */}
+          <Link 
+            to="/" 
+            className="absolute -top-12 left-0 flex items-center text-gray-600 hover:text-blue-600"
+          >
+            <Home className="mr-2 h-5 w-5" />
+            <span className="text-sm font-medium">Home</span>
+          </Link>
+          
           <div className="text-center mb-8">
             <Link to="/">
               <img 
@@ -65,3 +75,4 @@ export function AuthLayout({ children, title, description, showSalesContent = fa
     </div>
   );
 }
+
