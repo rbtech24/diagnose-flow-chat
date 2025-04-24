@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -55,13 +54,21 @@ export default function Login() {
       
       if (success) {
         toast.success("Signed in successfully!");
-        console.log("Login successful, redirecting to:", from);
-        navigate(from, { replace: true });
+        console.log("Login successful, redirecting to home");
+        navigate("/");
       } else {
         setError("Failed to sign in. Please check your credentials.");
         setIsLoading(false);
       }
     } catch (error: any) {
+      // Check if this is an email verification error
+      if (error.message?.includes("email") && error.message?.includes("verify")) {
+        // Store email for verification page
+        localStorage.setItem("verificationEmail", email);
+        navigate('/verify-email');
+        return;
+      }
+
       const errorMessage = error.message || "An unexpected error occurred";
       setError(errorMessage);
       toast.error(errorMessage);

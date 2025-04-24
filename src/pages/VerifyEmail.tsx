@@ -1,37 +1,51 @@
 
 import { useState, useEffect } from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle, MailIcon } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
+import { toast } from 'react-hot-toast';
 
 export default function VerifyEmail() {
-  const location = useLocation();
+  const navigate = useNavigate();
   const { resendVerificationEmail } = useAuth();
   const [email, setEmail] = useState<string>("");
   const [isSending, setIsSending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  // Instead of using location directly which can cause issues, we'll use a safer approach
   useEffect(() => {
-    // Get email from location state if available
-    if (location.state?.email) {
-      setEmail(location.state.email);
+    // Get email from localStorage if available (we'll store this during signup)
+    const storedEmail = localStorage.getItem("verificationEmail");
+    if (storedEmail) {
+      setEmail(storedEmail);
+      // Clear it after use
+      localStorage.removeItem("verificationEmail");
     }
-  }, [location]);
+  }, []);
 
   const handleResend = async () => {
-    if (!email) return;
+    if (!email) {
+      toast.error("Email address not found. Please return to signup.");
+      return;
+    }
     
     setIsSending(true);
     try {
       const success = await resendVerificationEmail(email);
       if (success) {
         setIsSuccess(true);
+        toast.success("Verification email sent!");
         setTimeout(() => {
           setIsSuccess(false);
         }, 3000);
+      } else {
+        toast.error("Failed to send verification email. Please try again.");
       }
+    } catch (error) {
+      console.error("Error sending verification email:", error);
+      toast.error("An unexpected error occurred.");
     } finally {
       setIsSending(false);
     }
@@ -50,7 +64,7 @@ export default function VerifyEmail() {
         <h2 className="text-xl font-medium mb-2">Check your inbox</h2>
         <p className="text-gray-600 text-center mb-6">
           We've sent a verification link to{" "}
-          <span className="font-medium">{email}</span>
+          <span className="font-medium">{email || "your email address"}</span>
         </p>
 
         <p className="text-gray-600 text-sm text-center mb-6">

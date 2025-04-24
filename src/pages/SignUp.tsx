@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -72,9 +71,10 @@ export default function SignUp() {
         console.log("Signup successful");
         toast.success("Please check your email for verification");
         
-        navigate('/verify-email', { 
-          state: { email }
-        });
+        // Store email in localStorage before navigating
+        localStorage.setItem("verificationEmail", email);
+        
+        navigate('/verify-email');
       } else {
         setError("Sign up failed. Please try again.");
       }
