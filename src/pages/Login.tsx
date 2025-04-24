@@ -1,18 +1,29 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { toast } from 'react-hot-toast';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Login() {
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [isLoading, setIsLoading] = React.useState(false);
+  // Form state
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  
+  // UI state
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [formSubmitted, setFormSubmitted] = useState(false);
+  
+  // Email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isEmailValid = emailRegex.test(email);
+  
   const navigate = useNavigate();
   const location = useLocation();
   const { signIn } = useAuth();
@@ -21,6 +32,20 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormSubmitted(true);
+    setError(null);
+    
+    // Validate form before submission
+    if (!isEmailValid) {
+      setError("Please enter a valid email address");
+      return;
+    }
+    
+    if (password.trim() === "") {
+      setError("Password is required");
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
@@ -33,11 +58,13 @@ export default function Login() {
         console.log("Login successful, redirecting to:", from);
         navigate(from, { replace: true });
       } else {
-        toast.error("Failed to sign in. Please check your credentials.");
+        setError("Failed to sign in. Please check your credentials.");
         setIsLoading(false);
       }
     } catch (error: any) {
-      toast.error(error.message || "An unexpected error occurred");
+      const errorMessage = error.message || "An unexpected error occurred";
+      setError(errorMessage);
+      toast.error(errorMessage);
       console.error("Login exception:", error);
       setIsLoading(false);
     }
@@ -49,6 +76,13 @@ export default function Login() {
       description="Sign in to your account to continue"
       showSalesContent={false}
     >
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+    
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
@@ -60,6 +94,7 @@ export default function Login() {
             placeholder="name@example.com"
             required
             disabled={isLoading}
+            className={formSubmitted && !isEmailValid ? "border-red-500" : ""}
           />
         </div>
         
@@ -77,6 +112,7 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
             required
             disabled={isLoading}
+            className={formSubmitted && password.trim() === "" ? "border-red-500" : ""}
           />
         </div>
         
@@ -85,8 +121,14 @@ export default function Login() {
           className="w-full"
           disabled={isLoading}
         >
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Sign in
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Signing in...
+            </>
+          ) : (
+            "Sign in"
+          )}
         </Button>
       </form>
       

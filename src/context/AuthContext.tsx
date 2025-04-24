@@ -3,12 +3,14 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { supabase } from "@/integrations/supabase/client";
 import { showToast } from "@/utils/toast-helpers";
 import { User } from "@/types/user";
+import { Session } from '@supabase/supabase-js';
 
 type AuthContextType = {
   user: User | null;
   userRole: 'admin' | 'company' | 'tech' | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  session: Session | null;
   signIn: (email: string, password: string) => Promise<boolean>;
   signUp: (email: string, password: string, role: 'admin' | 'company' | 'tech', userData?: Record<string, any>) => Promise<boolean>;
   signOut: () => Promise<void>;
@@ -23,14 +25,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [userRole, setUserRole] = useState<'admin' | 'company' | 'tech' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
     console.log("AuthProvider is rendering");
     
+    // First, set up the auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event);
       
       if (session?.user) {
+        setSession(session);
         setUser({
           id: session.user.id,
           email: session.user.email || '',
@@ -44,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsAuthenticated(true);
         console.log("User authenticated:", session.user);
       } else {
+        setSession(null);
         setUser(null);
         setUserRole(null);
         setIsAuthenticated(false);
@@ -51,10 +57,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
+    // Then check for an existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log("Initial session check:", session ? "Session found" : "No session");
       
       if (session?.user) {
+        setSession(session);
         setUser({
           id: session.user.id,
           email: session.user.email || '',
@@ -198,6 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         userRole,
         isAuthenticated,
         isLoading,
+        session,
         signIn,
         signUp,
         signOut,
