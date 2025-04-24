@@ -2,10 +2,12 @@
 import React from 'react';
 import { useNavigate } from "react-router-dom";
 import HomeHeader from "@/components/layout/HomeHeader";
+import HomeFooter from "@/components/layout/HomeFooter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 export default function Contact() {
   const navigate = useNavigate();
@@ -13,7 +15,7 @@ export default function Contact() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // In a real app, you would send the form data to a server
-    alert("Thank you for your message! We'll get back to you soon.");
+    toast.success("Thank you for your message! We'll get back to you soon.");
   };
 
   return (
@@ -106,6 +108,7 @@ export default function Contact() {
           </div>
         </section>
       </main>
+      <HomeFooter />
     </div>
   );
 }

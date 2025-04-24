@@ -1,12 +1,12 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { cacheBustUrl } from "@/utils/cacheControl";
 import { Menu, X } from "lucide-react";
 
 export default function HomeHeader() {
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Debug log for component mounting
   React.useEffect(() => {
