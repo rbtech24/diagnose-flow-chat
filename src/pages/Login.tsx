@@ -36,6 +36,7 @@ export default function Login() {
     <AuthLayout 
       title="Welcome back"
       description="Sign in to your account to continue"
+      showSalesContent={false}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">

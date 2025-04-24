@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Loader2 } from "lucide-react";
+import { Loader2, Phone } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 
 export default function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
   const [role, setRole] = useState<'tech' | 'company'>('tech');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +42,7 @@ export default function SignUp() {
     <AuthLayout 
       title="Create an account"
       description="Sign up for a 30-day free trial"
+      showSalesContent={true}
     >
       {error && (
         <div className="p-3 mb-4 text-sm bg-red-50 border border-red-100 text-red-600 rounded-md">
@@ -84,6 +86,23 @@ export default function SignUp() {
             required
             disabled={isLoading}
           />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="phone">Phone Number</Label>
+          <div className="relative">
+            <Input
+              id="phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="(123) 456-7890"
+              required
+              disabled={isLoading}
+              className="pl-10"
+            />
+            <Phone className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+          </div>
         </div>
         
         <div className="space-y-2">
