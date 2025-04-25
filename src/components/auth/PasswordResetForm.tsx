@@ -44,15 +44,8 @@ export function PasswordResetForm() {
       console.log(`Using redirect URL: ${siteUrl}/reset-password`);
       
       // Add debugging that doesn't rely on protected properties
-      console.log("Supabase client configuration:", {
-        url: supabase.supabaseUrl,
-        authConfig: {
-          autoRefreshToken: true,
-          persistSession: true,
-          detectSessionInUrl: true
-        }
-      });
-      console.log("Initiating password reset request...");
+      console.log("Initiating password reset request with Supabase");
+      console.log("Site URL for redirect:", siteUrl);
       
       const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
         redirectTo: `${siteUrl}/reset-password`,
