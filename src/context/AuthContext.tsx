@@ -116,6 +116,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, role: 'admin' | 'company' | 'tech', userData?: Record<string, any>) => {
     try {
+      console.log("AuthContext signUp: Starting with email:", email, "role:", role);
+      
+      // Ensure headers are explicitly set for this specific request
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -124,22 +127,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             role: role,
             name: userData?.fullName || email.split('@')[0],
             ...(userData || {}),
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/verify-email-success`
         }
       });
 
       if (error) {
+        console.error("AuthContext signUp error:", error);
         showToast.error(error.message);
         return false;
       }
 
       if (data.user) {
+        console.log("AuthContext signUp successful:", data.user);
         showToast.success('Signed up successfully. Please check your email for verification.');
         return true;
       }
 
       return false;
     } catch (error: any) {
+      console.error("AuthContext signUp exception:", error);
       showToast.error(error.message || 'Sign up failed');
       return false;
     }
@@ -184,18 +191,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resendVerificationEmail = async (email: string) => {
     try {
+      console.log("Resending verification email to:", email);
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/verify-email-success`
+        }
       });
 
       if (error) {
+        console.error("Resend verification error:", error);
         showToast.error(error.message);
         return false;
       }
-
+      
+      console.log("Verification email resent successfully");
+      showToast.success('Verification email sent!');
       return true;
     } catch (error: any) {
+      console.error("Resend verification exception:", error);
       showToast.error(error.message || 'Failed to resend verification email');
       return false;
     }

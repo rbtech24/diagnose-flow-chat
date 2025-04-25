@@ -15,7 +15,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   global: {
     headers: {
       'x-application-name': 'repair-autopilot',
-      'apikey': supabaseAnonKey  // Explicitly include the API key in headers
+      'apikey': supabaseAnonKey  // Explicitly include the API key in headers for all requests
     }
   }
 });
