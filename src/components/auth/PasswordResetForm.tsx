@@ -43,6 +43,10 @@ export function PasswordResetForm() {
       console.log(`Sending password reset email to: ${values.email}`);
       console.log(`Using redirect URL: ${siteUrl}/reset-password`);
       
+      // Add debugging to track the API key issue
+      console.log("Supabase client headers:", supabase.auth.headers);
+      console.log("Initiating password reset request...");
+      
       const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
         redirectTo: `${siteUrl}/reset-password`,
       });

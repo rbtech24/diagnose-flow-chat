@@ -1,6 +1,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 
+// Use these values directly rather than environment variables
 const supabaseUrl = 'https://jukatimjnqhhlxkrxsak.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp1a2F0aW1qbnFoaGx4a3J4c2FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzOTg3MjYsImV4cCI6MjA1NDk3NDcyNn0.cbWwrd2QIEkb25-8tKpcqRhYai1q6bMcxd2dkC_qssE';
 
@@ -8,18 +9,19 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    storageKey: 'supabase.auth.token'
   },
   global: {
     headers: {
-      'x-application-name': 'repair-autopilot'
+      'x-application-name': 'repair-autopilot',
+      'apikey': supabaseAnonKey  // Explicitly include the API key in headers
     }
   }
 });
 
 // Set the site URL for authentication redirects
 // This can be accessed by Supabase auth functions that need redirect URLs
-// Use window.location.origin for development to work with any environment
 export const siteUrl = typeof window !== 'undefined' 
   ? window.location.origin 
   : 'https://repairautopilot.com';
@@ -30,7 +32,8 @@ console.log("Site URL for redirects:", siteUrl);
 console.log("Supabase auth configuration:", {
   persistSession: true,
   autoRefreshToken: true,
-  detectSessionInUrl: true
+  detectSessionInUrl: true,
+  storageKey: 'supabase.auth.token'
 });
 
 // Export a function to handle sign-in for better error tracking

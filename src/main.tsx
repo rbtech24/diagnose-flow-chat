@@ -11,6 +11,11 @@ import { BrowserRouter } from 'react-router-dom';
 // For debugging purposes
 console.log("Main.tsx is rendering, React version:", React.version);
 
+// Make sure React is properly imported
+if (!React) {
+  console.error("React is not properly imported in main.tsx");
+}
+
 // Make React available globally for debugging
 window.React = React;
 
