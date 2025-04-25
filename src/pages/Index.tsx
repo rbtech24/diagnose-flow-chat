@@ -31,7 +31,7 @@ export default function Index() {
     return () => {
       console.log("Index component unmounting");
     };
-  }, []);
+  }, []);  // Empty dependency array to run only once on mount
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
