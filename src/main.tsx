@@ -37,7 +37,14 @@ if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
 }
 
 // Create the root with explicit React reference
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error("Root element not found");
+}
+
+// Mount the app with React StrictMode
+const root = ReactDOM.createRoot(rootElement);
+root.render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
