@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +40,42 @@ export default function SignUp() {
   
   const navigate = useNavigate();
   const { signUp } = useAuth();
+
+  // Check for active session on component mount
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        // If user is already logged in, redirect to appropriate dashboard
+        const role = data.session.user.user_metadata.role;
+        const redirectPath = role === 'admin' ? '/admin' :
+                             role === 'company' ? '/company' : 
+                             '/tech';
+        navigate(redirectPath);
+      }
+    };
+    
+    checkSession();
+  }, [navigate]);
+
+  const formatPhoneNumber = (value: string) => {
+    // Remove all non-digit characters
+    const digits = value.replace(/\D/g, '');
+    
+    // Format as (XXX) XXX-XXXX
+    if (digits.length <= 3) {
+      return digits;
+    } else if (digits.length <= 6) {
+      return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    } else {
+      return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+    }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value);
+    setPhoneNumber(formatted);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,7 +198,7 @@ export default function SignUp() {
             id="phoneNumber"
             type="tel"
             value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
+            onChange={handlePhoneChange}
             placeholder="(123) 456-7890"
             required
             disabled={isLoading}

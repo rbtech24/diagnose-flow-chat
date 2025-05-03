@@ -21,7 +21,7 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  console.log("AuthProvider rendering - React version:", React?.version || "unknown");
+  console.log("AuthProvider rendering");
   
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<'admin' | 'company' | 'tech' | null>(null);
@@ -91,7 +91,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password
+        password,
+        options: {
+          redirectTo: `${window.location.origin}`
+        }
       });
 
       if (error) {
@@ -125,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         options: {
           data: {
             role: role,
-            name: userData?.fullName || email.split('@')[0],
+            name: userData?.fullName || userData?.phoneNumber || email.split('@')[0],
             ...(userData || {}),
           },
           emailRedirectTo: `${window.location.origin}/verify-email-success`

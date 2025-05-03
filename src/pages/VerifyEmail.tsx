@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle, MailIcon } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { toast } from 'react-hot-toast';
+import { supabase } from "@/integrations/supabase/client";
 
 export default function VerifyEmail() {
   const navigate = useNavigate();
@@ -13,19 +14,46 @@ export default function VerifyEmail() {
   const [email, setEmail] = useState<string>("");
   const [isSending, setIsSending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [timer, setTimer] = useState(0);
 
-  // Instead of using location directly which can cause issues, we'll use a safer approach
+  // Check if user is already verified and redirect appropriately
   useEffect(() => {
-    // Get email from localStorage if available (we'll store this during signup)
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session && data.session.user.email_confirmed_at) {
+        // If user is verified, redirect to appropriate dashboard
+        const role = data.session.user.user_metadata.role;
+        const redirectPath = role === 'admin' ? '/admin' :
+                             role === 'company' ? '/company' : 
+                             '/tech';
+        navigate(redirectPath);
+      }
+    };
+    
+    checkSession();
+  }, [navigate]);
+
+  // Get email from localStorage if available (stored during signup)
+  useEffect(() => {
     const storedEmail = localStorage.getItem("verificationEmail");
     if (storedEmail) {
       setEmail(storedEmail);
-      // Clear it after use
-      localStorage.removeItem("verificationEmail");
     }
   }, []);
 
+  // Cooldown timer for resend button
+  useEffect(() => {
+    if (timer > 0) {
+      const interval = setInterval(() => {
+        setTimer(prevTimer => prevTimer - 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [timer]);
+
   const handleResend = async () => {
+    if (timer > 0) return;
+    
     if (!email) {
       toast.error("Email address not found. Please return to signup.");
       return;
@@ -37,6 +65,8 @@ export default function VerifyEmail() {
       if (success) {
         setIsSuccess(true);
         toast.success("Verification email sent!");
+        // Start a 60-second cooldown
+        setTimer(60);
         setTimeout(() => {
           setIsSuccess(false);
         }, 3000);
@@ -83,14 +113,18 @@ export default function VerifyEmail() {
           onClick={handleResend}
           variant="outline" 
           className="w-full"
-          disabled={isSending}
+          disabled={isSending || timer > 0}
         >
           {isSending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Sending...
             </>
-          ) : "Resend verification email"}
+          ) : timer > 0 ? (
+            `Resend available in ${timer}s`
+          ) : (
+            "Resend verification email"
+          )}
         </Button>
 
         <div className="mt-6 text-center text-sm">

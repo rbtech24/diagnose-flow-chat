@@ -1,30 +1,52 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function VerifyEmailSuccess() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [countdown, setCountdown] = useState(3);
 
   useEffect(() => {
-    // Redirect logic for verified users
-    if (isAuthenticated) {
-      // Redirect based on user role
-      const redirectPath = user?.role === 'admin' ? '/admin' :
-                           user?.role === 'company' ? '/company' : 
-                           '/tech';
-      
-      // Automatic redirect after 3 seconds
-      const timer = setTimeout(() => {
-        navigate(redirectPath);
-      }, 3000);
+    // Check if user is authenticated, otherwise get their session
+    const checkUserSession = async () => {
+      if (!isAuthenticated) {
+        const { data } = await supabase.auth.getSession();
+        if (!data.session) {
+          // If no session, redirect to login
+          navigate('/login');
+          return;
+        }
+      }
+    };
+    
+    checkUserSession();
+    
+    // Countdown for automatic redirect
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          // Redirect based on user role or to login if no user
+          if (isAuthenticated || user) {
+            const redirectPath = user?.role === 'admin' ? '/admin' :
+                               user?.role === 'company' ? '/company' : 
+                               '/tech';
+            navigate(redirectPath);
+          } else {
+            navigate('/login');
+          }
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
-      return () => clearTimeout(timer);
-    }
+    return () => clearInterval(timer);
   }, [isAuthenticated, user, navigate]);
 
   return (
@@ -41,10 +63,10 @@ export default function VerifyEmailSuccess() {
         </CardHeader>
         <CardContent className="text-center">
           <p className="text-gray-600 mb-4">
-            You will be redirected to your dashboard in a few moments.
+            You will be redirected to your dashboard in {countdown} seconds.
           </p>
           <Button onClick={() => navigate('/login')}>
-            Back to Login
+            Go to Login
           </Button>
         </CardContent>
       </Card>

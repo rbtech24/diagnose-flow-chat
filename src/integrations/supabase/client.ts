@@ -15,7 +15,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   global: {
     headers: {
       'x-application-name': 'repair-autopilot',
-      'apikey': supabaseAnonKey  // Explicitly include the API key in headers for all requests
+      'apikey': supabaseAnonKey  // Always include the API key in headers
     }
   }
 });
@@ -29,12 +29,6 @@ export const siteUrl = typeof window !== 'undefined'
 // Debug log initialization
 console.log("Supabase client initialized with URL:", supabaseUrl);
 console.log("Site URL for redirects:", siteUrl);
-console.log("Supabase auth configuration:", {
-  persistSession: true,
-  autoRefreshToken: true,
-  detectSessionInUrl: true,
-  storageKey: 'supabase.auth.token'
-});
 
 // Export a function to handle sign-in for better error tracking
 export const signInWithEmail = async (email: string, password: string) => {

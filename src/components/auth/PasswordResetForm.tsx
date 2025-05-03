@@ -1,118 +1,129 @@
 
-import React, { useState } from "react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { toast } from "react-hot-toast";
-import { supabase, siteUrl } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
-
-const passwordResetSchema = z.object({
-  email: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
-});
-
-type PasswordResetFormValues = z.infer<typeof passwordResetSchema>;
+import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from 'react-hot-toast';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function PasswordResetForm() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
-  const form = useForm<PasswordResetFormValues>({
-    resolver: zodResolver(passwordResetSchema),
-    defaultValues: {
-      email: "",
-    },
-  });
+  const navigate = useNavigate();
 
-  async function handleSubmit(values: PasswordResetFormValues) {
-    setIsSubmitting(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    
+    if (!email) {
+      setError('Please enter your email address');
+      return;
+    }
+    
+    setIsLoading(true);
     
     try {
-      console.log(`Sending password reset email to: ${values.email}`);
-      console.log(`Using redirect URL: ${siteUrl}/reset-password`);
-      
-      // Add debugging that doesn't rely on protected properties
-      console.log("Initiating password reset request with Supabase");
-      console.log("Site URL for redirect:", siteUrl);
-      
-      const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
-        redirectTo: `${siteUrl}/reset-password`,
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
       });
       
       if (error) {
+        console.error('Password reset error:', error);
+        setError(error.message);
         toast.error(error.message);
-        console.error("Password reset error:", error);
       } else {
-        setEmailSent(true);
-        toast.success("Check your email for a link to reset your password.");
+        setIsSuccess(true);
+        toast.success('Password reset instructions sent to your email');
       }
-    } catch (error: any) {
-      console.error("Unexpected error during password reset:", error);
-      toast.error("An unexpected error occurred. Please try again.");
+    } catch (err: any) {
+      console.error('Password reset exception:', err);
+      setError(err.message || 'An unexpected error occurred');
+      toast.error(err.message || 'An unexpected error occurred');
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
+  };
+
+  if (isSuccess) {
+    return (
+      <div className="text-center">
+        <div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        
+        <h2 className="text-xl font-semibold mb-2">Check your email</h2>
+        <p className="text-gray-600 mb-6">
+          We've sent password reset instructions to <span className="font-medium">{email}</span>
+        </p>
+        
+        <p className="text-sm text-gray-500">
+          If you don't see the email in your inbox, check your spam folder.
+        </p>
+        
+        <div className="mt-8">
+          <Button 
+            onClick={() => navigate('/login')}
+            variant="outline"
+            className="w-full"
+          >
+            Back to login
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="w-full">
-      {emailSent ? (
-        <div className="text-center py-4">
-          <h3 className="text-lg font-medium">Check your email</h3>
-          <p className="mt-2 text-gray-500">
-            We've sent a password reset link to your email address.
-          </p>
-        </div>
-      ) : (
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="email" 
-                      placeholder="your@email.com" 
-                      autoComplete="email"
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Sending..." : "Send Reset Link"}
-            </Button>
-          </form>
-        </Form>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
       
-      <div className="mt-4 text-center">
-        <Button variant="link" asChild>
-          <Link to="/login">Back to Login</Link>
+      <div>
+        <Label htmlFor="email" className="block mb-1">Email address</Label>
+        <Input
+          id="email"
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          disabled={isLoading}
+        />
+      </div>
+      
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Sending reset link...
+          </>
+        ) : "Send reset instructions"}
+      </Button>
+      
+      <div className="text-center mt-4">
+        <Button 
+          variant="link" 
+          className="text-sm text-blue-600"
+          onClick={() => navigate('/login')}
+        >
+          Back to login
         </Button>
       </div>
-    </div>
+    </form>
   );
 }
