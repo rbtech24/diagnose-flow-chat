@@ -121,7 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log("AuthContext signUp: Starting with email:", email, "role:", role);
       
-      // Ensure headers are explicitly set for this specific request
+      // Fix: Remove redirectTo and use emailRedirectTo in the data metadata instead
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -130,8 +130,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             role: role,
             name: userData?.fullName || userData?.phoneNumber || email.split('@')[0],
             ...(userData || {}),
-          },
-          emailRedirectTo: `${window.location.origin}/verify-email-success`
+            emailRedirectTo: `${window.location.origin}/verify-email-success`
+          }
         }
       });
 
