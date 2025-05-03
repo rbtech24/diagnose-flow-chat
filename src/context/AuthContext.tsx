@@ -91,10 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password,
-        options: {
-          redirectTo: `${window.location.origin}`
-        }
+        password
       });
 
       if (error) {
@@ -121,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log("AuthContext signUp: Starting with email:", email, "role:", role);
       
-      // Fix: Remove redirectTo and use emailRedirectTo in the data metadata instead
+      // Fix: Use proper structure of options with emailRedirectTo in the data metadata
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
