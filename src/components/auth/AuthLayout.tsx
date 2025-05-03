@@ -11,8 +11,6 @@ interface AuthLayoutProps {
 }
 
 export function AuthLayout({ children, title, description, showSalesContent = false }: AuthLayoutProps) {
-  // Remove the problematic useEffect call that's causing the error
-  
   return (
     <div className="flex min-h-screen">
       {showSalesContent && (
