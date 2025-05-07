@@ -12,17 +12,14 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import './App.css';
 
-// Commenting out unused imports for now to avoid build errors
-/*
+// Uncommented previously disabled routes
 import Profile from './pages/Profile';
-import Dashboard from './pages/Dashboard';
-*/
 
 function App() {
   console.log("App mounted, current path:", window.location.pathname);
 
   return (
-    <>
+    <AuthProvider>
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} />
@@ -32,15 +29,12 @@ function App() {
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/verify-email-success" element={<VerifyEmailSuccess />} />
 
-        {/* Protected routes will be added here when needed */}
-        {/*
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        {/* Protected routes are now enabled */}
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        */}
 
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </>
+    </AuthProvider>
   );
 }
 
