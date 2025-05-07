@@ -8,6 +8,7 @@ import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
 import { resetPassword, testAuthConnection } from "@/integrations/supabase/client";
 import { toast } from 'react-hot-toast';
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { MaintenanceNotice } from './MaintenanceNotice';
 
 export function PasswordResetForm() {
   const [email, setEmail] = useState('');
@@ -15,22 +16,34 @@ export function PasswordResetForm() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'connected' | 'error'>('unknown');
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
   
   const navigate = useNavigate();
 
   // Check connection status on component mount
   useEffect(() => {
-    const checkConnection = async () => {
+    checkConnection();
+  }, []);
+  
+  const checkConnection = async () => {
+    try {
+      console.log("Testing auth connection...");
       const result = await testAuthConnection();
+      console.log("Auth connection test result:", result);
+      
       setConnectionStatus(result.success ? 'connected' : 'error');
+      setMaintenanceMode(!!result.maintenanceMode);
       
       if (!result.success) {
         setError("Authentication service connection issue. Please try again later.");
+        toast.error("Authentication service connection issue");
       }
-    };
-    
-    checkConnection();
-  }, []);
+    } catch (err) {
+      console.error("Error testing auth connection:", err);
+      setConnectionStatus('error');
+      setError("Failed to check authentication service. Please try again later.");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +54,7 @@ export function PasswordResetForm() {
       return;
     }
     
-    if (connectionStatus === 'error') {
+    if (connectionStatus === 'error' && !maintenanceMode) {
       setError("Authentication service is currently unavailable. Please try again later.");
       return;
     }
@@ -49,7 +62,14 @@ export function PasswordResetForm() {
     setIsLoading(true);
     
     try {
-      const { error: resetError } = await resetPassword(email);
+      const { error: resetError, maintenanceMode: resetMaintenanceMode } = await resetPassword(email);
+      
+      if (resetMaintenanceMode) {
+        setMaintenanceMode(true);
+        setError("Our authentication system is currently undergoing maintenance. Please try again later.");
+        toast.error("Authentication system maintenance");
+        return;
+      }
       
       if (resetError) {
         if (resetError.message.includes("rate limit")) {
@@ -110,7 +130,11 @@ export function PasswordResetForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {connectionStatus === 'error' && (
+      {maintenanceMode && (
+        <MaintenanceNotice onRetry={checkConnection} />
+      )}
+      
+      {connectionStatus === 'error' && !maintenanceMode && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4 mr-2" />
           <AlertDescription>
@@ -119,7 +143,7 @@ export function PasswordResetForm() {
         </Alert>
       )}
     
-      {error && (
+      {error && !maintenanceMode && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4 mr-2" />
           <AlertDescription>{error}</AlertDescription>
@@ -135,14 +159,14 @@ export function PasswordResetForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          disabled={isLoading || connectionStatus === 'error'}
+          disabled={isLoading || connectionStatus === 'error' || maintenanceMode}
         />
       </div>
       
       <Button
         type="submit"
         className="w-full"
-        disabled={isLoading || connectionStatus === 'error'}
+        disabled={isLoading || connectionStatus === 'error' || maintenanceMode}
       >
         {isLoading ? (
           <>
