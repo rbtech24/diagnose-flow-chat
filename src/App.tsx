@@ -10,7 +10,6 @@ import VerifyEmailSuccess from './pages/VerifyEmailSuccess';
 import NotFound from './pages/NotFound';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
-import { ServiceStatusBanner } from './components/auth/ServiceStatusBanner';
 import './App.css';
 
 // Commenting out unused imports for now to avoid build errors
@@ -24,7 +23,6 @@ function App() {
 
   return (
     <>
-      <ServiceStatusBanner />
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} />
