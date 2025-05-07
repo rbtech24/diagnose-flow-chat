@@ -9,7 +9,7 @@ import { Loader2, AlertCircle } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { toast } from 'react-hot-toast';
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { supabase } from "@/integrations/supabase/client";
+import { signInWithEmail, supabase } from "@/integrations/supabase/client";
 
 export default function Login() {
   // Form state
@@ -52,11 +52,46 @@ export default function Login() {
     try {
       console.log("Attempting login with email:", email);
       
-      // Check if the Supabase client is properly initialized
+      // Test if Supabase is initialized properly
       if (!supabase) {
         throw new Error("Authentication service is not available");
       }
+
+      // Check if auth API is accessible
+      try {
+        // Simple test call to see if we can access Supabase auth API
+        await supabase.auth.getSession();
+      } catch (authError: any) {
+        console.error("Supabase auth API check failed:", authError);
+        throw new Error("Authentication service connection failed: " + 
+          (authError.message || "Please check your network connection"));
+      }
       
+      // Use direct sign-in function with better error tracking
+      const { data, error: signInError } = await signInWithEmail(email, password);
+      
+      if (signInError) {
+        console.error("Login error details:", signInError);
+        
+        if (signInError.message?.includes("Invalid login credentials")) {
+          throw new Error("Invalid email or password. Please try again.");
+        } else if (signInError.message?.includes("Database error")) {
+          throw new Error("Authentication service is currently experiencing issues. Please try again later.");
+        } else if (signInError.message?.includes("rate limit")) {
+          throw new Error("Too many login attempts. Please try again later.");
+        } else {
+          throw new Error(signInError.message || "Login failed. Please try again.");
+        }
+      }
+      
+      if (data) {
+        toast.success("Signed in successfully!");
+        console.log("Login successful, redirecting to", from);
+        navigate(from);
+        return;
+      }
+      
+      // Use the AuthContext signIn as backup
       const success = await signIn(email, password);
       
       if (success) {
@@ -69,11 +104,10 @@ export default function Login() {
     } catch (error: any) {
       console.error("Login error:", error);
 
-      // Check for specific error types
-      if (error.message?.includes("Invalid login credentials")) {
+      // More specific error messages
+      if (error.message?.includes("Invalid login")) {
         setError("Invalid email or password. Please try again.");
       } 
-      // Check if this is an email verification error
       else if (error.message?.includes("Email not confirmed")) {
         // Store email for verification page
         localStorage.setItem("verificationEmail", email);
@@ -81,7 +115,6 @@ export default function Login() {
         navigate('/verify-email');
         return;
       }
-      // Handle API key error specifically
       else if (error.message?.includes("API key")) {
         setError("Authentication service configuration error. Please contact support.");
         toast.error("Authentication service configuration error");
@@ -89,6 +122,10 @@ export default function Login() {
       else if (error.message?.includes("rate limit")) {
         setError("Too many attempts. Please try again later.");
         toast.error("Too many login attempts");
+      }
+      else if (error.message?.includes("Database error")) {
+        setError("Authentication system is currently experiencing issues. Please try again later.");
+        toast.error("Authentication system issues");
       }
       else {
         const errorMessage = error.message || "An unexpected error occurred";
