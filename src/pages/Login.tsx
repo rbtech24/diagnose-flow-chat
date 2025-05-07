@@ -61,33 +61,41 @@ export default function Login() {
       
       if (success) {
         toast.success("Signed in successfully!");
-        console.log("Login successful, redirecting to home");
-        navigate("/");
+        console.log("Login successful, redirecting to", from);
+        navigate(from);
       } else {
-        setError("Failed to sign in. Please check your credentials.");
-        setIsLoading(false);
+        setError("Invalid email or password. Please try again.");
       }
     } catch (error: any) {
-      // Handle API key error specifically
-      if (error.message?.includes("API key")) {
-        setError("Authentication service configuration error. Please contact support.");
-        toast.error("Authentication service configuration error");
-        setIsLoading(false);
-        return;
-      }
-      
+      console.error("Login error:", error);
+
+      // Check for specific error types
+      if (error.message?.includes("Invalid login credentials")) {
+        setError("Invalid email or password. Please try again.");
+      } 
       // Check if this is an email verification error
-      if (error.message?.includes("email") && error.message?.includes("verify")) {
+      else if (error.message?.includes("Email not confirmed")) {
         // Store email for verification page
         localStorage.setItem("verificationEmail", email);
+        toast.error("Please verify your email before logging in");
         navigate('/verify-email');
         return;
       }
-
-      const errorMessage = error.message || "An unexpected error occurred";
-      setError(errorMessage);
-      toast.error(errorMessage);
-      console.error("Login exception:", error);
+      // Handle API key error specifically
+      else if (error.message?.includes("API key")) {
+        setError("Authentication service configuration error. Please contact support.");
+        toast.error("Authentication service configuration error");
+      }
+      else if (error.message?.includes("rate limit")) {
+        setError("Too many attempts. Please try again later.");
+        toast.error("Too many login attempts");
+      }
+      else {
+        const errorMessage = error.message || "An unexpected error occurred";
+        setError(errorMessage);
+        toast.error(errorMessage);
+      }
+    } finally {
       setIsLoading(false);
     }
   };

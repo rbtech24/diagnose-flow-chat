@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from 'react-hot-toast';
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -29,22 +28,41 @@ export function PasswordResetForm() {
     setIsLoading(true);
     
     try {
+      // Check if the Supabase client is properly initialized
+      if (!supabase) {
+        throw new Error("Authentication service is not available");
+      }
+      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       
       if (error) {
+        // Log the complete error details
         console.error('Password reset error:', error);
-        setError(error.message);
-        toast.error(error.message);
+        
+        if (error.message.includes("rate limit")) {
+          setError("Too many attempts. Please try again later.");
+          toast.error("Too many password reset attempts");
+        } else {
+          setError(error.message);
+          toast.error(error.message);
+        }
       } else {
         setIsSuccess(true);
         toast.success('Password reset instructions sent to your email');
       }
     } catch (err: any) {
       console.error('Password reset exception:', err);
-      setError(err.message || 'An unexpected error occurred');
-      toast.error(err.message || 'An unexpected error occurred');
+      
+      // Handle API configuration errors
+      if (err.message?.includes("API key")) {
+        setError("Authentication service configuration issue. Please contact support.");
+        toast.error("Authentication service configuration issue");
+      } else {
+        setError(err.message || 'An unexpected error occurred');
+        toast.error(err.message || 'An unexpected error occurred');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -85,6 +103,7 @@ export function PasswordResetForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
         <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4 mr-2" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}

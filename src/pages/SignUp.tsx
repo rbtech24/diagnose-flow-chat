@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -103,7 +102,7 @@ export default function SignUp() {
     try {
       console.log("Starting signup with:", { email, role });
       
-      // Check if the Supabase client is properly initialized
+      // Add explicit error handling for Supabase client
       if (!supabase) {
         throw new Error("Authentication service is not available");
       }
@@ -122,13 +121,22 @@ export default function SignUp() {
         setError("Sign up failed. Please try again.");
       }
     } catch (err: any) {
-      console.error("Unexpected error during signup:", err);
+      console.error("Signup exception:", err);
       
-      // Handle specific errors
-      if (err.message?.includes("API key")) {
-        setError("Authentication service configuration error. Please contact support.");
-        toast.error("Authentication service configuration error");
-      } else {
+      // Handle specific API errors with more informative messages
+      if (err.message?.includes("User already registered")) {
+        setError("This email is already registered. Please sign in instead.");
+        toast.error("Email already registered");
+      } 
+      else if (err.message?.includes("API key")) {
+        setError("Authentication service configuration issue. Please contact support.");
+        toast.error("Authentication service configuration issue");
+      } 
+      else if (err.message?.includes("rate limit")) {
+        setError("Too many attempts. Please wait a moment and try again.");
+        toast.error("Too many signup attempts");
+      }
+      else {
         setError(err.message || "An unexpected error occurred");
         toast.error(err.message || "An unexpected error occurred");
       }
