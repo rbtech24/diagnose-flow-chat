@@ -13,10 +13,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Create the Supabase client with explicit configuration for auth
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    persistSession: true,
     autoRefreshToken: true,
+    persistSession: true,
     detectSessionInUrl: true,
-    storageKey: 'supabase.auth.token'
+    storage: localStorage
   },
   global: {
     headers: {
@@ -27,21 +27,49 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 });
 
 // Set the site URL for authentication redirects
-// This can be accessed by Supabase auth functions that need redirect URLs
 export const siteUrl = typeof window !== 'undefined' 
   ? window.location.origin 
   : 'https://repairautopilot.com';
 
-// Debug log initialization
-console.log("Supabase client initialized with URL:", supabaseUrl);
-console.log("Site URL for redirects:", siteUrl);
+// A robust function to test authentication availability
+export const testAuthConnection = async () => {
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      console.error("Auth connection test failed:", error);
+      return {
+        success: false,
+        message: error.message
+      };
+    }
+    return { 
+      success: true,
+      session: data.session 
+    };
+  } catch (e) {
+    console.error("Unexpected error during auth connection test:", e);
+    return {
+      success: false,
+      message: "Could not connect to authentication service"
+    };
+  }
+};
 
 // Export a function to handle sign-in for better error tracking
 export const signInWithEmail = async (email: string, password: string) => {
   console.log(`Attempting to sign in with email: ${email}`);
   
   try {
-    // Make sure we're including the apikey in all requests
+    // First test auth connectivity
+    const connectionTest = await testAuthConnection();
+    if (!connectionTest.success) {
+      return { 
+        data: null, 
+        error: { message: "Authentication service unavailable: " + connectionTest.message } 
+      };
+    }
+    
+    // Try sign-in with explicit options to ensure proper auth flow
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
@@ -60,6 +88,87 @@ export const signInWithEmail = async (email: string, password: string) => {
       data: null, 
       error: { 
         message: "An unexpected error occurred during sign in. Please try again." 
+      } 
+    };
+  }
+};
+
+// A function to handle sign-up with better error handling
+export const signUpWithEmail = async (
+  email: string, 
+  password: string, 
+  options?: { 
+    data?: Record<string, any>,
+    redirectTo?: string 
+  }
+) => {
+  console.log(`Attempting to sign up with email: ${email}`);
+  
+  try {
+    // First test auth connectivity
+    const connectionTest = await testAuthConnection();
+    if (!connectionTest.success) {
+      return { 
+        data: null, 
+        error: { message: "Authentication service unavailable: " + connectionTest.message } 
+      };
+    }
+    
+    const redirectTo = options?.redirectTo || `${siteUrl}/verify-email-success`;
+    
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: options?.data || {},
+        emailRedirectTo: redirectTo
+      }
+    });
+    
+    if (error) {
+      console.error("Sign up error details:", error);
+      return { data, error };
+    }
+    
+    if (data.user) {
+      console.log("Sign up successful, user data:", data.user);
+    }
+    
+    return { data, error: null };
+  } catch (e) {
+    console.error("Unexpected error during sign up:", e);
+    return { 
+      data: null, 
+      error: { 
+        message: "An unexpected error occurred during sign up. Please try again." 
+      } 
+    };
+  }
+};
+
+// Reset password function with improved error handling
+export const resetPassword = async (email: string, redirectTo?: string) => {
+  console.log(`Attempting to send password reset for email: ${email}`);
+  
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(
+      email, 
+      { 
+        redirectTo: redirectTo || `${siteUrl}/reset-password` 
+      }
+    );
+    
+    if (error) {
+      console.error("Password reset error details:", error);
+      return { error };
+    }
+    
+    return { error: null };
+  } catch (e) {
+    console.error("Unexpected error during password reset:", e);
+    return { 
+      error: { 
+        message: "An unexpected error occurred during password reset. Please try again." 
       } 
     };
   }

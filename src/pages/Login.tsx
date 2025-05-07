@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Loader2, AlertCircle } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { toast } from 'react-hot-toast';
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { signInWithEmail, supabase } from "@/integrations/supabase/client";
+import { signInWithEmail, testAuthConnection } from "@/integrations/supabase/client";
 
 export default function Login() {
   // Form state
@@ -20,6 +20,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'connected' | 'error'>('unknown');
   
   // Email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -30,6 +31,21 @@ export default function Login() {
   const { signIn } = useAuth();
 
   const from = location.state?.from || "/";
+
+  // Check connection status on component mount
+  useEffect(() => {
+    const checkConnection = async () => {
+      const result = await testAuthConnection();
+      setConnectionStatus(result.success ? 'connected' : 'error');
+      
+      if (!result.success) {
+        setError("Authentication service connection issue. Please try again later.");
+        toast.error("Authentication service connection issue");
+      }
+    };
+    
+    checkConnection();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,25 +63,15 @@ export default function Login() {
       return;
     }
     
+    if (connectionStatus === 'error') {
+      setError("Authentication service is currently unavailable. Please try again later.");
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
       console.log("Attempting login with email:", email);
-      
-      // Test if Supabase is initialized properly
-      if (!supabase) {
-        throw new Error("Authentication service is not available");
-      }
-
-      // Check if auth API is accessible
-      try {
-        // Simple test call to see if we can access Supabase auth API
-        await supabase.auth.getSession();
-      } catch (authError: any) {
-        console.error("Supabase auth API check failed:", authError);
-        throw new Error("Authentication service connection failed: " + 
-          (authError.message || "Please check your network connection"));
-      }
       
       // Use direct sign-in function with better error tracking
       const { data, error: signInError } = await signInWithEmail(email, password);
@@ -143,6 +149,15 @@ export default function Login() {
       description="Sign in to your account to continue"
       showSalesContent={false}
     >
+      {connectionStatus === 'error' && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Authentication service is currently unavailable. Please try again later or contact support.
+          </AlertDescription>
+        </Alert>
+      )}
+    
       {error && (
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
@@ -160,7 +175,7 @@ export default function Login() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="name@example.com"
             required
-            disabled={isLoading}
+            disabled={isLoading || connectionStatus === 'error'}
             className={formSubmitted && !isEmailValid ? "border-red-500" : ""}
           />
         </div>
@@ -178,7 +193,7 @@ export default function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            disabled={isLoading}
+            disabled={isLoading || connectionStatus === 'error'}
             className={formSubmitted && password.trim() === "" ? "border-red-500" : ""}
           />
         </div>
@@ -186,7 +201,7 @@ export default function Login() {
         <Button 
           type="submit" 
           className="w-full"
-          disabled={isLoading}
+          disabled={isLoading || connectionStatus === 'error'}
         >
           {isLoading ? (
             <>

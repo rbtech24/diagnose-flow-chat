@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, AlertCircle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { resetPassword, testAuthConnection } from "@/integrations/supabase/client";
 import { toast } from 'react-hot-toast';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -13,8 +14,23 @@ export function PasswordResetForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'connected' | 'error'>('unknown');
   
   const navigate = useNavigate();
+
+  // Check connection status on component mount
+  useEffect(() => {
+    const checkConnection = async () => {
+      const result = await testAuthConnection();
+      setConnectionStatus(result.success ? 'connected' : 'error');
+      
+      if (!result.success) {
+        setError("Authentication service connection issue. Please try again later.");
+      }
+    };
+    
+    checkConnection();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,28 +41,23 @@ export function PasswordResetForm() {
       return;
     }
     
+    if (connectionStatus === 'error') {
+      setError("Authentication service is currently unavailable. Please try again later.");
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
-      // Check if the Supabase client is properly initialized
-      if (!supabase) {
-        throw new Error("Authentication service is not available");
-      }
+      const { error: resetError } = await resetPassword(email);
       
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      
-      if (error) {
-        // Log the complete error details
-        console.error('Password reset error:', error);
-        
-        if (error.message.includes("rate limit")) {
+      if (resetError) {
+        if (resetError.message.includes("rate limit")) {
           setError("Too many attempts. Please try again later.");
           toast.error("Too many password reset attempts");
         } else {
-          setError(error.message);
-          toast.error(error.message);
+          setError(resetError.message);
+          toast.error(resetError.message);
         }
       } else {
         setIsSuccess(true);
@@ -72,9 +83,7 @@ export function PasswordResetForm() {
     return (
       <div className="text-center">
         <div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
+          <CheckCircle className="h-8 w-8 text-green-600" />
         </div>
         
         <h2 className="text-xl font-semibold mb-2">Check your email</h2>
@@ -101,6 +110,15 @@ export function PasswordResetForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {connectionStatus === 'error' && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4 mr-2" />
+          <AlertDescription>
+            Authentication service is currently unavailable. Please try again later or contact support.
+          </AlertDescription>
+        </Alert>
+      )}
+    
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4 mr-2" />
@@ -117,14 +135,14 @@ export function PasswordResetForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          disabled={isLoading}
+          disabled={isLoading || connectionStatus === 'error'}
         />
       </div>
       
       <Button
         type="submit"
         className="w-full"
-        disabled={isLoading}
+        disabled={isLoading || connectionStatus === 'error'}
       >
         {isLoading ? (
           <>

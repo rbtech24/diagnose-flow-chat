@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import { AuthLayout } from "@/components/auth/AuthLayout";
 import { toast } from 'react-hot-toast';
 import { useAuth } from "@/context/AuthContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { supabase } from "@/integrations/supabase/client";
+import { signUpWithEmail, testAuthConnection } from "@/integrations/supabase/client";
 
 export default function SignUp() {
   // Form state
@@ -22,6 +23,7 @@ export default function SignUp() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'connected' | 'error'>('unknown');
 
   // Password validation
   const [passwordFocus, setPasswordFocus] = useState(false);
@@ -40,13 +42,28 @@ export default function SignUp() {
   const navigate = useNavigate();
   const { signUp } = useAuth();
 
+  // Check connection status on component mount
+  useEffect(() => {
+    const checkConnection = async () => {
+      const result = await testAuthConnection();
+      setConnectionStatus(result.success ? 'connected' : 'error');
+      
+      if (!result.success) {
+        setError("Authentication service connection issue. Please try again later.");
+        toast.error("Authentication service connection issue");
+      }
+    };
+    
+    checkConnection();
+  }, []);
+
   // Check for active session on component mount
   useEffect(() => {
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
+      const result = await testAuthConnection();
+      if (result.success && result.session) {
         // If user is already logged in, redirect to appropriate dashboard
-        const role = data.session.user.user_metadata.role;
+        const role = result.session.user.user_metadata?.role;
         const redirectPath = role === 'admin' ? '/admin' :
                              role === 'company' ? '/company' : 
                              '/tech';
@@ -97,16 +114,52 @@ export default function SignUp() {
       return;
     }
     
+    if (connectionStatus === 'error') {
+      setError("Authentication service is currently unavailable. Please try again later.");
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
       console.log("Starting signup with:", { email, role });
       
-      // Add explicit error handling for Supabase client
-      if (!supabase) {
-        throw new Error("Authentication service is not available");
+      // Use the enhanced sign-up function
+      const { data, error: signUpError } = await signUpWithEmail(
+        email, 
+        password, 
+        {
+          data: {
+            role: role,
+            name: email.split('@')[0],
+            phoneNumber
+          },
+          redirectTo: `${window.location.origin}/verify-email-success`
+        }
+      );
+      
+      if (signUpError) {
+        console.error("Sign up error details:", signUpError);
+        
+        if (signUpError.message?.includes("User already registered")) {
+          throw new Error("This email is already registered. Please sign in instead.");
+        } else {
+          throw new Error(signUpError.message || "Sign up failed. Please try again.");
+        }
       }
       
+      if (data) {
+        console.log("Signup successful");
+        toast.success("Please check your email for verification");
+        
+        // Store email in localStorage before navigating
+        localStorage.setItem("verificationEmail", email);
+        
+        navigate('/verify-email');
+        return;
+      }
+      
+      // Use the AuthContext signUp as backup
       const success = await signUp(email, password, role, { phoneNumber });
       
       if (success) {
@@ -136,6 +189,10 @@ export default function SignUp() {
         setError("Too many attempts. Please wait a moment and try again.");
         toast.error("Too many signup attempts");
       }
+      else if (err.message?.includes("Database error")) {
+        setError("Authentication system is currently experiencing issues. Please try again later.");
+        toast.error("Authentication system issues");
+      }
       else {
         setError(err.message || "An unexpected error occurred");
         toast.error(err.message || "An unexpected error occurred");
@@ -151,6 +208,15 @@ export default function SignUp() {
       description="Sign up for a 30-day free trial"
       showSalesContent={true}
     >
+      {connectionStatus === 'error' && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Authentication service is currently unavailable. Please try again later or contact support.
+          </AlertDescription>
+        </Alert>
+      )}
+    
       {error && (
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
@@ -166,6 +232,7 @@ export default function SignUp() {
               pressed={role === 'tech'}
               onPressedChange={() => setRole('tech')}
               className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+              disabled={connectionStatus === 'error'}
             >
               Technician
             </Toggle>
@@ -173,6 +240,7 @@ export default function SignUp() {
               pressed={role === 'company'}
               onPressedChange={() => setRole('company')}
               className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+              disabled={connectionStatus === 'error'}
             >
               Company
             </Toggle>
@@ -195,7 +263,7 @@ export default function SignUp() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="name@example.com"
             required
-            disabled={isLoading}
+            disabled={isLoading || connectionStatus === 'error'}
             className={formSubmitted && !isEmailValid ? "border-red-500" : ""}
           />
         </div>
@@ -209,7 +277,7 @@ export default function SignUp() {
             onChange={handlePhoneChange}
             placeholder="(123) 456-7890"
             required
-            disabled={isLoading}
+            disabled={isLoading || connectionStatus === 'error'}
             className={formSubmitted && phoneNumber.trim() === "" ? "border-red-500" : ""}
           />
         </div>
@@ -226,7 +294,7 @@ export default function SignUp() {
             onFocus={() => setPasswordFocus(true)}
             onBlur={() => setPasswordFocus(passwordFocus && password !== "")}
             required
-            disabled={isLoading}
+            disabled={isLoading || connectionStatus === 'error'}
             className={formSubmitted && !isPasswordValid ? "border-red-500" : ""}
           />
           
@@ -258,7 +326,7 @@ export default function SignUp() {
         <Button 
           type="submit" 
           className="w-full"
-          disabled={isLoading}
+          disabled={isLoading || connectionStatus === 'error'}
         >
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Create account
