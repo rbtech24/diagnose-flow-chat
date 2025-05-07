@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from "react-router-dom";
-import { Home } from 'lucide-react'; // Import Home icon from lucide-react
+import { Home } from 'lucide-react'; 
 
 interface AuthLayoutProps {
   children: React.ReactNode;
