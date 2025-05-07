@@ -24,6 +24,7 @@ export default function SignUp() {
   const [error, setError] = useState<string | null>(null);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'connected' | 'error'>('unknown');
+  const [debugInfo, setDebugInfo] = useState<string | null>(null);
 
   // Password validation
   const [passwordFocus, setPasswordFocus] = useState(false);
@@ -45,12 +46,23 @@ export default function SignUp() {
   // Check connection status on component mount
   useEffect(() => {
     const checkConnection = async () => {
-      const result = await testAuthConnection();
-      setConnectionStatus(result.success ? 'connected' : 'error');
-      
-      if (!result.success) {
-        setError("Authentication service connection issue. Please try again later.");
-        toast.error("Authentication service connection issue");
+      try {
+        console.log("Testing auth connection...");
+        const result = await testAuthConnection();
+        console.log("Auth connection test result:", result);
+        
+        setConnectionStatus(result.success ? 'connected' : 'error');
+        
+        if (!result.success) {
+          setError("Authentication service connection issue. Please try again later.");
+          toast.error("Authentication service connection issue");
+          setDebugInfo(`Connection error: ${result.message}`);
+        }
+      } catch (err) {
+        console.error("Error testing auth connection:", err);
+        setConnectionStatus('error');
+        setError("Failed to check authentication service. Please try again later.");
+        setDebugInfo(`Connection test exception: ${err instanceof Error ? err.message : String(err)}`);
       }
     };
     
@@ -63,11 +75,14 @@ export default function SignUp() {
       const result = await testAuthConnection();
       if (result.success && result.session) {
         // If user is already logged in, redirect to appropriate dashboard
+        console.log("Active session found, redirecting");
         const role = result.session.user.user_metadata?.role;
         const redirectPath = role === 'admin' ? '/admin' :
                              role === 'company' ? '/company' : 
                              '/tech';
         navigate(redirectPath);
+      } else {
+        console.log("No active session found");
       }
     };
     
@@ -97,6 +112,7 @@ export default function SignUp() {
     e.preventDefault();
     setFormSubmitted(true);
     setError(null);
+    setDebugInfo(null);
     
     // Check form validity before submission
     if (!isEmailValid) {
@@ -144,12 +160,13 @@ export default function SignUp() {
         if (signUpError.message?.includes("User already registered")) {
           throw new Error("This email is already registered. Please sign in instead.");
         } else {
+          setDebugInfo(`Signup error: ${JSON.stringify(signUpError)}`);
           throw new Error(signUpError.message || "Sign up failed. Please try again.");
         }
       }
       
       if (data) {
-        console.log("Signup successful");
+        console.log("Signup successful, response:", data);
         toast.success("Please check your email for verification");
         
         // Store email in localStorage before navigating
@@ -163,7 +180,7 @@ export default function SignUp() {
       const success = await signUp(email, password, role, { phoneNumber });
       
       if (success) {
-        console.log("Signup successful");
+        console.log("AuthContext signup successful");
         toast.success("Please check your email for verification");
         
         // Store email in localStorage before navigating
@@ -172,6 +189,7 @@ export default function SignUp() {
         navigate('/verify-email');
       } else {
         setError("Sign up failed. Please try again.");
+        setDebugInfo("AuthContext signup returned false");
       }
     } catch (err: any) {
       console.error("Signup exception:", err);
@@ -196,6 +214,7 @@ export default function SignUp() {
       else {
         setError(err.message || "An unexpected error occurred");
         toast.error(err.message || "An unexpected error occurred");
+        setDebugInfo(`Exception: ${err instanceof Error ? err.stack : JSON.stringify(err)}`);
       }
     } finally {
       setIsLoading(false);
@@ -221,6 +240,14 @@ export default function SignUp() {
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
+      {debugInfo && (
+        <Alert className="mb-4 bg-yellow-50 border-yellow-400">
+          <div className="text-xs text-yellow-800 font-mono whitespace-pre-wrap break-words">
+            {debugInfo}
+          </div>
         </Alert>
       )}
       

@@ -16,7 +16,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    storage: localStorage
+    storage: typeof window !== 'undefined' ? localStorage : undefined
   },
   global: {
     headers: {
@@ -34,23 +34,35 @@ export const siteUrl = typeof window !== 'undefined'
 // A robust function to test authentication availability
 export const testAuthConnection = async () => {
   try {
+    console.log("Testing auth connection to:", supabaseUrl);
+    
+    // First check if we can reach Supabase at all
+    const startTime = Date.now();
     const { data, error } = await supabase.auth.getSession();
+    const endTime = Date.now();
+    
+    console.log(`Auth connection response time: ${endTime - startTime}ms`);
+    
     if (error) {
       console.error("Auth connection test failed:", error);
       return {
         success: false,
-        message: error.message
+        message: error.message,
+        responseTime: endTime - startTime
       };
     }
+    
     return { 
       success: true,
-      session: data.session 
+      session: data.session,
+      responseTime: endTime - startTime
     };
   } catch (e) {
     console.error("Unexpected error during auth connection test:", e);
     return {
       success: false,
-      message: "Could not connect to authentication service"
+      message: e instanceof Error ? e.message : "Could not connect to authentication service",
+      error: e
     };
   }
 };
@@ -69,6 +81,9 @@ export const signInWithEmail = async (email: string, password: string) => {
       };
     }
     
+    // Clear any previous auth errors from storage
+    localStorage.removeItem('sb-auth-error');
+    
     // Try sign-in with explicit options to ensure proper auth flow
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -77,13 +92,27 @@ export const signInWithEmail = async (email: string, password: string) => {
     
     if (error) {
       console.error("Sign in error details:", error);
+      localStorage.setItem('sb-auth-error', JSON.stringify({
+        type: 'sign-in',
+        message: error.message,
+        timestamp: new Date().toISOString()
+      }));
       return { data, error };
     }
     
     console.log("Sign in successful, user data:", data.user);
+    localStorage.removeItem('sb-auth-error');
     return { data, error: null };
   } catch (e) {
     console.error("Unexpected error during sign in:", e);
+    const errorMessage = e instanceof Error ? e.message : "An unexpected error occurred during sign in";
+    
+    localStorage.setItem('sb-auth-error', JSON.stringify({
+      type: 'sign-in-exception',
+      message: errorMessage,
+      timestamp: new Date().toISOString()
+    }));
+    
     return { 
       data: null, 
       error: { 
@@ -114,7 +143,12 @@ export const signUpWithEmail = async (
       };
     }
     
+    // Clear any previous auth errors from storage
+    localStorage.removeItem('sb-auth-error');
+    
     const redirectTo = options?.redirectTo || `${siteUrl}/verify-email-success`;
+    
+    console.log("Using redirect URL:", redirectTo);
     
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -127,16 +161,31 @@ export const signUpWithEmail = async (
     
     if (error) {
       console.error("Sign up error details:", error);
+      localStorage.setItem('sb-auth-error', JSON.stringify({
+        type: 'sign-up',
+        message: error.message,
+        timestamp: new Date().toISOString()
+      }));
       return { data, error };
     }
     
     if (data.user) {
       console.log("Sign up successful, user data:", data.user);
+      console.log("Email confirmation status:", data.user.email_confirmed_at ? "Confirmed" : "Not confirmed");
+      localStorage.removeItem('sb-auth-error');
     }
     
     return { data, error: null };
   } catch (e) {
     console.error("Unexpected error during sign up:", e);
+    const errorMessage = e instanceof Error ? e.message : "An unexpected error occurred during sign up";
+    
+    localStorage.setItem('sb-auth-error', JSON.stringify({
+      type: 'sign-up-exception',
+      message: errorMessage,
+      timestamp: new Date().toISOString()
+    }));
+    
     return { 
       data: null, 
       error: { 
@@ -151,6 +200,14 @@ export const resetPassword = async (email: string, redirectTo?: string) => {
   console.log(`Attempting to send password reset for email: ${email}`);
   
   try {
+    // First test auth connectivity
+    const connectionTest = await testAuthConnection();
+    if (!connectionTest.success) {
+      return { 
+        error: { message: "Authentication service unavailable: " + connectionTest.message } 
+      };
+    }
+    
     const { error } = await supabase.auth.resetPasswordForEmail(
       email, 
       { 
