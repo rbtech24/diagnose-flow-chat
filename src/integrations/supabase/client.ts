@@ -378,3 +378,45 @@ export const getCurrentSession = async () => {
     };
   }
 };
+
+// Add function to check maintenance mode based on stored errors
+export const checkMaintenanceMode = () => {
+  // Check for recent auth errors that would indicate maintenance mode
+  try {
+    const storedError = localStorage.getItem('sb-auth-error');
+    
+    if (!storedError) {
+      return false;
+    }
+    
+    const errorData = JSON.parse(storedError);
+    
+    // Check if error is recent (within last 10 minutes)
+    const errorTime = new Date(errorData.timestamp).getTime();
+    const tenMinutesAgo = Date.now() - (10 * 60 * 1000);
+    
+    if (errorTime < tenMinutesAgo) {
+      // Error is too old, clear it and return false
+      localStorage.removeItem('sb-auth-error');
+      return false;
+    }
+    
+    // Check if it's a database/maintenance error
+    if (errorData.type === 'database-error' || 
+        (errorData.message && (
+          errorData.message.includes("Database error") || 
+          errorData.message.includes("column") ||
+          errorData.message.includes("unexpected_failure") ||
+          errorData.message.includes("500")
+        ))) {
+      
+      console.log("System in maintenance mode due to error:", errorData);
+      return true;
+    }
+    
+    return false;
+  } catch (err) {
+    console.error("Error checking maintenance mode:", err);
+    return false;
+  }
+};
