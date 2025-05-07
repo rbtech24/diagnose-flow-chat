@@ -10,18 +10,28 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase credentials. Please check your client configuration.');
 }
 
-// Create the Supabase client with explicit configuration for auth
+// Create the Supabase client with explicit storage and auth configuration
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    storage: typeof window !== 'undefined' ? localStorage : undefined
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    storageKey: 'supabase.auth.token',
+    flowType: 'implicit'
   },
   global: {
     headers: {
       'x-application-name': 'repair-autopilot',
       'apikey': supabaseAnonKey  // Always include the API key in headers
+    }
+  },
+  db: {
+    schema: 'public'
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10
     }
   }
 });
@@ -38,6 +48,29 @@ export const testAuthConnection = async () => {
     
     // First check if we can reach Supabase at all
     const startTime = Date.now();
+    
+    // Try a health check first
+    const healthCheckFetch = await fetch(`${supabaseUrl}/rest/v1/`, {
+      method: 'HEAD',
+      headers: {
+        'apikey': supabaseAnonKey,
+        'X-Client-Info': 'repair-autopilot'
+      }
+    }).catch(e => {
+      console.error("Health check failed:", e);
+      return { ok: false, status: 0 };
+    });
+    
+    if (!healthCheckFetch.ok) {
+      console.error("Health check failed with status:", healthCheckFetch.status);
+      return {
+        success: false,
+        message: `Supabase API unreachable (status: ${healthCheckFetch.status})`,
+        responseTime: Date.now() - startTime
+      };
+    }
+
+    // Then try the actual auth session check
     const { data, error } = await supabase.auth.getSession();
     const endTime = Date.now();
     
@@ -45,6 +78,17 @@ export const testAuthConnection = async () => {
     
     if (error) {
       console.error("Auth connection test failed:", error);
+      
+      if (error.message.includes("Database error")) {
+        // This is likely a Supabase service issue
+        return {
+          success: false,
+          message: "Database service issue. Please try again later.",
+          responseTime: endTime - startTime,
+          maintenanceMode: true
+        };
+      }
+      
       return {
         success: false,
         message: error.message,
@@ -77,7 +121,8 @@ export const signInWithEmail = async (email: string, password: string) => {
     if (!connectionTest.success) {
       return { 
         data: null, 
-        error: { message: "Authentication service unavailable: " + connectionTest.message } 
+        error: { message: "Authentication service unavailable: " + connectionTest.message },
+        maintenanceMode: connectionTest.maintenanceMode || false
       };
     }
     
@@ -92,6 +137,25 @@ export const signInWithEmail = async (email: string, password: string) => {
     
     if (error) {
       console.error("Sign in error details:", error);
+      
+      // Check for database errors which indicate maintenance issues
+      if (error.message.includes("Database error") || 
+          error.message.includes("column") || 
+          error.status === 500) {
+        
+        localStorage.setItem('sb-auth-error', JSON.stringify({
+          type: 'database-error',
+          message: error.message,
+          timestamp: new Date().toISOString()
+        }));
+        
+        return { 
+          data, 
+          error,
+          maintenanceMode: true 
+        };
+      }
+      
       localStorage.setItem('sb-auth-error', JSON.stringify({
         type: 'sign-in',
         message: error.message,
@@ -139,7 +203,11 @@ export const signUpWithEmail = async (
     if (!connectionTest.success) {
       return { 
         data: null, 
-        error: { message: "Authentication service unavailable: " + connectionTest.message } 
+        error: { 
+          message: "Authentication service unavailable: " + connectionTest.message,
+          status: 503
+        },
+        maintenanceMode: connectionTest.maintenanceMode || false
       };
     }
     
@@ -150,17 +218,39 @@ export const signUpWithEmail = async (
     
     console.log("Using redirect URL:", redirectTo);
     
+    // Use more resilient signup configuration
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: options?.data || {},
-        emailRedirectTo: redirectTo
+        emailRedirectTo: redirectTo,
+        captchaToken: null
       }
     });
     
     if (error) {
       console.error("Sign up error details:", error);
+      
+      // Check for database errors which indicate maintenance issues
+      if (error.message && 
+         (error.message.includes("Database error") || 
+          error.message.includes("column") ||
+          error.status === 500)) {
+        
+        localStorage.setItem('sb-auth-error', JSON.stringify({
+          type: 'database-error',
+          message: error.message,
+          timestamp: new Date().toISOString()
+        }));
+        
+        return {
+          data,
+          error,
+          maintenanceMode: true
+        };
+      }
+      
       localStorage.setItem('sb-auth-error', JSON.stringify({
         type: 'sign-up',
         message: error.message,
@@ -189,7 +279,8 @@ export const signUpWithEmail = async (
     return { 
       data: null, 
       error: { 
-        message: "An unexpected error occurred during sign up. Please try again." 
+        message: "An unexpected error occurred during sign up. Please try again.",
+        status: 500
       } 
     };
   }
@@ -204,7 +295,8 @@ export const resetPassword = async (email: string, redirectTo?: string) => {
     const connectionTest = await testAuthConnection();
     if (!connectionTest.success) {
       return { 
-        error: { message: "Authentication service unavailable: " + connectionTest.message } 
+        error: { message: "Authentication service unavailable: " + connectionTest.message },
+        maintenanceMode: connectionTest.maintenanceMode || false 
       };
     }
     
@@ -217,6 +309,19 @@ export const resetPassword = async (email: string, redirectTo?: string) => {
     
     if (error) {
       console.error("Password reset error details:", error);
+      
+      // Check for database errors which indicate maintenance issues
+      if (error.message && 
+         (error.message.includes("Database error") || 
+          error.message.includes("column") ||
+          error.status === 500)) {
+        
+        return {
+          error,
+          maintenanceMode: true
+        };
+      }
+      
       return { error };
     }
     
@@ -227,6 +332,50 @@ export const resetPassword = async (email: string, redirectTo?: string) => {
       error: { 
         message: "An unexpected error occurred during password reset. Please try again." 
       } 
+    };
+  }
+};
+
+// A function to handle sign-out with better error handling
+export const signOut = async () => {
+  try {
+    const { error } = await supabase.auth.signOut();
+    
+    if (error) {
+      console.error("Sign out error:", error);
+      return { error };
+    }
+    
+    console.log("User signed out successfully");
+    return { error: null };
+  } catch (e) {
+    console.error("Unexpected error during sign out:", e);
+    return {
+      error: {
+        message: "An unexpected error occurred during sign out. Please try again."
+      }
+    };
+  }
+};
+
+// A function to get the current session with error handling
+export const getCurrentSession = async () => {
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      console.error("Get session error:", error);
+      return { data: null, error };
+    }
+    
+    return { data, error: null };
+  } catch (e) {
+    console.error("Unexpected error getting session:", e);
+    return {
+      data: null,
+      error: {
+        message: "An unexpected error occurred while getting the session."
+      }
     };
   }
 };

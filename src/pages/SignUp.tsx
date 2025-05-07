@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { toast } from 'react-hot-toast';
 import { useAuth } from "@/context/AuthContext";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { signUpWithEmail, testAuthConnection } from "@/integrations/supabase/client";
 
 export default function SignUp() {
@@ -25,6 +24,7 @@ export default function SignUp() {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'connected' | 'error'>('unknown');
   const [debugInfo, setDebugInfo] = useState<string | null>(null);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
 
   // Password validation
   const [passwordFocus, setPasswordFocus] = useState(false);
@@ -67,22 +67,43 @@ export default function SignUp() {
     };
     
     checkConnection();
+
+    // Check if we should enable maintenance mode based on repeated errors
+    const authErrors = localStorage.getItem('sb-auth-errors');
+    if (authErrors) {
+      try {
+        const errors = JSON.parse(authErrors);
+        if (errors.length >= 3 && 
+            errors.some(e => e.includes('Database error') || e.includes('column identities.provider_id does not exist'))) {
+          setMaintenanceMode(true);
+          setError("Our authentication system is undergoing maintenance. Please try again later or contact support.");
+          setDebugInfo("Maintenance mode activated due to repeated database errors");
+        }
+      } catch (e) {
+        console.error("Error parsing auth errors:", e);
+      }
+    }
   }, []);
 
   // Check for active session on component mount
   useEffect(() => {
     const checkSession = async () => {
-      const result = await testAuthConnection();
-      if (result.success && result.session) {
-        // If user is already logged in, redirect to appropriate dashboard
-        console.log("Active session found, redirecting");
-        const role = result.session.user.user_metadata?.role;
-        const redirectPath = role === 'admin' ? '/admin' :
-                             role === 'company' ? '/company' : 
-                             '/tech';
-        navigate(redirectPath);
-      } else {
-        console.log("No active session found");
+      try {
+        const result = await testAuthConnection();
+        if (result.success && result.session) {
+          // If user is already logged in, redirect to appropriate dashboard
+          console.log("Active session found, redirecting");
+          const role = result.session.user.user_metadata?.role;
+          const redirectPath = role === 'admin' ? '/admin' :
+                              role === 'company' ? '/company' : 
+                              '/tech';
+          navigate(redirectPath);
+        } else {
+          console.log("No active session found");
+        }
+      } catch (error) {
+        console.error("Error checking session:", error);
+        setDebugInfo(`Session check error: ${error instanceof Error ? error.message : String(error)}`);
       }
     };
     
@@ -108,11 +129,33 @@ export default function SignUp() {
     setPhoneNumber(formatted);
   };
 
+  const logAuthError = (errorMessage: string) => {
+    try {
+      const existingErrors = localStorage.getItem('sb-auth-errors') || '[]';
+      const errors = JSON.parse(existingErrors) as string[];
+      errors.push(`${new Date().toISOString()}: ${errorMessage}`);
+      
+      // Keep only the last 10 errors
+      if (errors.length > 10) {
+        errors.shift();
+      }
+      
+      localStorage.setItem('sb-auth-errors', JSON.stringify(errors));
+    } catch (e) {
+      console.error("Error logging auth error:", e);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormSubmitted(true);
     setError(null);
     setDebugInfo(null);
+    
+    if (maintenanceMode) {
+      setError("Our authentication system is currently undergoing maintenance. Please try again later or contact support.");
+      return;
+    }
     
     // Check form validity before submission
     if (!isEmailValid) {
@@ -157,9 +200,32 @@ export default function SignUp() {
       if (signUpError) {
         console.error("Sign up error details:", signUpError);
         
+        // Log the auth error for tracking patterns
+        logAuthError(signUpError.message || "Unknown signup error");
+        
         if (signUpError.message?.includes("User already registered")) {
           throw new Error("This email is already registered. Please sign in instead.");
-        } else {
+        } 
+        else if (signUpError.message?.includes("Database error") || 
+                signUpError.message?.includes("column") || 
+                signUpError.status === 500) {
+          setError("Our authentication system is currently experiencing issues. Please try again later or contact support.");
+          setDebugInfo(`Database error: ${JSON.stringify(signUpError)}`);
+          toast.error("Authentication system issues");
+          
+          // Check for repeated database errors
+          const authErrors = localStorage.getItem('sb-auth-errors') || '[]';
+          try {
+            const errors = JSON.parse(authErrors) as string[];
+            if (errors.filter(e => e.includes('Database error')).length >= 2) {
+              setMaintenanceMode(true);
+              setError("Our authentication system is undergoing maintenance. Please try again in a few hours or contact support.");
+            }
+          } catch (e) {
+            console.error("Error parsing auth errors:", e);
+          }
+        } 
+        else {
           setDebugInfo(`Signup error: ${JSON.stringify(signUpError)}`);
           throw new Error(signUpError.message || "Sign up failed. Please try again.");
         }
@@ -194,6 +260,9 @@ export default function SignUp() {
     } catch (err: any) {
       console.error("Signup exception:", err);
       
+      // Log the exception for tracking patterns
+      logAuthError(err.message || "Unknown signup exception");
+      
       // Handle specific API errors with more informative messages
       if (err.message?.includes("User already registered")) {
         setError("This email is already registered. Please sign in instead.");
@@ -207,8 +276,10 @@ export default function SignUp() {
         setError("Too many attempts. Please wait a moment and try again.");
         toast.error("Too many signup attempts");
       }
-      else if (err.message?.includes("Database error")) {
+      else if (err.message?.includes("Database error") || 
+              (typeof err === 'object' && err.status === 500)) {
         setError("Authentication system is currently experiencing issues. Please try again later.");
+        setDebugInfo(`Database exception: ${err instanceof Error ? err.stack : JSON.stringify(err)}`);
         toast.error("Authentication system issues");
       }
       else {
@@ -227,7 +298,17 @@ export default function SignUp() {
       description="Sign up for a 30-day free trial"
       showSalesContent={true}
     >
-      {connectionStatus === 'error' && (
+      {maintenanceMode && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Maintenance Notice</AlertTitle>
+          <AlertDescription>
+            Our authentication system is currently undergoing maintenance. Please try again in a few hours or contact support.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {connectionStatus === 'error' && !maintenanceMode && (
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
@@ -259,7 +340,7 @@ export default function SignUp() {
               pressed={role === 'tech'}
               onPressedChange={() => setRole('tech')}
               className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-              disabled={connectionStatus === 'error'}
+              disabled={isLoading || connectionStatus === 'error' || maintenanceMode}
             >
               Technician
             </Toggle>
@@ -267,7 +348,7 @@ export default function SignUp() {
               pressed={role === 'company'}
               onPressedChange={() => setRole('company')}
               className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-              disabled={connectionStatus === 'error'}
+              disabled={isLoading || connectionStatus === 'error' || maintenanceMode}
             >
               Company
             </Toggle>
@@ -290,7 +371,7 @@ export default function SignUp() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="name@example.com"
             required
-            disabled={isLoading || connectionStatus === 'error'}
+            disabled={isLoading || connectionStatus === 'error' || maintenanceMode}
             className={formSubmitted && !isEmailValid ? "border-red-500" : ""}
           />
         </div>
@@ -304,7 +385,7 @@ export default function SignUp() {
             onChange={handlePhoneChange}
             placeholder="(123) 456-7890"
             required
-            disabled={isLoading || connectionStatus === 'error'}
+            disabled={isLoading || connectionStatus === 'error' || maintenanceMode}
             className={formSubmitted && phoneNumber.trim() === "" ? "border-red-500" : ""}
           />
         </div>
@@ -321,7 +402,7 @@ export default function SignUp() {
             onFocus={() => setPasswordFocus(true)}
             onBlur={() => setPasswordFocus(passwordFocus && password !== "")}
             required
-            disabled={isLoading || connectionStatus === 'error'}
+            disabled={isLoading || connectionStatus === 'error' || maintenanceMode}
             className={formSubmitted && !isPasswordValid ? "border-red-500" : ""}
           />
           
@@ -353,7 +434,7 @@ export default function SignUp() {
         <Button 
           type="submit" 
           className="w-full"
-          disabled={isLoading || connectionStatus === 'error'}
+          disabled={isLoading || connectionStatus === 'error' || maintenanceMode}
         >
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Create account
@@ -368,6 +449,19 @@ export default function SignUp() {
           Sign in
         </Link>
       </div>
+      
+      {/* Maintenance mode notice */}
+      {maintenanceMode && (
+        <Alert className="mt-4 bg-blue-50">
+          <div className="text-sm text-blue-800">
+            <p className="font-medium">Authentication System Maintenance</p>
+            <p className="mt-1">
+              Our team has been notified and is working on resolving the issue.
+              You can check back later or contact support if you need immediate assistance.
+            </p>
+          </div>
+        </Alert>
+      )}
     </AuthLayout>
   );
 }
