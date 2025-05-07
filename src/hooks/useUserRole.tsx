@@ -1,5 +1,5 @@
 
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/auth';
 
 export function useUserRole() {
   const { userRole, isLoading } = useAuth();

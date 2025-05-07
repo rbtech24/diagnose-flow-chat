@@ -4,7 +4,7 @@ import { ProfileImageUpload } from "@/components/profile/ProfileImageUpload";
 import { ProfileDetailsForm } from "@/components/profile/ProfileDetailsForm";
 import { UserProfileHeader } from "@/components/profile/UserProfileHeader";
 import { UserStats } from "@/components/profile/UserStats";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";

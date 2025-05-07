@@ -9,7 +9,7 @@ import VerifyEmail from './pages/VerifyEmail';
 import VerifyEmailSuccess from './pages/VerifyEmailSuccess';
 import NotFound from './pages/NotFound';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './context/auth';
 import './App.css';
 
 // Uncommented previously disabled routes

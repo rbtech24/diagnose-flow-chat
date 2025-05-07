@@ -1,3 +1,4 @@
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -12,7 +13,7 @@ import {
   FormMessage,
   FormDescription,
 } from "@/components/ui/form";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 import { Loader2, Save } from "lucide-react";

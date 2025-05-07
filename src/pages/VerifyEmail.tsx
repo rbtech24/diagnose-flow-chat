@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle, MailIcon } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
