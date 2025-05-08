@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +11,7 @@ import { ArrowLeft, Calendar, MapPin, UserRound, Package, Wrench, AlertTriangle,
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { handleApiError } from "@/utils/errorHandler";
 import { toast } from "sonner";
-import { ActivityItem, ActivityMetadata, UserActivityData } from "@/types/activity";
+import { ActivityItem, ActivityMetadata } from "@/types/activity";
 
 // Define proper interface for company address to avoid deep instantiation
 interface CompanyAddress {
@@ -31,6 +32,18 @@ interface CompanyData {
   trial_period?: number;
   trial_end_date?: string;
   company_address?: CompanyAddress | null;
+}
+
+// Define simplified type for user activity data to avoid deep type instantiation
+interface UserActivityData {
+  id: string;
+  activity_type: string;
+  created_at: string;
+  description: string;
+  metadata: Record<string, any>;
+  ip_address: string;
+  user_agent: string;
+  user_id: string;
 }
 
 export default function CompanyDetail() {
@@ -89,8 +102,8 @@ export default function CompanyDetail() {
             created_at: act.created_at,
             description: act.description || '',
             metadata: act.metadata || {},
-            ip_address: act.ip_address,
-            user_agent: act.user_agent,
+            ip_address: act.ip_address || '',
+            user_agent: act.user_agent || '',
             user_id: act.user_id,
           }));
           

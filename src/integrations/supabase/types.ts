@@ -4625,6 +4625,10 @@ export type Database = {
         Args: { p_company_id: string; p_provider: string }
         Returns: Json
       }
+      get_company_subscription_tier: {
+        Args: { company_id: string }
+        Returns: string
+      }
       get_file_preview: {
         Args: { p_mime_type: string; p_file_size: number }
         Returns: Json
@@ -4810,6 +4814,10 @@ export type Database = {
           role: string | null
           username: string
         }[]
+      }
+      user_can_access_company: {
+        Args: { company_id: string }
+        Returns: boolean
       }
       validate_registration: {
         Args: {
