@@ -13,6 +13,10 @@ const superAdmin: User = {
   role: "admin",
   status: "active",
   isMainAdmin: true,
+  avatarUrl: "https://i.pravatar.cc/150?u=admin",
+  phone: "+1234567890",
+  companyId: "company-123",
+  companyName: "Repair Auto Pilot"
 };
 
 export function useMockAuth(): AuthContextType {
@@ -85,13 +89,19 @@ export function useMockAuth(): AuthContextType {
     userData?: Record<string, any>
   ): Promise<boolean> => {
     // Mock signup
-    setUser({
+    const newUser: User = {
       id: `user-${Date.now()}`,
       name: userData?.name || email.split("@")[0],
       email,
       role,
       status: "active",
-    });
+      avatarUrl: `https://i.pravatar.cc/150?u=${email}`,
+      phone: userData?.phone || "",
+      companyId: userData?.companyId || "company-123",
+      companyName: userData?.companyName || "New Company"
+    };
+    
+    setUser(newUser);
     return true;
   };
 

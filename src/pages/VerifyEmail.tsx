@@ -19,14 +19,21 @@ export default function VerifyEmail() {
   // Check if user is already verified and redirect appropriately
   useEffect(() => {
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session && data.session.user.email_confirmed_at) {
-        // If user is verified, redirect to appropriate dashboard
-        const role = data.session.user.user_metadata.role;
-        const redirectPath = role === 'admin' ? '/admin' :
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (data.session && data.session.user.email_confirmed_at) {
+          // If user is verified, redirect to appropriate dashboard
+          console.log("Active session found, redirecting");
+          const role = data.session.user.user_metadata?.role;
+          const redirectPath = role === 'admin' ? '/admin' :
                              role === 'company' ? '/company' : 
                              '/tech';
-        navigate(redirectPath);
+          navigate(redirectPath);
+        } else {
+          console.log("No active session found");
+        }
+      } catch (error) {
+        console.error("Error checking session:", error);
       }
     };
     
@@ -61,6 +68,7 @@ export default function VerifyEmail() {
     
     setIsSending(true);
     try {
+      // Call resendVerificationEmail without email parameter to match the type definition
       const success = await resendVerificationEmail(email);
       if (success) {
         setIsSuccess(true);
