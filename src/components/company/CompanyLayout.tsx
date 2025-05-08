@@ -1,29 +1,20 @@
 
-import { Outlet } from "react-router-dom";
 import { CompanySidebar } from "./CompanySidebar";
-import { useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useUserMessages, useSystemMessages } from "@/context/SystemMessageContext";
+import { useUserMessages } from "@/context/SystemMessageContext";
 import { SystemMessage } from "@/components/system/SystemMessage";
-import { OfflineIndicator } from "@/components/system/OfflineIndicator";
-import { Search, Menu, LogOut } from "lucide-react";
+import { Search, Menu } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { useAuth } from "@/context/AuthContext";
 
 export function CompanyLayout() {
   const navigate = useNavigate();
   const userMessages = useUserMessages("company");
-  const { removeMessage } = useSystemMessages();
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, signOut } = useAuth();
-
-  const handleLogout = () => {
-    signOut();
-  };
 
   return (
     <div className="flex h-screen w-full">
@@ -58,47 +49,28 @@ export function CompanyLayout() {
             <Input placeholder="Search..." className="pl-8 py-1 h-9 text-sm" />
           </div>
           
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={handleLogout}
-              className="h-8 w-8"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
-            
-            <Button 
-              size="icon" 
-              variant="ghost" 
-              className="h-8 w-8 rounded-full"
-              onClick={() => navigate("/company/profile")}
-            >
-              <span className="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full">
-                <img 
-                  className="aspect-square h-full w-full" 
-                  src={user?.avatarUrl || "https://i.pravatar.cc/300"} 
-                  alt={user?.name || "Profile"} 
-                />
-              </span>
-            </Button>
-          </div>
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            className="h-8 w-8 rounded-full"
+            onClick={() => navigate("/company/profile")}
+          >
+            <span className="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full">
+              <img className="aspect-square h-full w-full" src="https://i.pravatar.cc/300" alt="Profile" />
+            </span>
+          </Button>
         </div>
         
         <div className="p-3 sm:p-6">
           {userMessages.map(msg => (
             <SystemMessage
               key={msg.id}
-              id={msg.id}
               type={msg.type}
               title={msg.title}
               message={msg.message}
-              dismissible={msg.dismissible}
-              onDismiss={() => removeMessage(msg.id)}
             />
           ))}
           <Outlet />
-          <OfflineIndicator />
         </div>
       </div>
     </div>

@@ -2,15 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  Search, 
-  Filter, 
-  SlidersHorizontal, 
-  FileSpreadsheet, 
-  File, 
-  Workflow,
-  CheckCircle
-} from 'lucide-react';
+import { Search, Filter, SlidersHorizontal } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -18,121 +10,66 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useIsMobile } from '@/hooks/use-mobile';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
+import { CommunityPostType } from '@/types/community';
 
-export interface CommunityFiltersProps {
-  tags: string[];
-  selectedTags: string[];
-  onTagSelect: (tag: string) => void;
-  activeTab?: string;
-  onTabChange?: (value: string) => void;
-  showDocumentFilters?: boolean;
+interface CommunityFiltersProps {
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  selectedType: string;
+  setSelectedType: (type: string) => void;
+  selectedSort: string;
+  setSelectedSort: (sort: string) => void;
 }
 
 export function CommunityFilters({
-  tags,
-  selectedTags,
-  onTagSelect,
-  activeTab = "all",
-  onTabChange,
-  showDocumentFilters = false
+  searchQuery,
+  setSearchQuery,
+  selectedType,
+  setSelectedType,
+  selectedSort,
+  setSelectedSort
 }: CommunityFiltersProps) {
-  const isMobile = useIsMobile();
-  
   return (
-    <Card className="bg-card shadow-sm">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Filter by Tags</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {showDocumentFilters && (
-          <div className="mb-4">
-            <h3 className="text-sm font-medium mb-3">Post Type</h3>
-            <Tabs defaultValue={activeTab} onValueChange={onTabChange} className="w-full mb-2">
-              <TabsList className="w-full grid grid-cols-2 sm:grid-cols-3">
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="question">Questions</TabsTrigger>
-                <TabsTrigger value="tech-sheet-request" className="flex items-center justify-center gap-1">
-                  <FileSpreadsheet className="h-3.5 w-3.5" />
-                  {!isMobile && "Tech Sheets"}
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-        )}
-        
-        <div className="flex flex-wrap gap-2">
-          {tags.map((tag) => (
-            <Button
-              key={tag}
-              variant={selectedTags.includes(tag) ? "default" : "outline"}
-              size="sm"
-              onClick={() => onTagSelect(tag)}
-              className="text-xs"
-            >
-              {tag}
-            </Button>
-          ))}
+    <div className="bg-card p-4 rounded-lg shadow-sm mb-6">
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="relative flex-grow">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search posts..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <div className="flex flex-wrap gap-4">
+          <Select value={selectedType} onValueChange={setSelectedType}>
+            <SelectTrigger className="w-[180px]">
+              <Filter className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Post Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Posts</SelectItem>
+              <SelectItem value="question">Questions</SelectItem>
+              <SelectItem value="tech-sheet-request">Tech Sheet Requests</SelectItem>
+              <SelectItem value="wire-diagram-request">Wire Diagram Requests</SelectItem>
+              <SelectItem value="discussion">Discussions</SelectItem>
+            </SelectContent>
+          </Select>
           
-          {tags.length === 0 && (
-            <p className="text-sm text-muted-foreground">No tags available</p>
-          )}
+          <Select value={selectedSort} onValueChange={setSelectedSort}>
+            <SelectTrigger className="w-[180px]">
+              <SlidersHorizontal className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Sort By" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recent">Most Recent</SelectItem>
+              <SelectItem value="popular">Most Popular</SelectItem>
+              <SelectItem value="upvotes">Most Upvotes</SelectItem>
+              <SelectItem value="comments">Most Comments</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        
-        <div className="grid grid-cols-2 gap-2 mt-4">
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full"
-            onClick={() => {}}
-          >
-            Cooling Issue
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full"
-            onClick={() => {}}
-          >
-            Refrigerator
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full"
-            onClick={() => {}}
-          >
-            Washing Machine
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full"
-            onClick={() => {}}
-          >
-            Dishwasher
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full"
-            onClick={() => {}}
-          >
-            Samsung
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full"
-            onClick={() => {}}
-          >
-            LG
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

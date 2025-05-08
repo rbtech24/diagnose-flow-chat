@@ -1,338 +1,486 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Network, Check, X, Lock, ExternalLink, ArrowRightLeft, Copy, Plus } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useApiIntegrationsStore } from "@/store/apiIntegrationsStore";
-import { IntegrationConnectDialog } from "@/components/admin/integrations/IntegrationConnectDialog";
-import { WebhookCreateDialog } from "@/components/admin/integrations/WebhookCreateDialog";
-import { toast } from "react-hot-toast";
+import { Switch } from "@/components/ui/switch";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
+import { useAPIConfigStore } from "@/store/apiConfigStore";
+import { 
+  CreditCard, Mail, MessageSquare, Database, Sparkles, Save, 
+  Check, AlertCircle, Info, Lock
+} from "lucide-react";
 
 export default function APIIntegrations() {
-  const { 
-    availableIntegrations, 
-    connectedIntegrations, 
-    webhooks,
-    isLoading,
-    activeTab,
-    setActiveTab,
-    fetchAvailableIntegrations,
-    fetchConnectedIntegrations,
-    fetchWebhooks,
-    disconnectIntegration
-  } = useApiIntegrationsStore();
+  const { configs, updateConfig, toggleService, updateNestedSetting } = useAPIConfigStore();
+  const [activeTab, setActiveTab] = useState("payment");
 
-  const [selectedIntegration, setSelectedIntegration] = useState<any>(null);
-  const [showConnectDialog, setShowConnectDialog] = useState(false);
-  const [showWebhookDialog, setShowWebhookDialog] = useState(false);
-  const [selectedWebhookIntegrationId, setSelectedWebhookIntegrationId] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchAvailableIntegrations();
-    fetchConnectedIntegrations();
-  }, [fetchAvailableIntegrations, fetchConnectedIntegrations]);
-
-  const handleConnect = (integration: any) => {
-    setSelectedIntegration(integration);
-    setShowConnectDialog(true);
+  const handleToggleService = (service: keyof typeof configs) => {
+    toggleService(service);
   };
 
-  const handleDisconnect = async (integrationId: string) => {
-    if (window.confirm("Are you sure you want to disconnect this integration? This action cannot be undone.")) {
-      await disconnectIntegration(integrationId);
-    }
+  const handleInputChange = (
+    service: keyof typeof configs, 
+    field: string, 
+    value: string
+  ) => {
+    updateConfig(service, { [field]: value } as any);
   };
 
-  const handleCreateWebhook = (integrationId: string) => {
-    setSelectedWebhookIntegrationId(integrationId);
-    setShowWebhookDialog(true);
+  const handleNestedInputChange = (
+    service: keyof typeof configs, 
+    settingType: 'additionalSettings',
+    field: string, 
+    value: string
+  ) => {
+    updateNestedSetting(service, settingType, field, value);
   };
 
-  const handleCopyWebhookUrl = () => {
-    const url = `${window.location.origin}/api/webhooks/inbound`;
-    navigator.clipboard.writeText(url);
-    toast("Webhook URL has been copied to clipboard");
+  const handleSaveConfig = (service: keyof typeof configs) => {
+    // In a real implementation with Supabase, we would save to the database here
+    toast.success(`${service.charAt(0).toUpperCase() + service.slice(1)} configuration saved`);
   };
 
   return (
     <div className="container mx-auto p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">API Integrations</h1>
-          <p className="text-muted-foreground">Connect third-party services and APIs</p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">API Integrations</h1>
+        <p className="text-gray-500">Configure external API services for the system</p>
       </div>
 
-      <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-6">
-          <TabsTrigger value="available">Available Integrations</TabsTrigger>
-          <TabsTrigger value="connected">Connected</TabsTrigger>
-          <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+      <Tabs defaultValue="payment" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="mb-6 grid w-full grid-cols-4">
+          <TabsTrigger value="payment">Payment</TabsTrigger>
+          <TabsTrigger value="communication">Communication</TabsTrigger>
+          <TabsTrigger value="infrastructure">Infrastructure</TabsTrigger>
+          <TabsTrigger value="ai">AI Services</TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="available">
-          {isLoading.available ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Card key={i}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <Skeleton className="h-10 w-10 rounded-full" />
-                        <div>
-                          <Skeleton className="h-5 w-24 mb-1" />
-                          <Skeleton className="h-3 w-16" />
-                        </div>
-                      </div>
-                      <Skeleton className="h-5 w-28" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <Skeleton className="h-4 w-full mb-3" />
-                    <Skeleton className="h-4 w-3/4" />
-                  </CardContent>
-                  <CardFooter className="flex justify-between border-t pt-4">
-                    <Skeleton className="h-9 w-24" />
-                    <Skeleton className="h-9 w-20" />
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {availableIntegrations.map((integration) => (
-                <Card key={integration.id} className="flex flex-col">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                          <Network className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <CardTitle className="text-lg">{integration.name}</CardTitle>
-                          <Badge variant="outline" className="mt-1">
-                            {integration.category}
-                          </Badge>
-                        </div>
-                      </div>
-                      <Badge variant={integration.status === 'Connected' ? 'secondary' : 'outline'} className={integration.status === 'Connected' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-muted'}>
-                        {integration.status}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="flex-grow">
-                    <p className="text-sm text-muted-foreground">
-                      {integration.description}
-                    </p>
-                  </CardContent>
-                  <CardFooter className="flex justify-between border-t pt-4">
-                    <Button variant="outline" size="sm">
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      View Docs
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      onClick={() => handleConnect(integration)}
-                      disabled={integration.status === 'Connected'}
-                    >
-                      {integration.status === 'Connected' ? 'Connected' : 'Connect'}
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="connected">
-          {isLoading.connected ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: 2 }).map((_, i) => (
-                <Card key={i}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <Skeleton className="h-10 w-10 rounded-full" />
-                        <div>
-                          <Skeleton className="h-5 w-24 mb-1" />
-                          <Skeleton className="h-3 w-16" />
-                        </div>
-                      </div>
-                      <Skeleton className="h-5 w-28" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <Skeleton className="h-4 w-full mb-3" />
-                    <Skeleton className="h-4 w-3/4" />
-                  </CardContent>
-                  <CardFooter className="flex justify-between border-t pt-4">
-                    <Skeleton className="h-9 w-24" />
-                    <Skeleton className="h-9 w-20" />
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          ) : connectedIntegrations.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-8 text-muted-foreground">
-                <Network className="h-16 w-16 mx-auto opacity-20 mb-3" />
-                <h3 className="text-lg font-medium mb-1">No connected integrations</h3>
-                <p className="text-sm mb-4">You haven't connected any third-party services yet.</p>
-                <Button onClick={() => setActiveTab('available')}>View Available Integrations</Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {connectedIntegrations.map((integration) => (
-                <Card key={integration.id} className="flex flex-col">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-                          <Check className="h-5 w-5 text-green-600" />
-                        </div>
-                        <div>
-                          <CardTitle className="text-lg">{integration.name}</CardTitle>
-                          <Badge variant="outline" className="mt-1">
-                            {integration.category}
-                          </Badge>
-                        </div>
-                      </div>
-                      <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
-                        Connected
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="flex-grow">
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {integration.description}
-                    </p>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <ArrowRightLeft className="h-4 w-4" />
-                      <span>Last synced: {integration.lastSync || integration.last_sync ? new Date(integration.lastSync || integration.last_sync).toLocaleString() : 'Never'}</span>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-between border-t pt-4">
-                    <Button variant="outline" size="sm" onClick={() => handleCreateWebhook(integration.id)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Webhook
-                    </Button>
-                    <Button variant="destructive" size="sm" onClick={() => handleDisconnect(integration.id)}>
-                      Disconnect
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="webhooks">
+
+        <TabsContent value="payment" className="space-y-6">
+          {/* Stripe */}
           <Card>
             <CardHeader>
-              <CardTitle>Webhook Endpoints</CardTitle>
-              <CardDescription>Manage incoming webhooks for third-party services</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center p-4 rounded-lg border">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                    <Lock className="h-5 w-5 text-primary" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <CreditCard className="h-6 w-6 text-purple-500" />
+                  <div>
+                    <CardTitle>Stripe</CardTitle>
+                    <CardDescription>Payment processing for subscriptions and one-time payments</CardDescription>
                   </div>
-                  <div className="ml-3">
-                    <h3 className="font-medium">System Webhook URL</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {window.location.origin}/api/webhooks/inbound
-                    </p>
-                  </div>
-                  <Button variant="outline" className="ml-auto" size="sm" onClick={handleCopyWebhookUrl}>
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copy URL
-                  </Button>
                 </div>
-                
-                <div className="text-sm">
-                  <h3 className="font-medium mb-2">Webhook Endpoints</h3>
-                  {isLoading.webhooks ? (
-                    <div className="space-y-2">
-                      {Array.from({ length: 3 }).map((_, i) => (
-                        <div key={i} className="flex items-center justify-between p-3 border rounded-md">
-                          <div>
-                            <Skeleton className="h-4 w-36 mb-1" />
-                            <Skeleton className="h-3 w-64" />
-                          </div>
-                          <Skeleton className="h-6 w-16" />
-                        </div>
-                      ))}
-                    </div>
-                  ) : webhooks.length === 0 ? (
-                    <div className="text-center py-4 text-muted-foreground border rounded-md">
-                      <p>No webhook endpoints configured</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {webhooks.map((webhook) => (
-                        <div key={webhook.id} className="flex items-center justify-between p-3 border rounded-md">
-                          <div>
-                            <p className="font-medium">{webhook.name}</p>
-                            <p className="text-xs text-muted-foreground">{webhook.url}</p>
-                          </div>
-                          <Badge variant={webhook.status === 'active' ? 'default' : 'outline'}>
-                            {webhook.status === 'active' ? 'Active' : 'Inactive'}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                <Switch 
+                  checked={configs.stripe.enabled}
+                  onCheckedChange={() => handleToggleService('stripe')}
+                />
+              </div>
+            </CardHeader>
+            {configs.stripe.enabled && (
+              <>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="stripe-api-key">API Key</Label>
+                    <Input 
+                      id="stripe-api-key" 
+                      type="password"
+                      placeholder="sk_live_..."
+                      value={configs.stripe.apiKey}
+                      onChange={(e) => handleInputChange('stripe', 'apiKey', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="stripe-api-secret">Webhook Secret</Label>
+                    <Input 
+                      id="stripe-api-secret" 
+                      type="password"
+                      placeholder="whsec_..."
+                      value={configs.stripe.apiSecret || ''}
+                      onChange={(e) => handleInputChange('stripe', 'apiSecret', e.target.value)}
+                    />
+                  </div>
+                  <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription>
+                      Ensure you've set up the required webhook endpoints in your Stripe dashboard.
+                    </AlertDescription>
+                  </Alert>
+                </CardContent>
+                <CardFooter className="flex justify-end">
+                  <Button onClick={() => handleSaveConfig('stripe')}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Configuration
+                  </Button>
+                </CardFooter>
+              </>
+            )}
+          </Card>
+
+          {/* Helcim */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <CreditCard className="h-6 w-6 text-blue-500" />
+                  <div>
+                    <CardTitle>Helcim</CardTitle>
+                    <CardDescription>Alternative payment processor for card transactions</CardDescription>
+                  </div>
+                </div>
+                <Switch 
+                  checked={configs.helcim.enabled}
+                  onCheckedChange={() => handleToggleService('helcim')}
+                />
+              </div>
+            </CardHeader>
+            {configs.helcim.enabled && (
+              <>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="helcim-api-key">API Key</Label>
+                    <Input 
+                      id="helcim-api-key" 
+                      type="password"
+                      placeholder="Enter Helcim API key"
+                      value={configs.helcim.apiKey}
+                      onChange={(e) => handleInputChange('helcim', 'apiKey', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="helcim-api-secret">API Secret</Label>
+                    <Input 
+                      id="helcim-api-secret" 
+                      type="password"
+                      placeholder="Enter Helcim API secret"
+                      value={configs.helcim.apiSecret || ''}
+                      onChange={(e) => handleInputChange('helcim', 'apiSecret', e.target.value)}
+                    />
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-end">
+                  <Button onClick={() => handleSaveConfig('helcim')}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Configuration
+                  </Button>
+                </CardFooter>
+              </>
+            )}
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="communication" className="space-y-6">
+          {/* Twilio */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <MessageSquare className="h-6 w-6 text-red-400" />
+                  <div>
+                    <CardTitle>Twilio</CardTitle>
+                    <CardDescription>SMS and voice communication services</CardDescription>
+                  </div>
+                </div>
+                <Switch 
+                  checked={configs.twilio.enabled}
+                  onCheckedChange={() => handleToggleService('twilio')}
+                />
+              </div>
+            </CardHeader>
+            {configs.twilio.enabled && (
+              <>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="twilio-account-sid">Account SID</Label>
+                    <Input 
+                      id="twilio-account-sid" 
+                      placeholder="AC..."
+                      value={configs.twilio.additionalSettings?.accountSid || ''}
+                      onChange={(e) => handleNestedInputChange('twilio', 'additionalSettings', 'accountSid', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="twilio-api-key">API Key</Label>
+                    <Input 
+                      id="twilio-api-key" 
+                      type="password"
+                      placeholder="SK..."
+                      value={configs.twilio.apiKey}
+                      onChange={(e) => handleInputChange('twilio', 'apiKey', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="twilio-api-secret">API Secret</Label>
+                    <Input 
+                      id="twilio-api-secret" 
+                      type="password"
+                      placeholder="Enter Twilio API secret"
+                      value={configs.twilio.apiSecret || ''}
+                      onChange={(e) => handleInputChange('twilio', 'apiSecret', e.target.value)}
+                    />
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-end">
+                  <Button onClick={() => handleSaveConfig('twilio')}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Configuration
+                  </Button>
+                </CardFooter>
+              </>
+            )}
+          </Card>
+
+          {/* SendGrid */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Mail className="h-6 w-6 text-blue-400" />
+                  <div>
+                    <CardTitle>SendGrid</CardTitle>
+                    <CardDescription>Email delivery service for communications</CardDescription>
+                  </div>
+                </div>
+                <Switch 
+                  checked={configs.sendgrid.enabled}
+                  onCheckedChange={() => handleToggleService('sendgrid')}
+                />
+              </div>
+            </CardHeader>
+            {configs.sendgrid.enabled && (
+              <>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="sendgrid-api-key">API Key</Label>
+                    <Input 
+                      id="sendgrid-api-key" 
+                      type="password"
+                      placeholder="SG..."
+                      value={configs.sendgrid.apiKey}
+                      onChange={(e) => handleInputChange('sendgrid', 'apiKey', e.target.value)}
+                    />
+                  </div>
+                  <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription>
+                      Make sure to verify your sender domains in SendGrid before sending emails.
+                    </AlertDescription>
+                  </Alert>
+                </CardContent>
+                <CardFooter className="flex justify-end">
+                  <Button onClick={() => handleSaveConfig('sendgrid')}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Configuration
+                  </Button>
+                </CardFooter>
+              </>
+            )}
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="infrastructure" className="space-y-6">
+          {/* Supabase */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Database className="h-6 w-6 text-green-500" />
+                  <div>
+                    <CardTitle>Supabase</CardTitle>
+                    <CardDescription>Database, authentication and storage service</CardDescription>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full flex items-center">
+                    <Check className="h-3 w-3 mr-1" />
+                    Connected
+                  </div>
+                  <Switch 
+                    checked={configs.supabase.enabled}
+                    onCheckedChange={() => handleToggleService('supabase')}
+                  />
                 </div>
               </div>
-            </CardContent>
-            <CardFooter>
-              {connectedIntegrations.length > 0 ? (
-                <Button className="ml-auto" onClick={() => {
-                  if (connectedIntegrations.length > 0) {
-                    handleCreateWebhook(connectedIntegrations[0].id);
-                  } else {
-                    toast.error("You need to connect an integration first");
-                  }
-                }}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create New Webhook
-                </Button>
-              ) : (
-                <Button className="ml-auto" disabled>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create New Webhook
-                </Button>
-              )}
-            </CardFooter>
+            </CardHeader>
+            {configs.supabase.enabled && (
+              <>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="supabase-url">Supabase URL</Label>
+                    <Input 
+                      id="supabase-url" 
+                      value="https://jukatimjnqhhlxkrxsak.supabase.co"
+                      disabled
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="supabase-api-key">API Key</Label>
+                    <Input 
+                      id="supabase-api-key" 
+                      type="password"
+                      value={configs.supabase.apiKey}
+                      disabled
+                    />
+                  </div>
+                  <Alert>
+                    <Lock className="h-4 w-4" />
+                    <AlertDescription>
+                      Supabase configuration is managed through the native Lovable integration.
+                    </AlertDescription>
+                  </Alert>
+                </CardContent>
+              </>
+            )}
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="ai" className="space-y-6">
+          {/* OpenAI */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Sparkles className="h-6 w-6 text-teal-500" />
+                  <div>
+                    <CardTitle>OpenAI</CardTitle>
+                    <CardDescription>AI models for diagnostics and insights</CardDescription>
+                  </div>
+                </div>
+                <Switch 
+                  checked={configs.openai.enabled}
+                  onCheckedChange={() => handleToggleService('openai')}
+                />
+              </div>
+            </CardHeader>
+            {configs.openai.enabled && (
+              <>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="openai-api-key">API Key</Label>
+                    <Input 
+                      id="openai-api-key" 
+                      type="password"
+                      placeholder="sk-..."
+                      value={configs.openai.apiKey}
+                      onChange={(e) => handleInputChange('openai', 'apiKey', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="openai-organization">Organization ID (optional)</Label>
+                    <Input 
+                      id="openai-organization" 
+                      placeholder="org-..."
+                      value={configs.openai.additionalSettings?.organization || ''}
+                      onChange={(e) => handleNestedInputChange('openai', 'additionalSettings', 'organization', e.target.value)}
+                    />
+                  </div>
+                  <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription>
+                      The system will use OpenAI for generating diagnostic suggestions and technical insights.
+                    </AlertDescription>
+                  </Alert>
+                </CardContent>
+                <CardFooter className="flex justify-end">
+                  <Button onClick={() => handleSaveConfig('openai')}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Configuration
+                  </Button>
+                </CardFooter>
+              </>
+            )}
+          </Card>
+
+          {/* Claude.ai */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Sparkles className="h-6 w-6 text-purple-500" />
+                  <div>
+                    <CardTitle>Claude AI</CardTitle>
+                    <CardDescription>Alternative AI models for specific use cases</CardDescription>
+                  </div>
+                </div>
+                <Switch 
+                  checked={configs.claude.enabled}
+                  onCheckedChange={() => handleToggleService('claude')}
+                />
+              </div>
+            </CardHeader>
+            {configs.claude.enabled && (
+              <>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="claude-api-key">API Key</Label>
+                    <Input 
+                      id="claude-api-key" 
+                      type="password"
+                      placeholder="Enter Claude API key"
+                      value={configs.claude.apiKey}
+                      onChange={(e) => handleInputChange('claude', 'apiKey', e.target.value)}
+                    />
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-end">
+                  <Button onClick={() => handleSaveConfig('claude')}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Configuration
+                  </Button>
+                </CardFooter>
+              </>
+            )}
+          </Card>
+
+          {/* Grox */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Sparkles className="h-6 w-6 text-orange-500" />
+                  <div>
+                    <CardTitle>Grox</CardTitle>
+                    <CardDescription>Specialized repair diagnostic AI models</CardDescription>
+                  </div>
+                </div>
+                <Switch 
+                  checked={configs.grox.enabled}
+                  onCheckedChange={() => handleToggleService('grox')}
+                />
+              </div>
+            </CardHeader>
+            {configs.grox.enabled && (
+              <>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="grox-api-key">API Key</Label>
+                    <Input 
+                      id="grox-api-key" 
+                      type="password"
+                      placeholder="Enter Grox API key"
+                      value={configs.grox.apiKey}
+                      onChange={(e) => handleInputChange('grox', 'apiKey', e.target.value)}
+                    />
+                  </div>
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Grox API is in beta. Contact Grox support for access to their repair-specific AI models.
+                    </AlertDescription>
+                  </Alert>
+                </CardContent>
+                <CardFooter className="flex justify-end">
+                  <Button onClick={() => handleSaveConfig('grox')}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Configuration
+                  </Button>
+                </CardFooter>
+              </>
+            )}
           </Card>
         </TabsContent>
       </Tabs>
-
-      {selectedIntegration && (
-        <IntegrationConnectDialog
-          integration={selectedIntegration}
-          isOpen={showConnectDialog}
-          onClose={() => {
-            setShowConnectDialog(false);
-            setSelectedIntegration(null);
-          }}
-        />
-      )}
-
-      {selectedWebhookIntegrationId && (
-        <WebhookCreateDialog
-          isOpen={showWebhookDialog}
-          onClose={() => {
-            setShowWebhookDialog(false);
-            setSelectedWebhookIntegrationId(null);
-          }}
-          integrationId={selectedWebhookIntegrationId}
-        />
-      )}
     </div>
   );
 }

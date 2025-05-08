@@ -176,76 +176,7 @@ export type Database = {
             foreignKeyName: "api_configurations_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "api_configurations_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
             referencedRelation: "technicians"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      api_integrations: {
-        Row: {
-          category: string
-          company_id: string | null
-          config: Json | null
-          created_at: string | null
-          created_by: string | null
-          credentials: Json | null
-          description: string | null
-          id: string
-          is_public: boolean | null
-          last_sync: string | null
-          name: string
-          provider: string
-          status: string
-          updated_at: string | null
-          webhook_url: string | null
-        }
-        Insert: {
-          category: string
-          company_id?: string | null
-          config?: Json | null
-          created_at?: string | null
-          created_by?: string | null
-          credentials?: Json | null
-          description?: string | null
-          id?: string
-          is_public?: boolean | null
-          last_sync?: string | null
-          name: string
-          provider: string
-          status?: string
-          updated_at?: string | null
-          webhook_url?: string | null
-        }
-        Update: {
-          category?: string
-          company_id?: string | null
-          config?: Json | null
-          created_at?: string | null
-          created_by?: string | null
-          credentials?: Json | null
-          description?: string | null
-          id?: string
-          is_public?: boolean | null
-          last_sync?: string | null
-          name?: string
-          provider?: string
-          status?: string
-          updated_at?: string | null
-          webhook_url?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "api_integrations_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -425,95 +356,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      community_post_comments: {
-        Row: {
-          author_id: string | null
-          content: string
-          created_at: string | null
-          id: string
-          is_answer: boolean | null
-          post_id: string | null
-          updated_at: string | null
-          upvotes: number | null
-        }
-        Insert: {
-          author_id?: string | null
-          content: string
-          created_at?: string | null
-          id?: string
-          is_answer?: boolean | null
-          post_id?: string | null
-          updated_at?: string | null
-          upvotes?: number | null
-        }
-        Update: {
-          author_id?: string | null
-          content?: string
-          created_at?: string | null
-          id?: string
-          is_answer?: boolean | null
-          post_id?: string | null
-          updated_at?: string | null
-          upvotes?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "community_post_comments_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "community_posts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      community_posts: {
-        Row: {
-          author_id: string | null
-          content: string
-          created_at: string | null
-          id: string
-          is_fulfilled: boolean | null
-          is_solved: boolean | null
-          knowledge_base_article_id: string | null
-          tags: string[] | null
-          title: string
-          type: string
-          updated_at: string | null
-          upvotes: number | null
-          views: number | null
-        }
-        Insert: {
-          author_id?: string | null
-          content: string
-          created_at?: string | null
-          id?: string
-          is_fulfilled?: boolean | null
-          is_solved?: boolean | null
-          knowledge_base_article_id?: string | null
-          tags?: string[] | null
-          title: string
-          type: string
-          updated_at?: string | null
-          upvotes?: number | null
-          views?: number | null
-        }
-        Update: {
-          author_id?: string | null
-          content?: string
-          created_at?: string | null
-          id?: string
-          is_fulfilled?: boolean | null
-          is_solved?: boolean | null
-          knowledge_base_article_id?: string | null
-          tags?: string[] | null
-          title?: string
-          type?: string
-          updated_at?: string | null
-          upvotes?: number | null
-          views?: number | null
-        }
-        Relationships: []
       }
       companies: {
         Row: {
@@ -791,13 +633,6 @@ export type Database = {
             foreignKeyName: "customer_interactions_technician_id_fkey"
             columns: ["technician_id"]
             isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "customer_interactions_technician_id_fkey"
-            columns: ["technician_id"]
-            isOneToOne: false
             referencedRelation: "technicians"
             referencedColumns: ["id"]
           },
@@ -958,13 +793,6 @@ export type Database = {
             foreignKeyName: "dashboard_activity_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "dashboard_activity_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
             referencedRelation: "technicians"
             referencedColumns: ["id"]
           },
@@ -1041,13 +869,6 @@ export type Database = {
             foreignKeyName: "dashboard_shares_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "dashboard_shares_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
             referencedRelation: "technicians"
             referencedColumns: ["id"]
           },
@@ -1056,13 +877,6 @@ export type Database = {
             columns: ["dashboard_id"]
             isOneToOne: false
             referencedRelation: "dashboards"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "dashboard_shares_shared_with_fkey"
-            columns: ["shared_with"]
-            isOneToOne: false
-            referencedRelation: "technician_details"
             referencedColumns: ["id"]
           },
           {
@@ -1117,13 +931,6 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "dashboard_templates_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "technician_details"
             referencedColumns: ["id"]
           },
           {
@@ -1225,13 +1032,6 @@ export type Database = {
             foreignKeyName: "dashboards_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "dashboards_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
             referencedRelation: "technicians"
             referencedColumns: ["id"]
           },
@@ -1292,13 +1092,6 @@ export type Database = {
             columns: ["appliance_id"]
             isOneToOne: false
             referencedRelation: "customer_appliances"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "diagnostic_sessions_technician_id_fkey"
-            columns: ["technician_id"]
-            isOneToOne: false
-            referencedRelation: "technician_details"
             referencedColumns: ["id"]
           },
           {
@@ -1387,65 +1180,6 @@ export type Database = {
           },
         ]
       }
-      incident_updates: {
-        Row: {
-          created_at: string | null
-          created_by: string | null
-          id: string
-          incident_id: string
-          message: string
-        }
-        Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          incident_id: string
-          message: string
-        }
-        Update: {
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          incident_id?: string
-          message?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "incident_updates_incident_id_fkey"
-            columns: ["incident_id"]
-            isOneToOne: false
-            referencedRelation: "incidents"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      incidents: {
-        Row: {
-          created_at: string | null
-          description: string
-          id: string
-          resolved_at: string | null
-          status: string
-          title: string
-        }
-        Insert: {
-          created_at?: string | null
-          description: string
-          id?: string
-          resolved_at?: string | null
-          status: string
-          title: string
-        }
-        Update: {
-          created_at?: string | null
-          description?: string
-          id?: string
-          resolved_at?: string | null
-          status?: string
-          title?: string
-        }
-        Relationships: []
-      }
       inventory_transactions: {
         Row: {
           company_id: string | null
@@ -1508,64 +1242,7 @@ export type Database = {
             foreignKeyName: "inventory_transactions_performed_by_fkey"
             columns: ["performed_by"]
             isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "inventory_transactions_performed_by_fkey"
-            columns: ["performed_by"]
-            isOneToOne: false
             referencedRelation: "technicians"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      knowledge_base: {
-        Row: {
-          author_id: string | null
-          category: string | null
-          company_id: string | null
-          content: string
-          created_at: string | null
-          id: string
-          is_public: boolean | null
-          tags: string[] | null
-          title: string
-          updated_at: string | null
-          views: number | null
-        }
-        Insert: {
-          author_id?: string | null
-          category?: string | null
-          company_id?: string | null
-          content: string
-          created_at?: string | null
-          id?: string
-          is_public?: boolean | null
-          tags?: string[] | null
-          title: string
-          updated_at?: string | null
-          views?: number | null
-        }
-        Update: {
-          author_id?: string | null
-          category?: string | null
-          company_id?: string | null
-          content?: string
-          created_at?: string | null
-          id?: string
-          is_public?: boolean | null
-          tags?: string[] | null
-          title?: string
-          updated_at?: string | null
-          views?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "knowledge_base_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -1980,110 +1657,6 @@ export type Database = {
           },
         ]
       }
-      payment_transactions: {
-        Row: {
-          amount: number
-          company_id: string | null
-          created_at: string | null
-          currency: string | null
-          id: string
-          metadata: Json | null
-          payment_method: Json | null
-          status: string | null
-        }
-        Insert: {
-          amount: number
-          company_id?: string | null
-          created_at?: string | null
-          currency?: string | null
-          id?: string
-          metadata?: Json | null
-          payment_method?: Json | null
-          status?: string | null
-        }
-        Update: {
-          amount?: number
-          company_id?: string | null
-          created_at?: string | null
-          currency?: string | null
-          id?: string
-          metadata?: Json | null
-          payment_method?: Json | null
-          status?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payment_transactions_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      product_updates: {
-        Row: {
-          content: string
-          created_at: string | null
-          date: string | null
-          id: string
-          title: string
-          updated_at: string | null
-          version: string | null
-        }
-        Insert: {
-          content: string
-          created_at?: string | null
-          date?: string | null
-          id?: string
-          title: string
-          updated_at?: string | null
-          version?: string | null
-        }
-        Update: {
-          content?: string
-          created_at?: string | null
-          date?: string | null
-          id?: string
-          title?: string
-          updated_at?: string | null
-          version?: string | null
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          avatar_url: string | null
-          company_id: string | null
-          created_at: string | null
-          full_name: string | null
-          id: string
-          phone_number: string | null
-          role: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          company_id?: string | null
-          created_at?: string | null
-          full_name?: string | null
-          id: string
-          phone_number?: string | null
-          role?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          company_id?: string | null
-          created_at?: string | null
-          full_name?: string | null
-          id?: string
-          phone_number?: string | null
-          role?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       purchase_order_items: {
         Row: {
           created_at: string | null
@@ -2192,13 +1765,6 @@ export type Database = {
             foreignKeyName: "purchase_orders_approved_by_fkey"
             columns: ["approved_by"]
             isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "purchase_orders_approved_by_fkey"
-            columns: ["approved_by"]
-            isOneToOne: false
             referencedRelation: "technicians"
             referencedColumns: ["id"]
           },
@@ -2207,13 +1773,6 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "purchase_orders_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "technician_details"
             referencedColumns: ["id"]
           },
           {
@@ -2298,13 +1857,6 @@ export type Database = {
             columns: ["repair_id"]
             isOneToOne: false
             referencedRelation: "repairs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "repair_history_technician_id_fkey"
-            columns: ["technician_id"]
-            isOneToOne: false
-            referencedRelation: "technician_details"
             referencedColumns: ["id"]
           },
           {
@@ -2483,13 +2035,6 @@ export type Database = {
             foreignKeyName: "repairs_technician_id_fkey"
             columns: ["technician_id"]
             isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "repairs_technician_id_fkey"
-            columns: ["technician_id"]
-            isOneToOne: false
             referencedRelation: "technicians"
             referencedColumns: ["id"]
           },
@@ -2557,13 +2102,6 @@ export type Database = {
             foreignKeyName: "report_definitions_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "report_definitions_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
             referencedRelation: "technicians"
             referencedColumns: ["id"]
           },
@@ -2608,13 +2146,6 @@ export type Database = {
             foreignKeyName: "report_executions_executed_by_fkey"
             columns: ["executed_by"]
             isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "report_executions_executed_by_fkey"
-            columns: ["executed_by"]
-            isOneToOne: false
             referencedRelation: "technicians"
             referencedColumns: ["id"]
           },
@@ -2626,97 +2157,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      service_records: {
-        Row: {
-          company_id: string | null
-          created_at: string | null
-          customer: string
-          date: string | null
-          device: string
-          id: string
-          notes: string | null
-          rating: number | null
-          status: string
-          technician_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          company_id?: string | null
-          created_at?: string | null
-          customer: string
-          date?: string | null
-          device: string
-          id?: string
-          notes?: string | null
-          rating?: number | null
-          status?: string
-          technician_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          company_id?: string | null
-          created_at?: string | null
-          customer?: string
-          date?: string | null
-          device?: string
-          id?: string
-          notes?: string | null
-          rating?: number | null
-          status?: string
-          technician_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "service_records_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "service_records_technician_id_fkey"
-            columns: ["technician_id"]
-            isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "service_records_technician_id_fkey"
-            columns: ["technician_id"]
-            isOneToOne: false
-            referencedRelation: "technicians"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      service_statuses: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          id: string
-          last_updated_at: string | null
-          name: string
-          status: string
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          last_updated_at?: string | null
-          name: string
-          status: string
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          last_updated_at?: string | null
-          name?: string
-          status?: string
-        }
-        Relationships: []
       }
       subscription_plans: {
         Row: {
@@ -2805,13 +2245,6 @@ export type Database = {
             foreignKeyName: "support_tickets_assigned_to_fkey"
             columns: ["assigned_to"]
             isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "support_tickets_assigned_to_fkey"
-            columns: ["assigned_to"]
-            isOneToOne: false
             referencedRelation: "technicians"
             referencedColumns: ["id"]
           },
@@ -2823,75 +2256,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      system_messages: {
-        Row: {
-          active: boolean | null
-          audience: string
-          created_at: string | null
-          created_by: string | null
-          end_date: string | null
-          id: string
-          message: string
-          scheduled: string | null
-          start_date: string | null
-          title: string
-          type: string
-          updated_at: string | null
-        }
-        Insert: {
-          active?: boolean | null
-          audience: string
-          created_at?: string | null
-          created_by?: string | null
-          end_date?: string | null
-          id?: string
-          message: string
-          scheduled?: string | null
-          start_date?: string | null
-          title: string
-          type: string
-          updated_at?: string | null
-        }
-        Update: {
-          active?: boolean | null
-          audience?: string
-          created_at?: string | null
-          created_by?: string | null
-          end_date?: string | null
-          id?: string
-          message?: string
-          scheduled?: string | null
-          start_date?: string | null
-          title?: string
-          type?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      system_metrics: {
-        Row: {
-          created_at: string | null
-          id: string
-          name: string
-          unit: string | null
-          value: number
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          name: string
-          unit?: string | null
-          value: number
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          name?: string
-          unit?: string | null
-          value?: number
-        }
-        Relationships: []
       }
       tech_billing: {
         Row: {
@@ -2931,13 +2295,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "tech_billing_technician_id_fkey"
-            columns: ["technician_id"]
-            isOneToOne: true
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "tech_billing_technician_id_fkey"
             columns: ["technician_id"]
@@ -2987,140 +2344,6 @@ export type Database = {
             columns: ["tech_billing_id"]
             isOneToOne: false
             referencedRelation: "tech_billing"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      tech_call_logs: {
-        Row: {
-          call_type: string | null
-          caller_id: string | null
-          company_id: string | null
-          duration: unknown | null
-          ended_at: string | null
-          group_id: string | null
-          id: string
-          receiver_id: string | null
-          started_at: string | null
-          status: string | null
-        }
-        Insert: {
-          call_type?: string | null
-          caller_id?: string | null
-          company_id?: string | null
-          duration?: unknown | null
-          ended_at?: string | null
-          group_id?: string | null
-          id?: string
-          receiver_id?: string | null
-          started_at?: string | null
-          status?: string | null
-        }
-        Update: {
-          call_type?: string | null
-          caller_id?: string | null
-          company_id?: string | null
-          duration?: unknown | null
-          ended_at?: string | null
-          group_id?: string | null
-          id?: string
-          receiver_id?: string | null
-          started_at?: string | null
-          status?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tech_call_logs_caller_id_fkey"
-            columns: ["caller_id"]
-            isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tech_call_logs_caller_id_fkey"
-            columns: ["caller_id"]
-            isOneToOne: false
-            referencedRelation: "technicians"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tech_call_logs_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tech_call_logs_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "tech_chat_groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tech_call_logs_receiver_id_fkey"
-            columns: ["receiver_id"]
-            isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tech_call_logs_receiver_id_fkey"
-            columns: ["receiver_id"]
-            isOneToOne: false
-            referencedRelation: "technicians"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      tech_chat_groups: {
-        Row: {
-          company_id: string | null
-          created_at: string | null
-          created_by: string | null
-          description: string | null
-          id: string
-          name: string
-          updated_at: string | null
-        }
-        Insert: {
-          company_id?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          name: string
-          updated_at?: string | null
-        }
-        Update: {
-          company_id?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          name?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tech_chat_groups_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tech_chat_groups_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tech_chat_groups_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "technicians"
             referencedColumns: ["id"]
           },
         ]
@@ -3183,21 +2406,7 @@ export type Database = {
             foreignKeyName: "tech_company_applications_reviewed_by_fkey"
             columns: ["reviewed_by"]
             isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tech_company_applications_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
             referencedRelation: "technicians"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tech_company_applications_technician_id_fkey"
-            columns: ["technician_id"]
-            isOneToOne: false
-            referencedRelation: "technician_details"
             referencedColumns: ["id"]
           },
           {
@@ -3258,13 +2467,6 @@ export type Database = {
             foreignKeyName: "tech_company_communications_technician_id_fkey"
             columns: ["technician_id"]
             isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tech_company_communications_technician_id_fkey"
-            columns: ["technician_id"]
-            isOneToOne: false
             referencedRelation: "technicians"
             referencedColumns: ["id"]
           },
@@ -3301,175 +2503,6 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: true
             referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      tech_file_metadata: {
-        Row: {
-          created_at: string | null
-          download_url: string
-          file_name: string
-          file_size: number
-          file_type: string
-          id: string
-          message_id: string | null
-          mime_type: string
-          thumbnail_url: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          download_url: string
-          file_name: string
-          file_size: number
-          file_type: string
-          id?: string
-          message_id?: string | null
-          mime_type: string
-          thumbnail_url?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          download_url?: string
-          file_name?: string
-          file_size?: number
-          file_type?: string
-          id?: string
-          message_id?: string | null
-          mime_type?: string
-          thumbnail_url?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tech_file_metadata_message_id_fkey"
-            columns: ["message_id"]
-            isOneToOne: false
-            referencedRelation: "tech_messages"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      tech_group_members: {
-        Row: {
-          group_id: string | null
-          id: string
-          joined_at: string | null
-          role: string | null
-          user_id: string | null
-        }
-        Insert: {
-          group_id?: string | null
-          id?: string
-          joined_at?: string | null
-          role?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          group_id?: string | null
-          id?: string
-          joined_at?: string | null
-          role?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tech_group_members_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "tech_chat_groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tech_group_members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tech_group_members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "technicians"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      tech_messages: {
-        Row: {
-          attachments: string[] | null
-          company_id: string | null
-          content: string
-          created_at: string | null
-          format: Json | null
-          group_id: string | null
-          id: string
-          receiver_id: string | null
-          sender_id: string | null
-        }
-        Insert: {
-          attachments?: string[] | null
-          company_id?: string | null
-          content: string
-          created_at?: string | null
-          format?: Json | null
-          group_id?: string | null
-          id?: string
-          receiver_id?: string | null
-          sender_id?: string | null
-        }
-        Update: {
-          attachments?: string[] | null
-          company_id?: string | null
-          content?: string
-          created_at?: string | null
-          format?: Json | null
-          group_id?: string | null
-          id?: string
-          receiver_id?: string | null
-          sender_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tech_messages_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tech_messages_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "tech_chat_groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tech_messages_receiver_id_fkey"
-            columns: ["receiver_id"]
-            isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tech_messages_receiver_id_fkey"
-            columns: ["receiver_id"]
-            isOneToOne: false
-            referencedRelation: "technicians"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tech_messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tech_messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "technicians"
             referencedColumns: ["id"]
           },
         ]
@@ -3525,114 +2558,6 @@ export type Database = {
             foreignKeyName: "tech_profiles_technician_id_fkey"
             columns: ["technician_id"]
             isOneToOne: true
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tech_profiles_technician_id_fkey"
-            columns: ["technician_id"]
-            isOneToOne: true
-            referencedRelation: "technicians"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      technician_invites: {
-        Row: {
-          company_id: string
-          created_at: string
-          created_by: string | null
-          email: string
-          expires_at: string
-          id: string
-          name: string
-          phone: string | null
-          status: string
-          token: string
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          created_by?: string | null
-          email: string
-          expires_at?: string
-          id?: string
-          name: string
-          phone?: string | null
-          status?: string
-          token?: string
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          created_by?: string | null
-          email?: string
-          expires_at?: string
-          id?: string
-          name?: string
-          phone?: string | null
-          status?: string
-          token?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "technician_invites_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      technician_performance_metrics: {
-        Row: {
-          average_service_time: unknown | null
-          calculated_at: string | null
-          completed_repairs: number | null
-          created_at: string | null
-          customer_rating: number | null
-          customers_served: number | null
-          efficiency_score: number | null
-          id: string
-          technician_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          average_service_time?: unknown | null
-          calculated_at?: string | null
-          completed_repairs?: number | null
-          created_at?: string | null
-          customer_rating?: number | null
-          customers_served?: number | null
-          efficiency_score?: number | null
-          id?: string
-          technician_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          average_service_time?: unknown | null
-          calculated_at?: string | null
-          completed_repairs?: number | null
-          created_at?: string | null
-          customer_rating?: number | null
-          customers_served?: number | null
-          efficiency_score?: number | null
-          id?: string
-          technician_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "technician_performance_metrics_technician_id_fkey"
-            columns: ["technician_id"]
-            isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "technician_performance_metrics_technician_id_fkey"
-            columns: ["technician_id"]
-            isOneToOne: false
             referencedRelation: "technicians"
             referencedColumns: ["id"]
           },
@@ -3670,13 +2595,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "technician_schedules_technician_id_fkey"
-            columns: ["technician_id"]
-            isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "technician_schedules_technician_id_fkey"
             columns: ["technician_id"]
@@ -3722,13 +2640,6 @@ export type Database = {
             foreignKeyName: "technician_skills_technician_id_fkey"
             columns: ["technician_id"]
             isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "technician_skills_technician_id_fkey"
-            columns: ["technician_id"]
-            isOneToOne: false
             referencedRelation: "technicians"
             referencedColumns: ["id"]
           },
@@ -3744,7 +2655,6 @@ export type Database = {
           id: string
           is_independent: boolean | null
           last_sign_in_at: string | null
-          phone: string | null
           role: string
           status: string
           updated_at: string | null
@@ -3758,7 +2668,6 @@ export type Database = {
           id: string
           is_independent?: boolean | null
           last_sign_in_at?: string | null
-          phone?: string | null
           role: string
           status?: string
           updated_at?: string | null
@@ -3772,7 +2681,6 @@ export type Database = {
           id?: string
           is_independent?: boolean | null
           last_sign_in_at?: string | null
-          phone?: string | null
           role?: string
           status?: string
           updated_at?: string | null
@@ -3980,111 +2888,6 @@ export type Database = {
         }
         Relationships: []
       }
-      users: {
-        Row: {
-          avatar_url: string | null
-          company_id: string | null
-          created_at: string
-          email: string
-          id: string
-          name: string | null
-          phone: string | null
-          role: string
-          status: string
-          subscription_status: string | null
-          trial_ends_at: string | null
-          updated_at: string
-        }
-        Insert: {
-          avatar_url?: string | null
-          company_id?: string | null
-          created_at?: string
-          email: string
-          id: string
-          name?: string | null
-          phone?: string | null
-          role: string
-          status: string
-          subscription_status?: string | null
-          trial_ends_at?: string | null
-          updated_at?: string
-        }
-        Update: {
-          avatar_url?: string | null
-          company_id?: string | null
-          created_at?: string
-          email?: string
-          id?: string
-          name?: string | null
-          phone?: string | null
-          role?: string
-          status?: string
-          subscription_status?: string | null
-          trial_ends_at?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      webhook_endpoints: {
-        Row: {
-          company_id: string | null
-          created_at: string | null
-          created_by: string | null
-          description: string | null
-          events: string[] | null
-          id: string
-          integration_id: string | null
-          name: string
-          secret_key: string | null
-          status: string
-          updated_at: string | null
-          url: string
-        }
-        Insert: {
-          company_id?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          events?: string[] | null
-          id?: string
-          integration_id?: string | null
-          name: string
-          secret_key?: string | null
-          status?: string
-          updated_at?: string | null
-          url: string
-        }
-        Update: {
-          company_id?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          events?: string[] | null
-          id?: string
-          integration_id?: string | null
-          name?: string
-          secret_key?: string | null
-          status?: string
-          updated_at?: string | null
-          url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "webhook_endpoints_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "webhook_endpoints_integration_id_fkey"
-            columns: ["integration_id"]
-            isOneToOne: false
-            referencedRelation: "api_integrations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       widget_data_cache: {
         Row: {
           created_at: string | null
@@ -4172,13 +2975,6 @@ export type Database = {
             foreignKeyName: "widget_presets_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "widget_presets_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
             referencedRelation: "technicians"
             referencedColumns: ["id"]
           },
@@ -4223,21 +3019,7 @@ export type Database = {
             foreignKeyName: "workflow_approval_requests_requested_by_fkey"
             columns: ["requested_by"]
             isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "workflow_approval_requests_requested_by_fkey"
-            columns: ["requested_by"]
-            isOneToOne: false
             referencedRelation: "technicians"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "workflow_approval_requests_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "technician_details"
             referencedColumns: ["id"]
           },
           {
@@ -4355,21 +3137,7 @@ export type Database = {
             foreignKeyName: "workflow_versions_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "workflow_versions_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
             referencedRelation: "technicians"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "workflow_versions_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "technician_details"
             referencedColumns: ["id"]
           },
           {
@@ -4459,13 +3227,6 @@ export type Database = {
             foreignKeyName: "workflows_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: "technician_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "workflows_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
             referencedRelation: "technicians"
             referencedColumns: ["id"]
           },
@@ -4480,28 +3241,7 @@ export type Database = {
       }
     }
     Views: {
-      technician_details: {
-        Row: {
-          avatar: string | null
-          company_id: string | null
-          created_at: string | null
-          email: string | null
-          id: string | null
-          name: string | null
-          role: string | null
-          status: string | null
-          updated_at: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "technicians_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       build_safe_query: {
@@ -4520,7 +3260,9 @@ export type Database = {
         }[]
       }
       calculate_company_limits: {
-        Args: { subscription_tier: string }
+        Args: {
+          subscription_tier: string
+        }
         Returns: number
       }
       calculate_customer_metrics: {
@@ -4535,21 +3277,18 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
-      calculate_technician_metrics: {
-        Args: { p_technician_id: string }
-        Returns: undefined
-      }
       can_access_company: {
-        Args: { p_company_id: string }
+        Args: {
+          p_company_id: string
+        }
         Returns: boolean
       }
       check_api_quota: {
-        Args: { p_company_id: string; p_provider: string }
+        Args: {
+          p_company_id: string
+          p_provider: string
+        }
         Returns: boolean
-      }
-      check_company_technician_limits: {
-        Args: { p_company_id: string }
-        Returns: Json
       }
       check_system_setup: {
         Args: Record<PropertyKey, never>
@@ -4582,15 +3321,17 @@ export type Database = {
         Returns: undefined
       }
       email_login: {
-        Args: { email: string; password: string }
+        Args: {
+          email: string
+          password: string
+        }
         Returns: Json
       }
       get_api_credentials: {
-        Args: { p_company_id: string; p_provider: string }
-        Returns: Json
-      }
-      get_file_preview: {
-        Args: { p_mime_type: string; p_file_size: number }
+        Args: {
+          p_company_id: string
+          p_provider: string
+        }
         Returns: Json
       }
       get_technician_list: {
@@ -4602,9 +3343,9 @@ export type Database = {
         }[]
       }
       get_technician_messages: {
-        Args:
-          | { p_company_id: string; p_user_id: string; p_receiver_id?: string }
-          | { p_receiver_id: number }
+        Args: {
+          p_receiver_id: number
+        }
         Returns: {
           id: number
           message: string
@@ -4643,7 +3384,10 @@ export type Database = {
         Returns: Json
       }
       handle_user_login: {
-        Args: { p_email: string; p_password: string }
+        Args: {
+          p_email: string
+          p_password: string
+        }
         Returns: Json
       }
       handle_user_registration: {
@@ -4656,25 +3400,10 @@ export type Database = {
         }
         Returns: Json
       }
-      increment: {
-        Args: { row_id: string; field_name?: string; table_name?: string }
-        Returns: number
-      }
-      increment_view_count: {
-        Args: { table_name: string; row_id: string }
-        Returns: undefined
-      }
-      invite_technician: {
+      is_email_available: {
         Args: {
           p_email: string
-          p_name: string
-          p_phone: string
-          p_company_id: string
         }
-        Returns: string
-      }
-      is_email_available: {
-        Args: { p_email: string }
         Returns: boolean
       }
       log_api_key_usage: {
@@ -4705,12 +3434,11 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
-      process_webhook_event: {
-        Args: { webhook_id: string; event_type: string; payload: Json }
-        Returns: Json
-      }
       refresh_widget_data: {
-        Args: { p_widget_id: string; p_filter_hash?: string }
+        Args: {
+          p_widget_id: string
+          p_filter_hash?: string
+        }
         Returns: Json
       }
       register_company_admin: {
@@ -4732,19 +3460,29 @@ export type Database = {
         Returns: Json
       }
       request_password_reset: {
-        Args: { p_email: string }
+        Args: {
+          p_email: string
+        }
         Returns: undefined
       }
       reset_password: {
-        Args: { p_token: string; p_new_password: string }
+        Args: {
+          p_token: string
+          p_new_password: string
+        }
         Returns: boolean
       }
       revoke_api_key: {
-        Args: { p_key_id: string }
+        Args: {
+          p_key_id: string
+        }
         Returns: boolean
       }
       safe_login: {
-        Args: { user_input: string; pass_input: string }
+        Args: {
+          user_input: string
+          pass_input: string
+        }
         Returns: {
           created_at: string | null
           email: string
@@ -4754,18 +3492,11 @@ export type Database = {
           username: string
         }[]
       }
-      search_messages: {
-        Args: { p_company_id: string; p_query: string; p_limit?: number }
-        Returns: {
-          id: string
-          content: string
-          rank: number
-          created_at: string
-          sender_name: string
-        }[]
-      }
       unsafe_login: {
-        Args: { user_input: string; pass_input: string }
+        Args: {
+          user_input: string
+          pass_input: string
+        }
         Returns: {
           created_at: string | null
           email: string
@@ -4785,7 +3516,9 @@ export type Database = {
         Returns: boolean
       }
       verify_api_key: {
-        Args: { p_key: string }
+        Args: {
+          p_key: string
+        }
         Returns: {
           company_id: string
           scopes: string[]
@@ -4793,7 +3526,9 @@ export type Database = {
         }[]
       }
       verify_email: {
-        Args: { p_token: string }
+        Args: {
+          p_token: string
+        }
         Returns: boolean
       }
     }
@@ -4806,29 +3541,27 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type PublicSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+  PublicTableNameOrOptions extends
+    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
     | { schema: keyof Database },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+        Database[PublicTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
+        PublicSchema["Views"])
+    ? (PublicSchema["Tables"] &
+        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -4836,22 +3569,20 @@ export type Tables<
     : never
 
 export type TablesInsert<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
+  PublicTableNameOrOptions extends
+    | keyof PublicSchema["Tables"]
     | { schema: keyof Database },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -4859,22 +3590,20 @@ export type TablesInsert<
     : never
 
 export type TablesUpdate<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
+  PublicTableNameOrOptions extends
+    | keyof PublicSchema["Tables"]
     | { schema: keyof Database },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -4882,23 +3611,21 @@ export type TablesUpdate<
     : never
 
 export type Enums<
-  DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
+  PublicEnumNameOrOptions extends
+    | keyof PublicSchema["Enums"]
     | { schema: keyof Database },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+> = PublicEnumNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
+    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
+    | keyof PublicSchema["CompositeTypes"]
     | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof Database
@@ -4907,12 +3634,6 @@ export type CompositeTypes<
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
   ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
+    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
-
-export const Constants = {
-  public: {
-    Enums: {},
-  },
-} as const

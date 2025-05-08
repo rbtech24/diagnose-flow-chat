@@ -4,9 +4,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
 import { FeatureRequest, FeatureRequestVote } from "@/types/feature-request";
-import { emptyFeatureRequests, placeholderUser } from "@/utils/placeholderData";
+import { mockFeatureRequests } from "@/data/mockFeatureRequests";
+import { currentUser } from "@/data/mockTickets";
 import { ArrowLeft } from "lucide-react";
-import { ensureFeatureRequestUser } from "@/utils/userConverter";
 
 export default function TechFeatureRequestDetailPage() {
   const [featureRequest, setFeatureRequest] = useState<FeatureRequest | null>(null);
@@ -17,8 +17,8 @@ export default function TechFeatureRequestDetailPage() {
   useEffect(() => {
     // Simulate API call
     setTimeout(() => {
-      // This would fetch data from an API in a real app
-      setFeatureRequest(null);
+      const foundRequest = mockFeatureRequests.find(request => request.id === id);
+      setFeatureRequest(foundRequest || null);
       setLoading(false);
     }, 500);
   }, [id]);
@@ -28,10 +28,16 @@ export default function TechFeatureRequestDetailPage() {
     
     const newVote: FeatureRequestVote = {
       id: `vote-${Date.now()}`,
-      userId: placeholderUser.id,
+      userId: currentUser.id,
       featureRequestId: requestId,
       createdAt: new Date(),
-      user: ensureFeatureRequestUser(placeholderUser),
+      user: {
+        id: currentUser.id,
+        name: currentUser.name,
+        email: currentUser.email,
+        role: currentUser.role as "admin" | "company" | "tech", // Explicitly cast to union type
+        avatarUrl: currentUser.avatarUrl,
+      },
     };
     
     setFeatureRequest({
@@ -49,7 +55,13 @@ export default function TechFeatureRequestDetailPage() {
       featureRequestId: requestId,
       content,
       createdAt: new Date(),
-      createdBy: ensureFeatureRequestUser(placeholderUser),
+      createdBy: {
+        id: currentUser.id,
+        name: currentUser.name,
+        email: currentUser.email,
+        role: currentUser.role as "admin" | "company" | "tech", // Explicitly cast to union type
+        avatarUrl: currentUser.avatarUrl,
+      },
     };
     
     setFeatureRequest({

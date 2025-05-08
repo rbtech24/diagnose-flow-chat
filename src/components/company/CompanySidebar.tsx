@@ -1,117 +1,114 @@
 
-import { NavLink, useLocation } from "react-router-dom";
-import { cn } from "@/lib/utils";
-import {
-  LayoutDashboard,
-  Users,
-  Settings,
-  Calendar,
-  ClipboardList,
-  LineChart,
-  MessageCircle,
-  LifeBuoy,
-  BadgeDollarSign,
+import { Link, useLocation } from "react-router-dom";
+import { 
+  Home, 
+  Users, 
+  LifeBuoy, 
+  Settings, 
+  LogOut, 
+  CreditCard,
+  MessageSquare,
   FileText,
-  Building2
+  Stethoscope
 } from "lucide-react";
+
+import {
+  Sidebar,
+  SidebarHeader,
+  SidebarMain,
+  SidebarNav,
+  SidebarNavItem,
+  SidebarFooter,
+  SidebarToggle,
+  SidebarNavGroup
+} from "@/components/ui/sidebar";
 
 export function CompanySidebar() {
   const location = useLocation();
-  
-  const links = [
-    {
-      href: "/company",
-      label: "Dashboard",
-      icon: <LayoutDashboard className="h-5 w-5" />,
-      exact: true,
-    },
-    {
-      href: "/company/technicians",
-      label: "Technicians",
-      icon: <Users className="h-5 w-5" />,
-    },
-    {
-      href: "/company/schedules",
-      label: "Schedules",
-      icon: <Calendar className="h-5 w-5" />,
-    },
-    {
-      href: "/company/repairs",
-      label: "Repairs",
-      icon: <ClipboardList className="h-5 w-5" />,
-    },
-    {
-      href: "/company/customers",
-      label: "Customers",
-      icon: <Users className="h-5 w-5" />,
-    },
-    {
-      href: "/company/reports",
-      label: "Reports",
-      icon: <LineChart className="h-5 w-5" />,
-    },
-    {
-      href: "/company/documents",
-      label: "Documents",
-      icon: <FileText className="h-5 w-5" />,
-    },
-    {
-      href: "/company/community",
-      label: "Community",
-      icon: <MessageCircle className="h-5 w-5" />,
-    },
-    {
-      href: "/company/support",
-      label: "Support",
-      icon: <LifeBuoy className="h-5 w-5" />,
-    },
-    {
-      href: "/company/subscription",
-      label: "Subscription",
-      icon: <BadgeDollarSign className="h-5 w-5" />,
-    },
-    {
-      href: "/company/profile",
-      label: "Company Profile",
-      icon: <Building2 className="h-5 w-5" />,
-    },
-    {
-      href: "/company/settings",
-      label: "Settings",
-      icon: <Settings className="h-5 w-5" />,
-    }
-  ];
+  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="flex h-screen w-64 flex-col border-r bg-background">
-      <div className="p-4">
-        <h1 className="text-xl font-bold">Company Dashboard</h1>
-      </div>
-      <div className="flex-1 overflow-auto py-2">
-        <nav className="grid items-start px-2 text-sm">
-          {links.map((link, index) => {
-            const isActive = link.exact 
-              ? location.pathname === link.href
-              : location.pathname.startsWith(link.href);
+    <Sidebar defaultExpanded={true}>
+      <SidebarHeader className="flex items-center justify-between py-3">
+        <div className="flex items-center gap-2 px-4">
+          <span className="text-lg font-bold">Company</span>
+        </div>
+        <SidebarToggle />
+      </SidebarHeader>
+      
+      <SidebarMain>
+        <SidebarNav>
+          <SidebarNavGroup label="DASHBOARD">
+            <SidebarNavItem 
+              icon={<Home className="w-5 h-5" />} 
+              active={isActive("/company/dashboard") || isActive("/company")}
+            >
+              <Link to="/company/dashboard" className="w-full h-full flex items-center">Dashboard</Link>
+            </SidebarNavItem>
+          </SidebarNavGroup>
+          
+          <SidebarNavGroup label="RESOURCES">
+            <SidebarNavItem 
+              icon={<Stethoscope className="w-5 h-5" />} 
+              active={isActive("/company/diagnostics")}
+            >
+              <Link to="/company/diagnostics" className="w-full h-full flex items-center">Diagnostics</Link>
+            </SidebarNavItem>
+
+            <SidebarNavItem 
+              icon={<MessageSquare className="w-5 h-5" />} 
+              active={isActive("/company/community")}
+            >
+              <Link to="/company/community" className="w-full h-full flex items-center">Community</Link>
+            </SidebarNavItem>
             
-            return (
-              <NavLink
-                key={index}
-                to={link.href}
-                end={link.exact}
-                className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground hover:text-foreground",
-                  "transition-all hover:bg-accent",
-                  isActive ? "bg-accent text-foreground font-medium" : ""
-                )}
-              >
-                {link.icon}
-                {link.label}
-              </NavLink>
-            );
-          })}
-        </nav>
-      </div>
-    </div>
+            <SidebarNavItem 
+              icon={<FileText className="w-5 h-5" />} 
+              active={isActive("/company/feature-requests")}
+            >
+              <Link to="/company/feature-requests" className="w-full h-full flex items-center">Feature Requests</Link>
+            </SidebarNavItem>
+          </SidebarNavGroup>
+
+          <SidebarNavGroup label="MANAGEMENT">
+            <SidebarNavItem 
+              icon={<Users className="w-5 h-5" />} 
+              active={isActive("/company/technicians")}
+            >
+              <Link to="/company/technicians" className="w-full h-full flex items-center">Technicians</Link>
+            </SidebarNavItem>
+            
+            <SidebarNavItem 
+              icon={<CreditCard className="w-5 h-5" />} 
+              active={isActive("/company/subscription")}
+            >
+              <Link to="/company/subscription" className="w-full h-full flex items-center">Subscription</Link>
+            </SidebarNavItem>
+          </SidebarNavGroup>
+
+          <SidebarNavGroup label="SUPPORT">
+            <SidebarNavItem 
+              icon={<LifeBuoy className="w-5 h-5" />} 
+              active={isActive("/company/support")}
+            >
+              <Link to="/company/support" className="w-full h-full flex items-center">Support</Link>
+            </SidebarNavItem>
+          </SidebarNavGroup>
+        </SidebarNav>
+      </SidebarMain>
+      
+      <SidebarFooter>
+        <div className="flex w-full items-center justify-between p-4">
+          <Link to="/company/profile" className="flex items-center gap-2 text-sm font-medium">
+            <Settings size={20} className="text-muted-foreground" />
+            <span>Settings</span>
+          </Link>
+          <Link to="/login" className="flex items-center text-sm gap-1 text-muted-foreground hover:text-foreground transition-colors">
+            <LogOut size={18} />
+            <span>Logout</span>
+          </Link>
+        </div>
+      </SidebarFooter>
+    </Sidebar>
   );
 }

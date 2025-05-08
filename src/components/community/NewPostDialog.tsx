@@ -15,9 +15,7 @@ import {
 } from "@/components/ui/select";
 import { CommunityPostType } from '@/types/community';
 
-export interface NewPostDialogProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
+interface NewPostDialogProps {
   onSubmit: (post: {
     title: string;
     content: string;
@@ -25,17 +23,10 @@ export interface NewPostDialogProps {
     tags: string[];
     attachments: File[];
   }) => void;
-  userRole?: 'admin' | 'company' | 'tech';
-  showDocumentTypes?: boolean;
 }
 
-export function NewPostDialog({ 
-  isOpen, 
-  onOpenChange, 
-  onSubmit, 
-  userRole = 'tech',
-  showDocumentTypes = false 
-}: NewPostDialogProps) {
+export function NewPostDialog({ onSubmit }: NewPostDialogProps) {
+  const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [postType, setPostType] = useState<CommunityPostType>('question');
@@ -53,7 +44,7 @@ export function NewPostDialog({
       attachments
     });
     resetForm();
-    onOpenChange(false);
+    setOpen(false);
   };
 
   const handleTagKeyDown = (e: React.KeyboardEvent) => {
@@ -90,7 +81,13 @@ export function NewPostDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button className="gap-2">
+          <Plus className="h-4 w-4" />
+          New Post
+        </Button>
+      </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
@@ -111,12 +108,8 @@ export function NewPostDialog({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="question">Question</SelectItem>
-                  {showDocumentTypes && (
-                    <>
-                      <SelectItem value="tech-sheet-request">Tech Sheet Request</SelectItem>
-                      <SelectItem value="wire-diagram-request">Wire Diagram Request</SelectItem>
-                    </>
-                  )}
+                  <SelectItem value="tech-sheet-request">Tech Sheet Request</SelectItem>
+                  <SelectItem value="wire-diagram-request">Wire Diagram Request</SelectItem>
                   <SelectItem value="discussion">Discussion</SelectItem>
                 </SelectContent>
               </Select>
@@ -217,7 +210,7 @@ export function NewPostDialog({
               variant="outline" 
               onClick={() => {
                 resetForm();
-                onOpenChange(false);
+                setOpen(false);
               }}
             >
               Cancel
@@ -229,4 +222,3 @@ export function NewPostDialog({
     </Dialog>
   );
 }
-

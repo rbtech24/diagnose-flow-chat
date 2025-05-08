@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FormControl } from "@/components/ui/form";
 import { License } from "@/types/subscription";
 import { useSubscriptionStore } from "@/store/subscriptionStore";
 
@@ -25,22 +24,14 @@ export function NewLicenseForm({
   const [planId, setPlanId] = useState("");
   const [activeTechnicians, setActiveTechnicians] = useState("1");
   const [trialPeriod, setTrialPeriod] = useState(
-    planId ? 
-      activePlans.find(p => p.id === planId)?.trialPeriod !== undefined ? 
-        activePlans.find(p => p.id === planId)?.trialPeriod?.toString() : 
-        activePlans.find(p => p.id === planId)?.trial_period?.toString() || "30" 
-      : "30"
+    planId ? activePlans.find(p => p.id === planId)?.trialPeriod.toString() || "14" : "14"
   );
 
   const handlePlanChange = (value: string) => {
     setPlanId(value);
     const plan = activePlans.find(p => p.id === value);
     if (plan) {
-      setTrialPeriod(
-        plan.trialPeriod !== undefined ? 
-          plan.trialPeriod.toString() : 
-          plan.trial_period.toString()
-      );
+      setTrialPeriod(plan.trialPeriod.toString());
     }
   };
 
@@ -95,20 +86,14 @@ export function NewLicenseForm({
       <div className="space-y-2">
         <Label htmlFor="plan">Subscription Plan</Label>
         <Select value={planId} onValueChange={handlePlanChange} required>
-          <FormControl>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a plan" />
-            </SelectTrigger>
-          </FormControl>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a plan" />
+          </SelectTrigger>
           <SelectContent>
             {activePlans.length > 0 ? (
               activePlans.map(plan => (
                 <SelectItem key={plan.id} value={plan.id}>
-                  {plan.name} (${
-                    plan.monthlyPrice !== undefined ? 
-                    plan.monthlyPrice.toFixed(2) : 
-                    plan.price_monthly.toFixed(2)
-                  }/month)
+                  {plan.name} (${plan.monthlyPrice}/month)
                 </SelectItem>
               ))
             ) : (

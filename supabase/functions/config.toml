@@ -1,6 +1,0 @@
-
-project_id = "jukatimjnqhhlxkrxsak"
-
-[global.env]
-SUPABASE_URL = "https://jukatimjnqhhlxkrxsak.supabase.co"
-SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp1a2F0aW1qbnFoaGx4a3J4c2FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzOTg3MjYsImV4cCI6MjA1NDk3NDcyNn0.cbWwrd2QIEkb25-8tKpcqRhYai1q6bMcxd2dkC_qssE"

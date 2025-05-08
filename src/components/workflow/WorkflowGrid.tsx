@@ -1,3 +1,4 @@
+
 import { ApplianceCard } from '@/components/appliance/ApplianceCard';
 import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowUpRight, Trash, GripVertical, FileText, Edit, Eye } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 interface WorkflowGridProps {
   appliances: Appliance[];
@@ -44,8 +45,6 @@ export function WorkflowGrid({
   getSymptomCardColor,
   isReadOnly = false
 }: WorkflowGridProps) {
-  const { toast } = useToast();
-  
   if (appliances.length === 0 && workflows.length === 0) {
     return (
       <div className="text-center py-12">
@@ -87,8 +86,7 @@ export function WorkflowGrid({
         onMoveWorkflowToFolder?.(workflow, targetAppliance);
         toast({
           title: "Workflow Moved",
-          description: `Workflow moved to ${targetAppliance}`,
-          type: "info"
+          description: `Workflow moved to ${targetAppliance}`
         });
       }
     }
@@ -96,14 +94,15 @@ export function WorkflowGrid({
 
   const handleViewWorkflow = (folder: string, name?: string) => {
     if (isReadOnly) {
+      // Just show a toast message for view-only users
       toast({
         title: "Workflow Details",
-        description: `Viewing workflow: ${name || 'New Workflow'}`,
-        type: "info"
+        description: `Viewing workflow: ${name || 'New Workflow'}`
       });
       return;
     }
     
+    // For admins, open the editor
     onOpenWorkflowEditor(folder, name);
   };
 
@@ -129,8 +128,7 @@ export function WorkflowGrid({
             onOpenWorkflowEditor={isReadOnly ? 
               (symptomName) => toast({
                 title: "View Only",
-                description: `Viewing ${symptomName} in ${appliance.name}`,
-                type: "custom"
+                description: `Viewing ${symptomName} in ${appliance.name}`
               }) : 
               (symptomName) => onOpenWorkflowEditor(appliance.name, symptomName)
             }

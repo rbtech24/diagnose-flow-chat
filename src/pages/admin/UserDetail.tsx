@@ -1,349 +1,309 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Mail, Shield, KeyRound, Trash, ArrowLeft } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ArrowLeft, Users, Calendar, Mail, Phone, Building2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AdminPasswordResetForm } from "@/components/admin/AdminPasswordResetForm";
-import { DeleteUserDialog } from "@/components/users/DeleteUserDialog";
+import { sendPasswordResetEmail } from "@/utils/auth";
+import { useToast } from "@/components/ui/use-toast";
+import { useUserManagementStore } from "@/store/userManagementStore";
+import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 export default function UserDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
+  const { users, companies, fetchUserById, fetchCompanyById, deleteUser, resetUserPassword } = useUserManagementStore();
   const [userData, setUserData] = useState<any>(null);
-  const [isPasswordResetDialogOpen, setIsPasswordResetDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
+  const [companyData, setCompanyData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      setLoading(true);
+    const loadData = async () => {
+      if (!id) return;
+      
+      setIsLoading(true);
       try {
-        if (!id) {
+        const user = await fetchUserById(id);
+        if (user) {
+          setUserData(user);
+          
+          if (user.companyId) {
+            const company = await fetchCompanyById(user.companyId);
+            setCompanyData(company);
+          }
+        } else {
           toast({
             title: "User not found",
             description: "The requested user could not be found.",
-            type: "error"
+            variant: "destructive",
           });
-          navigate('/admin/users');
-          return;
+          navigate("/admin/users");
         }
-
-        const mockUser = {
-          id,
-          name: "John Technician",
-          email: "john@example.com",
-          role: "technician",
-          company: "Acme Repairs, Inc.",
-          companyId: "company-123",
-          status: "active",
-          lastLogin: "2023-06-01T14:30:00",
-          createdAt: "2022-03-15T09:00:00",
-          permissions: ["repair:read", "repair:write", "knowledge:read"],
-          profileImage: "https://i.pravatar.cc/150?u=john",
-        };
-        
-        setUserData(mockUser);
-        setLoading(false);
       } catch (error) {
-        console.error("Failed to load user data:", error);
-        setLoading(false);
+        console.error("Error loading user data:", error);
         toast({
           title: "Error",
           description: "Failed to load user data.",
-          type: "error"
+          variant: "destructive",
         });
+      } finally {
+        setIsLoading(false);
       }
     };
+    
+    loadData();
+  }, [id, fetchUserById, fetchCompanyById, navigate, toast]);
 
-    fetchUserData();
-  }, [id, navigate, toast]);
-
-  const handleResetPassword = async () => {
+  const handleSendPasswordResetEmail = async () => {
+    if (!userData) return;
+    
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { error } = await sendPasswordResetEmail(userData.email);
       
-      toast({
-        title: "Password reset email sent",
-        description: `A password reset email has been sent to ${userData.email}.`,
-        type: "success"
-      });
-      
-      setIsPasswordResetDialogOpen(false);
-    } catch (error: any) {
-      console.error("Error sending password reset:", error);
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Password reset email sent",
+          description: `A password reset email has been sent to ${userData.email}.`,
+        });
+      }
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "An unexpected error occurred. Please try again.",
-        type: "error"
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
       });
     }
   };
 
   const handleDeleteUser = async () => {
+    if (!id) return;
+    
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "User deleted",
-        description: "The user has been successfully deleted.",
-        type: "success"
-      });
-      
-      navigate('/admin/users');
+      const success = await deleteUser(id);
+      if (success) {
+        toast({
+          title: "User deleted",
+          description: "The user has been successfully deleted.",
+        });
+        navigate("/admin/users");
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to delete user.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error("Error deleting user:", error);
       toast({
         title: "Error",
-        description: "Failed to delete user.",
-        type: "error"
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
       });
     }
   };
 
-  if (loading) {
-    return <div className="animate-pulse p-4">Loading user data...</div>;
+  const handleEditUser = () => {
+    navigate(`/admin/users/${id}/edit`);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="flex items-center mb-6">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate("/admin/users")} 
+            className="mr-4"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          <Skeleton className="h-9 w-40" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <Skeleton className="h-64" />
+          <Skeleton className="md:col-span-2 h-64" />
+        </div>
+      </div>
+    );
   }
 
   if (!userData) {
     return (
-      <div className="p-6">
-        <Button variant="outline" onClick={() => navigate('/admin/users')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Users
-        </Button>
-        <div className="mt-8 text-center">
-          <h1 className="text-2xl font-bold">User Not Found</h1>
-          <p className="mt-2 text-muted-foreground">
-            The requested user could not be found or you don't have permission to view it.
-          </p>
+      <div className="container mx-auto p-6">
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-bold mb-2">User Not Found</h2>
+          <p className="text-muted-foreground mb-4">The user you're looking for doesn't exist or has been deleted.</p>
+          <Button onClick={() => navigate("/admin/users")}>
+            Back to Users
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <Button variant="outline" onClick={() => navigate('/admin/users')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Users
+    <div className="container mx-auto p-6">
+      <div className="flex items-center mb-6">
+        <Button 
+          variant="outline" 
+          onClick={() => navigate("/admin/users")} 
+          className="mr-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
         </Button>
-        
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setIsPasswordResetDialogOpen(true)}>
-              <KeyRound className="mr-2 h-4 w-4" />
-              Reset Password
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              className="text-red-600 focus:text-red-600"
-              onClick={() => setIsDeleteDialogOpen(true)}
-            >
-              <Trash className="mr-2 h-4 w-4" />
-              Delete User
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <h1 className="text-3xl font-bold">User Details</h1>
       </div>
-      
-      <div className="flex flex-col md:flex-row gap-6">
-        <div className="md:w-1/3">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex flex-col items-center">
-                <div className="relative mb-4">
-                  <div className="w-24 h-24 rounded-full overflow-hidden">
-                    <img 
-                      src={userData.profileImage || "https://i.pravatar.cc/150"} 
-                      alt={userData.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className={`absolute bottom-0 right-0 w-5 h-5 rounded-full border-2 border-white ${
-                    userData.status === 'active' ? 'bg-green-500' : 'bg-gray-400'
-                  }`}></div>
-                </div>
-                
-                <h2 className="text-xl font-bold">{userData.name}</h2>
-                <p className="text-muted-foreground">{userData.email}</p>
-                
-                <div className="mt-2">
-                  <Badge status={userData.status} />
-                </div>
-                
-                <div className="w-full mt-6 space-y-4">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Role</span>
-                    <span className="font-medium capitalize">{userData.role}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Company</span>
-                    <span className="font-medium">{userData.company}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Last Active</span>
-                    <span className="font-medium">
-                      {new Date(userData.lastLogin).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Created</span>
-                    <span className="font-medium">
-                      {new Date(userData.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="w-full mt-6 pt-6 border-t">
-                  <Button variant="outline" className="w-full" onClick={() => setIsPasswordResetDialogOpen(true)}>
-                    <Mail className="mr-2 h-4 w-4" />
-                    Send Password Reset
-                  </Button>
-                </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg font-medium">{userData.name}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                <Users className="h-8 w-8 text-primary" />
               </div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        <div className="md:w-2/3">
-          <Tabs defaultValue="details">
-            <TabsList className="grid grid-cols-3 w-full">
-              <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="permissions">Permissions</TabsTrigger>
-              <TabsTrigger value="activity">Activity</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="details" className="mt-6 space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>User Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Full Name</h3>
-                      <p>{userData.name}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Email</h3>
-                      <p>{userData.email}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Role</h3>
-                      <p className="capitalize">{userData.role}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Status</h3>
-                      <p className="capitalize">{userData.status}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Company Association</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Company Name</h3>
-                      <p>{userData.company}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Company ID</h3>
-                      <p>{userData.companyId}</p>
-                    </div>
-                  </div>
-                  <Button variant="outline">View Company Details</Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="permissions" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>User Permissions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {userData.permissions.map((permission: string) => (
-                      <div key={permission} className="flex items-center">
-                        <Shield className="h-5 w-5 text-green-500 mr-2" />
-                        <span>{permission}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="activity" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-center text-muted-foreground py-6">
-                    User activity tracking will be implemented soon.
-                  </p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
+              <div>
+                <Badge 
+                  variant={
+                    userData.role === "admin" ? "default" : 
+                    userData.role === "company" ? "secondary" : "outline"
+                  }
+                >
+                  {userData.role}
+                </Badge>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {userData.role === "admin" 
+                    ? "System Administrator" 
+                    : userData.companyId && companyData 
+                      ? companyData.name 
+                      : "No Company Assigned"}
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-4">
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span>{userData.email}</span>
+              </div>
+              {userData.phone && (
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <span>{userData.phone}</span>
+                </div>
+              )}
+              {userData.companyId && companyData && (
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                  <span>{companyData.name}</span>
+                </div>
+              )}
+              {userData.createdAt && (
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span>Joined {format(new Date(userData.createdAt), "MMMM d, yyyy")}</span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>User Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="p-3 border rounded-md">
+                <div className="font-medium">Logged in</div>
+                <div className="text-sm text-muted-foreground">Today at 9:30 AM</div>
+              </div>
+              <div className="p-3 border rounded-md">
+                <div className="font-medium">Updated profile</div>
+                <div className="text-sm text-muted-foreground">Yesterday at 2:15 PM</div>
+              </div>
+              <div className="p-3 border rounded-md">
+                <div className="font-medium">Created support ticket</div>
+                <div className="text-sm text-muted-foreground">3 days ago</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-      
-      <Dialog open={isPasswordResetDialogOpen} onOpenChange={setIsPasswordResetDialogOpen}>
-        <DialogContent>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Account Management</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" onClick={() => setIsResetDialogOpen(true)}>
+              Reset Password Directly
+            </Button>
+            <Button variant="outline" onClick={handleSendPasswordResetEmail}>
+              Send Password Reset Email
+            </Button>
+            <Button variant="outline" onClick={handleEditUser}>
+              Edit Profile
+            </Button>
+            {userData.role === "tech" && !userData.companyId && (
+              <Button variant="outline">
+                Assign to Company
+              </Button>
+            )}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive">Deactivate Account</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action will permanently delete the user account. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteUser}>
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Reset User Password</DialogTitle>
-            <DialogDescription>
-              Send a password reset email to {userData.email}
-            </DialogDescription>
           </DialogHeader>
-          <AdminPasswordResetForm
-            userId={userData.id}
-            onSuccess={() => {
-              setResetPasswordOpen(false);
-            }}
-            onCancel={() => setResetPasswordOpen(false)}
+          <AdminPasswordResetForm 
+            userId={userData.id} 
+            onSuccess={() => setIsResetDialogOpen(false)}
+            onCancel={() => setIsResetDialogOpen(false)}
           />
         </DialogContent>
       </Dialog>
-      
-      <DeleteUserDialog
-        userId={userData.id}
-        userName={userData.name}
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-      />
-    </div>
-  );
-}
-
-function Badge({ status }: { status: string }) {
-  const colorMap: Record<string, string> = {
-    active: "bg-green-100 text-green-800",
-    inactive: "bg-gray-100 text-gray-800",
-    suspended: "bg-red-100 text-red-800",
-    pending: "bg-yellow-100 text-yellow-800"
-  };
-  
-  return (
-    <div className={`px-2 py-1 rounded-full text-xs font-medium ${colorMap[status] || colorMap.inactive}`}>
-      {status.charAt(0).toUpperCase() + status.slice(1)}
     </div>
   );
 }

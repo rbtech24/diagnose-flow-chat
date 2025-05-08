@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '../ui/dialog';
@@ -7,7 +8,7 @@ import { Save } from 'lucide-react';
 import { useAppliances } from '@/hooks/useAppliances';
 import { getFolders } from '@/utils/flow';
 import { useLocation } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import { toast } from '@/hooks/use-toast';
 
 interface SaveWorkflowDialogProps {
   onSave: (name: string, folder: string, appliance: string) => Promise<void>;
@@ -38,7 +39,11 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
           }
         } catch (error) {
           console.error('Error loading folders:', error);
-          toast.error("Failed to load folders");
+          toast({
+            title: "Error",
+            description: "Failed to load folders",
+            variant: "destructive"
+          });
         }
       };
       loadFolders();
@@ -47,13 +52,21 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
 
   const handleSave = async () => {
     if (!workflowName) {
-      toast.error("Please provide a workflow name");
+      toast({
+        title: "Validation Error",
+        description: "Please provide a workflow name",
+        variant: "destructive"
+      });
       return;
     }
 
     const targetAppliance = newAppliance || selectedAppliance;
     if (!targetAppliance) {
-      toast.error("Please select or create an appliance category");
+      toast({
+        title: "Validation Error",
+        description: "Please select or create an appliance category",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -65,7 +78,11 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
       setSelectedAppliance(appliances[0] || '');
     } catch (error) {
       console.error('Error saving workflow:', error);
-      toast.error("Failed to save the workflow. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to save the workflow. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 

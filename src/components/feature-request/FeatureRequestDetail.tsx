@@ -21,7 +21,7 @@ interface FeatureRequestDetailProps {
   featureRequest: FeatureRequest;
   onAddComment: (id: string, content: string) => void;
   onVote: (id: string) => void;
-  onStatusChange?: (id: string, status: FeatureRequestStatus) => void;
+  onUpdateStatus?: (id: string, status: FeatureRequestStatus) => void;
   onUpdatePriority?: (id: string, priority: string) => void;
   isAdmin?: boolean;
 }
@@ -30,21 +30,18 @@ export function FeatureRequestDetail({
   featureRequest,
   onAddComment,
   onVote,
-  onStatusChange,
+  onUpdateStatus,
   onUpdatePriority,
   isAdmin = false,
 }: FeatureRequestDetailProps) {
   const [comment, setComment] = useState("");
   
-  const statusColors: Record<string, string> = {
+  const statusColors: Record<FeatureRequestStatus, string> = {
     "pending": "bg-yellow-100 text-yellow-800",
     "approved": "bg-blue-100 text-blue-800",
     "rejected": "bg-red-100 text-red-800",
     "in-progress": "bg-purple-100 text-purple-800",
-    "completed": "bg-green-100 text-green-800",
-    "planned": "bg-blue-100 text-blue-800",
-    "implemented": "bg-green-100 text-green-800",
-    "under-review": "bg-yellow-100 text-yellow-800"
+    "completed": "bg-green-100 text-green-800"
   };
 
   const priorityColors = {
@@ -80,7 +77,7 @@ export function FeatureRequestDetail({
               {isAdmin ? (
                 <Select 
                   defaultValue={featureRequest.status}
-                  onValueChange={(value) => onStatusChange && onStatusChange(featureRequest.id, value as FeatureRequestStatus)}
+                  onValueChange={(value) => onUpdateStatus && onUpdateStatus(featureRequest.id, value as FeatureRequestStatus)}
                 >
                   <SelectTrigger className="w-[140px]">
                     <Badge className={statusColors[featureRequest.status as FeatureRequestStatus]}>
@@ -93,9 +90,6 @@ export function FeatureRequestDetail({
                     <SelectItem value="rejected">Rejected</SelectItem>
                     <SelectItem value="in-progress">In Progress</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="planned">Planned</SelectItem>
-                    <SelectItem value="implemented">Implemented</SelectItem>
-                    <SelectItem value="under-review">Under Review</SelectItem>
                   </SelectContent>
                 </Select>
               ) : (

@@ -1,64 +1,24 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import App from './App.tsx';
 import './index.css';
-import { AuthProvider } from './context/AuthContext';
-import { SystemMessageProvider } from './context/SystemMessageContext';
-import { Toaster } from 'react-hot-toast';
-import { addCacheControlMetaTags, registerCacheEventListeners } from './utils/cacheControl';
-import { BrowserRouter } from 'react-router-dom';
 
-// For debugging purposes
-console.log("Main.tsx is rendering, React version:", React.version);
-
-// Make sure React is properly imported
-if (!React) {
-  console.error("React is not properly imported in main.tsx");
-}
-
-// Make React available globally for debugging
-window.React = React;
-
-// Apply cache control meta tags on startup
-addCacheControlMetaTags();
-
-// Register service worker cache event listeners if service worker is active
-if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-  registerCacheEventListeners();
-  
-  // Register or update service worker
-  navigator.serviceWorker.register('/service-worker.js')
-    .then(registration => {
-      console.log('Service Worker registered with scope:', registration.scope);
-    })
-    .catch(error => {
-      console.error('Service Worker registration failed:', error);
-    });
-}
-
-// Create the root with explicit React reference
-const rootElement = document.getElementById('root');
-if (!rootElement) {
-  throw new Error("Root element not found");
-}
-
-// Mount the app with React StrictMode
-const root = ReactDOM.createRoot(rootElement);
-root.render(
+ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <App />
-        <Toaster position="top-right" />
-      </AuthProvider>
-    </BrowserRouter>
-  </React.StrictMode>
+    <App />
+  </React.StrictMode>,
 );
 
-// Add a declaration for the window.React property
-declare global {
-  interface Window {
-    React: typeof React;
-  }
+// Register service worker for PWA support
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(registration => {
+        console.log('Service Worker registered: ', registration);
+      })
+      .catch(registrationError => {
+        console.log('Service Worker registration failed: ', registrationError);
+      });
+  });
 }

@@ -3,46 +3,41 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
-import { FeatureRequest, FeatureRequestVote, FeatureRequestComment } from "@/types/feature-request";
-import { useAuth } from "@/context/AuthContext";
+import { FeatureRequest, FeatureRequestVote } from "@/types/feature-request";
+import { mockFeatureRequests } from "@/data/mockFeatureRequests";
+import { currentUser } from "@/data/mockTickets";
 import { ArrowLeft } from "lucide-react";
-import { placeholderUser } from "@/utils/placeholderData";
-import { convertToFeatureRequestUser } from "@/utils/userConverter";
 
 export default function CompanyFeatureRequestDetailPage() {
   const [featureRequest, setFeatureRequest] = useState<FeatureRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   useEffect(() => {
-    // This would be replaced with a real API call
-    setLoading(true);
-    
     // Simulate API call
     setTimeout(() => {
-      // In a real app, you would fetch data from the server
-      setFeatureRequest(null);
+      const foundRequest = mockFeatureRequests.find(request => request.id === id);
+      setFeatureRequest(foundRequest || null);
       setLoading(false);
     }, 500);
   }, [id]);
 
   const handleVote = (requestId: string) => {
-    if (!featureRequest || !user) return;
-    
-    // Ensure user has all required properties
-    const userWithRequiredProps = {
-      ...user,
-      status: user.status || 'active'
-    };
+    if (!featureRequest) return;
     
     const newVote: FeatureRequestVote = {
       id: `vote-${Date.now()}`,
-      userId: userWithRequiredProps.id,
+      userId: currentUser.id,
       featureRequestId: requestId,
       createdAt: new Date(),
-      user: convertToFeatureRequestUser(userWithRequiredProps),
+      user: {
+        id: currentUser.id,
+        name: currentUser.name,
+        email: currentUser.email,
+        role: currentUser.role as "admin" | "company" | "tech", // Explicitly cast to union type
+        avatarUrl: currentUser.avatarUrl,
+      },
     };
     
     setFeatureRequest({
@@ -53,20 +48,20 @@ export default function CompanyFeatureRequestDetailPage() {
   };
 
   const handleAddComment = (requestId: string, content: string) => {
-    if (!featureRequest || !user) return;
+    if (!featureRequest) return;
     
-    // Ensure user has all required properties
-    const userWithRequiredProps = {
-      ...user,
-      status: user.status || 'active'
-    };
-    
-    const newComment: FeatureRequestComment = {
+    const newComment = {
       id: `comment-${Date.now()}`,
       featureRequestId: requestId,
       content,
       createdAt: new Date(),
-      createdBy: convertToFeatureRequestUser(userWithRequiredProps),
+      createdBy: {
+        id: currentUser.id,
+        name: currentUser.name,
+        email: currentUser.email,
+        role: currentUser.role as "admin" | "company" | "tech", // Explicitly cast to union type
+        avatarUrl: currentUser.avatarUrl,
+      },
     };
     
     setFeatureRequest({

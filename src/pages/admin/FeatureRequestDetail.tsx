@@ -1,11 +1,14 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
-import { FeatureRequest, FeatureRequestVote, FeatureRequestStatus, FeatureRequestPriority, FeatureRequestUser } from "@/types/feature-request";
-import { placeholderUser } from "@/utils/placeholderData";
+import { FeatureRequest, FeatureRequestStatus, FeatureRequestPriority } from "@/types/feature-request";
+import { mockFeatureRequests } from "@/data/mockFeatureRequests";
+import { currentUser } from "@/data/mockTickets";
 import { ArrowLeft } from "lucide-react";
-import { convertToFeatureRequestUser } from "@/utils/userConverter";
+import { Separator } from "@/components/ui/separator";
 
 export default function AdminFeatureRequestDetailPage() {
   const [featureRequest, setFeatureRequest] = useState<FeatureRequest | null>(null);
@@ -14,62 +17,49 @@ export default function AdminFeatureRequestDetailPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setLoading(true);
-    
+    // Simulate API call
     setTimeout(() => {
-      const frUser = convertToFeatureRequestUser(placeholderUser);
-      
-      const mockFeatureRequest: FeatureRequest = {
-        id: id || "fr-1",
-        title: "Sample Feature Request",
-        description: "This is a sample feature request for testing the detail page.",
-        status: "pending" as FeatureRequestStatus,
-        priority: "medium" as FeatureRequestPriority,
-        category: "UI/UX",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        score: 5,
-        createdBy: frUser,
-        votes: [],
-        comments: []
-      };
-      
-      setFeatureRequest(mockFeatureRequest);
+      const foundRequest = mockFeatureRequests.find(request => request.id === id);
+      setFeatureRequest(foundRequest || null);
       setLoading(false);
     }, 500);
   }, [id]);
 
-  const handleVote = (requestId: string) => {
+  const handleUpdateStatus = (requestId: string, status: FeatureRequestStatus) => {
     if (!featureRequest) return;
-    
-    const frUser = convertToFeatureRequestUser(placeholderUser);
-    
-    const newVote: FeatureRequestVote = {
-      id: `vote-${Date.now()}`,
-      userId: frUser.id,
-      featureRequestId: requestId,
-      createdAt: new Date(),
-      user: frUser
-    };
     
     setFeatureRequest({
       ...featureRequest,
-      score: featureRequest.score + 1,
-      votes: [...featureRequest.votes, newVote],
+      status,
+      updatedAt: new Date(),
+    });
+  };
+
+  const handleUpdatePriority = (requestId: string, priority: string) => {
+    if (!featureRequest) return;
+    
+    setFeatureRequest({
+      ...featureRequest,
+      priority: priority as FeatureRequestPriority,
+      updatedAt: new Date(),
     });
   };
 
   const handleAddComment = (requestId: string, content: string) => {
     if (!featureRequest) return;
     
-    const frUser = convertToFeatureRequestUser(placeholderUser);
-    
     const newComment = {
       id: `comment-${Date.now()}`,
       featureRequestId: requestId,
       content,
       createdAt: new Date(),
-      createdBy: frUser
+      createdBy: {
+        id: currentUser.id,
+        name: currentUser.name,
+        email: currentUser.email,
+        role: currentUser.role as "admin" | "company" | "tech", // Type assertion to match User role
+        avatarUrl: currentUser.avatarUrl,
+      },
     };
     
     setFeatureRequest({
@@ -77,25 +67,9 @@ export default function AdminFeatureRequestDetailPage() {
       comments: [...featureRequest.comments, newComment],
     });
   };
-
-  const handleStatusChange = (requestId: string, status: FeatureRequestStatus) => {
-    if (!featureRequest) return;
-
-    setFeatureRequest({
-      ...featureRequest,
-      status,
-      updatedAt: new Date()
-    });
-  };
-
-  const handlePriorityChange = (requestId: string, priority: FeatureRequestPriority) => {
-    if (!featureRequest) return;
-
-    setFeatureRequest({
-      ...featureRequest,
-      priority,
-      updatedAt: new Date()
-    });
+  
+  const handleVote = (requestId: string) => {
+    // Admin doesn't vote, this is just to satisfy the prop requirement
   };
 
   if (loading) {
@@ -127,21 +101,62 @@ export default function AdminFeatureRequestDetailPage() {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="mb-6">
+      <div className="mb-6 flex justify-between items-center">
         <Button variant="ghost" onClick={() => navigate("/admin/feature-requests")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Feature Requests
         </Button>
+        
+        <div className="flex items-center gap-4">
+          <div>
+            <span className="text-sm text-gray-500 mr-2">Status:</span>
+            <Select
+              value={featureRequest?.status}
+              onValueChange={(value) => handleUpdateStatus(featureRequest?.id || "", value as FeatureRequestStatus)}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="in-progress">In Progress</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <span className="text-sm text-gray-500 mr-2">Priority:</span>
+            <Select
+              value={featureRequest?.priority}
+              onValueChange={(value) => handleUpdatePriority(featureRequest?.id || "", value)}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select priority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="critical">Critical</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
+      
+      <Separator className="my-4" />
       
       {featureRequest && (
         <FeatureRequestDetail
           featureRequest={featureRequest}
           onAddComment={handleAddComment}
           onVote={handleVote}
-          onStatusChange={handleStatusChange}
-          onUpdatePriority={handlePriorityChange}
           isAdmin={true}
+          onUpdateStatus={handleUpdateStatus}
+          onUpdatePriority={handleUpdatePriority}
         />
       )}
     </div>

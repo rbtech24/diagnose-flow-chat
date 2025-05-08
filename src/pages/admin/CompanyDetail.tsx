@@ -1,80 +1,127 @@
-import { useState, useEffect } from "react";
+
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ArrowLeft, Building2, Users, CreditCard, Calendar, Mail, Phone, MapPin } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Link } from "react-router-dom";
 import { useUserManagementStore } from "@/store/userManagementStore";
-import { DeleteCompanyDialog } from "@/components/company/DeleteCompanyDialog";
-import { Separator } from "@/components/ui/separator";
-import { 
-  Building, 
-  ArrowLeft, 
-  Mail, 
-  Phone, 
-  MapPin,
-  CalendarClock,
-  Users,
-  CreditCard,
-  Settings
-} from "lucide-react";
-import { TechnicianManagement } from "@/components/technicians/TechnicianManagement";
-import { useSubscriptionStore } from "@/store/subscriptionStore";
+import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useToast } from "@/components/ui/use-toast";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const { fetchCompanyById } = useUserManagementStore();
-  const [company, setCompany] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("details");
-
-  // Get subscription plans
-  const { plans } = useSubscriptionStore();
+  const { toast } = useToast();
+  const { companies, users, fetchCompanyById, fetchUsers, deleteCompany } = useUserManagementStore();
+  const [companyData, setCompanyData] = useState<any>(null);
+  const [companyUsers, setCompanyUsers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadCompanyData = async () => {
-      if (id) {
-        setLoading(true);
-        try {
-          const companyData = await fetchCompanyById(id);
-          if (companyData) {
-            setCompany(companyData);
-          } else {
-            navigate("/admin/companies", { replace: true });
-          }
-        } catch (error) {
-          console.error("Error loading company:", error);
-        } finally {
-          setLoading(false);
+    const loadData = async () => {
+      if (!id) return;
+      
+      setIsLoading(true);
+      try {
+        await fetchUsers();
+        const company = await fetchCompanyById(id);
+        if (company) {
+          setCompanyData(company);
+          
+          // Filter users that belong to this company
+          const relatedUsers = users.filter(user => user.companyId === id);
+          setCompanyUsers(relatedUsers);
+        } else {
+          toast({
+            title: "Company not found",
+            description: "The requested company could not be found.",
+            variant: "destructive",
+          });
+          navigate("/admin/companies");
         }
+      } catch (error) {
+        console.error("Error loading company data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load company data.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
       }
     };
+    
+    loadData();
+  }, [id, fetchCompanyById, fetchUsers, users, navigate, toast]);
 
-    loadCompanyData();
-  }, [id, fetchCompanyById, navigate]);
+  const handleDeleteCompany = async () => {
+    if (!id) return;
+    
+    try {
+      const success = await deleteCompany(id);
+      if (success) {
+        toast({
+          title: "Company deleted",
+          description: "The company has been successfully deleted.",
+        });
+        navigate("/admin/companies");
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to delete company.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting company:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
-  if (loading) {
+  const handleEditCompany = () => {
+    navigate(`/admin/companies/${id}/edit`);
+  };
+
+  if (isLoading) {
     return (
       <div className="container mx-auto p-6">
-        <div className="flex animate-pulse flex-col gap-5">
-          <div className="h-8 w-1/3 rounded-md bg-muted"></div>
-          <div className="h-[300px] rounded-md bg-muted"></div>
+        <div className="flex items-center mb-6">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate("/admin/companies")} 
+            className="mr-4"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          <Skeleton className="h-9 w-40" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <Skeleton className="h-64" />
+          <Skeleton className="h-40" />
+          <Skeleton className="h-40" />
         </div>
       </div>
     );
   }
 
-  if (!company) {
+  if (!companyData) {
     return (
       <div className="container mx-auto p-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Company not found</h1>
-          <p className="mt-2 text-muted-foreground">
-            The company you are looking for does not exist or you do not have permission to view it.
-          </p>
-          <Button onClick={() => navigate("/admin/companies")} className="mt-4">
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-bold mb-2">Company Not Found</h2>
+          <p className="text-muted-foreground mb-4">The company you're looking for doesn't exist or has been deleted.</p>
+          <Button onClick={() => navigate("/admin/companies")}>
             Back to Companies
           </Button>
         </div>
@@ -82,368 +129,281 @@ export default function CompanyDetail() {
     );
   }
 
-  const getTrialStatus = () => {
-    if (!company.trial_status || company.trial_status === "inactive") {
-      return { label: "No Trial", variant: "outline" as const };
+  const getStatusBadgeStyle = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-100 text-green-800 hover:bg-green-200';
+      case 'trial':
+        return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
+      case 'expired':
+        return 'bg-red-100 text-red-800 hover:bg-red-200';
+      case 'inactive':
+        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+      default:
+        return '';
     }
-    
-    if (company.trial_status === "active") {
-      const trialEndDate = company.trial_end_date ? new Date(company.trial_end_date) : null;
-      const now = new Date();
-      
-      if (trialEndDate && trialEndDate > now) {
-        const daysLeft = Math.ceil((trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        return { 
-          label: `Trial (${daysLeft} days left)`, 
-          variant: "default" as const 
-        };
-      }
-      
-      return { label: "Trial Active", variant: "default" as const };
-    }
-    
-    if (company.trial_status === "expired") {
-      return { label: "Trial Expired", variant: "destructive" as const };
-    }
-    
-    return { label: company.trial_status, variant: "outline" as const };
   };
 
-  const trialStatus = getTrialStatus();
-
-  const getPlanDetails = () => {
-    const planId = company.plan_id;
-    if (!planId) return { 
-      name: company.subscription_tier || "Basic",
-      dailyDiagnostics: 10,
-      storageLimit: "5GB"
-    };
-    
-    const plan = plans.find(p => p.id === planId);
-    return plan || { 
-      name: company.subscription_tier || "Basic",
-      dailyDiagnostics: 10,
-      storageLimit: "5GB"
-    };
-  };
-
-  const plan = getPlanDetails();
+  const mainAdmin = companyUsers.find(user => user.role === 'company' && user.isMainAdmin);
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <Button variant="outline" size="sm" onClick={() => navigate("/admin/companies")}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Companies
+    <div className="container mx-auto p-6">
+      <div className="flex items-center mb-6">
+        <Button 
+          variant="outline" 
+          onClick={() => navigate("/admin/companies")} 
+          className="mr-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
         </Button>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => navigate(`/admin/companies/${id}/edit`)}
-          >
-            Edit Company
-          </Button>
-          <Button 
-            variant="destructive" 
-            size="sm"
-            onClick={() => setIsDeleteDialogOpen(true)}
-          >
-            Delete Company
-          </Button>
-        </div>
+        <h1 className="text-3xl font-bold">Company Details</h1>
       </div>
-      
-      <div className="flex flex-col md:flex-row gap-6">
-        <div className="w-full md:w-1/3">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex flex-col items-start space-y-4">
-                <div className="rounded-md bg-primary/10 p-2">
-                  <Building className="h-8 w-8 text-primary" />
-                </div>
-                
-                <div className="space-y-1">
-                  <h2 className="text-2xl font-bold">{company.name}</h2>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant={company.status === "active" ? "default" : "secondary"}>
-                      {company.status || "Active"}
-                    </Badge>
-                    <Badge variant={trialStatus.variant}>{trialStatus.label}</Badge>
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                <div className="space-y-3 w-full">
-                  <div className="flex items-start">
-                    <Mail className="h-4 w-4 mr-2 mt-1 text-muted-foreground" />
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Email</p>
-                      <p className="font-medium">{company.email || "No email provided"}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <Phone className="h-4 w-4 mr-2 mt-1 text-muted-foreground" />
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Phone</p>
-                      <p className="font-medium">{company.phone || "No phone provided"}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <MapPin className="h-4 w-4 mr-2 mt-1 text-muted-foreground" />
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Address</p>
-                      <p className="font-medium">{company.address || "No address provided"}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <CalendarClock className="h-4 w-4 mr-2 mt-1 text-muted-foreground" />
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Created</p>
-                      <p className="font-medium">
-                        {company.created_at ? new Date(company.created_at).toLocaleDateString() : "N/A"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg font-medium">
+              {companyData.name}
+              <Badge className={`ml-2 ${getStatusBadgeStyle(companyData.status)}`}>
+                {companyData.status}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                <Building2 className="h-8 w-8 text-primary" />
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle className="text-lg">Subscription Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Current Plan</span>
-                <Badge variant="outline" className="capitalize">
-                  {plan.name}
-                </Badge>
+              <div>
+                <p className="text-sm text-muted-foreground">{companyData.planName || "No"} Plan</p>
+                <p className="text-sm text-muted-foreground">
+                  Active since {format(new Date(companyData.createdAt), "MMM yyyy")}
+                </p>
               </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Trial Status</span>
-                <Badge variant={trialStatus.variant}>{trialStatus.label}</Badge>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1">
+                <span className="text-sm text-muted-foreground">Contact</span>
+                <span className="font-medium">{companyData.contactName}</span>
               </div>
-              
-              {company.trial_end_date && (
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Trial Ends</span>
-                  <span>{new Date(company.trial_end_date).toLocaleDateString()}</span>
+              <div className="flex flex-col gap-1">
+                <span className="text-sm text-muted-foreground">Email</span>
+                <span className="font-medium">{companyData.email}</span>
+              </div>
+              {companyData.phone && (
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm text-muted-foreground">Phone</span>
+                  <span className="font-medium">{companyData.phone}</span>
                 </div>
               )}
-              
-              <Separator />
-              
-              <div className="pt-2">
-                <Button variant="outline" className="w-full" onClick={() => setActiveTab("subscription")}>
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Manage Subscription
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        <div className="w-full md:w-2/3">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="technicians">
-                <Users className="mr-2 h-4 w-4" />
-                Technicians
-              </TabsTrigger>
-              <TabsTrigger value="subscription">
-                <CreditCard className="mr-2 h-4 w-4" />
-                Subscription
-              </TabsTrigger>
-              <TabsTrigger value="settings">
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </TabsTrigger>
-            </TabsList>
-            
-            <div className="mt-6">
-              <TabsContent value="details">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Company Details</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">Company Name</p>
-                        <p>{company.name}</p>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">Contact Name</p>
-                        <p>{company.contact_name || "Not specified"}</p>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">Email</p>
-                        <p>{company.email || "Not specified"}</p>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">Phone</p>
-                        <p>{company.phone || "Not specified"}</p>
-                      </div>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <div className="space-y-2">
-                      <h3 className="font-medium">Address</h3>
-                      <address className="not-italic">
-                        {company.address ? (
-                          <>
-                            <p>{company.address}</p>
-                            <p>
-                              {company.city && `${company.city}, `}
-                              {company.state && `${company.state} `}
-                              {company.zip_code}
-                            </p>
-                            <p>{company.country}</p>
-                          </>
-                        ) : (
-                          <p className="text-muted-foreground">No address provided</p>
-                        )}
-                      </address>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <div className="space-y-2">
-                      <h3 className="font-medium">Description</h3>
-                      <p>{company.description || "No description provided"}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="technicians">
-                {id && <TechnicianManagement companyId={id} />}
-              </TabsContent>
-              
-              <TabsContent value="subscription">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Subscription Management</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="bg-primary/5 p-4 rounded-lg border">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="font-medium capitalize">{plan.name} Plan</h3>
-                            <p className="text-sm text-muted-foreground">
-                              Current subscription tier
-                            </p>
-                          </div>
-                          <Badge variant="outline" className="capitalize">
-                            {company.status || "Active"}
-                          </Badge>
-                        </div>
-                      </div>
-                      
-                      <Separator />
-                      
-                      <div className="space-y-2">
-                        <h3 className="font-medium">Plan Details</h3>
-                        <ul className="space-y-2">
-                          <li className="flex items-start">
-                            <span className="text-muted-foreground w-1/3">Technicians:</span>
-                            <span>{company.technicianCount || "0"} / {company.maxTechnicians || "5"}</span>
-                          </li>
-                          <li className="flex items-start">
-                            <span className="text-muted-foreground w-1/3">Diagnostics:</span>
-                            <span>{plan.dailyDiagnostics || "10"} per day</span>
-                          </li>
-                          <li className="flex items-start">
-                            <span className="text-muted-foreground w-1/3">Storage:</span>
-                            <span>{plan.storageLimit || "5GB"}</span>
-                          </li>
-                        </ul>
-                      </div>
-                      
-                      <Separator />
-                      
-                      <div className="pt-2 space-y-4">
-                        <h3 className="font-medium">Change Subscription</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {plans.map((plan) => (
-                            <div 
-                              key={plan.id} 
-                              className={`border rounded-lg p-4 cursor-pointer hover:border-primary transition-colors ${
-                                company.subscription_tier === plan.name.toLowerCase() ? "border-primary bg-primary/5" : ""
-                              }`}
-                            >
-                              <h4 className="font-medium">{plan.name}</h4>
-                              <p className="text-sm text-muted-foreground">
-                                ${plan.price_monthly}/mo
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                        
-                        <Button className="w-full">
-                          Update Subscription
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="settings">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Company Settings</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <h3 className="font-medium">Danger Zone</h3>
-                      <div className="border border-destructive/50 rounded-lg p-4">
-                        <div className="flex flex-col space-y-3">
-                          <div>
-                            <h4 className="font-medium text-destructive">Delete Company</h4>
-                            <p className="text-sm text-muted-foreground">
-                              This action cannot be undone. This will permanently delete the company
-                              and all associated data.
-                            </p>
-                          </div>
-                          <Button 
-                            variant="destructive" 
-                            onClick={() => setIsDeleteDialogOpen(true)}
-                          >
-                            Delete Company
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+              {companyData.city && companyData.state && (
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm text-muted-foreground">Location</span>
+                  <span className="font-medium">{companyData.city}, {companyData.state}</span>
+                </div>
+              )}
             </div>
-          </Tabs>
-        </div>
+
+            {companyData.address && (
+              <div className="mt-4 pt-4 border-t">
+                <div className="flex items-center gap-2 mb-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Address</span>
+                </div>
+                <p className="text-sm">
+                  {companyData.address}
+                  {companyData.city && companyData.state && (
+                    <>, {companyData.city}, {companyData.state} {companyData.zipCode}</>
+                  )}
+                  {companyData.country && <>, {companyData.country}</>}
+                </p>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t">
+              <Button variant="outline" size="sm" onClick={handleEditCompany}>
+                Edit Company
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm">Delete Company</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action will permanently delete the company and all associated users. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteCompany}>
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-green-50 border-green-100">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg font-medium flex items-center gap-2">
+              <Users className="h-5 w-5 text-green-600" />
+              Technicians
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold mb-2">{companyData.technicianCount}</div>
+            <p className="text-sm text-muted-foreground">
+              {companyUsers.filter(u => u.role === 'tech').length} active technicians
+            </p>
+            <Link to={`/admin/companies/${id}/technicians`}>
+              <Button className="w-full mt-4" variant="outline">
+                View Technicians
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-blue-50 border-blue-100">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg font-medium flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-blue-600" />
+              Subscription
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold mb-2">{companyData.planName || "No"} Plan</div>
+            {companyData.status === 'trial' && companyData.trialEndsAt && (
+              <div className="flex items-center gap-2 text-sm text-amber-600 mb-1">
+                <Calendar className="h-4 w-4" />
+                Trial ends on {format(new Date(companyData.trialEndsAt), "MMM d, yyyy")}
+              </div>
+            )}
+            {companyData.status === 'active' && companyData.subscriptionEndsAt && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                <Calendar className="h-4 w-4" />
+                Renews on {format(new Date(companyData.subscriptionEndsAt), "MMM d, yyyy")}
+              </div>
+            )}
+            <Link to={`/admin/companies/${id}/subscription`}>
+              <Button className="w-full mt-4" variant="outline">
+                Manage Subscription
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
-      
-      {id && company && (
-        <DeleteCompanyDialog
-          companyId={id}
-          companyName={company.name}
-          isOpen={isDeleteDialogOpen}
-          onClose={() => setIsDeleteDialogOpen(false)}
-        />
-      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Company Admins</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {companyUsers.filter(u => u.role === 'company').length === 0 ? (
+              <div className="text-center py-4 text-muted-foreground">
+                No company admins found
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {companyUsers
+                  .filter(u => u.role === 'company')
+                  .map(admin => (
+                    <div key={admin.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarFallback className="bg-primary/10">
+                            {admin.name.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h3 className="font-medium">{admin.name}</h3>
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm text-muted-foreground">{admin.email}</p>
+                            {admin.isMainAdmin && (
+                              <Badge variant="secondary" className="text-xs">Primary</Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link to={`/admin/users/${admin.id}`}>
+                          View
+                        </Link>
+                      </Button>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="p-3 border rounded-md">
+                <div className="font-medium">Technician Added</div>
+                <div className="text-sm text-muted-foreground">Today at 3:45 PM</div>
+              </div>
+              <div className="p-3 border rounded-md">
+                <div className="font-medium">Subscription Renewed</div>
+                <div className="text-sm text-muted-foreground">Yesterday at 10:30 AM</div>
+              </div>
+              <div className="p-3 border rounded-md">
+                <div className="font-medium">Profile Updated</div>
+                <div className="text-sm text-muted-foreground">3 days ago</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Technicians ({companyUsers.filter(u => u.role === 'tech').length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {companyUsers.filter(u => u.role === 'tech').length === 0 ? (
+            <div className="text-center py-4 text-muted-foreground">
+              No technicians found for this company
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {companyUsers
+                .filter(u => u.role === 'tech')
+                .map(tech => (
+                  <div key={tech.id} className="p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarFallback className="bg-blue-100 text-blue-600">
+                          {tech.name.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-medium">{tech.name}</h3>
+                        <p className="text-sm text-muted-foreground">{tech.email}</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex justify-end">
+                      <Button variant="outline" size="sm" asChild>
+                        <Link to={`/admin/users/${tech.id}`}>
+                          View Profile
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

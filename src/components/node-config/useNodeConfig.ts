@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { TechnicalSpecs } from '@/types/node-config';
-import toast from 'react-hot-toast';
+import { toast } from '@/hooks/use-toast';
 import { useNodeFields } from './hooks/useNodeFields';
 import { useNodeValidation } from './hooks/useNodeValidation';
 import { combineFieldsData } from './utils/nodeDataTransform';
@@ -40,7 +40,7 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
         points: ''
       });
     }
-  }, [node?.id, node?.data, initializeFields]);
+  }, [node?.id, node?.data]);
 
   const handleNodeTypeChange = (value: string) => {
     setNodeType(value);
@@ -51,7 +51,11 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
     if (!node) return;
     
     if (!validateNode({ label, fields, showTechnicalFields, technicalSpecs })) {
-      toast.error("Please fix the errors before applying changes.");
+      toast({
+        title: "Validation Error",
+        description: "Please fix the errors before applying changes.",
+        variant: "destructive"
+      });
       return;
     }
 

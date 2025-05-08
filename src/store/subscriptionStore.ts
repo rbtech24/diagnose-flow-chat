@@ -13,7 +13,6 @@ interface SubscriptionState {
   updateLicense: (license: License) => void;
   deactivateLicense: (licenseId: string) => void;
   getActivePlans: () => SubscriptionPlan[];
-  getDailyDiagnosticLimit: (planId: string, isOnTrial: boolean) => number;
 }
 
 export const useSubscriptionStore = create<SubscriptionState>()(
@@ -34,12 +33,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         set((state) => ({
           plans: state.plans.map(plan => 
             plan.id === planId 
-              ? { 
-                  ...plan, 
-                  is_active: !plan.is_active,
-                  isActive: !plan.is_active, 
-                  updatedAt: new Date() 
-                } 
+              ? { ...plan, isActive: !plan.isActive, updatedAt: new Date() } 
               : plan
           )
         })),
@@ -62,33 +56,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         })),
       
       getActivePlans: () => {
-        return get().plans.filter(plan => plan.is_active);
-      },
-      
-      getDailyDiagnosticLimit: (planId: string, isOnTrial: boolean) => {
-        // Default limits by plan
-        const limits = {
-          basic: 10,
-          professional: 25,
-          enterprise: 100,
-          trial: 5
-        };
-        
-        if (isOnTrial) return limits.trial;
-        
-        // Try to find the plan in our store
-        const plan = get().plans.find(p => p.id === planId);
-        if (plan && plan.dailyDiagnostics !== undefined) {
-          return plan.dailyDiagnostics;
-        }
-        
-        // Fallback to default limits
-        switch (planId) {
-          case "1": return limits.basic;
-          case "2": return limits.professional;
-          case "3": return limits.enterprise;
-          default: return limits.basic;
-        }
+        return get().plans.filter(plan => plan.isActive);
       }
     }),
     {

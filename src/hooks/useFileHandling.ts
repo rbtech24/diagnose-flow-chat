@@ -1,6 +1,6 @@
 
 import { useCallback } from 'react';
-import toast from 'react-hot-toast';
+import { toast } from '@/hooks/use-toast';
 import { handleSaveWorkflow, handleImportWorkflow } from '@/utils/flow';
 import { addToHistory } from '@/utils/workflowHistory';
 import { Node } from '@xyflow/react';
@@ -32,11 +32,18 @@ export function useFileHandling({
     try {
       const workflow = await handleSaveWorkflow(nodes, edges, nodeCounter, name, folder, appliance, '');
       if (workflow) {
-        toast.success(`Successfully saved "${name}" to folder "${folder}"`);
+        toast({
+          title: "Workflow Saved",
+          description: `Successfully saved "${name}" to folder "${folder}"`
+        });
       }
       return Promise.resolve();
     } catch (error) {
-      toast.error("Failed to save the workflow. Please try again.");
+      toast({
+        title: "Save Failed",
+        description: "Failed to save the workflow. Please try again.",
+        variant: "destructive"
+      });
       return Promise.reject(error);
     }
   }, [nodes, edges, nodeCounter]);

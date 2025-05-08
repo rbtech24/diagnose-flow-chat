@@ -1,9 +1,10 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "react-hot-toast";
+import { toast } from "@/hooks/use-toast";
 import { Mail } from "lucide-react";
 
 interface StatusSubscriptionModalProps {
@@ -19,22 +20,34 @@ export function StatusSubscriptionModal({ open, onOpenChange }: StatusSubscripti
     e.preventDefault();
     
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
-      toast.error("Please enter a valid email address.");
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address.",
+        variant: "destructive"
+      });
       return;
     }
 
     setIsLoading(true);
     
+    // Simulate API call
     try {
       // Here you would normally have an API call to subscribe the user
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      toast.success("You will now receive status updates to your email.");
+      toast({
+        title: "Subscription successful",
+        description: "You will now receive status updates to your email.",
+      });
       
       setEmail("");
       onOpenChange(false);
     } catch (error) {
-      toast.error("There was an error subscribing to status updates.");
+      toast({
+        title: "Subscription failed",
+        description: "There was an error subscribing to status updates.",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }

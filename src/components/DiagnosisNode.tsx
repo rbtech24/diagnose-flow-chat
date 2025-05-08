@@ -3,7 +3,7 @@ import { memo } from 'react';
 import { useStore, useReactFlow } from '@xyflow/react';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
-import toast from 'react-hot-toast';
+import { toast } from '@/hooks/use-toast';
 import { NodeHandles } from './diagnosis/NodeHandles';
 import { TechnicalContent } from './diagnosis/TechnicalContent';
 import { MediaContent } from './diagnosis/MediaContent';
@@ -42,8 +42,10 @@ function DiagnosisNode({ id, data }) {
         )
       )
     );
-    
-    toast("The connection has been removed successfully.");
+    toast({
+      title: "Connection Removed",
+      description: "The connection has been removed successfully."
+    });
   };
 
   return (

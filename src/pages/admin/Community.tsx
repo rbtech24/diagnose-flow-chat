@@ -1,43 +1,98 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { OfflineAwareCommunityForum } from '@/components/community/OfflineAwareCommunityForum';
-import { CommunityPost as TypedCommunityPost, CommunityPostType, CommunityPostComment } from '@/types/community';
-import { useCommunityPosts, CommunityPost } from '@/hooks/useCommunityPosts';
+import { Plus, AlertTriangle, Trash2 } from 'lucide-react';
+import { CommunityFilters } from '@/components/community/CommunityFilters';
+import { CommunityPostCard } from '@/components/community/CommunityPostCard';
+import { CommunityStats } from '@/components/community/CommunityStats';
+import { NewPostDialog } from '@/components/community/NewPostDialog';
+import { Button } from '@/components/ui/button';
+import { CommunityPost, CommunityPostType } from '@/types/community';
+import { mockPosts } from '@/data/mockCommunity';
 
 export default function AdminCommunity() {
   const navigate = useNavigate();
-  const { posts, isLoading, createPost } = useCommunityPosts();
+  const [posts, setPosts] = useState<CommunityPost[]>(mockPosts);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedType, setSelectedType] = useState('all');
+  const [selectedSort, setSelectedSort] = useState('recent');
 
-  const handleCreatePost = async (post: {
+  const filteredPosts = posts.filter(post => {
+    // Filter by search query
+    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    // Filter by type
+    const matchesType = selectedType === 'all' || post.type === selectedType;
+    
+    return matchesSearch && matchesType;
+  });
+
+  // Sort posts
+  const sortedPosts = [...filteredPosts].sort((a, b) => {
+    switch (selectedSort) {
+      case 'recent':
+        return b.createdAt.getTime() - a.createdAt.getTime();
+      case 'popular':
+        return b.views - a.views;
+      case 'upvotes':
+        return b.upvotes - a.upvotes;
+      case 'comments':
+        return b.comments.length - a.comments.length;
+      default:
+        return 0;
+    }
+  });
+
+  const handleCreatePost = (post: {
     title: string;
     content: string;
     type: CommunityPostType;
     tags: string[];
     attachments: File[];
   }) => {
-    await createPost({
+    const newPost: CommunityPost = {
+      id: `post-${Date.now()}`,
       title: post.title,
       content: post.content,
       type: post.type,
-      tags: post.tags
-    });
+      authorId: 'admin-1',
+      author: {
+        id: 'admin-1',
+        name: 'Admin User',
+        email: 'admin@example.com',
+        role: 'admin',
+        avatarUrl: ''
+      },
+      attachments: [], // In a real app, you would upload these files
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      upvotes: 0,
+      views: 0,
+      tags: post.tags,
+      comments: []
+    };
+    
+    setPosts([newPost, ...posts]);
   };
 
-  // Convert posts to the expected type for OfflineAwareCommunityForum
-  const typedPosts: TypedCommunityPost[] = posts.map(post => ({
-    ...post,
-    authorId: post.authorId || "",
-    attachments: post.attachments || [],
-    views: post.views || 0,
-    comments: post.comments.map(comment => ({
-      ...comment,
-      authorId: comment.author.id,
-      updatedAt: comment.createdAt, // Use createdAt as updatedAt since it's not available
-      attachments: [], // Add empty attachments array
-      postId: post.id // Add postId reference
-    })) as CommunityPostComment[]
-  }));
+  const handlePostClick = (postId: string) => {
+    navigate(`/admin/community/${postId}`);
+  };
+
+  const handleDeletePost = (postId: string) => {
+    setPosts(posts.filter(post => post.id !== postId));
+  };
+
+  // Count stats
+  const questionCount = posts.filter(post => post.type === 'question').length;
+  const techSheetRequestCount = posts.filter(post => post.type === 'tech-sheet-request').length;
+  const wireDiagramRequestCount = posts.filter(post => post.type === 'wire-diagram-request').length;
+  
+  // In a real app, you'd calculate this differently
+  const activeMemberCount = new Set(posts.map(post => post.authorId)
+    .concat(posts.flatMap(post => post.comments.map(comment => comment.authorId)))).size;
 
   return (
     <div className="container mx-auto p-6">
@@ -45,18 +100,57 @@ export default function AdminCommunity() {
         <div>
           <h1 className="text-3xl font-bold">Community Management</h1>
           <p className="text-muted-foreground mt-1">
-            Monitor and moderate community discussions
+            Monitor and manage community discussions and requests
           </p>
+        </div>
+        <div className="mt-4 md:mt-0 flex gap-2">
+          <Button variant="destructive" className="gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            Reported Content
+          </Button>
+          <NewPostDialog onSubmit={handleCreatePost} />
         </div>
       </div>
       
-      <OfflineAwareCommunityForum
-        basePath="/admin/community"
-        initialPosts={typedPosts}
-        onCreatePost={handleCreatePost}
-        userRole="admin"
-        isLoading={isLoading}
+      <CommunityStats
+        questionCount={questionCount}
+        techSheetRequestCount={techSheetRequestCount}
+        wireDiagramRequestCount={wireDiagramRequestCount}
+        activeMemberCount={activeMemberCount}
       />
+      
+      <CommunityFilters
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        selectedType={selectedType}
+        setSelectedType={setSelectedType}
+        selectedSort={selectedSort}
+        setSelectedSort={setSelectedSort}
+      />
+
+      {sortedPosts.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-lg text-muted-foreground">No posts found matching your criteria.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {sortedPosts.map(post => (
+            <div key={post.id} className="flex gap-4">
+              <div className="flex-grow" onClick={() => handlePostClick(post.id)}>
+                <CommunityPostCard post={post} basePath="/admin/community" />
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="flex-shrink-0 h-10 w-10 mt-2 text-destructive hover:text-destructive"
+                onClick={() => handleDeletePost(post.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

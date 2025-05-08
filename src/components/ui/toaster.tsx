@@ -1,12 +1,33 @@
-
-// This is a compatibility component for shadcn/ui
-// The actual toasts are rendered by react-hot-toast
-import { Toaster as HotToaster } from 'react-hot-toast';
-
-// Debug log for toaster.tsx loading
-console.log("UI toaster.tsx module loaded");
+import { useToast } from "@/hooks/use-toast"
+import {
+  Toast,
+  ToastClose,
+  ToastDescription,
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
+} from "@/components/ui/toast"
 
 export function Toaster() {
-  console.log("Toaster component rendering");
-  return <HotToaster position="bottom-right" toastOptions={{ duration: 5000 }} />;
+  const { toasts } = useToast()
+
+  return (
+    <ToastProvider>
+      {toasts.map(function ({ id, title, description, action, ...props }) {
+        return (
+          <Toast key={id} {...props}>
+            <div className="grid gap-1">
+              {title && <ToastTitle>{title}</ToastTitle>}
+              {description && (
+                <ToastDescription>{description}</ToastDescription>
+              )}
+            </div>
+            {action}
+            <ToastClose />
+          </Toast>
+        )
+      })}
+      <ToastViewport />
+    </ToastProvider>
+  )
 }

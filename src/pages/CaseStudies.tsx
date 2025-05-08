@@ -28,24 +28,22 @@ export default function CaseStudies() {
       <main className="flex-1 container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-4">Customer Success Stories</h1>
         <p className="text-gray-600 mb-8 max-w-3xl">
-          See how real appliance repair businesses have transformed their operations with our AI-powered diagnostic platform.
+          See how leading appliance repair companies have transformed their operations with Repair Auto Pilot's diagnostic workflows.
         </p>
         
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mb-12">
           <Card className="overflow-hidden">
-            <img 
-              src="/lovable-uploads/894f58ab-c3aa-45ba-9ea3-e3a2d9ddf247.png"
-              alt="Service Pro Appliance"
-              className="h-48 w-full object-cover"
-            />
+            <div className="h-48 bg-gray-200 flex items-center justify-center">
+              <div className="text-6xl text-gray-400">🏢</div>
+            </div>
             <CardContent className="p-6">
               <div className="space-y-4">
-                <h2 className="text-xl font-bold">Service Pro Appliance: 92% First-Time Fix Rate</h2>
+                <h2 className="text-xl font-bold">West Metro Appliance: 40% Increase in First-Time Fix Rate</h2>
                 <p className="text-gray-600">
-                  Service Pro Appliance boosted their first-time fix rate from 65% to 92% using our AI-guided diagnostic workflows, reducing callbacks by 78%.
+                  Learn how West Metro Appliance used our diagnostic workflows to dramatically improve their first-time fix rate and customer satisfaction.
                 </p>
                 <Button variant="outline" asChild className="w-full">
-                  <Link to="/case-study/service-pro">
+                  <Link to="#">
                     Read Case Study
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
@@ -55,19 +53,17 @@ export default function CaseStudies() {
           </Card>
           
           <Card className="overflow-hidden">
-            <img 
-              src="/lovable-uploads/c9eb6e16-d7c1-438f-86bb-eefa6fa5ad0e.png"
-              alt="Elite Appliance Repair"
-              className="h-48 w-full object-cover"
-            />
+            <div className="h-48 bg-gray-200 flex items-center justify-center">
+              <div className="text-6xl text-gray-400">🏢</div>
+            </div>
             <CardContent className="p-6">
               <div className="space-y-4">
-                <h2 className="text-xl font-bold">Elite Appliance Repair: Training Time Cut by 60%</h2>
+                <h2 className="text-xl font-bold">Einstein Repair: Reducing Training Time by 50%</h2>
                 <p className="text-gray-600">
-                  Elite Appliance Repair reduced new technician training time from 12 weeks to just 5 weeks while maintaining high service quality standards.
+                  Discover how Einstein Appliance Repair cut training time for new technicians in half and improved service quality.
                 </p>
                 <Button variant="outline" asChild className="w-full">
-                  <Link to="/case-study/elite-repair">
+                  <Link to="#">
                     Read Case Study
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
@@ -77,19 +73,17 @@ export default function CaseStudies() {
           </Card>
           
           <Card className="overflow-hidden">
-            <img 
-              src="/lovable-uploads/eecdb784-4fd9-47a5-9588-f4299e2dbd04.png"
-              alt="Quick Fix Appliance Services"
-              className="h-48 w-full object-cover"
-            />
+            <div className="h-48 bg-gray-200 flex items-center justify-center">
+              <div className="text-6xl text-gray-400">🏢</div>
+            </div>
             <CardContent className="p-6">
               <div className="space-y-4">
-                <h2 className="text-xl font-bold">Quick Fix Appliance: 40% Revenue Growth</h2>
+                <h2 className="text-xl font-bold">Flat Rate Appliance: Scaling Operations with AI</h2>
                 <p className="text-gray-600">
-                  Quick Fix Appliance Services achieved 40% annual revenue growth by optimizing operations and expanding their service area with our platform.
+                  See how Flat Rate Appliance Repair expanded from 5 to 25 technicians while maintaining service quality.
                 </p>
                 <Button variant="outline" asChild className="w-full">
-                  <Link to="/case-study/quick-fix">
+                  <Link to="#">
                     Read Case Study
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
@@ -102,28 +96,27 @@ export default function CaseStudies() {
         <div className="bg-blue-50 rounded-lg p-8 mb-12">
           <div className="flex flex-col md:flex-row items-center gap-6">
             <div className="md:w-3/5 space-y-4">
-              <h2 className="text-2xl font-bold">Featured Success: Metro Appliance Masters</h2>
+              <h2 className="text-2xl font-bold">Featured Case Study: Rod's Appliance Repair</h2>
               <p>
-                Metro Appliance Masters transformed their business with Repair Auto Pilot's diagnostic platform and achieved:
+                When Rod's Appliance Repair implemented Repair Auto Pilot, they saw immediate improvements in their service operations.
+                By using our guided diagnostic workflows, they were able to:
               </p>
               <ul className="list-disc pl-6 space-y-2">
-                <li>95% first-time fix rate on major appliance repairs</li>
-                <li>Average service time reduced by 35 minutes per call</li>
-                <li>Customer satisfaction score increased to 4.9/5</li>
-                <li>New technician onboarding time reduced by 65%</li>
+                <li>Increase first-time fix rate from 67% to 92%</li>
+                <li>Reduce average time on site by 25 minutes</li>
+                <li>Improve customer satisfaction scores by 35%</li>
+                <li>Cut technician training time by 3 weeks</li>
               </ul>
               <Button className="bg-blue-600" asChild>
-                <Link to="/case-study/metro-masters">
+                <Link to="#">
                   Read the Full Story
                 </Link>
               </Button>
             </div>
-            <div className="md:w-2/5">
-              <img 
-                src="/lovable-uploads/83ff694d-eb6c-4d23-9e13-2f1b96f3258e.png"
-                alt="Metro Appliance Masters Team"
-                className="rounded-lg shadow-lg"
-              />
+            <div className="md:w-2/5 flex items-center justify-center">
+              <div className="h-64 w-64 bg-gray-200 rounded-full flex items-center justify-center">
+                <div className="text-8xl text-gray-400">🛠️</div>
+              </div>
             </div>
           </div>
         </div>

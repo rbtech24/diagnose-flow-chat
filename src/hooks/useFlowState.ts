@@ -1,45 +1,34 @@
 
 import { useState, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { toast } from 'react-hot-toast';
-import { Node, Edge, addEdge, OnNodesChange, OnEdgesChange, OnConnect, applyNodeChanges, applyEdgeChanges } from '@xyflow/react';
+import { Node, Edge, Connection, useNodesState, useEdgesState } from '@xyflow/react';
+import { toast } from '@/hooks/use-toast';
+import { WorkflowState, HistoryState, addToHistory } from '@/utils/workflowHistory';
+
+const LOCAL_STORAGE_KEY = 'workflow-state';
 
 export function useFlowState() {
-  const [nodes, setNodes] = useState<Node[]>([]);
-  const [edges, setEdges] = useState<Edge[]>([]);
-  const [nodeCounter, setNodeCounter] = useState<number>(1);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [snapToGrid, setSnapToGrid] = useState<boolean>(true);
+  const loadInitialState = (): WorkflowState => {
+    const savedState = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (savedState) {
+      try {
+        return JSON.parse(savedState);
+      } catch (e) {
+        console.error('Failed to parse saved workflow state');
+      }
+    }
+    return { nodes: [], edges: [], nodeCounter: 1 };
+  };
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(loadInitialState().nodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(loadInitialState().edges);
+  const [nodeCounter, setNodeCounter] = useState(loadInitialState().nodeCounter);
+  const [isLoading, setIsLoading] = useState(false);
+  const [snapToGrid, setSnapToGrid] = useState(true);
   const [copiedNodes, setCopiedNodes] = useState<Node[]>([]);
-  const [searchParams] = useSearchParams();
 
-  const onNodesChange: OnNodesChange = useCallback((changes) => {
-    setNodes((nds) => applyNodeChanges(changes, nds));
-  }, []);
-
-  const onEdgesChange: OnEdgesChange = useCallback((changes) => {
-    setEdges((eds) => applyEdgeChanges(changes, eds));
-  }, []);
-
-  const onConnect: OnConnect = useCallback(
-    (connection) => {
-      setEdges((eds) => addEdge(connection, eds));
-      toast.success("A new connection was created between nodes.");
-    },
-    []
-  );
-
-  const checkWorkflowAccess = useCallback((role: string | undefined | null) => {
-    console.log("Checking workflow access for role:", role);
-    // Define which roles have access to the workflow editor
-    const allowedRoles = ['admin', 'company'];
-    return role ? allowedRoles.includes(role) : false;
-  }, []);
-
+  // Clear local storage when resetting the state
   const clearSavedState = useCallback(() => {
-    setNodes([]);
-    setEdges([]);
-    setNodeCounter(1);
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
   }, []);
 
   return {
@@ -52,12 +41,11 @@ export function useFlowState() {
     isLoading,
     setIsLoading,
     snapToGrid,
+    setSnapToGrid,
     copiedNodes,
     setCopiedNodes,
+    clearSavedState,
     onNodesChange,
     onEdgesChange,
-    onConnect,
-    checkWorkflowAccess,
-    clearSavedState,
   };
 }

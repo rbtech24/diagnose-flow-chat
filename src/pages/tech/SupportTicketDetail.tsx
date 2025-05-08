@@ -3,25 +3,19 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SupportTicketComponent, SupportTicket } from "@/components/support/SupportTicket";
-import { placeholderUser } from "@/utils/placeholderData";
+import { mockTickets, currentUser } from "@/data/mockTickets";
 import { ArrowLeft } from "lucide-react";
 
 export default function TechSupportTicketDetail() {
   const { ticketId } = useParams<{ ticketId: string }>();
   const navigate = useNavigate();
   const [ticket, setTicket] = useState<SupportTicket | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // This would be replaced with a real API call in production
-    setLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      // In a real app, you would fetch from the server
-      setTicket(null);
-      setLoading(false);
-    }, 500);
+    const foundTicket = mockTickets.find(t => t.id === ticketId);
+    if (foundTicket) {
+      setTicket(foundTicket);
+    }
   }, [ticketId]);
 
   const handleAddMessage = (ticketId: string, content: string) => {
@@ -35,24 +29,13 @@ export default function TechSupportTicketDetail() {
             ticketId,
             content,
             createdAt: new Date(),
-            sender: placeholderUser
+            sender: currentUser
           }
         ],
         updatedAt: new Date()
       });
     }
   };
-
-  if (loading) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
-        </div>
-      </div>
-    );
-  }
 
   if (!ticket) {
     return (

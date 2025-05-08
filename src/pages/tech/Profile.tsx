@@ -7,25 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  Wrench, 
-  Building2, 
-  History, 
-  Award, 
-  BarChart, 
-  Phone, 
-  BookOpen,
-  Upload,
-  Trash2,
-  Moon,
-  Bell
-} from "lucide-react";
-import { PerformanceMetrics } from "@/components/tech/PerformanceMetrics";
-import { ServiceHistory } from "@/components/tech/ServiceHistory";
-import { ProfileImageUpload } from "@/components/profile/ProfileImageUpload";
-import { AccountDeletion } from "@/components/profile/AccountDeletion";
-import { ThemePreferences } from "@/components/profile/ThemePreferences";
-import { NotificationSettings } from "@/components/profile/NotificationSettings";
+import { Wrench, Building2, History, Award, BarChart } from "lucide-react";
 
 export default function TechProfile() {
   // Mock technician data - would typically come from API/context
@@ -41,8 +23,7 @@ export default function TechProfile() {
     completedRepairs: 248,
     rating: 4.8,
     assignedToCompany: true,
-    yearsExperience: 7,
-    avatarUrl: "" // Will be populated by the image upload component
+    yearsExperience: 7
   });
 
   const handleProfileUpdate = (values: any) => {
@@ -74,35 +55,6 @@ export default function TechProfile() {
         <Button variant="outline" size="sm" className="mt-2">
           Update Skills
         </Button>
-      </CardContent>
-    </Card>
-  );
-
-  const contactCard = (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Phone className="h-5 w-5 text-blue-500" />
-          Contact Information
-        </CardTitle>
-        <CardDescription>
-          Your contact details.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Phone className="h-4 w-4 text-blue-500" />
-            <p>{techData.phone}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-              <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-            </svg>
-            <p>{techData.email}</p>
-          </div>
-        </div>
       </CardContent>
     </Card>
   );
@@ -147,19 +99,28 @@ export default function TechProfile() {
     </Card>
   );
 
-  const recentServiceCard = (
+  const statsCard = (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <History className="h-5 w-5 text-blue-500" />
-          Recent Services
+          <BarChart className="h-5 w-5 text-blue-500" />
+          Performance
         </CardTitle>
         <CardDescription>
-          Your recent repair activity.
+          Your repair statistics and performance.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ServiceHistory />
+        <div className="grid grid-cols-2 gap-4 text-center">
+          <div className="p-4 border rounded-lg">
+            <div className="text-2xl font-bold text-blue-600">{techData.completedRepairs}</div>
+            <p className="text-sm text-muted-foreground">Completed Repairs</p>
+          </div>
+          <div className="p-4 border rounded-lg">
+            <div className="text-2xl font-bold text-blue-600">{techData.rating}</div>
+            <p className="text-sm text-muted-foreground">Customer Rating</p>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
@@ -169,14 +130,6 @@ export default function TechProfile() {
       id: "profile",
       label: "Profile",
       content: <ProfileForm defaultValues={techData} onSubmit={handleProfileUpdate} title="Technician Profile" description="Update your technician profile information." />
-    },
-    {
-      id: "avatar",
-      label: "Profile Image",
-      content: <ProfileImageUpload 
-        currentImageUrl={techData.avatarUrl} 
-        onImageUpdate={(url) => handleProfileUpdate({avatarUrl: url})} 
-      />
     },
     {
       id: "skills",
@@ -189,49 +142,34 @@ export default function TechProfile() {
       )
     },
     {
-      id: "performance",
-      label: "Performance",
-      content: <PerformanceMetrics 
-        completedRepairs={techData.completedRepairs}
-        customerRating={techData.rating}
-        averageTime="1h 42m"
-        efficiencyScore={92}
-        customersServed={185}
-      />
-    },
-    {
-      id: "history",
-      label: "Service History",
+      id: "stats",
+      label: "Statistics",
       content: (
         <div className="space-y-6">
-          {recentServiceCard}
+          {statsCard}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="h-5 w-5 text-blue-500" />
+                Repair History
+              </CardTitle>
+              <CardDescription>
+                Overview of your recent repair work.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-center text-muted-foreground py-6">
+                Detailed repair history will be available here.
+              </p>
+            </CardContent>
+          </Card>
         </div>
       )
-    },
-    {
-      id: "contact",
-      label: "Contact",
-      content: contactCard
-    },
-    {
-      id: "theme",
-      label: "Theme",
-      content: <ThemePreferences />
-    },
-    {
-      id: "notifications",
-      label: "Notifications",
-      content: <NotificationSettings />
     },
     {
       id: "security",
       label: "Security",
       content: <PasswordForm />
-    },
-    {
-      id: "account",
-      label: "Account",
-      content: <AccountDeletion />
     },
   ];
 
@@ -240,7 +178,6 @@ export default function TechProfile() {
       name={techData.name}
       email={techData.email}
       role={techData.role}
-      avatarUrl={techData.avatarUrl}
       tabs={tabs}
     />
   );

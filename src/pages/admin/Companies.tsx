@@ -20,9 +20,9 @@ export default function AdminCompanies() {
 
   // Filter companies based on search query
   const filteredCompanies = companies.filter(company => 
-    company.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (company.email && company.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (company.status && company.status.toLowerCase().includes(searchQuery.toLowerCase()))
+    company.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    company.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    company.status.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleAddCompany = () => {
@@ -32,9 +32,9 @@ export default function AdminCompanies() {
   const getBadgeVariant = (status: string) => {
     switch (status) {
       case 'active':
-        return 'default';
+        return 'success';
       case 'trial':
-        return 'secondary';
+        return 'warning';
       case 'expired':
         return 'destructive';
       case 'inactive':
@@ -94,7 +94,6 @@ export default function AdminCompanies() {
           ) : filteredCompanies.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               {searchQuery ? "No companies match your search" : "No companies found"}
-              <p className="mt-2">Add a company to get started</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -107,10 +106,10 @@ export default function AdminCompanies() {
                     <div>
                       <h3 className="font-medium">{company.name}</h3>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm text-muted-foreground">{company.technicianCount || 0} technicians</p>
+                        <p className="text-sm text-muted-foreground">{company.technicianCount} technicians</p>
                         <span>•</span>
                         <p className="text-sm text-muted-foreground">{company.planName || "No"} plan</p>
-                        <Badge variant={getBadgeVariant(company.status || 'active')}>{company.status || 'active'}</Badge>
+                        <Badge variant="outline">{company.status}</Badge>
                       </div>
                     </div>
                   </div>

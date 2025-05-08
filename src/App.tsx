@@ -1,107 +1,215 @@
+import {
+  createBrowserRouter,
+  RouterProvider,
+} from "react-router-dom";
+import Dashboard from "./pages/company/Dashboard";
+import TechDashboard from "./pages/tech/Dashboard";
+import Support from "./pages/company/Support";
+import TechSupport from "./pages/tech/Support";
+import CompanyProfile from "./pages/company/CompanyProfile";
+import TechProfile from "./pages/tech/Profile";
+import { CompanyLayout } from "./components/company/CompanyLayout";
+import { TechLayout } from "./components/tech/TechLayout";
+import { AdminLayout } from "./components/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminSupport from "./pages/admin/Support";
+import AdminProfile from "./pages/admin/Profile";
+import Community from "./pages/company/Community";
+import TechCommunity from "./pages/tech/Community";
+import AdminCommunity from "./pages/admin/Community";
+import CommunityPostDetail from "./pages/company/CommunityPostDetail";
+import TechCommunityPostDetail from "./pages/tech/CommunityPostDetail";
+import AdminCommunityPostDetail from "./pages/admin/CommunityPostDetail";
+import AdminFeatureRequests from "./pages/admin/FeatureRequests";
+import AdminFeatureRequestDetailPage from "./pages/admin/FeatureRequestDetail";
+import CompanyFeatureRequests from "./pages/company/FeatureRequests";
+import CompanyFeatureRequestDetailPage from "./pages/company/FeatureRequestDetail";
+import TechFeatureRequests from "./pages/tech/FeatureRequests";
+import TechFeatureRequestDetailPage from "./pages/tech/FeatureRequestDetail";
+import AdminSubscriptionPlans from "./pages/admin/SubscriptionPlans";
+import AdminLicenses from "./pages/admin/Licenses";
+import APIIntegrations from "./pages/admin/APIIntegrations";
+import CompanySubscription from "./pages/company/Subscription";
+import ManageTechnicians from "./pages/company/ManageTechnicians";
+import SignUp from "./pages/SignUp";
+import Login from "./pages/Login";
+import Index from "./pages/Index";
+import AdminUsers from "./pages/admin/Users";
+import UserDetail from "./pages/admin/UserDetail";
+import AdminCompanies from "./pages/admin/Companies";
+import AdminWorkflows from "./pages/admin/Workflows";
+import CompanyDetail from "./pages/admin/CompanyDetail";
+import NotFound from "./pages/NotFound";
+import WorkflowEditor from "./pages/WorkflowEditor";
+import Workflows from "./pages/Workflows";
+import AdminSupportTicketDetail from "./pages/admin/SupportTicketDetail";
+import ForgotPassword from "./pages/ForgotPassword";
+import DiagnosticsPage from "./pages/diagnostics/DiagnosticsPage";
+import TermsOfUse from "./pages/TermsOfUse";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import About from "./pages/About";
+import Careers from "./pages/Careers";
+import Contact from "./pages/Contact";
+import Partners from "./pages/Partners";
+import HelpCenter from "./pages/HelpCenter";
+import CommunityForum from "./pages/CommunityForum";
+import Status from "./pages/Status";
+import GetStarted from "./pages/GetStarted";
+import CaseStudies from "./pages/CaseStudies";
+import Updates from "./pages/Updates";
+import CRMIntegration from "./pages/admin/CRMIntegration";
+import SystemMessagesPage from "./pages/admin/SystemMessages";
+import { SystemMessageProvider } from "./context/SystemMessageContext";
+import AdminAccounts from "./pages/admin/AdminAccounts";
+import ApiKeys from "./pages/admin/ApiKeys";
 
-import { Routes, Route } from 'react-router-dom';
-import Index from './pages/Index';
-import Login from './pages/Login';
-import SignUp from './pages/SignUp';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import VerifyEmail from './pages/VerifyEmail';
-import VerifyEmailSuccess from './pages/VerifyEmailSuccess';
-import NotFound from './pages/NotFound';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import { AuthProvider } from './context/auth';
-import { SystemMessageProvider } from './context/SystemMessageContext';
-import './App.css';
-
-// Uncommented previously disabled routes
-import Profile from './pages/Profile';
-
-// Import layout components
-import { AdminLayout } from './components/admin/AdminLayout';
-import { CompanyLayout } from './components/company/CompanyLayout';
-import { TechLayout } from './components/tech/TechLayout';
-
-// Import admin pages
-import AdminDashboard from './pages/admin/Dashboard';
-import AdminUsers from './pages/admin/Users';
-import AdminCompanies from './pages/admin/Companies';
-import AdminWorkflows from './pages/admin/Workflows';
-import AdminSubscriptionPlans from './pages/admin/SubscriptionPlans';
-import AdminLicenses from './pages/admin/Licenses';
-import AdminSupport from './pages/admin/Support';
-import AdminFeatureRequests from './pages/admin/FeatureRequests';
-import AdminCommunity from './pages/admin/Community';
-import AdminKnowledgeBase from './pages/admin/KnowledgeBase';
-import AdminSystemMessages from './pages/admin/SystemMessages';
-import AdminApiIntegrations from './pages/admin/APIIntegrations';
-import AdminApiKeys from './pages/admin/ApiKeys';
-import AdminProfile from './pages/admin/Profile';
-import AdminCommunityPostDetail from './pages/admin/CommunityPostDetail';
-import AdminUserDetail from './pages/admin/UserDetail';
-import CompanyDetail from './pages/admin/CompanyDetail';
-import CompanyNew from './pages/admin/CompanyNew';
-
-// Import company pages
-import CompanyDashboard from './pages/company/Dashboard';
-import CompanyProfile from './pages/company/CompanyProfile';
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Index />
+  },
+  {
+    path: "/login",
+    element: <Login />
+  },
+  {
+    path: "/signup",
+    element: <SignUp />
+  },
+  {
+    path: "/forgot-password",
+    element: <ForgotPassword />
+  },
+  {
+    path: "/terms-of-use",
+    element: <TermsOfUse />
+  },
+  {
+    path: "/privacy-policy",
+    element: <PrivacyPolicy />
+  },
+  {
+    path: "/about",
+    element: <About />
+  },
+  {
+    path: "/careers",
+    element: <Careers />
+  },
+  {
+    path: "/contact",
+    element: <Contact />
+  },
+  {
+    path: "/partners",
+    element: <Partners />
+  },
+  {
+    path: "/help-center",
+    element: <HelpCenter />
+  },
+  {
+    path: "/community-forum",
+    element: <CommunityForum />
+  },
+  {
+    path: "/status",
+    element: <Status />
+  },
+  {
+    path: "/get-started",
+    element: <GetStarted />
+  },
+  {
+    path: "/case-studies",
+    element: <CaseStudies />
+  },
+  {
+    path: "/updates",
+    element: <Updates />
+  },
+  {
+    path: "/company",
+    element: <CompanyLayout />,
+    children: [
+      { index: true, element: <Dashboard /> },
+      { path: "dashboard", element: <Dashboard /> },
+      { path: "support", element: <Support /> },
+      { path: "support/:ticketId", element: <Support /> },
+      { path: "profile", element: <CompanyProfile /> },
+      { path: "community", element: <Community /> },
+      { path: "community/:postId", element: <CommunityPostDetail /> },
+      { path: "feature-requests", element: <CompanyFeatureRequests /> },
+      { path: "feature-requests/:id", element: <CompanyFeatureRequestDetailPage /> },
+      { path: "subscription", element: <CompanySubscription /> },
+      { path: "technicians", element: <ManageTechnicians /> },
+      { path: "techs", element: <ManageTechnicians /> },
+      { path: "diagnostics", element: <DiagnosticsPage /> }
+    ]
+  },
+  {
+    path: "/tech",
+    element: <TechLayout />,
+    children: [
+      { index: true, element: <TechDashboard /> },
+      { path: "dashboard", element: <TechDashboard /> },
+      { path: "support", element: <TechSupport /> },
+      { path: "support/:ticketId", element: <TechSupport /> },
+      { path: "profile", element: <TechProfile /> },
+      { path: "community", element: <TechCommunity /> },
+      { path: "community/:postId", element: <TechCommunityPostDetail /> },
+      { path: "feature-requests", element: <TechFeatureRequests /> },
+      { path: "feature-requests/:id", element: <TechFeatureRequestDetailPage /> },
+      { path: "diagnostics", element: <DiagnosticsPage /> }
+    ]
+  },
+  {
+    path: "/admin",
+    element: <AdminLayout />,
+    children: [
+      { index: true, element: <AdminDashboard /> },
+      { path: "dashboard", element: <AdminDashboard /> },
+      { path: "support", element: <AdminSupport /> },
+      { path: "support/:ticketId", element: <AdminSupportTicketDetail /> },
+      { path: "profile", element: <AdminProfile /> },
+      { path: "community", element: <AdminCommunity /> },
+      { path: "community/:postId", element: <AdminCommunityPostDetail /> },
+      { path: "feature-requests", element: <AdminFeatureRequests /> },
+      { path: "feature-requests/:id", element: <AdminFeatureRequestDetailPage /> },
+      { path: "subscription-plans", element: <AdminSubscriptionPlans /> },
+      { path: "licenses", element: <AdminLicenses /> },
+      { path: "api-integrations", element: <APIIntegrations /> },
+      { path: "crm-integration", element: <CRMIntegration /> },
+      { path: "system-messages", element: <SystemMessagesPage /> },
+      { path: "users", element: <AdminUsers /> },
+      { path: "users/:id", element: <UserDetail /> },
+      { path: "companies", element: <AdminCompanies /> },
+      { path: "companies/:id", element: <CompanyDetail /> },
+      { path: "workflows", element: <AdminWorkflows /> },
+      { path: "workflow-editor", element: <WorkflowEditor /> },
+      { path: "/admin/admin-accounts", element: <AdminAccounts /> },
+      { path: "/admin/api-keys", element: <ApiKeys /> },
+    ]
+  },
+  {
+    path: "/workflow-editor",
+    element: <WorkflowEditor />
+  },
+  {
+    path: "/workflows",
+    element: <Workflows />
+  },
+  {
+    path: "*",
+    element: <NotFound />
+  }
+]);
 
 function App() {
-  console.log("App mounted, current path:", window.location.pathname);
-
   return (
-    <AuthProvider>
-      <SystemMessageProvider>
-        <div className="w-full">
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/verify-email" element={<VerifyEmail />} />
-            <Route path="/verify-email-success" element={<VerifyEmailSuccess />} />
-
-            {/* Profile page */}
-            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-
-            {/* Admin routes */}
-            <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
-              <Route index element={<AdminDashboard />} />
-              <Route path="users" element={<AdminUsers />} />
-              <Route path="users/:userId" element={<AdminUserDetail />} />
-              <Route path="companies" element={<AdminCompanies />} />
-              <Route path="companies/:id" element={<CompanyDetail />} />
-              <Route path="companies/new" element={<CompanyNew />} />
-              <Route path="workflows" element={<AdminWorkflows />} />
-              <Route path="subscription-plans" element={<AdminSubscriptionPlans />} />
-              <Route path="licenses" element={<AdminLicenses />} />
-              <Route path="support" element={<AdminSupport />} />
-              <Route path="feature-requests" element={<AdminFeatureRequests />} />
-              <Route path="community" element={<AdminCommunity />} />
-              <Route path="community/:postId" element={<AdminCommunityPostDetail />} />
-              <Route path="knowledge-base" element={<AdminKnowledgeBase />} />
-              <Route path="system-messages" element={<AdminSystemMessages />} />
-              <Route path="api-integrations" element={<AdminApiIntegrations />} />
-              <Route path="api-keys" element={<AdminApiKeys />} />
-              <Route path="profile" element={<AdminProfile />} />
-            </Route>
-
-            {/* Company routes */}
-            <Route path="/company" element={<ProtectedRoute><CompanyLayout /></ProtectedRoute>}>
-              <Route index element={<CompanyDashboard />} />
-              <Route path="profile" element={<CompanyProfile />} />
-            </Route>
-
-            {/* Tech routes */}
-            <Route path="/tech" element={<ProtectedRoute><TechLayout /></ProtectedRoute>}>
-              <Route index element={<div>Tech Dashboard</div>} />
-            </Route>
-
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </div>
-      </SystemMessageProvider>
-    </AuthProvider>
+    <SystemMessageProvider>
+      <RouterProvider router={router} />
+    </SystemMessageProvider>
   );
 }
 

@@ -1,7 +1,7 @@
 
 import { useCallback } from 'react';
 import { Connection, Edge, addEdge } from '@xyflow/react';
-import toast from 'react-hot-toast';
+import { toast } from './use-toast';
 import { addToHistory } from '@/utils/workflowHistory';
 
 export function useFlowConnect(
@@ -20,7 +20,10 @@ export function useFlowConnect(
         setHistory(addToHistory(history, newState));
         return newEdges;
       });
-      toast.success("The nodes have been successfully connected.");
+      toast({
+        title: "Connection Added",
+        description: "Nodes have been connected successfully."
+      });
     },
     [setEdges, nodes, nodeCounter, history, setHistory]
   );

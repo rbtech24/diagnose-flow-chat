@@ -1,66 +1,63 @@
 
-import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from "react";
 
-export type MessageType = 'info' | 'warning' | 'error' | 'success';
-export type UserRole = 'admin' | 'company' | 'tech';
+type MessageType = "warning" | "info" | "maintenance";
 
-export interface SystemMessage {
-  id: string;
+interface SystemMessageData {
   type: MessageType;
   title: string;
   message: string;
-  dismissible?: boolean;
-  audience?: UserRole[]; // Which user roles should see this message
-  expiresAt?: Date; // When should this message expire
+  targetUsers: ("company" | "tech" | "admin")[];
+  id: string;
 }
 
-interface SystemMessageContextValue {
-  messages: SystemMessage[];
-  addMessage: (message: Omit<SystemMessage, 'id'>) => string;
+interface SystemMessageContextType {
+  messages: SystemMessageData[];
+  addMessage: (message: Omit<SystemMessageData, "id">) => void;
   removeMessage: (id: string) => void;
-  clearMessages: () => void;
 }
 
-const SystemMessageContext = createContext<SystemMessageContextValue | undefined>(undefined);
+const SystemMessageContext = createContext<SystemMessageContextType | undefined>(undefined);
 
-export const SystemMessageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Start with an empty array of messages
-  const [messages, setMessages] = useState<SystemMessage[]>([]);
+export function SystemMessageProvider({ children }: { children: ReactNode }) {
+  const [messages, setMessages] = useState<SystemMessageData[]>([
+    {
+      id: "maintenance-1",
+      type: "maintenance",
+      title: "Scheduled Maintenance",
+      message: "System maintenance scheduled for tonight from 2AM - 4AM. Some features may be unavailable during this time.",
+      targetUsers: ["company", "tech"]
+    }
+  ]);
 
-  const addMessage = useCallback((message: Omit<SystemMessage, 'id'>) => {
-    const id = `msg-${Date.now()}`;
-    setMessages(prev => [...prev, { ...message, id }]);
-    return id;
-  }, []);
+  const addMessage = (message: Omit<SystemMessageData, "id">) => {
+    const newMessage = {
+      ...message,
+      id: Date.now().toString()
+    };
+    setMessages(prev => [...prev, newMessage]);
+  };
 
-  const removeMessage = useCallback((id: string) => {
-    setMessages(prev => prev.filter(message => message.id !== id));
-  }, []);
-
-  const clearMessages = useCallback(() => {
-    setMessages([]);
-  }, []);
+  const removeMessage = (id: string) => {
+    setMessages(prev => prev.filter(msg => msg.id !== id));
+  };
 
   return (
-    <SystemMessageContext.Provider value={{ messages, addMessage, removeMessage, clearMessages }}>
+    <SystemMessageContext.Provider value={{ messages, addMessage, removeMessage }}>
       {children}
     </SystemMessageContext.Provider>
   );
-};
+}
 
-export const useSystemMessages = () => {
+export function useSystemMessages() {
   const context = useContext(SystemMessageContext);
-  if (!context) {
-    throw new Error('useSystemMessages must be used within a SystemMessageProvider');
+  if (context === undefined) {
+    throw new Error("useSystemMessages must be used within a SystemMessageProvider");
   }
   return context;
-};
+}
 
-export const useUserMessages = (role: UserRole) => {
+export function useUserMessages(userType: "company" | "tech" | "admin") {
   const { messages } = useSystemMessages();
-  
-  // Filter messages for this user role
-  return messages.filter(message => 
-    !message.audience || message.audience.includes(role)
-  );
-};
+  return messages.filter(msg => msg.targetUsers.includes(userType));
+}

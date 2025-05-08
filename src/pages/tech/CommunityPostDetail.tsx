@@ -2,42 +2,43 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CommunityPostDetail } from '@/components/community/CommunityPostDetail';
-import { useCommunityPosts } from '@/hooks/useCommunityPosts';
-import { Loader2 } from 'lucide-react';
+import { CommunityPost, CommunityComment, Attachment } from '@/types/community';
+import { mockPosts, currentUser } from '@/data/mockCommunity';
 
 export default function TechCommunityPostDetail() {
   const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [post, setPost] = useState(null);
-  const { 
-    fetchPostById, 
-    addComment, 
-    markAsAnswer, 
-    upvotePost,
-    upvoteComment
-  } = useCommunityPosts();
+  const [post, setPost] = useState<CommunityPost | null>(null);
 
   useEffect(() => {
-    const loadPost = async () => {
-      if (!postId) return;
-      
-      setLoading(true);
-      const postData = await fetchPostById(postId);
-      setPost(postData);
-      setLoading(false);
-    };
-
-    loadPost();
-  }, [postId, fetchPostById]);
+    const foundPost = mockPosts.find(p => p.id === postId);
+    if (foundPost) {
+      setPost({
+        ...foundPost,
+        views: foundPost.views + 1 // Increment view count
+      });
+    }
+  }, [postId]);
 
   const handleBack = () => {
     navigate('/tech/community');
   };
 
-  const handleAddComment = async (postId: string, content: string, files: File[]) => {
-    const newComment = await addComment(postId, content);
-    if (newComment && post) {
+  const handleAddComment = (postId: string, content: string, files: File[]) => {
+    if (post) {
+      // In a real app, you would upload files and get URLs
+      const newComment: CommunityComment = {
+        id: `comment-${Date.now()}`,
+        postId,
+        content,
+        authorId: currentUser.id,
+        author: currentUser,
+        attachments: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        upvotes: 0
+      };
+      
       setPost({
         ...post,
         comments: [...post.comments, newComment],
@@ -46,9 +47,8 @@ export default function TechCommunityPostDetail() {
     }
   };
 
-  const handleMarkAsAnswer = async (postId: string, commentId: string) => {
-    const success = await markAsAnswer(postId, commentId);
-    if (success && post) {
+  const handleMarkAsAnswer = (postId: string, commentId: string) => {
+    if (post) {
       const updatedComments = post.comments.map(comment => ({
         ...comment,
         isAnswer: comment.id === commentId
@@ -63,46 +63,29 @@ export default function TechCommunityPostDetail() {
     }
   };
 
-  const handleUpvote = async (postId: string, commentId?: string) => {
+  const handleUpvote = (postId: string, commentId?: string) => {
     if (post) {
       if (commentId) {
         // Upvote a comment
-        const success = await upvoteComment(commentId);
-        if (success) {
-          const updatedComments = post.comments.map(comment => 
-            comment.id === commentId 
-              ? { ...comment, upvotes: (comment.upvotes || 0) + 1 } 
-              : comment
-          );
-          
-          setPost({
-            ...post,
-            comments: updatedComments
-          });
-        }
+        const updatedComments = post.comments.map(comment => 
+          comment.id === commentId 
+            ? { ...comment, upvotes: comment.upvotes + 1 } 
+            : comment
+        );
+        
+        setPost({
+          ...post,
+          comments: updatedComments
+        });
       } else {
         // Upvote the post
-        const success = await upvotePost(postId);
-        if (success) {
-          setPost({
-            ...post,
-            upvotes: post.upvotes + 1
-          });
-        }
+        setPost({
+          ...post,
+          upvotes: post.upvotes + 1
+        });
       }
     }
   };
-
-  if (loading) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center h-96">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="ml-2">Loading post...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (!post) {
     return (

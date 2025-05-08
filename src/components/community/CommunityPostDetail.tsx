@@ -1,51 +1,21 @@
 
-import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
+import React, { useState } from 'react';
+import { formatDistanceToNow } from 'date-fns';
+import { Eye, ThumbsUp, CheckCircle, FileText, Workflow, MessageSquare, ArrowLeft, PaperclipIcon, Send } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, ThumbsUp, MessageSquare, CheckCircle, Calendar } from "lucide-react";
-import { format } from "date-fns";
-
-interface CommunityPost {
-  id: string;
-  title: string;
-  content: string;
-  type: string;
-  tags: string[];
-  author: {
-    id: string;
-    name: string;
-    avatarUrl?: string;
-  };
-  createdAt: Date;
-  updatedAt: Date;
-  upvotes: number;
-  isSolved: boolean;
-  comments: CommentType[];
-}
-
-interface CommentType {
-  id: string;
-  content: string;
-  author: {
-    id: string;
-    name: string;
-    avatarUrl?: string;
-  };
-  createdAt: Date;
-  upvotes: number;
-  isAnswer: boolean;
-}
+import { Badge } from "@/components/ui/badge";
+import { CommunityPost, CommunityComment, Attachment } from '@/types/community';
 
 interface CommunityPostDetailProps {
   post: CommunityPost;
   onBack: () => void;
-  onAddComment: (postId: string, content: string, files: File[]) => Promise<any>;
-  onMarkAsAnswer: (postId: string, commentId: string) => Promise<any>;
-  onUpvote: (postId: string, commentId?: string) => Promise<any>;
-  showModeratorControls?: boolean;
+  onAddComment: (postId: string, content: string, attachments: File[]) => void;
+  onMarkAsAnswer: (postId: string, commentId: string) => void;
+  onUpvote: (postId: string, commentId?: string) => void;
 }
 
 export function CommunityPostDetail({
@@ -53,190 +23,293 @@ export function CommunityPostDetail({
   onBack,
   onAddComment,
   onMarkAsAnswer,
-  onUpvote,
-  showModeratorControls = false
+  onUpvote
 }: CommunityPostDetailProps) {
-  const [newComment, setNewComment] = useState("");
-  const [files, setFiles] = useState<File[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newComment, setNewComment] = useState('');
+  const [attachments, setAttachments] = useState<File[]>([]);
 
-  const handleSubmitComment = async () => {
-    if (!newComment.trim()) return;
-    
-    setIsSubmitting(true);
-    try {
-      await onAddComment(post.id, newComment, files);
-      setNewComment("");
-      setFiles([]);
-    } catch (error) {
-      console.error("Error adding comment:", error);
-    } finally {
-      setIsSubmitting(false);
+  const handleSubmitComment = () => {
+    if (newComment.trim()) {
+      onAddComment(post.id, newComment, attachments);
+      setNewComment('');
+      setAttachments([]);
     }
   };
 
-  const getPostTypeLabel = (type: string) => {
-    switch (type) {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setAttachments([...attachments, ...Array.from(e.target.files)]);
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments(attachments.filter((_, i) => i !== index));
+  };
+
+  const typeIcon = () => {
+    switch (post.type) {
       case 'question':
-        return { label: 'Question', color: 'bg-blue-100 text-blue-800' };
+        return <MessageSquare className="h-5 w-5 text-blue-500" />;
       case 'tech-sheet-request':
-        return { label: 'Tech Sheet Request', color: 'bg-green-100 text-green-800' };
+        return <FileText className="h-5 w-5 text-amber-500" />;
       case 'wire-diagram-request':
-        return { label: 'Wire Diagram Request', color: 'bg-amber-100 text-amber-800' };
+        return <Workflow className="h-5 w-5 text-green-500" />;
       default:
-        return { label: type, color: 'bg-gray-100 text-gray-800' };
+        return <MessageSquare className="h-5 w-5 text-gray-500" />;
     }
   };
 
-  const typeInfo = getPostTypeLabel(post.type);
+  const getTypeLabel = () => {
+    switch (post.type) {
+      case 'question':
+        return 'Question';
+      case 'tech-sheet-request':
+        return 'Tech Sheet Request';
+      case 'wire-diagram-request':
+        return 'Wire Diagram Request';
+      default:
+        return 'Discussion';
+    }
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase();
+  };
 
   return (
     <div className="space-y-6">
-      <Button variant="ghost" onClick={onBack} className="mb-4">
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Community
-      </Button>
-      
+      <div className="flex items-center mb-6">
+        <Button variant="ghost" onClick={onBack} className="mr-4">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Community
+        </Button>
+      </div>
+
       <Card>
         <CardHeader>
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-            <div>
-              <CardTitle className="text-2xl">{post.title}</CardTitle>
-              <div className="flex flex-wrap gap-2 mt-2">
-                <Badge className={typeInfo.color}>{typeInfo.label}</Badge>
-                {post.isSolved && (
-                  <Badge variant="outline" className="bg-green-50 border-green-200 text-green-700">
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    Solved
-                  </Badge>
-                )}
-                {post.tags.map(tag => (
-                  <Badge key={tag} variant="outline">{tag}</Badge>
-                ))}
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => onUpvote(post.id)}
-              >
-                <ThumbsUp className="h-4 w-4 mr-1" />
-                {post.upvotes}
-              </Button>
-              <Badge variant="outline">
-                <Calendar className="h-3 w-3 mr-1" />
-                {format(new Date(post.createdAt), 'MMM d, yyyy')}
-              </Badge>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-3 mb-4">
-            <Avatar>
-              <AvatarImage src={post.author.avatarUrl} />
-              <AvatarFallback>{post.author.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+          <div className="flex items-center gap-4 mb-4">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
+              <AvatarFallback className="bg-primary/10 text-primary">
+                {getInitials(post.author.name)}
+              </AvatarFallback>
             </Avatar>
             <div>
               <div className="font-medium">{post.author.name}</div>
-              <div className="text-xs text-muted-foreground">Posted on {format(new Date(post.createdAt), 'MMMM d, yyyy')}</div>
+              <div className="text-sm text-muted-foreground">
+                Posted {formatDistanceToNow(post.createdAt, { addSuffix: true })}
+              </div>
             </div>
           </div>
-          
+          <div className="flex items-center gap-2 mb-2">
+            <span className="flex items-center gap-1">
+              {typeIcon()}
+              {getTypeLabel()}
+            </span>
+          </div>
+          <CardTitle className="text-2xl">{post.title}</CardTitle>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {post.tags.map((tag) => (
+              <Badge key={tag} variant="secondary">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        </CardHeader>
+        <CardContent>
           <div className="prose max-w-none">
             <p className="whitespace-pre-line">{post.content}</p>
           </div>
+          
+          {post.attachments.length > 0 && (
+            <div className="mt-6">
+              <h4 className="text-sm font-semibold mb-2">Attachments:</h4>
+              <div className="space-y-2">
+                {post.attachments.map((attachment) => (
+                  <a 
+                    key={attachment.id}
+                    href={attachment.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center p-2 border rounded-md hover:bg-gray-50"
+                  >
+                    <PaperclipIcon className="h-4 w-4 mr-2 text-blue-500" />
+                    <span className="text-sm text-blue-600">{attachment.fileName}</span>
+                    <span className="text-xs text-gray-500 ml-auto">
+                      {(attachment.fileSize / 1024 / 1024).toFixed(1)} MB
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
+        <CardFooter className="border-t pt-4 flex justify-between">
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Eye className="h-4 w-4" />
+              {post.views} views
+            </span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center gap-1 text-muted-foreground"
+              onClick={() => onUpvote(post.id)}
+            >
+              <ThumbsUp className="h-4 w-4" />
+              {post.upvotes} upvotes
+            </Button>
+          </div>
+          {post.isSolved && (
+            <span className="flex items-center gap-1 text-green-600">
+              <CheckCircle className="h-4 w-4" />
+              Solved
+            </span>
+          )}
+        </CardFooter>
       </Card>
 
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium flex items-center">
-          <MessageSquare className="h-5 w-5 mr-2" />
-          Responses ({post.comments.length})
-        </h3>
+      <h3 className="text-xl font-semibold mt-8 mb-4">
+        {post.comments.length === 0 ? "No responses yet" : `Responses (${post.comments.length})`}
+      </h3>
 
-        {post.comments.length === 0 ? (
-          <Card>
-            <CardContent className="py-6">
-              <div className="text-center">
-                <MessageSquare className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-muted-foreground">No responses yet. Be the first to respond!</p>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          post.comments.map(comment => (
-            <Card key={comment.id} className={comment.isAnswer ? "border-green-500" : ""}>
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarImage src={comment.author.avatarUrl} />
-                      <AvatarFallback>{comment.author.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="font-medium">{comment.author.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {format(new Date(comment.createdAt), 'MMMM d, yyyy')}
-                      </div>
+      {post.comments.map((comment) => (
+        <Card key={comment.id} className={comment.isAnswer ? "border-green-500" : ""}>
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-4">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={comment.author.avatarUrl} alt={comment.author.name} />
+                <AvatarFallback className="bg-primary/10 text-primary">
+                  {getInitials(comment.author.name)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-grow">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="font-medium">{comment.author.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {formatDistanceToNow(comment.createdAt, { addSuffix: true })}
                     </div>
                   </div>
                   {comment.isAnswer && (
-                    <Badge className="bg-green-100 text-green-800 flex items-center">
+                    <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
                       <CheckCircle className="h-3 w-3 mr-1" />
-                      Accepted Solution
+                      Verified Answer
                     </Badge>
                   )}
                 </div>
-              </CardHeader>
-              <CardContent>
-                <p className="whitespace-pre-line">{comment.content}</p>
-              </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => onUpvote(post.id, comment.id)}
-                >
-                  <ThumbsUp className="h-4 w-4 mr-1" />
-                  {comment.upvotes}
-                </Button>
-                {!post.isSolved && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                    onClick={() => onMarkAsAnswer(post.id, comment.id)}
-                  >
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    Mark as Solution
-                  </Button>
+                <div className="mt-2 prose max-w-none">
+                  <p className="whitespace-pre-line">{comment.content}</p>
+                </div>
+                
+                {comment.attachments.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="text-sm font-semibold mb-2">Attachments:</h4>
+                    <div className="space-y-2">
+                      {comment.attachments.map((attachment) => (
+                        <a 
+                          key={attachment.id}
+                          href={attachment.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center p-2 border rounded-md hover:bg-gray-50"
+                        >
+                          <PaperclipIcon className="h-4 w-4 mr-2 text-blue-500" />
+                          <span className="text-sm text-blue-600">{attachment.fileName}</span>
+                          <span className="text-xs text-gray-500 ml-auto">
+                            {(attachment.fileSize / 1024 / 1024).toFixed(1)} MB
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
                 )}
-              </CardFooter>
-            </Card>
-          ))
-        )}
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-md">Add a Response</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              placeholder="Type your response here..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              className="min-h-32 mb-4"
-            />
-            <Button 
-              onClick={handleSubmitComment} 
-              disabled={isSubmitting || !newComment.trim()}
-            >
-              {isSubmitting ? "Submitting..." : "Submit Response"}
-            </Button>
+                
+                <div className="mt-4 flex gap-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => onUpvote(post.id, comment.id)}
+                  >
+                    <ThumbsUp className="h-4 w-4 mr-1" />
+                    {comment.upvotes}
+                  </Button>
+                  
+                  {post.type === 'question' && !post.isSolved && !comment.isAnswer && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => onMarkAsAnswer(post.id, comment.id)}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Mark as Answer
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
-      </div>
+      ))}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Your Response</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Textarea
+            placeholder="Write your response..."
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            className="min-h-[120px]"
+          />
+          
+          <div className="mt-4 flex items-center gap-2">
+            <input
+              id="file-upload"
+              type="file"
+              multiple
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <label
+              htmlFor="file-upload"
+              className="cursor-pointer flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+            >
+              <PaperclipIcon className="h-4 w-4" />
+              Attach Files
+            </label>
+          </div>
+          
+          {attachments.length > 0 && (
+            <div className="mt-2 space-y-2">
+              <p className="text-xs font-medium text-gray-500">Attachments:</p>
+              {attachments.map((file, index) => (
+                <div key={index} className="flex items-center text-sm bg-gray-50 p-2 rounded">
+                  <span className="truncate flex-grow">{file.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeAttachment(index)}
+                    className="text-red-500 hover:text-red-700 ml-2"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+        <CardFooter className="flex justify-end">
+          <Button onClick={handleSubmitComment} disabled={!newComment.trim()}>
+            <Send className="h-4 w-4 mr-2" />
+            Submit Response
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

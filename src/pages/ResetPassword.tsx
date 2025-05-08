@@ -1,134 +1,151 @@
 
-import { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, ChevronLeft } from "lucide-react";
-import { toast } from "react-hot-toast";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
+import { updateUserPassword } from "@/utils/auth";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
-export default function ResetPassword() {
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [isResetting, setIsResetting] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
-  
-  useEffect(() => {
-    // Check if we have an access token in the URL fragment
-    const params = new URLSearchParams(location.hash.substring(1));
-    const accessToken = params.get("access_token");
-    
-    if (!accessToken) {
-      console.log("No access token found in URL");
-    }
-  }, [location]);
+const resetPasswordSchema = z.object({
+  password: z.string().min(8, {
+    message: "Password must be at least 8 characters.",
+  }),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match.",
+  path: ["confirmPassword"],
+});
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setPasswordError("");
+type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
+
+export default function ResetPassword() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [resetComplete, setResetComplete] = useState(false);
+  
+  const form = useForm<ResetPasswordFormValues>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  async function handleSubmit(values: ResetPasswordFormValues) {
+    setIsSubmitting(true);
     
-    if (password !== confirmPassword) {
-      setPasswordError("Passwords do not match");
-      return;
-    }
-    
-    if (password.length < 6) {
-      setPasswordError("Password must be at least 6 characters");
-      return;
-    }
-    
-    setIsResetting(true);
     try {
-      // Update the user's password directly with Supabase
-      const { error } = await supabase.auth.updateUser({ 
-        password: password 
-      });
+      const { error } = await updateUserPassword(values.password);
       
       if (error) {
-        console.error("Password reset error:", error);
-        toast.error(error.message || "Failed to reset password. Please try again.");
-        setPasswordError(error.message || "Failed to reset password");
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
       } else {
-        toast.success("Your password has been reset successfully. You can now log in.");
-        navigate("/login");
+        setResetComplete(true);
+        toast({
+          title: "Password updated",
+          description: "Your password has been successfully updated.",
+        });
+        
+        // Redirect to login after 3 seconds
+        setTimeout(() => {
+          navigate("/login");
+        }, 3000);
       }
-    } catch (error: any) {
-      console.error("Unexpected error during password reset:", error);
-      toast.error(error.message || "An unexpected error occurred. Please try again.");
-      setPasswordError("An unexpected error occurred");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
     } finally {
-      setIsResetting(false);
+      setIsSubmitting(false);
     }
-  };
+  }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-blue-50 px-4 py-12">
-      <Card className="w-full max-w-md shadow-lg border-0">
-        <CardHeader className="space-y-1">
-          <Link to="/login" className="flex items-center text-blue-600 hover:underline mb-4">
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to login
-          </Link>
-          
-          <div className="flex justify-center mb-4">
-            <img 
-              src="/lovable-uploads/28cef98f-7973-4892-9eb5-f0e02978d22e.png" 
-              alt="Repair Auto Pilot" 
-              className="h-20 w-auto object-contain" 
-              style={{ maxWidth: 240 }}
-            />
-          </div>
-          
-          <CardTitle className="text-2xl font-bold text-center">Reset password</CardTitle>
-          <CardDescription className="text-center">
-            Enter your new password below
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="password">New Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-gray-50"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm New Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="bg-gray-50"
-                required
-              />
-              {passwordError && (
-                <p className="text-sm text-red-500">{passwordError}</p>
-              )}
-            </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
+      <div className="w-full max-w-md">
+        <div className="flex justify-center mb-6">
+          <img 
+            src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
+            alt="Repair Auto Pilot" 
+            className="h-32"
+          />
+        </div>
+        
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle>Reset Your Password</CardTitle>
+            <CardDescription>
+              Please enter your new password below.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {resetComplete ? (
+              <div className="text-center py-4">
+                <h3 className="text-lg font-medium">Password Updated</h3>
+                <p className="mt-2 text-sm text-gray-500">
+                  Your password has been successfully reset. Redirecting to login...
+                </p>
+              </div>
+            ) : (
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>New Password</FormLabel>
+                        <FormControl>
+                          <Input type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Confirm Password</FormLabel>
+                        <FormControl>
+                          <Input type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    {isSubmitting ? "Updating..." : "Update Password"}
+                  </Button>
+                </form>
+              </Form>
+            )}
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button 
-              type="submit" 
-              className="w-full bg-blue-600 hover:bg-blue-700"
-              disabled={isResetting}
-            >
-              {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Reset password
-            </Button>
+          <CardFooter className="justify-center">
+            {!resetComplete && (
+              <Button variant="link" onClick={() => navigate("/login")}>
+                Back to Login
+              </Button>
+            )}
           </CardFooter>
-        </form>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }

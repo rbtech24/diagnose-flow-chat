@@ -1,135 +1,75 @@
-import { NavLink, useLocation } from "react-router-dom";
-import { cn } from "@/lib/utils";
-import {
-  LayoutDashboard,
-  Users,
-  Share2,
-  LifeBuoy,
-  Lightbulb,
+
+import { Link, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { 
+  BarChart3, 
+  Users, 
+  Settings, 
+  Building2, 
+  CreditCard, 
+  FileText, 
   MessageSquare,
-  Building2,
-  Key,
-  FileText,
-  Database,
-  Bell,
-  Network,
-  KeyRound,
-  UserCircle,
-  UserCog,
+  Lightbulb,
+  BellRing,
+  Plug,
+  Shield,
+  Key
 } from "lucide-react";
 
 export function AdminSidebar() {
   const location = useLocation();
-  
-  const links = [
-    {
-      href: "/admin",
-      label: "Dashboard",
-      icon: <LayoutDashboard className="h-5 w-5" />,
-      exact: true,
-    },
-    {
-      href: "/admin/companies",
-      label: "Companies",
-      icon: <Building2 className="h-5 w-5" />,
-    },
-    {
-      href: "/admin/users",
-      label: "Users",
-      icon: <Users className="h-5 w-5" />,
-    },
-    {
-      href: "/admin/admin-accounts",
-      label: "Admin Accounts",
-      icon: <UserCog className="h-5 w-5" />,
-    },
-    {
-      href: "/admin/workflows",
-      label: "Workflows",
-      icon: <Share2 className="h-5 w-5" />,
-    },
-    {
-      href: "/admin/subscription-plans",
-      label: "Subscription Plans",
-      icon: <FileText className="h-5 w-5" />,
-    },
-    {
-      href: "/admin/licenses",
-      label: "Licenses",
-      icon: <Key className="h-5 w-5" />,
-    },
-    {
-      href: "/admin/support",
-      label: "Support",
-      icon: <LifeBuoy className="h-5 w-5" />,
-    },
-    {
-      href: "/admin/feature-requests",
-      label: "Feature Requests",
-      icon: <Lightbulb className="h-5 w-5" />,
-    },
-    {
-      href: "/admin/community",
-      label: "Community",
-      icon: <MessageSquare className="h-5 w-5" />,
-    },
-    {
-      href: "/admin/knowledge-base",
-      label: "Knowledge Base",
-      icon: <Database className="h-5 w-5" />,
-    },
-    {
-      href: "/admin/system-messages",
-      label: "System Messages",
-      icon: <Bell className="h-5 w-5" />,
-    },
-    {
-      href: "/admin/api-integrations",
-      label: "API Integrations",
-      icon: <Network className="h-5 w-5" />,
-    },
-    {
-      href: "/admin/api-keys",
-      label: "API Keys",
-      icon: <KeyRound className="h-5 w-5" />,
-    },
-    {
-      href: "/admin/profile",
-      label: "Profile",
-      icon: <UserCircle className="h-5 w-5" />,
-    },
+  const pathname = location.pathname;
+
+  const isActive = (path: string) => {
+    return pathname === path;
+  };
+
+  const navItems = [
+    { path: "/admin/dashboard", label: "Dashboard", icon: <BarChart3 className="h-5 w-5" /> },
+    { path: "/admin/companies", label: "Companies", icon: <Building2 className="h-5 w-5" /> },
+    { path: "/admin/users", label: "Users", icon: <Users className="h-5 w-5" /> },
+    { path: "/admin/admin-accounts", label: "Admin Accounts", icon: <Shield className="h-5 w-5" /> },
+    { path: "/admin/workflows", label: "Workflows", icon: <FileText className="h-5 w-5" /> },
+    { path: "/admin/subscription-plans", label: "Subscription Plans", icon: <CreditCard className="h-5 w-5" /> },
+    { path: "/admin/licenses", label: "Licenses", icon: <CreditCard className="h-5 w-5" /> },
+    { path: "/admin/support", label: "Support", icon: <MessageSquare className="h-5 w-5" /> },
+    { path: "/admin/feature-requests", label: "Feature Requests", icon: <Lightbulb className="h-5 w-5" /> },
+    { path: "/admin/community", label: "Community", icon: <Users className="h-5 w-5" /> },
+    { path: "/admin/system-messages", label: "System Messages", icon: <BellRing className="h-5 w-5" /> },
+    { path: "/admin/crm-integration", label: "CRM Integration", icon: <Plug className="h-5 w-5" /> },
+    { path: "/admin/api-integrations", label: "API Integrations", icon: <Plug className="h-5 w-5" /> },
+    { path: "/admin/api-keys", label: "API Keys", icon: <Key className="h-5 w-5" /> },
+    { path: "/admin/profile", label: "Profile", icon: <Settings className="h-5 w-5" /> },
   ];
 
   return (
-    <div className="flex h-screen w-64 flex-col border-r bg-background">
-      <div className="p-4">
-        <h1 className="text-xl font-bold">Admin Panel</h1>
+    <div className="w-64 bg-sidebar border-r border-sidebar-border h-screen flex-shrink-0">
+      <div className="h-16 flex items-center px-6 border-b border-sidebar-border">
+        <Link to="/admin/dashboard" className="flex items-center gap-2">
+          <img src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" alt="Logo" className="h-8" />
+          <span className="font-semibold text-sidebar-foreground">Admin Panel</span>
+        </Link>
       </div>
-      <div className="flex-1 overflow-auto py-2">
-        <nav className="grid items-start px-2 text-sm">
-          {links.map((link, index) => {
-            const isActive = link.exact 
-              ? location.pathname === link.href
-              : location.pathname.startsWith(link.href);
-            
-            return (
-              <NavLink
-                key={index}
-                to={link.href}
-                end={link.exact}
-                className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground hover:text-foreground",
-                  "transition-all hover:bg-accent",
-                  isActive ? "bg-accent text-foreground font-medium" : ""
-                )}
+      <ScrollArea className="h-[calc(100vh-4rem)]">
+        <div className="p-4">
+          <nav className="space-y-1">
+            {navItems.map((item) => (
+              <Button
+                key={item.path}
+                variant="sidebar"
+                className={`w-full justify-start ${isActive(item.path) ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`}
+                asChild
               >
-                {link.icon}
-                {link.label}
-              </NavLink>
-            );
-          })}
-        </nav>
-      </div>
+                <Link to={item.path} className="flex items-center">
+                  {item.icon}
+                  <span className="ml-3">{item.label}</span>
+                </Link>
+              </Button>
+            ))}
+          </nav>
+        </div>
+      </ScrollArea>
     </div>
   );
 }

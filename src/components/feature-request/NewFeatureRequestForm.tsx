@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 const featureRequestSchema = z.object({
   title: z.string().min(5, { message: "Title must be at least 5 characters" }),
@@ -32,10 +33,10 @@ type FeatureRequestFormValues = z.infer<typeof featureRequestSchema>;
 
 interface NewFeatureRequestFormProps {
   onSubmit: (values: FeatureRequestFormValues) => void;
-  isSubmitting?: boolean;
+  isSubmitting: boolean;
 }
 
-export function NewFeatureRequestForm({ onSubmit, isSubmitting = false }: NewFeatureRequestFormProps) {
+export function NewFeatureRequestForm({ onSubmit, isSubmitting }: NewFeatureRequestFormProps) {
   const form = useForm<FeatureRequestFormValues>({
     resolver: zodResolver(featureRequestSchema),
     defaultValues: {
@@ -47,12 +48,12 @@ export function NewFeatureRequestForm({ onSubmit, isSubmitting = false }: NewFea
 
   return (
     <div>
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold">Request a New Feature</h2>
-        <p className="text-sm text-muted-foreground">
+      <DialogHeader>
+        <DialogTitle>Request a New Feature</DialogTitle>
+        <DialogDescription>
           Describe the feature you'd like to see added to the platform
-        </p>
-      </div>
+        </DialogDescription>
+      </DialogHeader>
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">

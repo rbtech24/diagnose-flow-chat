@@ -1,16 +1,19 @@
 
-import React from "react";
 import { PasswordResetForm } from "@/components/auth/PasswordResetForm";
-import { AuthLayout } from "@/components/auth/AuthLayout";
 
 export default function ForgotPassword() {
   return (
-    <AuthLayout 
-      title="Reset your password"
-      description="Enter your email and we'll send you a link to reset your password"
-      showSalesContent={false}
-    >
-      <PasswordResetForm />
-    </AuthLayout>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
+      <div className="w-full max-w-md">
+        <div className="flex justify-center mb-6">
+          <img 
+            src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
+            alt="Repair Auto Pilot" 
+            className="h-32"
+          />
+        </div>
+        <PasswordResetForm />
+      </div>
+    </div>
   );
 }

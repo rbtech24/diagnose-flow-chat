@@ -22,12 +22,12 @@ export function SubscriptionPlanForm({
 }: SubscriptionPlanFormProps) {
   const [name, setName] = useState(initialData?.name || "");
   const [description, setDescription] = useState(initialData?.description || "");
-  const [monthlyPrice, setMonthlyPrice] = useState(initialData?.monthlyPrice?.toString() || initialData?.price_monthly?.toString() || "0");
-  const [yearlyPrice, setYearlyPrice] = useState(initialData?.yearlyPrice?.toString() || initialData?.price_yearly?.toString() || "0");
-  const [maxTechnicians, setMaxTechnicians] = useState(initialData?.maxTechnicians?.toString() || "5");
-  const [maxAdmins, setMaxAdmins] = useState(initialData?.maxAdmins?.toString() || "1");
-  const [dailyDiagnostics, setDailyDiagnostics] = useState(initialData?.dailyDiagnostics?.toString() || "20");
-  const [storageLimit, setStorageLimit] = useState((initialData?.storageLimit?.toString() || initialData?.max_storage || "10").replace(/[^0-9]/g, ''));
+  const [monthlyPrice, setMonthlyPrice] = useState(initialData?.monthlyPrice.toString() || "0");
+  const [yearlyPrice, setYearlyPrice] = useState(initialData?.yearlyPrice.toString() || "0");
+  const [maxTechnicians, setMaxTechnicians] = useState(initialData?.maxTechnicians.toString() || "5");
+  const [maxAdmins, setMaxAdmins] = useState(initialData?.maxAdmins.toString() || "1");
+  const [dailyDiagnostics, setDailyDiagnostics] = useState(initialData?.dailyDiagnostics.toString() || "20");
+  const [storageLimit, setStorageLimit] = useState(initialData?.storageLimit.toString() || "10");
   const [features, setFeatures] = useState<string[]>(initialData?.features || [
     "Basic AI diagnostics",
     "Mobile app access",
@@ -35,8 +35,8 @@ export function SubscriptionPlanForm({
     "Email support"
   ]);
   const [newFeature, setNewFeature] = useState("");
-  const [trialPeriod, setTrialPeriod] = useState(initialData?.trialPeriod?.toString() || initialData?.trial_period?.toString() || "30");
-  const [isActive, setIsActive] = useState(initialData?.isActive !== false && initialData?.is_active !== false);
+  const [trialPeriod, setTrialPeriod] = useState(initialData?.trialPeriod.toString() || "14");
+  const [isActive, setIsActive] = useState(initialData?.isActive !== false);
 
   const handleAddFeature = () => {
     if (newFeature.trim()) {
@@ -50,29 +50,18 @@ export function SubscriptionPlanForm({
   };
 
   const handleSubmit = () => {
-    const price_monthly_val = parseFloat(monthlyPrice) || 0;
-    const price_yearly_val = parseFloat(yearlyPrice) || 0;
-    const maxTechs = parseInt(maxTechnicians) || 1;
-    const trialPeriodVal = parseInt(trialPeriod) || 30;
-    const storageLimitVal = parseInt(storageLimit) || 10;
-    
     const plan: SubscriptionPlan = {
       id: initialData?.id || `plan-${Date.now()}`,
       name,
       description,
-      price_monthly: price_monthly_val,
-      price_yearly: price_yearly_val,
-      monthlyPrice: price_monthly_val,
-      yearlyPrice: price_yearly_val,
-      maxTechnicians: maxTechs,
+      monthlyPrice: parseFloat(monthlyPrice) || 0,
+      yearlyPrice: parseFloat(yearlyPrice) || 0,
+      maxTechnicians: parseInt(maxTechnicians) || 1,
       maxAdmins: parseInt(maxAdmins) || 1,
       dailyDiagnostics: parseInt(dailyDiagnostics) || 0,
-      storageLimit: storageLimitVal,
-      max_storage: `${storageLimitVal}GB`,
+      storageLimit: parseInt(storageLimit) || 0,
       features,
-      trial_period: trialPeriodVal,
-      trialPeriod: trialPeriodVal,
-      is_active: isActive,
+      trialPeriod: parseInt(trialPeriod) || 14,
       isActive,
       createdAt: initialData?.createdAt || new Date(),
       updatedAt: new Date()

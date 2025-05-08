@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useUserManagementStore } from "@/store/userManagementStore";
 
 const formSchema = z.object({
@@ -30,6 +30,7 @@ interface AdminPasswordResetFormProps {
 
 export function AdminPasswordResetForm({ userId, onSuccess, onCancel }: AdminPasswordResetFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
   const { resetUserPassword } = useUserManagementStore();
   
   const form = useForm<FormValues>({
@@ -46,14 +47,25 @@ export function AdminPasswordResetForm({ userId, onSuccess, onCancel }: AdminPas
       const success = await resetUserPassword(userId, values.password);
       
       if (success) {
-        toast.success("The user's password has been updated.");
+        toast({
+          title: "Password reset successful",
+          description: "The user's password has been updated.",
+        });
         onSuccess();
       } else {
-        toast.error("There was an error resetting the password. Please try again.");
+        toast({
+          title: "Password reset failed",
+          description: "There was an error resetting the password. Please try again.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error resetting password:", error);
-      toast.error("There was an error resetting the password. Please try again.");
+      toast({
+        title: "Password reset failed",
+        description: "There was an error resetting the password. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }

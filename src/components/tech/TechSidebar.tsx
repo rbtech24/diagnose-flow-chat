@@ -1,104 +1,96 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { 
-  BarChart3, 
-  User, 
-  Wrench, 
-  MessageCircle, 
-  Lightbulb, 
-  HelpCircle,
-  Book,
-  Stethoscope,
-  History
+  Home, 
+  LifeBuoy, 
+  Settings, 
+  LogOut, 
+  MessageSquare,
+  FileText,
+  Stethoscope
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
+import {
+  Sidebar,
+  SidebarHeader,
+  SidebarMain,
+  SidebarNav,
+  SidebarNavItem,
+  SidebarFooter,
+  SidebarToggle,
+  SidebarNavGroup
+} from "@/components/ui/sidebar";
 
 export function TechSidebar() {
   const location = useLocation();
-  const currentPath = location.pathname;
-  
-  const sidebarLinks = [
-    {
-      title: "Dashboard",
-      icon: <BarChart3 className="h-5 w-5" />,
-      href: "/tech",
-      active: currentPath === "/tech" || currentPath === "/tech/dashboard"
-    },
-    {
-      title: "Profile",
-      icon: <User className="h-5 w-5" />,
-      href: "/tech/profile",
-      active: currentPath === "/tech/profile"
-    },
-    {
-      title: "Diagnostics",
-      icon: <Stethoscope className="h-5 w-5" />,
-      href: "/tech/diagnostics",
-      active: currentPath === "/tech/diagnostics"
-    },
-    {
-      title: "Service History",
-      icon: <History className="h-5 w-5" />,
-      href: "/tech/tools",
-      active: currentPath === "/tech/tools"
-    },
-    {
-      title: "Knowledge Base",
-      icon: <Book className="h-5 w-5" />,
-      href: "/tech/knowledge",
-      active: currentPath === "/tech/knowledge"
-    },
-    {
-      title: "Community",
-      icon: <MessageCircle className="h-5 w-5" />,
-      href: "/tech/community",
-      active: currentPath.startsWith("/tech/community")
-    },
-    {
-      title: "Feature Requests",
-      icon: <Lightbulb className="h-5 w-5" />,
-      href: "/tech/feature-requests",
-      active: currentPath.startsWith("/tech/feature-requests")
-    },
-    {
-      title: "Support",
-      icon: <HelpCircle className="h-5 w-5" />,
-      href: "/tech/support",
-      active: currentPath.startsWith("/tech/support")
-    }
-  ];
+  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="h-screen flex flex-col border-r">
-      <div className="p-6">
-        <h2 className="text-lg font-semibold">Technician Portal</h2>
-      </div>
-      <ScrollArea className="flex-1 px-4">
-        <nav className="flex flex-col gap-2">
-          {sidebarLinks.map((link, index) => (
-            <Button
-              key={index}
-              variant={link.active ? "default" : "ghost"}
-              className="justify-start"
-              asChild
+    <Sidebar defaultExpanded={true}>
+      <SidebarHeader className="flex items-center justify-between py-3">
+        <div className="flex items-center gap-2 px-4">
+          <span className="text-lg font-bold">Technician</span>
+        </div>
+        <SidebarToggle />
+      </SidebarHeader>
+      
+      <SidebarMain>
+        <SidebarNav>
+          <SidebarNavGroup label="DASHBOARD">
+            <SidebarNavItem 
+              icon={<Home className="w-5 h-5" />} 
+              active={isActive("/tech/dashboard") || isActive("/tech")}
             >
-              <Link to={link.href} className="flex items-center gap-2">
-                {link.icon}
-                {link.title}
-              </Link>
-            </Button>
-          ))}
-        </nav>
-      </ScrollArea>
-      <div className="p-4 border-t">
-        <Button variant="outline" className="w-full justify-start" asChild>
-          <Link to="/tech/profile" className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Your Profile
+              <Link to="/tech/dashboard" className="w-full h-full flex items-center">Dashboard</Link>
+            </SidebarNavItem>
+          </SidebarNavGroup>
+          
+          <SidebarNavGroup label="RESOURCES">
+            <SidebarNavItem 
+              icon={<Stethoscope className="w-5 h-5" />} 
+              active={isActive("/tech/diagnostics")}
+            >
+              <Link to="/tech/diagnostics" className="w-full h-full flex items-center">Diagnostics</Link>
+            </SidebarNavItem>
+
+            <SidebarNavItem 
+              icon={<MessageSquare className="w-5 h-5" />} 
+              active={isActive("/tech/community")}
+            >
+              <Link to="/tech/community" className="w-full h-full flex items-center">Community</Link>
+            </SidebarNavItem>
+            
+            <SidebarNavItem 
+              icon={<FileText className="w-5 h-5" />} 
+              active={isActive("/tech/feature-requests")}
+            >
+              <Link to="/tech/feature-requests" className="w-full h-full flex items-center">Feature Requests</Link>
+            </SidebarNavItem>
+          </SidebarNavGroup>
+
+          <SidebarNavGroup label="SUPPORT">
+            <SidebarNavItem 
+              icon={<LifeBuoy className="w-5 h-5" />} 
+              active={isActive("/tech/support")}
+            >
+              <Link to="/tech/support" className="w-full h-full flex items-center">Support</Link>
+            </SidebarNavItem>
+          </SidebarNavGroup>
+        </SidebarNav>
+      </SidebarMain>
+      
+      <SidebarFooter>
+        <div className="flex w-full items-center justify-between p-4">
+          <Link to="/tech/profile" className="flex items-center gap-2 text-sm font-medium">
+            <Settings size={20} className="text-muted-foreground" />
+            <span>Settings</span>
           </Link>
-        </Button>
-      </div>
-    </div>
+          <Link to="/login" className="flex items-center text-sm gap-1 text-muted-foreground hover:text-foreground transition-colors">
+            <LogOut size={18} />
+            <span>Logout</span>
+          </Link>
+        </div>
+      </SidebarFooter>
+    </Sidebar>
   );
 }

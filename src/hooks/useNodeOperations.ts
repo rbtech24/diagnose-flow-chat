@@ -1,7 +1,7 @@
 
 import { useCallback } from 'react';
 import { Node } from '@xyflow/react';
-import toast from 'react-hot-toast';
+import { toast } from '@/hooks/use-toast';
 import { addToHistory } from '@/utils/workflowHistory';
 
 export function useNodeOperations(
@@ -40,7 +40,10 @@ export function useNodeOperations(
     };
     setHistory(prevHistory => addToHistory(prevHistory, newState));
 
-    toast.success("Changes have been applied successfully.");
+    toast({
+      title: "Node Updated",
+      description: "Changes have been applied successfully."
+    });
 
   }, [nodes, edges, nodeCounter, setNodes, setHistory]);
 

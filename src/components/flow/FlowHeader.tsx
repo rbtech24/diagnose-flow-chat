@@ -14,10 +14,10 @@ interface FlowHeaderProps {
 export function FlowHeader({ currentWorkflow, onQuickSave }: FlowHeaderProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { role } = useUserRole();
+  const { userRole } = useUserRole();
   
   const handleBack = () => {
-    if (role === 'admin') {
+    if (userRole === 'admin') {
       // If coming from admin workflows page, go back there
       if (location.key && window.history.length > 1) {
         navigate(-1);

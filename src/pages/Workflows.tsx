@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppliances } from '@/hooks/useAppliances';
 import { useWorkflows } from '@/hooks/useWorkflows';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/hooks/use-toast';
 import { WorkflowHeader } from '@/components/workflow/WorkflowHeader';
 import { WorkflowView } from '@/components/workflow/WorkflowView';
 import { ApplianceManager } from '@/components/workflow/ApplianceManager';
@@ -17,8 +17,8 @@ export default function Workflows() {
   const [editingAppliance, setEditingAppliance] = useState<{index: number, name: string} | null>(null);
   const [deletingApplianceIndex, setDeletingApplianceIndex] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const { role } = useUserRole();
-  const isAdmin = role === 'admin';
+  const { userRole } = useUserRole();
+  const isAdmin = userRole === 'admin';
 
   const {
     appliances,
@@ -52,17 +52,27 @@ export default function Workflows() {
 
   const handleAddAppliance = (name: string) => {
     if (!isAdmin) {
-      toast.error("Only administrators can add appliances.");
+      toast({
+        title: "Permission Denied",
+        description: "Only administrators can add appliances.",
+        variant: "destructive"
+      });
       return;
     }
     
     addAppliance(name);
-    toast.success(`${name} has been added successfully.`);
+    toast({
+      title: "Appliance Added",
+      description: `${name} has been added successfully.`
+    });
   };
 
   const openWorkflowEditor = (folder: string, name?: string) => {
     if (!isAdmin) {
-      toast("You don't have permission to edit workflows.");
+      toast({
+        title: "View-Only Access",
+        description: "You don't have permission to edit workflows."
+      });
       return;
     }
     
@@ -74,7 +84,11 @@ export default function Workflows() {
 
   const handleAddIssue = (applianceName: string) => {
     if (!isAdmin) {
-      toast.error("Only administrators can add workflows.");
+      toast({
+        title: "Permission Denied",
+        description: "Only administrators can add workflows.",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -84,7 +98,7 @@ export default function Workflows() {
   const handleBackToDashboard = () => {
     if (isAdmin) {
       navigate('/admin');
-    } else if (role === 'company') { // Changed from 'company_admin' to 'company'
+    } else if (userRole === 'company') {
       navigate('/company');
     } else {
       navigate('/tech');

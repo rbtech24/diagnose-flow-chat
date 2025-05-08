@@ -1,3 +1,4 @@
+
 import { Button } from '../ui/button';
 import { SaveWorkflowDialog } from './SaveWorkflowDialog';
 import { handleSaveWorkflow } from '@/utils/flow';
@@ -15,7 +16,6 @@ interface FlowToolbarProps {
   onPaste: () => void;
   appliances: string[];
   onApplyNodeChanges?: () => void;
-  nodeCounter?: number;
 }
 
 export function FlowToolbar({
@@ -25,10 +25,9 @@ export function FlowToolbar({
   onCopySelected,
   onPaste,
   appliances,
-  onApplyNodeChanges,
-  nodeCounter = 1
+  onApplyNodeChanges
 }: FlowToolbarProps) {
-  const { nodes, edges } = useFlowState();
+  const { nodes, edges, nodeCounter } = useFlowState();
 
   const handleImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

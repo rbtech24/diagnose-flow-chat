@@ -1,119 +1,92 @@
 
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useUserManagementStore } from "@/store/userManagementStore";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { UserWithPassword } from "@/types/user";
-import { toast } from "react-hot-toast";
-import { AlertCircle } from "lucide-react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useUserManagementStore } from "@/store/userManagementStore";
 
-// Create a form schema
 const userFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email format"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  phone: z.string().optional(),
+  email: z.string().email("Please enter a valid email"),
   role: z.enum(["admin", "company", "tech"]),
-  companyId: z.string().optional()
+  phone: z.string().optional(),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  companyId: z.string().optional(),
 });
 
 type UserFormValues = z.infer<typeof userFormSchema>;
 
-export default function AdminUserNew() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
-  const { addUser, companies, fetchCompanies } = useUserManagementStore();
+export default function UserNew() {
   const navigate = useNavigate();
-  
+  const { addUser, companies } = useUserManagementStore();
+
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
       name: "",
       email: "",
-      password: "",
-      phone: "",
       role: "tech",
-      companyId: ""
-    }
+      phone: "",
+      password: "",
+      companyId: undefined,
+    },
   });
 
-  // Fetch companies when the component mounts
-  useEffect(() => {
-    fetchCompanies();
-  }, [fetchCompanies]);
+  const selectedRole = form.watch("role");
 
-  const onSubmit = async (values: UserFormValues) => {
-    setIsSubmitting(true);
-    setFormError(null);
-
+  const onSubmit = async (data: UserFormValues) => {
     try {
-      const newUser: UserWithPassword = {
-        id: `user-${Date.now()}`, // Generate a temporary ID
-        name: values.name,
-        email: values.email,
-        role: values.role,
-        phone: values.phone || "",
-        password: values.password,
-        companyId: values.companyId,
-        status: "active",
-      };
-
-      const success = await addUser(newUser);
-
-      if (success) {
-        toast.success("User created successfully!");
-        navigate("/admin/users");
-      } else {
-        setFormError("Failed to create user. Please try again.");
-      }
-    } catch (err: any) {
-      console.error("Error creating user:", err);
-      setFormError(err.message || "An unexpected error occurred.");
-    } finally {
-      setIsSubmitting(false);
+      const newUser = await addUser(data);
+      navigate(`/admin/users/${newUser.id}`);
+    } catch (error) {
+      console.error("Failed to create user:", error);
     }
   };
 
   return (
     <div className="container mx-auto p-6">
-      <Card>
+      <div className="flex items-center mb-6">
+        <Button
+          variant="outline"
+          onClick={() => navigate("/admin/users")}
+          className="mr-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+        <h1 className="text-3xl font-bold">Add New User</h1>
+      </div>
+
+      <Card className="max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle>Create New User</CardTitle>
+          <CardTitle>User Information</CardTitle>
+          <CardDescription>
+            Create a new user account in the system
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          {formError && (
-            <Alert variant="destructive" className="mb-6">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{formError}</AlertDescription>
-            </Alert>
-          )}
-          
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>Full Name</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input placeholder="John Doe" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="email"
@@ -121,51 +94,34 @@ export default function AdminUserNew() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" {...field} />
+                      <Input type="email" placeholder="user@example.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
+
               <FormField
                 control={form.control}
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone</FormLabel>
+                    <FormLabel>Phone (Optional)</FormLabel>
                     <FormControl>
-                      <Input type="tel" {...field} />
+                      <Input placeholder="(555) 123-4567" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="role"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Role</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a role" />
@@ -173,47 +129,77 @@ export default function AdminUserNew() {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="company">Company</SelectItem>
+                        <SelectItem value="company">Company Manager</SelectItem>
                         <SelectItem value="tech">Technician</SelectItem>
                       </SelectContent>
                     </Select>
+                    <FormDescription>
+                      This will determine the user's access level
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
+              {(selectedRole === "company" || selectedRole === "tech") && (
+                <FormField
+                  control={form.control}
+                  name="companyId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a company" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {companies.map((company) => (
+                            <SelectItem key={company.id} value={company.id}>
+                              {company.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        {selectedRole === "company" 
+                          ? "The company this manager will oversee" 
+                          : "The company this technician belongs to"}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
               <FormField
                 control={form.control}
-                name="companyId"
+                name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Company</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a company (optional)" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="">No Company (Independent)</SelectItem>
-                        {companies.map((company) => (
-                          <SelectItem key={company.id} value={company.id}>
-                            {company.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="••••••••" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      The user will be asked to change this on first login
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Creating..." : "Create User"}
-              </Button>
+
+              <div className="flex justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate("/admin/users")}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">Create User</Button>
+              </div>
             </form>
           </Form>
         </CardContent>

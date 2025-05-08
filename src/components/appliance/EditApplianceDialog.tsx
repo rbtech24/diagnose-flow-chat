@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import toast from 'react-hot-toast';
+import { toast } from '@/hooks/use-toast';
 
 interface EditApplianceDialogProps {
   applianceName: string;
@@ -20,7 +20,10 @@ export function EditApplianceDialog({ applianceName, isOpen, onClose, onSave }: 
     if (!name.trim()) return;
     onSave(name.trim());
     onClose();
-    toast.success("Appliance name has been updated successfully.");
+    toast({
+      title: "Appliance Updated",
+      description: `Appliance name has been updated successfully.`
+    });
   };
 
   return (
