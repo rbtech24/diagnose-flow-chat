@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Building2, Users, CreditCard, Calendar, Mail, Phone, MapPin } from "lucide-react";
+import { ArrowLeft, Building2, Users, CreditCard, Calendar, Mail, Phone, MapPin, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
@@ -13,6 +13,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AvatarUpload } from "@/components/shared/AvatarUpload";
 import { ActivityItem } from "@/components/activity/ActivityItem";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>();
