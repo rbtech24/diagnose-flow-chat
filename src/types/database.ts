@@ -15,6 +15,7 @@ export interface DbCompany {
   state?: string;
   zip_code?: string;
   country?: string;
+  description?: string;
   plan_id?: string;
   plan_name?: string;
   subscription_tier?: string;
@@ -24,6 +25,7 @@ export interface DbCompany {
   created_at: string;
   updated_at: string;
   trial_end_date?: string;
+  trial_period?: number;
   subscription_ends_at?: string;
 }
 

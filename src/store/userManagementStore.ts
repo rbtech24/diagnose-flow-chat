@@ -1,8 +1,8 @@
-
 import { create } from 'zustand';
 import { supabase } from '@/utils/supabaseClient';
 import { User, UserWithPassword } from '@/types/user';
 import { toast } from 'react-hot-toast';
+import { companyService, CompanyServiceParams } from './companyService';
 
 interface UserManagementState {
   users: User[];
@@ -27,6 +27,7 @@ interface UserManagementState {
   
   // CRUD operations for companies
   addCompany: (company: any) => Promise<any>;
+  updateCompany: (id: string, companyData: Partial<CompanyServiceParams>) => Promise<any>;
   deleteCompany: (id: string) => Promise<boolean>;
 }
 
@@ -100,25 +101,13 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
   fetchCompanies: async () => {
     set({ isLoadingCompanies: true });
     try {
-      const { data, error } = await supabase
-        .from('companies')
-        .select('*');
-
-      if (error) {
-        throw error;
-      }
-
-      // Add technicianCount field with default value for UI display
-      const companiesWithCounts = (data || []).map(company => ({
-        ...company,
-        technicianCount: 0, // Will be populated in a more advanced implementation
-        planName: company.subscription_tier || 'Basic'
-      }));
-
-      set({ companies: companiesWithCounts });
+      const companiesData = await companyService.fetchCompanies();
+      set({ companies: companiesData || [] });
+      return companiesData;
     } catch (error) {
       console.error('Error fetching companies:', error);
       toast.error('Failed to load companies');
+      return [];
     } finally {
       set({ isLoadingCompanies: false });
     }
@@ -126,17 +115,8 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
 
   fetchCompanyById: async (id: string) => {
     try {
-      const { data, error } = await supabase
-        .from('companies')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      return data || null;
+      const companyData = await companyService.fetchCompanyById(id);
+      return companyData;
     } catch (error) {
       console.error('Error fetching company by ID:', error);
       toast.error('Failed to load company details');
@@ -225,22 +205,14 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
     }
   },
 
-  // Add new methods for handling companies and user creation
-  addCompany: async (company: any) => {
+  addCompany: async (company: CompanyServiceParams) => {
     try {
-      const { data, error } = await supabase
-        .from('companies')
-        .insert([company])
-        .select('*')
-        .single();
-
-      if (error) {
-        throw error;
+      const companyData = await companyService.createCompany(company);
+      if (companyData) {
+        toast.success('Company created successfully!');
+        get().fetchCompanies(); // Refresh companies
       }
-
-      toast.success('Company created successfully!');
-      get().fetchCompanies(); // Refresh companies
-      return data;
+      return companyData;
     } catch (error) {
       console.error('Error creating company:', error);
       toast.error('Failed to create company');
@@ -248,20 +220,29 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
     }
   },
 
+  updateCompany: async (id: string, companyData: Partial<CompanyServiceParams>) => {
+    try {
+      const updatedCompany = await companyService.updateCompany(id, companyData);
+      if (updatedCompany) {
+        toast.success('Company updated successfully!');
+        get().fetchCompanies(); // Refresh companies list
+      }
+      return updatedCompany;
+    } catch (error) {
+      console.error('Error updating company:', error);
+      toast.error('Failed to update company');
+      return null;
+    }
+  },
+
   deleteCompany: async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('companies')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        throw error;
+      const success = await companyService.deleteCompany(id);
+      if (success) {
+        toast.success('Company deleted successfully!');
+        get().fetchCompanies(); // Refresh companies
       }
-
-      toast.success('Company deleted successfully!');
-      get().fetchCompanies(); // Refresh companies
-      return true;
+      return success;
     } catch (error) {
       console.error('Error deleting company:', error);
       toast.error('Failed to delete company');

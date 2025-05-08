@@ -22,6 +22,7 @@ export interface CompanyServiceParams {
   country?: string;
   subscription_tier?: string;
   status?: string;
+  description?: string;
 }
 
 export const companyService = {
@@ -88,6 +89,7 @@ export const companyService = {
           state: companyData.state,
           zip_code: companyData.zip_code,
           country: companyData.country,
+          description: companyData.description,
           subscription_tier: companyData.subscription_tier || 'basic',
           trial_status: 'active',
           trial_period: 30
