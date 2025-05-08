@@ -14,22 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { AvatarUpload } from "@/components/shared/AvatarUpload";
-
-// Sample activity data for when no real data is available
-const sampleUserActivity = [
-  {
-    title: "Logged in",
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-  },
-  {
-    title: "Updated profile",
-    timestamp: new Date(Date.now() - 25 * 60 * 60 * 1000), // Yesterday
-  },
-  {
-    title: "Created support ticket",
-    timestamp: new Date(Date.now() - 72 * 60 * 60 * 1000), // 3 days ago
-  }
-];
+import { useUserActivity } from "@/hooks/useUserActivity";
 
 export default function UserDetail() {
   const { id } = useParams<{ id: string }>();
@@ -42,7 +27,9 @@ export default function UserDetail() {
   const [userData, setUserData] = useState<any>(null);
   const [companyData, setCompanyData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [userActivity, setUserActivity] = useState(sampleUserActivity);
+  
+  // Use our new hook to fetch real user activity
+  const { activities: userActivity, isLoading: activitiesLoading } = useUserActivity(id);
 
   useEffect(() => {
     const loadData = async () => {
@@ -325,14 +312,28 @@ export default function UserDetail() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {userActivity.map((activity, index) => (
-                <div key={index} className="p-3 border rounded-md">
-                  <div className="font-medium">{activity.title}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {activity.timestamp.toLocaleString()}
+              {activitiesLoading ? (
+                <>
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                </>
+              ) : userActivity.length > 0 ? (
+                userActivity.map((activity, index) => (
+                  <div key={activity.id || index} className="p-3 border rounded-md">
+                    <div className="font-medium">{activity.title}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {typeof activity.timestamp === 'string' 
+                        ? new Date(activity.timestamp).toLocaleString() 
+                        : activity.timestamp.toLocaleString()}
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-muted-foreground">
+                  No activity records found
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
