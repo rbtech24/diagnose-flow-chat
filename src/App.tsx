@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { CompanyLayout } from './components/company/CompanyLayout';
 import { TechLayout } from './components/tech/TechLayout';
 import { AdminLayout } from './components/admin/AdminLayout';
+import Index from './pages/Index';
 import { Pricing } from './pages/Pricing';
 import CompanyDashboard from './pages/company/Dashboard';
 import { CompanyFeatureRequests } from './pages/company/FeatureRequests';
@@ -24,6 +25,10 @@ import { DiagnosticsPage } from './pages/diagnostics/DiagnosticsPage';
 export default function App() {
   return (
     <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={<Index />} />
+      <Route path="/pricing" element={<Pricing />} />
+
       {/* Company Routes */}
       <Route path="/company" element={<CompanyLayout />}>
         <Route index element={<CompanyDashboard />} />
@@ -53,9 +58,6 @@ export default function App() {
         <Route path="community" element={<AdminCommunity />} />
         <Route path="accounts" element={<AdminAccounts />} />
       </Route>
-
-      {/* Public Routes */}
-      <Route path="/pricing" element={<Pricing />} />
 
       {/* Catch-all route for redirecting to dashboard based on role */}
       <Route path="*" element={<Navigate to="/admin/dashboard" />} />
