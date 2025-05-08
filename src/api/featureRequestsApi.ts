@@ -91,11 +91,12 @@ export async function fetchFeatureRequests(
     };
     
     if (item.created_by_user && typeof item.created_by_user === 'object' && !('error' in item.created_by_user)) {
+      const userData = item.created_by_user || {};
       createdByUser = {
-        name: item.created_by_user.name || 'Unknown User',
-        email: item.created_by_user.email || '',
-        role: item.created_by_user.role || 'user',
-        avatar_url: item.created_by_user.avatar_url || null
+        name: userData?.name || 'Unknown User',
+        email: userData?.email || '',
+        role: userData?.role || 'user',
+        avatar_url: userData?.avatar_url || null
       };
     }
     
@@ -195,11 +196,12 @@ export async function fetchFeatureRequestById(requestId: string): Promise<Featur
   };
   
   if (data.created_by_user && typeof data.created_by_user === 'object' && !('error' in data.created_by_user)) {
+    const userData = data.created_by_user || {};
     createdByUser = {
-      name: data.created_by_user.name || 'Unknown User',
-      email: data.created_by_user.email || '',
-      role: data.created_by_user.role || 'user',
-      avatar_url: data.created_by_user.avatar_url || null
+      name: userData?.name || 'Unknown User',
+      email: userData?.email || '',
+      role: userData?.role || 'user',
+      avatar_url: userData?.avatar_url || null
     };
   }
   
@@ -260,11 +262,12 @@ export async function fetchFeatureComments(requestId: string): Promise<FeatureCo
     };
     
     if (comment.created_by_user && typeof comment.created_by_user === 'object' && !('error' in comment.created_by_user)) {
+      const userData = comment.created_by_user || {};
       createdByUser = {
-        name: comment.created_by_user.name || 'Unknown User',
-        email: comment.created_by_user.email || '',
-        role: (comment.created_by_user.role || 'user') as "admin" | "company" | "tech",
-        avatar_url: comment.created_by_user.avatar_url || null
+        name: userData?.name || 'Unknown User',
+        email: userData?.email || '',
+        role: (userData?.role || 'user') as "admin" | "company" | "tech",
+        avatar_url: userData?.avatar_url || null
       };
     }
     
@@ -373,11 +376,12 @@ export async function addFeatureComment(commentData: { feature_id: string, conte
   };
   
   if (data.created_by_user && typeof data.created_by_user === 'object' && !('error' in data.created_by_user)) {
+    const userData = data.created_by_user || {};
     createdByUser = {
-      name: data.created_by_user.name || 'Current User',
-      email: data.created_by_user.email || 'user@example.com',
-      role: (data.created_by_user.role || 'user') as "admin" | "company" | "tech",
-      avatar_url: data.created_by_user.avatar_url || null
+      name: userData?.name || 'Current User',
+      email: userData?.email || 'user@example.com',
+      role: (userData?.role || 'user') as "admin" | "company" | "tech",
+      avatar_url: userData?.avatar_url || null
     };
   }
   
