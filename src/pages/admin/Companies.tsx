@@ -20,7 +20,7 @@ export default function AdminCompanies() {
 
   // Filter companies based on search query
   const filteredCompanies = companies.filter(company => 
-    company.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    company.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
     (company.email && company.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (company.status && company.status.toLowerCase().includes(searchQuery.toLowerCase()))
   );

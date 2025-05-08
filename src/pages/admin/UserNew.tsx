@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUserManagementStore } from "@/store/userManagementStore";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import { AlertCircle } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSubscriptionStore } from "@/store/subscriptionStore";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 // Create a form schema
 const userFormSchema = z.object({
@@ -31,8 +31,7 @@ type UserFormValues = z.infer<typeof userFormSchema>;
 export default function AdminUserNew() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const { createUser } = useUserManagementStore();
-  const { companies, isLoadingCompanies, fetchCompanies } = useUserManagementStore(); 
+  const { addUser, companies, fetchCompanies } = useUserManagementStore();
   const navigate = useNavigate();
   
   const form = useForm<UserFormValues>({
@@ -47,10 +46,10 @@ export default function AdminUserNew() {
     }
   });
 
-  // Fetch companies on component mount
-  useState(() => {
+  // Fetch companies when the component mounts
+  useEffect(() => {
     fetchCompanies();
-  });
+  }, [fetchCompanies]);
 
   const onSubmit = async (values: UserFormValues) => {
     setIsSubmitting(true);
@@ -68,7 +67,7 @@ export default function AdminUserNew() {
         status: "active",
       };
 
-      const success = await createUser(newUser);
+      const success = await addUser(newUser);
 
       if (success) {
         toast.success("User created successfully!");
@@ -99,98 +98,124 @@ export default function AdminUserNew() {
             </Alert>
           )}
           
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <Label htmlFor="name">Name</Label>
-              <Input 
-                id="name" 
-                {...form.register("name")} 
-                className={form.formState.errors.name ? "border-red-500" : ""}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              {form.formState.errors.name && (
-                <p className="text-sm text-red-500 mt-1">{form.formState.errors.name.message}</p>
-              )}
-            </div>
-            
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input 
-                type="email" 
-                id="email" 
-                {...form.register("email")} 
-                className={form.formState.errors.email ? "border-red-500" : ""}
+              
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              {form.formState.errors.email && (
-                <p className="text-sm text-red-500 mt-1">{form.formState.errors.email.message}</p>
-              )}
-            </div>
-            
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input 
-                type="password" 
-                id="password" 
-                {...form.register("password")} 
-                className={form.formState.errors.password ? "border-red-500" : ""}
+              
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              {form.formState.errors.password && (
-                <p className="text-sm text-red-500 mt-1">{form.formState.errors.password.message}</p>
-              )}
-            </div>
-            
-            <div>
-              <Label htmlFor="phone">Phone</Label>
-              <Input 
-                type="tel" 
-                id="phone" 
-                {...form.register("phone")} 
+              
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone</FormLabel>
+                    <FormControl>
+                      <Input type="tel" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            
-            <div>
-              <Label htmlFor="role">Role</Label>
-              <Select 
-                onValueChange={(value) => form.setValue("role", value as "admin" | "company" | "tech")} 
-                defaultValue={form.getValues("role")}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="company">Company</SelectItem>
-                  <SelectItem value="tech">Technician</SelectItem>
-                </SelectContent>
-              </Select>
-              {form.formState.errors.role && (
-                <p className="text-sm text-red-500 mt-1">{form.formState.errors.role.message}</p>
-              )}
-            </div>
-            
-            <div>
-              <Label htmlFor="companyId">Company</Label>
-              <Select
-                onValueChange={(value) => form.setValue("companyId", value)}
-                defaultValue={form.getValues("companyId")}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a company (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">No Company (Independent)</SelectItem>
-                  {companies.map((company) => (
-                    <SelectItem key={company.id} value={company.id}>
-                      {company.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create User"}
-            </Button>
-          </form>
+              
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Role</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a role" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="company">Company</SelectItem>
+                        <SelectItem value="tech">Technician</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="companyId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Company</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a company (optional)" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="">No Company (Independent)</SelectItem>
+                        {companies.map((company) => (
+                          <SelectItem key={company.id} value={company.id}>
+                            {company.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? "Creating..." : "Create User"}
+              </Button>
+            </form>
+          </Form>
         </CardContent>
       </Card>
     </div>
