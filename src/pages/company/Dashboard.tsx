@@ -1,463 +1,379 @@
 
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Calendar,
-  Clock,
-  Contact,
+  ChartPie, 
+  Calendar, 
+  Clock, 
+  ArrowUp, 
+  Wrench, 
+  CheckCircle, 
+  LifeBuoy,
+  MessageSquare,
   FileText,
-  HardDrive,
-  Wrench,
-  ClipboardList,
-  UserCog,
-  CheckCircle,
-  XCircle,
-  CircleDashed,
-  ArrowUpRight,
-  Package,
   Settings,
-  Bell,
-  Users,
-  BarChart3,
-  CreditCard
+  BarChart3
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { ActivityItem, FormattedActivity } from "@/types/activity";
-
-interface DashboardMetrics {
-  activeRepairs: number;
-  completedRepairs: number;
-  pendingRepairs: number;
-  activeTechnicians: number;
-  upcomingAppointments: number;
-  overdueInvoices: number;
-  monthlyRevenue: number;
-  customerCount: number;
-  inventoryAlerts: number;
-  isLoading: boolean;
-}
-
-interface TechnicianInfo {
-  id: string;
-  name: string;
-  email: string;
-  status: string;
-  avatarUrl?: string;
-  jobsCompleted?: number;
-  rating?: number;
-}
-
-// Create a class to handle the data fetching
-const initialMetrics: DashboardMetrics = {
-  activeRepairs: 0,
-  completedRepairs: 0,
-  pendingRepairs: 0,
-  activeTechnicians: 0,
-  upcomingAppointments: 0,
-  overdueInvoices: 0,
-  monthlyRevenue: 0,
-  customerCount: 0,
-  inventoryAlerts: 0,
-  isLoading: true
-};
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export default function CompanyDashboard() {
-  const [metrics, setMetrics] = useState<DashboardMetrics>(initialMetrics);
-  const [recentActivity, setRecentActivity] = useState<FormattedActivity[]>([]);
-  const [technicians, setTechnicians] = useState<TechnicianInfo[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { toast: uiToast } = useToast();
+  const navigate = useNavigate();
+  const [ticketCounts, setTicketCounts] = useState({
+    total: 0,
+    open: 0,
+    resolved: 0
+  });
+  const [repairCounts, setRepairCounts] = useState({
+    total: 0,
+    inProgress: 0,
+    completed: 0
+  });
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [activeTechnicians, setActiveTechnicians] = useState(0);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      setIsLoading(true);
-      setError(null);
-      
+    const fetchUserProfile = async () => {
       try {
-        // Get the currently authenticated user's company_id
+        setIsLoadingUser(true);
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error("User not authenticated");
         
-        const { data: userData } = await supabase
-          .from('technicians')
-          .select('company_id')
+        if (!user) {
+          throw new Error('No user logged in');
+        }
+        
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
           .eq('id', user.id)
           .single();
           
-        if (!userData?.company_id) throw new Error("Company ID not found");
-        const companyId = userData.company_id;
+        if (error) {
+          throw error;
+        }
         
-        // Fetch repair metrics
-        const [activeRepairs, completedRepairs, pendingRepairs] = await Promise.all([
-          supabase
-            .from('repairs')
-            .select('id', { count: 'exact', head: true })
-            .eq('company_id', companyId)
-            .eq('status', 'in_progress'),
-            
-          supabase
-            .from('repairs')
-            .select('id', { count: 'exact', head: true })
-            .eq('company_id', companyId)
-            .eq('status', 'completed'),
-            
-          supabase
-            .from('repairs')
-            .select('id', { count: 'exact', head: true })
-            .eq('company_id', companyId)
-            .eq('status', 'pending')
-        ]);
-        
-        // Fetch technician count
-        const { count: techCount, error: techError } = await supabase
-          .from('technicians')
-          .select('id', { count: 'exact', head: true })
-          .eq('company_id', companyId)
-          .eq('status', 'active');
-          
-        if (techError) throw techError;
-        
-        // Fetch recent activity
-        const { data: activityData, error: activityError } = await supabase
-          .from('user_activity_logs')
-          .select('*')
-          .eq('company_id', companyId)
-          .order('created_at', { ascending: false })
-          .limit(5);
-        
-        if (activityError) throw activityError;
-        
-        // Fetch technicians
-        const { data: techniciansData, error: techniciansError } = await supabase
-          .from('technicians')
-          .select(`
-            id,
-            email,
-            status,
-            profiles (full_name, avatar_url)
-          `)
-          .eq('company_id', companyId)
-          .eq('role', 'tech')
-          .order('created_at', { ascending: false })
-          .limit(5);
-        
-        if (techniciansError) throw techniciansError;
-        
-        // Format the activity data
-        const formattedActivity = activityData ? activityData.map((item: ActivityItem) => {
-          // Safely extract metadata
-          let metadataObj: Record<string, any> = {};
-          
-          if (typeof item.metadata === 'string') {
-            try {
-              metadataObj = JSON.parse(item.metadata);
-            } catch {
-              metadataObj = {};
-            }
-          } else if (item.metadata && typeof item.metadata === 'object') {
-            metadataObj = item.metadata as Record<string, any>;
-          }
-          
-          return {
-            id: item.id,
-            title: item.description || `${item.activity_type} activity`,
-            timestamp: new Date(item.created_at).toLocaleString(),
-            activity_type: item.activity_type,
-            metadata: metadataObj
-          };
-        }) : [];
-
-        // Format technicians data
-        const formattedTechnicians = techniciansData ? techniciansData.map((tech) => {
-          // Safely handle potential missing profile data
-          const profile = tech.profiles || {};
-          const fullName = typeof profile === 'object' && profile ? (profile.full_name || 'Unknown') : 'Unknown';
-          const avatarUrl = typeof profile === 'object' && profile ? profile.avatar_url : undefined;
-          
-          return {
-            id: tech.id,
-            name: fullName,
-            email: tech.email,
-            status: tech.status,
-            avatarUrl: avatarUrl
-          };
-        }) : [];
-        
-        // Update metrics
-        setMetrics({
-          activeRepairs: activeRepairs.count || 0,
-          completedRepairs: completedRepairs.count || 0,
-          pendingRepairs: pendingRepairs.count || 0,
-          activeTechnicians: techCount || 0,
-          upcomingAppointments: 0, // Will need to implement appointments table
-          overdueInvoices: 0, // Will need to implement invoices table
-          monthlyRevenue: 0, // Will need to implement revenue tracking
-          customerCount: 0, // Will need to implement customers table
-          inventoryAlerts: 0, // Will need to implement inventory alerts
-          isLoading: false
-        });
-        
-        setRecentActivity(formattedActivity);
-        setTechnicians(formattedTechnicians);
-        
-      } catch (err) {
-        console.error("Error fetching dashboard data:", err);
-        setError("Failed to load dashboard data");
-        toast.error("Error loading dashboard", {
-          description: "Could not fetch dashboard data"
-        });
+        setUserProfile(profile);
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
       } finally {
-        setIsLoading(false);
+        setIsLoadingUser(false);
       }
     };
+    
+    fetchUserProfile();
+  }, []);
 
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoadingData(true);
+        
+        // For now using mock data, later will be replaced with actual API calls
+        
+        // Mock ticket counts
+        setTicketCounts({
+          total: 24,
+          open: 8,
+          resolved: 16
+        });
+        
+        // Mock repair counts
+        setRepairCounts({
+          total: 45,
+          inProgress: 12,
+          completed: 33
+        });
+        
+        // Mock active technicians
+        setActiveTechnicians(5);
+        
+        // Mock recent activity
+        const mockActivity = [
+          {
+            id: '1',
+            type: 'ticket',
+            title: 'Support ticket created',
+            description: 'New support ticket #1234: "Facing issue with system startup"',
+            timestamp: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
+            user: {
+              name: "John Doe",
+              avatar_url: "https://i.pravatar.cc/150?u=john"
+            }
+          },
+          {
+            id: '2',
+            type: 'repair',
+            title: 'Repair completed',
+            description: 'Repair #4567 for GE Washer Model XYZ has been completed',
+            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+            user: {
+              name: "Jane Smith",
+              avatar_url: "https://i.pravatar.cc/150?u=jane"
+            }
+          },
+          {
+            id: '3',
+            type: 'system',
+            title: 'New technician added',
+            description: 'New technician "Mike Johnson" has been added to your team',
+            timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
+          }
+        ];
+        
+        setRecentActivity(mockActivity);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        toast.error('Failed to load dashboard data');
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+    
     fetchDashboardData();
   }, []);
 
-  // Revenue data for chart
-  const revenueData = [
-    { name: 'Jan', value: 2500 },
-    { name: 'Feb', value: 3200 },
-    { name: 'Mar', value: 2800 },
-    { name: 'Apr', value: 5600 },
-    { name: 'May', value: 4200 },
-    { name: 'Jun', value: 6100 },
-  ];
-
-  // Repairs by status data for chart
-  const repairData = [
-    { name: 'Completed', value: metrics.completedRepairs },
-    { name: 'In Progress', value: metrics.activeRepairs },
-    { name: 'Pending', value: metrics.pendingRepairs },
-  ];
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMinutes = Math.round((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffMinutes < 60) {
+      return `${diffMinutes} min ago`;
+    } else if (diffMinutes < 24 * 60) {
+      return `${Math.round(diffMinutes / 60)} hours ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Company Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            Overview of your company's performance
-          </p>
-        </div>
-        <div className="mt-4 md:mt-0 space-x-2">
-          <Button variant="outline" className="gap-2">
-            <Settings className="h-4 w-4" />
-            Settings
-          </Button>
-          <Button className="gap-2">
-            <Bell className="h-4 w-4" />
-            Notifications
-          </Button>
-        </div>
+    <div className="container mx-auto p-4">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">Company Dashboard</h1>
+        <p className="text-muted-foreground">
+          Welcome back{userProfile && `, ${userProfile.name || 'User'}`}. Here's an overview of your company's activity.
+        </p>
       </div>
       
-      {/* Quick stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Active Repairs</CardTitle>
+            <CardTitle className="text-lg flex justify-between items-center">
+              <span>Support Tickets</span>
+              <LifeBuoy className="h-5 w-5 text-blue-500" />
+            </CardTitle>
+            <CardDescription>Current support requests</CardDescription>
           </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-10 w-24" />
-            ) : (
-              <div className="flex items-center">
-                <Wrench className="h-4 w-4 text-blue-500 mr-2" />
-                <span className="text-2xl font-bold">{metrics.activeRepairs}</span>
-              </div>
-            )}
+          <CardContent className="py-0">
+            <div className="text-3xl font-bold">{ticketCounts.total}</div>
+            <div className="text-sm text-muted-foreground">
+              <span className="text-green-500">{ticketCounts.resolved} resolved</span> • <span className="text-amber-500">{ticketCounts.open} open</span>
+            </div>
           </CardContent>
+          <CardFooter>
+            <Button variant="ghost" size="sm" className="w-full" onClick={() => navigate('/company/support')}>
+              View Tickets
+            </Button>
+          </CardFooter>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Completed Repairs</CardTitle>
+            <CardTitle className="text-lg flex justify-between items-center">
+              <span>Repair Jobs</span>
+              <Wrench className="h-5 w-5 text-blue-500" />
+            </CardTitle>
+            <CardDescription>Current repair tickets</CardDescription>
           </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-10 w-24" />
-            ) : (
-              <div className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-2xl font-bold">{metrics.completedRepairs}</span>
-              </div>
-            )}
+          <CardContent className="py-0">
+            <div className="text-3xl font-bold">{repairCounts.total}</div>
+            <div className="text-sm text-muted-foreground">
+              <span className="text-green-500">{repairCounts.completed} completed</span> • <span className="text-amber-500">{repairCounts.inProgress} in progress</span>
+            </div>
           </CardContent>
+          <CardFooter>
+            <Button variant="ghost" size="sm" className="w-full" onClick={() => navigate('/company/diagnostics')}>
+              View Repair Jobs
+            </Button>
+          </CardFooter>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Active Technicians</CardTitle>
+            <CardTitle className="text-lg flex justify-between items-center">
+              <span>Active Technicians</span>
+              <Users className="h-5 w-5 text-blue-500" />
+            </CardTitle>
+            <CardDescription>Currently active team members</CardDescription>
           </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-10 w-24" />
-            ) : (
-              <div className="flex items-center">
-                <UserCog className="h-4 w-4 text-purple-500 mr-2" />
-                <span className="text-2xl font-bold">{metrics.activeTechnicians}</span>
-              </div>
-            )}
+          <CardContent className="py-0">
+            <div className="text-3xl font-bold">{activeTechnicians}</div>
+            <div className="text-sm text-muted-foreground">Active in the last 24 hours</div>
           </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Upcoming Appointments</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-10 w-24" />
-            ) : (
-              <div className="flex items-center">
-                <Calendar className="h-4 w-4 text-amber-500 mr-2" />
-                <span className="text-2xl font-bold">{metrics.upcomingAppointments}</span>
-              </div>
-            )}
-          </CardContent>
+          <CardFooter>
+            <Button variant="ghost" size="sm" className="w-full" onClick={() => navigate('/company/technicians')}>
+              Manage Technicians
+            </Button>
+          </CardFooter>
         </Card>
       </div>
       
-      {/* Charts and analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Monthly Revenue</CardTitle>
-            <CardDescription>Revenue trends over the past 6 months</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="w-full h-[300px] flex items-center justify-center">
-                <Skeleton className="h-[250px] w-full" />
-              </div>
-            ) : (
-              <div className="h-[300px] flex items-center justify-center">
-                <p className="text-muted-foreground">Chart functionality coming soon</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Repairs by Status</CardTitle>
-            <CardDescription>Current distribution of repair statuses</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="w-full h-[300px] flex items-center justify-center">
-                <Skeleton className="h-[250px] w-full" />
-              </div>
-            ) : (
-              <div className="h-[300px] flex items-center justify-center">
-                <p className="text-muted-foreground">Chart functionality coming soon</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Recent Activity and Technicians */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="col-span-1 lg:col-span-2">
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest actions in your company</CardDescription>
+            <CardDescription>Latest events from your team</CardDescription>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
-              <div className="space-y-4">
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
-              </div>
-            ) : recentActivity.length > 0 ? (
-              <div className="space-y-4">
+            <Tabs defaultValue="all" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="tickets">Support Tickets</TabsTrigger>
+                <TabsTrigger value="repairs">Repairs</TabsTrigger>
+                <TabsTrigger value="system">System</TabsTrigger>
+              </TabsList>
+              <TabsContent value="all" className="space-y-4">
                 {recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex justify-between p-3 rounded-lg border">
-                    <div className="flex items-start gap-3">
-                      <div className="bg-blue-100 p-2 rounded-full">
-                        {activity.activity_type === "repair" && <Wrench className="h-4 w-4 text-blue-600" />}
-                        {activity.activity_type === "account" && <UserCog className="h-4 w-4 text-blue-600" />}
-                        {activity.activity_type === "system" && <Settings className="h-4 w-4 text-blue-600" />}
-                        {!["repair", "account", "system"].includes(activity.activity_type) && 
-                          <FileText className="h-4 w-4 text-blue-600" />
-                        }
+                  <div key={activity.id} className="flex items-start gap-4 p-4 border rounded-lg">
+                    <div className="mt-1 rounded-full p-2 bg-blue-100">
+                      {activity.type === 'ticket' && <LifeBuoy size={18} className="text-blue-600" />}
+                      {activity.type === 'repair' && <Wrench size={18} className="text-blue-600" />}
+                      {activity.type === 'system' && <Settings size={18} className="text-blue-600" />}
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium">{activity.title}</h4>
+                        <span className="text-xs text-gray-500">{formatTime(activity.timestamp)}</span>
                       </div>
-                      <div>
-                        <p className="font-medium">{activity.title}</p>
-                        <p className="text-sm text-gray-500">{activity.timestamp}</p>
-                      </div>
+                      <p className="text-sm text-gray-600">{activity.description}</p>
+                      {activity.user && (
+                        <div className="flex items-center mt-2 text-sm text-gray-500">
+                          <span className="flex items-center gap-1">
+                            By: {activity.user.name || "Unknown user"}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
-              </div>
-            ) : (
-              <p className="text-center text-gray-500 py-8">No recent activity found</p>
-            )}
+              </TabsContent>
+              <TabsContent value="tickets">
+                {/* Content for tickets tab */}
+                {recentActivity
+                  .filter(activity => activity.type === 'ticket')
+                  .map((activity) => (
+                    <div key={activity.id} className="flex items-start gap-4 p-4 border rounded-lg mb-4">
+                      <div className="mt-1 rounded-full p-2 bg-blue-100">
+                        <LifeBuoy size={18} className="text-blue-600" />
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium">{activity.title}</h4>
+                          <span className="text-xs text-gray-500">{formatTime(activity.timestamp)}</span>
+                        </div>
+                        <p className="text-sm text-gray-600">{activity.description}</p>
+                      </div>
+                    </div>
+                  ))}
+              </TabsContent>
+              <TabsContent value="repairs">
+                {/* Content for repairs tab */}
+                {recentActivity
+                  .filter(activity => activity.type === 'repair')
+                  .map((activity) => (
+                    <div key={activity.id} className="flex items-start gap-4 p-4 border rounded-lg mb-4">
+                      <div className="mt-1 rounded-full p-2 bg-blue-100">
+                        <Wrench size={18} className="text-blue-600" />
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium">{activity.title}</h4>
+                          <span className="text-xs text-gray-500">{formatTime(activity.timestamp)}</span>
+                        </div>
+                        <p className="text-sm text-gray-600">{activity.description}</p>
+                      </div>
+                    </div>
+                  ))}
+              </TabsContent>
+              <TabsContent value="system">
+                {/* Content for system tab */}
+                {recentActivity
+                  .filter(activity => activity.type === 'system')
+                  .map((activity) => (
+                    <div key={activity.id} className="flex items-start gap-4 p-4 border rounded-lg mb-4">
+                      <div className="mt-1 rounded-full p-2 bg-blue-100">
+                        <Settings size={18} className="text-blue-600" />
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium">{activity.title}</h4>
+                          <span className="text-xs text-gray-500">{formatTime(activity.timestamp)}</span>
+                        </div>
+                        <p className="text-sm text-gray-600">{activity.description}</p>
+                      </div>
+                    </div>
+                  ))}
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader>
-            <CardTitle>Active Technicians</CardTitle>
-            <CardDescription>Your team members</CardDescription>
+            <CardTitle>Quick Links</CardTitle>
+            <CardDescription>Common tasks and resources</CardDescription>
           </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-4">
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
-              </div>
-            ) : technicians.length > 0 ? (
-              <div className="space-y-4">
-                {technicians.map((tech) => (
-                  <div key={tech.id} className="flex justify-between p-3 rounded-lg border">
-                    <div className="flex items-center gap-3">
-                      {tech.avatarUrl ? (
-                        <img 
-                          src={tech.avatarUrl} 
-                          alt={tech.name}
-                          className="h-10 w-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                          {tech.name.charAt(0)}
-                        </div>
-                      )}
-                      <div>
-                        <p className="font-medium">{tech.name}</p>
-                        <p className="text-sm text-gray-500">{tech.email}</p>
-                      </div>
-                    </div>
-                    <Badge variant={tech.status === 'active' ? 'default' : 'secondary'}>
-                      {tech.status}
-                    </Badge>
-                  </div>
-                ))}
-
-                <div className="pt-4 text-center">
-                  <Button variant="outline" asChild>
-                    <Link to="/company/technicians">View All Technicians</Link>
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <p className="text-center text-gray-500 py-8">No technicians found</p>
-            )}
+          <CardContent className="flex flex-col gap-3">
+            <Button variant="outline" className="justify-start" onClick={() => navigate('/company/support')}>
+              <LifeBuoy className="mr-2 h-4 w-4" />
+              Support Tickets
+            </Button>
+            <Button variant="outline" className="justify-start" onClick={() => navigate('/company/technicians')}>
+              <Users className="mr-2 h-4 w-4" />
+              Manage Technicians
+            </Button>
+            <Button variant="outline" className="justify-start" onClick={() => navigate('/company/feature-requests')}>
+              <FileText className="mr-2 h-4 w-4" />
+              Feature Requests
+            </Button>
+            <Button variant="outline" className="justify-start" onClick={() => navigate('/company/community')}>
+              <MessageSquare className="mr-2 h-4 w-4" />
+              Community
+            </Button>
+            <Button variant="outline" className="justify-start" onClick={() => navigate('/company/subscription')}>
+              <BarChart3 className="mr-2 h-4 w-4" />
+              Subscription
+            </Button>
           </CardContent>
         </Card>
       </div>
     </div>
   );
+}
+
+function Users({ className = "", ...props }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      {...props}
+    >
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  )
 }

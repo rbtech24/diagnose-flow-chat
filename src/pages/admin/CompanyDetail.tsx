@@ -10,7 +10,7 @@ import { ArrowLeft, Calendar, MapPin, UserRound, Package, Wrench, AlertTriangle,
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { handleApiError } from "@/utils/errorHandler";
 import { toast } from "sonner";
-import { ActivityItem, FormattedActivity } from "@/types/activity";
+import { ActivityItem as ActivityData, FormattedActivity as FormattedActivityData } from "@/types/activity";
 
 // Define proper interface for company address to avoid deep instantiation
 interface CompanyAddress {
@@ -36,17 +36,6 @@ interface CompanyData {
   company_address?: CompanyAddress | null;
 }
 
-interface ActivityItem {
-  id: string;
-  activity_type: string;
-  created_at: string;
-  description: string;
-  ip_address: string;
-  metadata: Json;
-  user_agent: string;
-  user_id: string;
-}
-
 // Define a formatted activity type for UI display
 interface FormattedActivity {
   id: string;
@@ -61,7 +50,7 @@ export default function CompanyDetail() {
   const navigate = useNavigate();
   const [company, setCompany] = useState<CompanyData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [activities, setActivities] = useState<ActivityData[]>([]);
   const [activeTechnicians, setActiveTechnicians] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const { toast: uiToast } = useToast();
@@ -105,7 +94,7 @@ export default function CompanyDetail() {
         if (activityError) throw activityError;
         
         // Safely handle the activity data with proper typing
-        const typedActivities: ActivityItem[] = activityData || [];
+        const typedActivities: ActivityData[] = activityData || [];
         setActivities(typedActivities);
         
       } catch (err) {
@@ -124,7 +113,7 @@ export default function CompanyDetail() {
   }, [id]);
 
   // Function to format activity items for display
-  const formatActivity = (activity: ActivityItem): FormattedActivity => {
+  const formatActivity = (activity: ActivityData): FormattedActivity => {
     // Ensure metadata is a proper object
     let metadataObj: Record<string, any> = {};
     
