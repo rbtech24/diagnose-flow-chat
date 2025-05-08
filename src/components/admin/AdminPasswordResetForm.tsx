@@ -4,23 +4,22 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
 import { useUserManagementStore } from "@/store/userManagementStore";
 
-const formSchema = z.object({
-  password: z.string().min(8, "Password must be at least 8 characters"),
+const passwordResetSchema = z.object({
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(72, "Password cannot exceed 72 characters"),
   confirmPassword: z.string(),
-}).refine(
-  (data) => data.password === data.confirmPassword,
-  {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  }
-);
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
 
-type FormValues = z.infer<typeof formSchema>;
+type PasswordResetFormValues = z.infer<typeof passwordResetSchema>;
 
 interface AdminPasswordResetFormProps {
   userId: string;
@@ -30,41 +29,29 @@ interface AdminPasswordResetFormProps {
 
 export function AdminPasswordResetForm({ userId, onSuccess, onCancel }: AdminPasswordResetFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
   const { resetUserPassword } = useUserManagementStore();
   
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<PasswordResetFormValues>({
+    resolver: zodResolver(passwordResetSchema),
     defaultValues: {
       password: "",
       confirmPassword: "",
     },
   });
 
-  const onSubmit = async (values: FormValues) => {
+  const handleSubmit = async (values: PasswordResetFormValues) => {
     setIsSubmitting(true);
+    
     try {
       const success = await resetUserPassword(userId, values.password);
-      
       if (success) {
-        toast({
-          title: "Password reset successful",
-          description: "The user's password has been updated.",
-        });
         onSuccess();
-      } else {
-        toast({
-          title: "Password reset failed",
-          description: "There was an error resetting the password. Please try again.",
-          variant: "destructive",
-        });
       }
     } catch (error) {
       console.error("Error resetting password:", error);
-      toast({
-        title: "Password reset failed",
-        description: "There was an error resetting the password. Please try again.",
-        variant: "destructive",
+      form.setError("root", { 
+        type: "manual",
+        message: "An error occurred while resetting the password. Please try again."
       });
     } finally {
       setIsSubmitting(false);
@@ -73,7 +60,7 @@ export function AdminPasswordResetForm({ userId, onSuccess, onCancel }: AdminPas
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="password"
@@ -83,9 +70,6 @@ export function AdminPasswordResetForm({ userId, onSuccess, onCancel }: AdminPas
               <FormControl>
                 <Input type="password" placeholder="••••••••" {...field} />
               </FormControl>
-              <FormDescription>
-                Must be at least 8 characters long
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -105,8 +89,17 @@ export function AdminPasswordResetForm({ userId, onSuccess, onCancel }: AdminPas
           )}
         />
         
-        <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
+        {form.formState.errors.root && (
+          <p className="text-sm font-medium text-destructive">{form.formState.errors.root.message}</p>
+        )}
+        
+        <div className="flex justify-end gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting}>

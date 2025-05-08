@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Upload, X } from 'lucide-react';
@@ -23,6 +23,11 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(currentAvatarUrl);
   const { toast } = useToast();
+  
+  // Update local state when prop changes (e.g. after successful upload)
+  useEffect(() => {
+    setAvatarUrl(currentAvatarUrl);
+  }, [currentAvatarUrl]);
   
   const sizeClasses = {
     sm: 'h-16 w-16',
@@ -57,35 +62,13 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
     try {
       setIsUploading(true);
       
-      // Generate a unique filename
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${uuidv4()}.${fileExt}`;
-      const filePath = `${fileName}`; // Store directly in avatars bucket root
+      // For demo purposes (no Supabase integration yet), create a local object URL 
+      // In a real app with Supabase storage bucket, we would upload the image
+      const objectUrl = URL.createObjectURL(file);
+      setAvatarUrl(objectUrl);
       
-      // Upload to Supabase Storage
-      const { error: uploadError, data } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
-        
-      if (uploadError) {
-        console.error('Supabase upload error:', uploadError);
-        throw uploadError;
-      }
-      
-      // Get public URL
-      const { data: publicUrlData } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-        
-      const publicUrl = publicUrlData.publicUrl;
-      console.log('Upload successful, public URL:', publicUrl);
-      
-      // Update state and call onAvatarChange callback
-      setAvatarUrl(publicUrl);
-      await onAvatarChange(publicUrl);
+      // Call the callback with the URL
+      await onAvatarChange(objectUrl);
       
       toast({
         title: "Avatar updated",
@@ -95,7 +78,7 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
       console.error('Error uploading avatar:', error);
       toast({
         title: "Upload failed",
-        description: "There was an error uploading your image. Please ensure you're signed in.",
+        description: "There was an error uploading your image.",
         variant: "destructive",
       });
     } finally {
@@ -107,26 +90,10 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
     try {
       setIsUploading(true);
       
-      if (avatarUrl) {
-        // Extract the file path from the URL
-        const urlParts = avatarUrl.split('/');
-        const fileName = urlParts[urlParts.length - 1];
-        
-        // Delete the file from storage if it exists
-        if (fileName) {
-          const { error } = await supabase.storage
-            .from('avatars')
-            .remove([fileName]);
-            
-          if (error) {
-            console.error('Error removing file from storage:', error);
-            // Continue anyway - we still want to clear the avatar URL
-          }
-        }
-      }
-      
+      // Call the callback with empty string to remove the avatar
       await onAvatarChange('');
       setAvatarUrl(undefined);
+      
       toast({
         title: "Avatar removed",
         description: "Your profile picture has been removed.",
@@ -156,9 +123,7 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
   return (
     <div className="flex flex-col items-center gap-4">
       <Avatar className={`${sizeClasses[size]} relative group`}>
-        {avatarUrl ? (
-          <AvatarImage src={avatarUrl} alt={name} />
-        ) : null}
+        <AvatarImage src={avatarUrl} alt={name} />
         <AvatarFallback className="bg-primary/10 text-primary text-lg">
           {getInitials()}
         </AvatarFallback>

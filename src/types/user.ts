@@ -7,6 +7,7 @@ export interface User {
   phone?: string;
   avatarUrl?: string;
   companyId?: string;
+  createdAt?: Date;
   trialEndsAt?: Date;
   subscriptionStatus?: 'trial' | 'active' | 'expired' | 'canceled';
   planId?: string;

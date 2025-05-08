@@ -67,6 +67,8 @@ const initialUsers: User[] = [
     role: "admin",
     phone: "(555) 123-4567",
     subscriptionStatus: "active",
+    avatarUrl: "https://i.pravatar.cc/150?u=admin1",
+    createdAt: new Date(2022, 5, 15),
   },
   {
     id: "company-1",
@@ -77,6 +79,8 @@ const initialUsers: User[] = [
     companyId: "company-acme-1",
     subscriptionStatus: "active",
     isMainAdmin: true,
+    avatarUrl: "https://i.pravatar.cc/150?u=sarah",
+    createdAt: new Date(2022, 8, 10),
   },
   {
     id: "tech-1",
@@ -85,6 +89,8 @@ const initialUsers: User[] = [
     role: "tech",
     phone: "(555) 456-7890",
     companyId: "company-acme-1",
+    avatarUrl: "https://i.pravatar.cc/150?u=mike",
+    createdAt: new Date(2023, 1, 22),
   }
 ];
 

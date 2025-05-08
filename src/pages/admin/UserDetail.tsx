@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -14,15 +15,34 @@ import { format } from "date-fns";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { AvatarUpload } from "@/components/shared/AvatarUpload";
 
+// Sample activity data for when no real data is available
+const sampleUserActivity = [
+  {
+    title: "Logged in",
+    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+  },
+  {
+    title: "Updated profile",
+    timestamp: new Date(Date.now() - 25 * 60 * 60 * 1000), // Yesterday
+  },
+  {
+    title: "Created support ticket",
+    timestamp: new Date(Date.now() - 72 * 60 * 60 * 1000), // 3 days ago
+  }
+];
+
 export default function UserDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [isAssignCompanyDialogOpen, setIsAssignCompanyDialogOpen] = useState(false);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
   const { toast } = useToast();
   const { users, companies, fetchUserById, fetchCompanyById, deleteUser, resetUserPassword, updateUser } = useUserManagementStore();
   const [userData, setUserData] = useState<any>(null);
   const [companyData, setCompanyData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [userActivity, setUserActivity] = useState(sampleUserActivity);
 
   useEffect(() => {
     const loadData = async () => {
@@ -130,10 +150,51 @@ export default function UserDetail() {
       
       if (updatedUser) {
         setUserData(updatedUser);
+        toast({
+          title: "Success",
+          description: "Profile picture updated successfully.",
+        });
       }
     } catch (error) {
       console.error('Error updating avatar:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update profile picture.",
+        variant: "destructive",
+      });
       throw error;
+    }
+  };
+
+  const handleAssignToCompany = async () => {
+    if (!id || !selectedCompanyId) return;
+    
+    try {
+      const updatedUser = await updateUser(id, {
+        companyId: selectedCompanyId,
+      });
+      
+      if (updatedUser) {
+        setUserData(updatedUser);
+        // Fetch the company data to display it
+        const company = await fetchCompanyById(selectedCompanyId);
+        setCompanyData(company);
+        
+        setIsAssignCompanyDialogOpen(false);
+        setSelectedCompanyId("");
+        
+        toast({
+          title: "Success",
+          description: "User has been assigned to the company successfully.",
+        });
+      }
+    } catch (error) {
+      console.error('Error assigning user to company:', error);
+      toast({
+        title: "Error",
+        description: "Failed to assign user to company.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -173,6 +234,15 @@ export default function UserDetail() {
       </div>
     );
   }
+
+  const formatDate = (dateString: string | Date | undefined) => {
+    if (!dateString) return "N/A";
+    try {
+      return format(new Date(dateString), "MMMM d, yyyy");
+    } catch (error) {
+      return "Invalid date";
+    }
+  };
 
   return (
     <div className="container mx-auto p-6">
@@ -242,7 +312,7 @@ export default function UserDetail() {
               {userData.createdAt && (
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>Joined {format(new Date(userData.createdAt), "MMMM d, yyyy")}</span>
+                  <span>Joined {formatDate(userData.createdAt)}</span>
                 </div>
               )}
             </div>
@@ -255,18 +325,14 @@ export default function UserDetail() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="p-3 border rounded-md">
-                <div className="font-medium">Logged in</div>
-                <div className="text-sm text-muted-foreground">Today at 9:30 AM</div>
-              </div>
-              <div className="p-3 border rounded-md">
-                <div className="font-medium">Updated profile</div>
-                <div className="text-sm text-muted-foreground">Yesterday at 2:15 PM</div>
-              </div>
-              <div className="p-3 border rounded-md">
-                <div className="font-medium">Created support ticket</div>
-                <div className="text-sm text-muted-foreground">3 days ago</div>
-              </div>
+              {userActivity.map((activity, index) => (
+                <div key={index} className="p-3 border rounded-md">
+                  <div className="font-medium">{activity.title}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {activity.timestamp.toLocaleString()}
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -287,9 +353,13 @@ export default function UserDetail() {
             <Button variant="outline" onClick={handleEditUser}>
               Edit Profile
             </Button>
-            {userData.role === "tech" && !userData.companyId && (
-              <Button variant="outline">
-                Assign to Company
+            {userData.role === "tech" && (
+              <Button 
+                variant="outline" 
+                onClick={() => setIsAssignCompanyDialogOpen(true)}
+                disabled={!!userData.companyId}
+              >
+                {userData.companyId ? "Already Assigned to Company" : "Assign to Company"}
               </Button>
             )}
             <AlertDialog>
@@ -315,6 +385,7 @@ export default function UserDetail() {
         </CardContent>
       </Card>
 
+      {/* Password Reset Dialog */}
       <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -322,9 +393,60 @@ export default function UserDetail() {
           </DialogHeader>
           <AdminPasswordResetForm 
             userId={userData.id} 
-            onSuccess={() => setIsResetDialogOpen(false)}
+            onSuccess={() => {
+              setIsResetDialogOpen(false);
+              toast({
+                title: "Success",
+                description: "Password has been reset successfully.",
+              });
+            }}
             onCancel={() => setIsResetDialogOpen(false)}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Assign to Company Dialog */}
+      <Dialog open={isAssignCompanyDialogOpen} onOpenChange={setIsAssignCompanyDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Assign User to Company</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="company-select" className="text-sm font-medium">
+                Select Company
+              </label>
+              <select
+                id="company-select"
+                className="w-full p-2 border rounded-md"
+                value={selectedCompanyId}
+                onChange={(e) => setSelectedCompanyId(e.target.value)}
+              >
+                <option value="">Select a company</option>
+                {companies.map((company) => (
+                  <option key={company.id} value={company.id}>
+                    {company.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsAssignCompanyDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="button" 
+                onClick={handleAssignToCompany}
+                disabled={!selectedCompanyId}
+              >
+                Assign
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
