@@ -7,7 +7,7 @@ export interface User {
   name: string;
   email: string;
   role: "admin" | "company" | "tech";
-  avatarUrl?: string;
+  avatar_url?: string;
 }
 
 // Updated to match the Supabase database structure

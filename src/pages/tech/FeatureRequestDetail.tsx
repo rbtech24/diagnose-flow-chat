@@ -3,13 +3,14 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
-import { FeatureRequest, FeatureRequestVote } from "@/types/feature-request";
+import { FeatureRequest, FeatureComment } from "@/types/feature-request";
 import { mockFeatureRequests } from "@/data/mockFeatureRequests";
 import { currentUser } from "@/data/mockTickets";
 import { ArrowLeft } from "lucide-react";
 
 export default function TechFeatureRequestDetailPage() {
   const [featureRequest, setFeatureRequest] = useState<FeatureRequest | null>(null);
+  const [comments, setComments] = useState<FeatureComment[]>([]);
   const [loading, setLoading] = useState(true);
   const { id } = useParams();
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ export default function TechFeatureRequestDetailPage() {
     setTimeout(() => {
       const foundRequest = mockFeatureRequests.find(request => request.id === id);
       setFeatureRequest(foundRequest || null);
+      setComments([]); // Initialize with empty comments
       setLoading(false);
     }, 500);
   }, [id]);
@@ -26,48 +28,32 @@ export default function TechFeatureRequestDetailPage() {
   const handleVote = (requestId: string) => {
     if (!featureRequest) return;
     
-    const newVote: FeatureRequestVote = {
-      id: `vote-${Date.now()}`,
-      userId: currentUser.id,
-      featureRequestId: requestId,
-      createdAt: new Date(),
-      user: {
-        id: currentUser.id,
-        name: currentUser.name,
-        email: currentUser.email,
-        role: currentUser.role as "admin" | "company" | "tech", // Explicitly cast to union type
-        avatarUrl: currentUser.avatarUrl,
-      },
-    };
-    
+    // Update vote count in the UI
     setFeatureRequest({
       ...featureRequest,
-      score: featureRequest.score + 1,
-      votes: [...featureRequest.votes, newVote],
+      votes_count: (featureRequest.votes_count || 0) + 1,
+      user_has_voted: true
     });
   };
 
   const handleAddComment = (requestId: string, content: string) => {
     if (!featureRequest) return;
     
-    const newComment = {
+    const newComment: FeatureComment = {
       id: `comment-${Date.now()}`,
-      featureRequestId: requestId,
+      feature_id: requestId,
+      user_id: currentUser.id,
       content,
-      createdAt: new Date(),
-      createdBy: {
-        id: currentUser.id,
+      created_at: new Date().toISOString(),
+      created_by_user: {
         name: currentUser.name,
         email: currentUser.email,
-        role: currentUser.role as "admin" | "company" | "tech", // Explicitly cast to union type
-        avatarUrl: currentUser.avatarUrl,
+        role: currentUser.role as "admin" | "company" | "tech",
+        avatar_url: currentUser.avatar_url,
       },
     };
     
-    setFeatureRequest({
-      ...featureRequest,
-      comments: [...featureRequest.comments, newComment],
-    });
+    setComments(prevComments => [...prevComments, newComment]);
   };
 
   if (loading) {
@@ -109,6 +95,7 @@ export default function TechFeatureRequestDetailPage() {
       {featureRequest && (
         <FeatureRequestDetail
           featureRequest={featureRequest}
+          comments={comments}
           onAddComment={handleAddComment}
           onVote={handleVote}
         />

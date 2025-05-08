@@ -17,6 +17,7 @@ interface FeatureRequestDetailProps {
   onAddComment: (id: string, content: string) => void;
   onUpdateStatus?: (id: string, status: FeatureRequestStatus) => void;
   onUpdatePriority?: (id: string, priority: string) => void;
+  onVote?: (id: string) => void;
   isAdmin?: boolean;
 }
 
@@ -26,12 +27,14 @@ export function FeatureRequestDetail({
   onAddComment,
   onUpdateStatus,
   onUpdatePriority,
+  onVote,
   isAdmin = false,
 }: FeatureRequestDetailProps) {
   const [comment, setComment] = useState("");
   
   const statusColors: Record<FeatureRequestStatus, string> = {
     "pending": "bg-yellow-100 text-yellow-800",
+    "submitted": "bg-yellow-100 text-yellow-800",
     "approved": "bg-blue-100 text-blue-800",
     "rejected": "bg-red-100 text-red-800",
     "in-progress": "bg-purple-100 text-purple-800",
@@ -86,9 +89,11 @@ export function FeatureRequestDetail({
               <Badge className={statusColors[featureRequest.status as FeatureRequestStatus]}>
                 {featureRequest.status.replace('-', ' ')}
               </Badge>
-              <Badge className={priorityColors[featureRequest.priority as keyof typeof priorityColors]}>
-                {featureRequest.priority}
-              </Badge>
+              {featureRequest.priority && (
+                <Badge className={priorityColors[featureRequest.priority as keyof typeof priorityColors]}>
+                  {featureRequest.priority}
+                </Badge>
+              )}
               <Badge variant="outline" className="flex items-center gap-1">
                 <ArrowUp className="h-3 w-3" />
                 {featureRequest.votes_count || 0} votes

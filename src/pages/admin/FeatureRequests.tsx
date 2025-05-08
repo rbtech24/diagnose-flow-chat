@@ -32,6 +32,7 @@ export default function AdminFeatureRequests() {
       // Using mock data to avoid database schema issues
       if (mockFeatureRequests && mockFeatureRequests.length > 0) {
         setFeatureRequests(mockFeatureRequests);
+        setError(null);
         setLoading(false);
         return;
       }

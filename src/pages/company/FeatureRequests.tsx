@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -9,7 +8,7 @@ import { Plus, Search, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FeatureRequestCard } from "@/components/feature-request/FeatureRequestCard";
 import { NewFeatureRequestForm } from "@/components/feature-request/NewFeatureRequestForm";
-import { FeatureRequest, FeatureRequestPriority, FeatureRequestVote } from "@/types/feature-request";
+import { FeatureRequest, FeatureRequestPriority } from "@/types/feature-request";
 import { mockFeatureRequests } from "@/data/mockFeatureRequests";
 import { currentUser } from "@/data/mockTickets";
 
@@ -24,24 +23,10 @@ export default function CompanyFeatureRequests() {
   const handleVote = (id: string) => {
     const updatedRequests = featureRequests.map((request) => {
       if (request.id === id) {
-        const newVote: FeatureRequestVote = {
-          id: `vote-${Date.now()}`,
-          userId: currentUser.id,
-          featureRequestId: id,
-          createdAt: new Date(),
-          user: {
-            id: currentUser.id,
-            name: currentUser.name,
-            email: currentUser.email,
-            role: currentUser.role as "admin" | "company" | "tech", // Explicitly cast to union type
-            avatarUrl: currentUser.avatarUrl,
-          },
-        };
-        
         return {
           ...request,
-          score: request.score + 1,
-          votes: [...request.votes, newVote],
+          votes_count: (request.votes_count || 0) + 1,
+          user_has_voted: true
         };
       }
       return request;
@@ -61,18 +46,18 @@ export default function CompanyFeatureRequests() {
         description: values.description,
         status: "pending",
         priority: values.priority as FeatureRequestPriority,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        createdBy: {
-          id: currentUser.id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        user_id: currentUser.id,
+        created_by_user: {
           name: currentUser.name,
           email: currentUser.email,
-          role: currentUser.role as "admin" | "company" | "tech", // Explicitly cast to union type
-          avatarUrl: currentUser.avatarUrl,
+          role: currentUser.role as "admin" | "company" | "tech",
+          avatar_url: currentUser.avatar_url
         },
-        votes: [],
-        score: 0,
-        comments: [],
+        votes_count: 0,
+        comments_count: 0,
+        user_has_voted: false
       };
 
       setFeatureRequests([newFeatureRequest, ...featureRequests]);
@@ -94,7 +79,7 @@ export default function CompanyFeatureRequests() {
     return matchesSearch && matchesStatus;
   });
 
-  const pendingRequests = filteredRequests.filter((request) => request.status === "pending");
+  const pendingRequests = filteredRequests.filter((request) => request.status === "pending" || request.status === "submitted");
   const approvedRequests = filteredRequests.filter((request) => 
     ["approved", "in-progress"].includes(request.status)
   );

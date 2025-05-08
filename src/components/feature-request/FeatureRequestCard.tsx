@@ -15,10 +15,12 @@ import {
 
 interface FeatureRequestCardProps {
   featureRequest: FeatureRequest;
-  onVote: (id: string) => void;
+  onVote?: (id: string) => void;
   onViewDetails: (id: string) => void;
   canVote?: boolean;
+  isAdmin?: boolean;
   onUpdateStatus?: (id: string, status: FeatureRequestStatus) => void;
+  onUpdatePriority?: (id: string, priority: string) => void;
 }
 
 export function FeatureRequestCard({ 
@@ -26,10 +28,13 @@ export function FeatureRequestCard({
   onVote, 
   onViewDetails, 
   canVote = true,
-  onUpdateStatus
+  isAdmin = false,
+  onUpdateStatus,
+  onUpdatePriority
 }: FeatureRequestCardProps) {
   const statusColors: Record<FeatureRequestStatus, string> = {
     "pending": "bg-yellow-100 text-yellow-800",
+    "submitted": "bg-yellow-100 text-yellow-800",
     "approved": "bg-blue-100 text-blue-800",
     "rejected": "bg-red-100 text-red-800",
     "in-progress": "bg-purple-100 text-purple-800",
@@ -49,6 +54,12 @@ export function FeatureRequestCard({
     }
   };
 
+  const handlePriorityChange = (priority: string) => {
+    if (onUpdatePriority) {
+      onUpdatePriority(featureRequest.id, priority);
+    }
+  };
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-2">
@@ -61,11 +72,30 @@ export function FeatureRequestCard({
             </div>
           </div>
           <div className="flex gap-2 flex-col items-end">
-            <Badge className={priorityColors[featureRequest.priority as keyof typeof priorityColors]}>
-              {featureRequest.priority}
-            </Badge>
+            {featureRequest.priority && (
+              isAdmin ? (
+                <Select 
+                  value={featureRequest.priority} 
+                  onValueChange={handlePriorityChange}
+                >
+                  <SelectTrigger className="h-7 text-xs w-[140px]">
+                    <SelectValue placeholder="Priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="critical">Critical</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Badge className={priorityColors[featureRequest.priority as keyof typeof priorityColors]}>
+                  {featureRequest.priority}
+                </Badge>
+              )
+            )}
             
-            {onUpdateStatus ? (
+            {isAdmin ? (
               <Select 
                 value={featureRequest.status} 
                 onValueChange={(value) => handleStatusChange(value as FeatureRequestStatus)}
@@ -75,6 +105,7 @@ export function FeatureRequestCard({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="submitted">Submitted</SelectItem>
                   <SelectItem value="approved">Approved</SelectItem>
                   <SelectItem value="in-progress">In Progress</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
@@ -99,16 +130,18 @@ export function FeatureRequestCard({
       </CardContent>
       <CardFooter className="border-t pt-3 flex justify-between">
         <div className="flex gap-3">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={(e) => { e.stopPropagation(); onVote(featureRequest.id); }}
-            disabled={!canVote || featureRequest.user_has_voted}
-            className="flex items-center gap-1"
-          >
-            <ArrowUp className={`h-4 w-4 ${featureRequest.user_has_voted ? "text-primary" : ""}`} />
-            <span>{featureRequest.votes_count || 0}</span>
-          </Button>
+          {onVote && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={(e) => { e.stopPropagation(); onVote(featureRequest.id); }}
+              disabled={!canVote || featureRequest.user_has_voted}
+              className="flex items-center gap-1"
+            >
+              <ArrowUp className={`h-4 w-4 ${featureRequest.user_has_voted ? "text-primary" : ""}`} />
+              <span>{featureRequest.votes_count || 0}</span>
+            </Button>
+          )}
           
           <Button 
             variant="ghost" 
