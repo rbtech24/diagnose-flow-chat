@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,7 @@ import { format } from "date-fns";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { AvatarUpload } from "@/components/shared/AvatarUpload";
 import { useUserActivity } from "@/hooks/useUserActivity";
+import { ActivityItem } from "@/components/activity/ActivityItem";
 
 export default function UserDetail() {
   const { id } = useParams<{ id: string }>();
@@ -241,6 +241,34 @@ export default function UserDetail() {
     }
   };
 
+  // Helper function to get icon for activity type
+  const getActivityIcon = (activity: any) => {
+    const type = activity.activity_type || '';
+    
+    if (type.includes('login')) {
+      return <Users className="h-4 w-4 text-green-600" />;
+    } else if (type.includes('password')) {
+      return <AlertTriangle className="h-4 w-4 text-amber-600" />;
+    } else if (type.includes('update') || type.includes('edit')) {
+      return <FileText className="h-4 w-4 text-blue-600" />;
+    } else {
+      return <FileText className="h-4 w-4 text-gray-600" />;
+    }
+  };
+
+  // Helper function to determine severity based on activity type
+  const getActivitySeverity = (activity: any): 'info' | 'warning' | 'error' => {
+    const type = activity.activity_type || '';
+    
+    if (type.includes('error') || type.includes('fail')) {
+      return 'error';
+    } else if (type.includes('warning') || type.includes('security')) {
+      return 'warning';
+    } else {
+      return 'info';
+    }
+  };
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center mb-6">
@@ -330,16 +358,20 @@ export default function UserDetail() {
                 </>
               ) : userActivity.length > 0 ? (
                 userActivity.map((activity, index) => (
-                  <div key={activity.id || index} className="p-3 border rounded-md">
-                    <div className="font-medium">{activity.title}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {formatActivityTime(activity.timestamp)}
-                    </div>
-                  </div>
+                  <ActivityItem
+                    key={activity.id || index}
+                    id={activity.id || `activity-${index}`}
+                    title={activity.title}
+                    description={activity.description || ""}
+                    timestamp={activity.timestamp}
+                    icon={getActivityIcon(activity)}
+                    type={activity.activity_type || "activity"}
+                    severity={getActivitySeverity(activity)}
+                  />
                 ))
               ) : (
                 <div className="text-center py-4 text-muted-foreground">
-                  No activity records found
+                  No current activity
                 </div>
               )}
             </div>

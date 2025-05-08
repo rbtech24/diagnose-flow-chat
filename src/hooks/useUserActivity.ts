@@ -43,19 +43,8 @@ export function useUserActivity(userId: string | undefined) {
         console.error("Error fetching user activity:", err);
         setError(err instanceof Error ? err.message : "Failed to fetch user activity");
         
-        // Use fallback mock data if something goes wrong
-        setActivities([
-          {
-            id: "fallback-1",
-            title: "Logged in",
-            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            id: "fallback-2",
-            title: "Updated profile",
-            timestamp: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(),
-          },
-        ]);
+        // Return empty array instead of mock data
+        setActivities([]);
       } finally {
         setIsLoading(false);
       }

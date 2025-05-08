@@ -68,15 +68,8 @@ serve(async (req) => {
       )
     }
 
-    // If no activities found, create a default message
-    const activitiesData = data && data.length > 0 ? data : [
-      {
-        id: 'default',
-        activity_type: 'info',
-        description: 'No activity records found',
-        created_at: new Date().toISOString()
-      }
-    ]
+    // If no activities found, return an empty array instead of the default message
+    const activitiesData = data && data.length > 0 ? data : [];
 
     // Map the activities to a more friendly format for the frontend
     const formattedActivities = activitiesData.map(activity => ({

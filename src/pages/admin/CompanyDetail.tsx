@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/components/ui/use-toast";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AvatarUpload } from "@/components/shared/AvatarUpload";
+import { ActivityItem } from "@/components/activity/ActivityItem";
 
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>();
@@ -20,6 +21,8 @@ export default function CompanyDetail() {
   const { companies, users, fetchCompanyById, fetchUsers, deleteCompany, updateCompany } = useUserManagementStore();
   const [companyData, setCompanyData] = useState<any>(null);
   const [companyUsers, setCompanyUsers] = useState<any[]>([]);
+  const [companyActivities, setCompanyActivities] = useState<any[]>([]);
+  const [loadingActivities, setLoadingActivities] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -36,6 +39,9 @@ export default function CompanyDetail() {
           // Filter users that belong to this company
           const relatedUsers = users.filter(user => user.companyId === id);
           setCompanyUsers(relatedUsers);
+
+          // Fetch company activities
+          await fetchCompanyActivities(id);
         } else {
           toast({
             title: "Company not found",
@@ -58,6 +64,61 @@ export default function CompanyDetail() {
     
     loadData();
   }, [id, fetchCompanyById, fetchUsers, users, navigate, toast]);
+
+  const fetchCompanyActivities = async (companyId: string) => {
+    setLoadingActivities(true);
+    try {
+      const { data, error } = await supabase
+        .from('user_activity_logs')
+        .select('*')
+        .eq('metadata->company_id', companyId)
+        .order('created_at', { ascending: false })
+        .limit(5);
+      
+      if (error) {
+        throw error;
+      }
+
+      if (data && data.length > 0) {
+        const formattedActivities = data.map(item => ({
+          id: item.id,
+          title: item.description || getActivityTypeLabel(item.activity_type),
+          timestamp: item.created_at,
+          activity_type: item.activity_type,
+          metadata: item.metadata
+        }));
+        setCompanyActivities(formattedActivities);
+      } else {
+        setCompanyActivities([]);
+      }
+    } catch (error) {
+      console.error("Error fetching company activities:", error);
+      setCompanyActivities([]);
+    } finally {
+      setLoadingActivities(false);
+    }
+  };
+
+  const getActivityTypeLabel = (type: string): string => {
+    switch(type) {
+      case 'login': return 'User Login';
+      case 'logout': return 'User Logout';
+      case 'user_create': return 'User Created';
+      case 'user_update': return 'User Updated';
+      case 'subscription_update': return 'Subscription Updated';
+      default: return 'System Activity';
+    }
+  };
+
+  const formatActivityDate = (timestamp: string) => {
+    try {
+      const date = new Date(timestamp);
+      return date.toLocaleString();
+    } catch (error) {
+      console.error("Invalid date format:", timestamp);
+      return "Unknown date";
+    }
+  };
 
   const handleDeleteCompany = async () => {
     if (!id) return;
@@ -362,20 +423,24 @@ export default function CompanyDetail() {
             <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="p-3 border rounded-md">
-                <div className="font-medium">Technician Added</div>
-                <div className="text-sm text-muted-foreground">Today at 3:45 PM</div>
+            {loadingActivities ? (
+              <div className="text-center py-4">
+                <p className="text-muted-foreground">Loading activities...</p>
               </div>
-              <div className="p-3 border rounded-md">
-                <div className="font-medium">Subscription Renewed</div>
-                <div className="text-sm text-muted-foreground">Yesterday at 10:30 AM</div>
+            ) : companyActivities.length > 0 ? (
+              <div className="space-y-4">
+                {companyActivities.map(activity => (
+                  <div key={activity.id} className="p-3 border rounded-md">
+                    <div className="font-medium">{activity.title}</div>
+                    <div className="text-sm text-muted-foreground">{formatActivityDate(activity.timestamp)}</div>
+                  </div>
+                ))}
               </div>
-              <div className="p-3 border rounded-md">
-                <div className="font-medium">Profile Updated</div>
-                <div className="text-sm text-muted-foreground">3 days ago</div>
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-muted-foreground">No current activity</p>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>
