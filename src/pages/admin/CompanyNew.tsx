@@ -1,4 +1,3 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -50,9 +49,23 @@ export default function CompanyNew() {
     },
   });
 
-  const onSubmit = async (data: CompanyFormValues) => {
+  const onSubmit = async (data: z.infer<typeof companyFormSchema>) => {
     try {
-      const newCompany = await addCompany(data);
+      const companyData = {
+        name: data.name,
+        contactName: data.contactName,
+        email: data.email,
+        phone: data.phone || "",
+        address: data.address || "",
+        city: data.city || "",
+        state: data.state || "",
+        zipCode: data.zipCode || "",
+        country: data.country || "",
+        planId: data.planId || "",
+        planName: data.planName || "Basic",
+        status: data.status
+      };
+      const newCompany = await addCompany(companyData);
       navigate(`/admin/companies/${newCompany.id}`);
     } catch (error) {
       console.error("Failed to create company:", error);

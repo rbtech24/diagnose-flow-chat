@@ -71,7 +71,7 @@ export default function SignUp() {
     console.log("Tech signup data:", data);
     toast({
       title: "Account created",
-      description: "Your technician account has been created with a 14-day trial period.",
+      description: "Your technician account has been created with a 30-day trial period.",
       variant: "default",
     });
     navigate("/login");
@@ -81,7 +81,7 @@ export default function SignUp() {
     console.log("Company signup data:", data);
     toast({
       title: "Account created",
-      description: "Your company account has been created with a 14-day trial period.",
+      description: "Your company account has been created with a 30-day trial period.",
       variant: "default",
     });
     navigate("/login");
@@ -113,7 +113,7 @@ export default function SignUp() {
           <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-8">
             <h2 className="text-lg font-semibold text-blue-800 mb-2 flex items-center">
               <CheckCircle2 className="h-5 w-5 text-blue-600 mr-2" />
-              Start with a 14-day free trial
+              Start with a 30-day free trial
             </h2>
             <ul className="space-y-2">
               <li className="flex items-center text-blue-700">

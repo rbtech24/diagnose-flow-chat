@@ -1,4 +1,3 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -11,23 +10,23 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUserManagementStore } from "@/store/userManagementStore";
 
-const userFormSchema = z.object({
+const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   role: z.enum(["admin", "company", "tech"]),
-  phone: z.string().optional(),
   password: z.string().min(8, "Password must be at least 8 characters"),
+  phone: z.string().optional(),
   companyId: z.string().optional(),
 });
 
-type UserFormValues = z.infer<typeof userFormSchema>;
+type UserFormValues = z.infer<typeof formSchema>;
 
 export default function UserNew() {
   const navigate = useNavigate();
   const { addUser, companies } = useUserManagementStore();
 
   const form = useForm<UserFormValues>({
-    resolver: zodResolver(userFormSchema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -40,9 +39,18 @@ export default function UserNew() {
 
   const selectedRole = form.watch("role");
 
-  const onSubmit = async (data: UserFormValues) => {
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
-      const newUser = await addUser(data);
+      const userData = {
+        role: data.role,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        password: data.password,
+        companyId: data.companyId,
+        status: "active" // Add status field which is required
+      };
+      const newUser = await addUser(userData);
       navigate(`/admin/users/${newUser.id}`);
     } catch (error) {
       console.error("Failed to create user:", error);
