@@ -19,7 +19,7 @@ export function useFeatureRequests(companyId?: string) {
         .from('feature_requests')
         .select(`
           *,
-          created_by_user:profiles(id, full_name, email, role, avatar_url),
+          profiles:profiles(id, full_name, email, role, avatar_url),
           votes_count:feature_votes(count),
           comments_count:ticket_comments(count)
         `)
@@ -59,7 +59,7 @@ export function useFeatureRequests(companyId?: string) {
             status = item.status as FeatureRequestStatus;
           }
           
-          // Ensure priority is a valid FeatureRequestPriority
+          // Default priority to medium if not available
           let priority: FeatureRequestPriority = 'medium';
           if (item.priority === 'low' || 
               item.priority === 'medium' || 
@@ -68,7 +68,8 @@ export function useFeatureRequests(companyId?: string) {
             priority = item.priority as FeatureRequestPriority;
           }
           
-          const user = item.created_by_user;
+          // Get the profile data or use default values
+          const profileData = item.profiles || {};
           
           return {
             id: item.id,
@@ -85,16 +86,11 @@ export function useFeatureRequests(companyId?: string) {
             comments_count: typeof item.comments_count === 'number' ? item.comments_count : 
                          Array.isArray(item.comments_count) ? item.comments_count.length : 0,
             user_has_voted: userVoteMap.has(item.id),
-            created_by_user: user ? {
-              name: user.full_name || 'Unknown User',
-              email: user.email || '',
-              avatar_url: user.avatar_url || '',
-              role: user.role || 'user'
-            } : {
-              name: 'Unknown User',
-              email: '',
-              avatar_url: '',
-              role: 'user'
+            created_by_user: {
+              name: typeof profileData === 'object' && profileData ? (profileData.full_name || 'Unknown User') : 'Unknown User',
+              email: typeof profileData === 'object' && profileData ? (profileData.email || '') : '',
+              avatar_url: typeof profileData === 'object' && profileData ? profileData.avatar_url : '',
+              role: typeof profileData === 'object' && profileData ? (profileData.role || 'user') : 'user'
             }
           };
         });

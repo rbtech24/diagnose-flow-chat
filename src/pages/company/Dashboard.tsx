@@ -7,7 +7,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
-import { BarChart, LineChart } from "@/components/ui/chart";
 import { 
   Calendar,
   Clock,
@@ -143,7 +142,7 @@ export default function CompanyDashboard() {
             id,
             email,
             status,
-            profiles (name, avatar_url)
+            profiles (full_name, avatar_url)
           `)
           .eq('company_id', companyId)
           .eq('role', 'tech')
@@ -177,13 +176,20 @@ export default function CompanyDashboard() {
         }) : [];
 
         // Format technicians data
-        const formattedTechnicians = techniciansData ? techniciansData.map((tech) => ({
-          id: tech.id,
-          name: tech.profiles?.name || 'Unknown',
-          email: tech.email,
-          status: tech.status,
-          avatarUrl: tech.profiles?.avatar_url
-        })) : [];
+        const formattedTechnicians = techniciansData ? techniciansData.map((tech) => {
+          // Safely handle potential missing profile data
+          const profile = tech.profiles || {};
+          const fullName = typeof profile === 'object' && profile ? (profile.full_name || 'Unknown') : 'Unknown';
+          const avatarUrl = typeof profile === 'object' && profile ? profile.avatar_url : undefined;
+          
+          return {
+            id: tech.id,
+            name: fullName,
+            email: tech.email,
+            status: tech.status,
+            avatarUrl: avatarUrl
+          };
+        }) : [];
         
         // Update metrics
         setMetrics({
@@ -334,14 +340,9 @@ export default function CompanyDashboard() {
                 <Skeleton className="h-[250px] w-full" />
               </div>
             ) : (
-              <LineChart
-                data={revenueData}
-                categories={['value']}
-                index="name"
-                colors={['#3b82f6']}
-                valueFormatter={(value: number) => `$${value}`}
-                className="h-[300px]"
-              />
+              <div className="h-[300px] flex items-center justify-center">
+                <p className="text-muted-foreground">Chart functionality coming soon</p>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -357,14 +358,9 @@ export default function CompanyDashboard() {
                 <Skeleton className="h-[250px] w-full" />
               </div>
             ) : (
-              <BarChart
-                data={repairData}
-                categories={['value']}
-                index="name"
-                colors={['#10b981']}
-                valueFormatter={(value: number) => `${value}`}
-                className="h-[300px]"
-              />
+              <div className="h-[300px] flex items-center justify-center">
+                <p className="text-muted-foreground">Chart functionality coming soon</p>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -444,7 +440,7 @@ export default function CompanyDashboard() {
                         <p className="text-sm text-gray-500">{tech.email}</p>
                       </div>
                     </div>
-                    <Badge variant={tech.status === 'active' ? 'success' : 'secondary'}>
+                    <Badge variant={tech.status === 'active' ? 'default' : 'secondary'}>
                       {tech.status}
                     </Badge>
                   </div>

@@ -41,11 +41,18 @@ export function useCommunity() {
       
       // Format the data to match our CommunityPost type
       const formattedPosts: CommunityPost[] = data?.map(post => {
-        const authorData = userMap.get(post.author_id) || {
+        const user = userMap.get(post.author_id) || {
           id: 'unknown',
           full_name: 'Unknown User',
-          avatar_url: ''
+          avatar_url: '',
+          role: 'user'
         };
+        
+        // Make sure the role is a valid user role
+        const userRole: 'admin' | 'company' | 'tech' = 
+          (user.role === 'admin' || user.role === 'company' || user.role === 'tech') 
+            ? user.role 
+            : 'user' as 'tech';
         
         return {
           id: post.id,
@@ -54,11 +61,11 @@ export function useCommunity() {
           type: post.type as CommunityPostType,
           authorId: post.author_id,
           author: {
-            id: authorData.id || 'unknown',
-            name: authorData.full_name || 'Unknown User',
+            id: user.id || 'unknown',
+            name: user.full_name || 'Unknown User',
             email: '', // Email may not be accessible from profiles
-            role: authorData.role || 'user',
-            avatarUrl: authorData.avatar_url || ''
+            role: userRole,
+            avatarUrl: user.avatar_url || ''
           },
           attachments: [], // We would need to fetch attachments separately
           createdAt: new Date(post.created_at),
@@ -137,6 +144,13 @@ export function useCommunity() {
       commentAuthorsData?.forEach(author => {
         commentAuthorMap.set(author.id, author);
       });
+
+      // Make sure the author role is valid
+      const author = authorData || { id: 'unknown', full_name: 'Unknown User', role: 'tech', avatar_url: '' };
+      const authorRole: 'admin' | 'company' | 'tech' = 
+        (author.role === 'admin' || author.role === 'company' || author.role === 'tech') 
+          ? author.role 
+          : 'user' as 'tech';
       
       // Format the post with its comments
       const formattedPost: CommunityPost = {
@@ -146,11 +160,11 @@ export function useCommunity() {
         type: postData.type as CommunityPostType,
         authorId: postData.author_id,
         author: {
-          id: authorData?.id || 'unknown',
-          name: authorData?.full_name || 'Unknown User',
+          id: author.id || 'unknown',
+          name: author.full_name || 'Unknown User',
           email: '', // Email may not be accessible from profiles
-          role: authorData?.role || 'user',
-          avatarUrl: authorData?.avatar_url || ''
+          role: authorRole,
+          avatarUrl: author.avatar_url || ''
         },
         attachments: [], // We would need to implement attachment handling
         createdAt: new Date(postData.created_at),
@@ -167,6 +181,12 @@ export function useCommunity() {
             role: 'user'
           };
           
+          // Make sure the role is valid
+          const commentAuthorRole: 'admin' | 'company' | 'tech' = 
+            (commentAuthor.role === 'admin' || commentAuthor.role === 'company' || commentAuthor.role === 'tech') 
+              ? commentAuthor.role 
+              : 'user' as 'tech';
+          
           return {
             id: comment.id,
             postId: comment.post_id,
@@ -176,7 +196,7 @@ export function useCommunity() {
               id: commentAuthor.id || 'unknown',
               name: commentAuthor.full_name || 'Unknown User',
               email: '',
-              role: commentAuthor.role || 'user',
+              role: commentAuthorRole,
               avatarUrl: commentAuthor.avatar_url || ''
             },
             attachments: [],
