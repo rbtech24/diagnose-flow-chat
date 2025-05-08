@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +10,7 @@ import { ArrowLeft, Calendar, MapPin, UserRound, Package, Wrench, AlertTriangle,
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { handleApiError } from "@/utils/errorHandler";
 import { toast } from "sonner";
+import { ActivityItem, FormattedActivity } from "@/types/activity";
 
 // Define proper interface for company address to avoid deep instantiation
 interface CompanyAddress {
@@ -103,7 +103,10 @@ export default function CompanyDetail() {
           .limit(10);
         
         if (activityError) throw activityError;
-        setActivities(activityData || []);
+        
+        // Safely handle the activity data with proper typing
+        const typedActivities: ActivityItem[] = activityData || [];
+        setActivities(typedActivities);
         
       } catch (err) {
         const apiError = handleApiError(err, "fetching company details", false);
@@ -123,9 +126,17 @@ export default function CompanyDetail() {
   // Function to format activity items for display
   const formatActivity = (activity: ActivityItem): FormattedActivity => {
     // Ensure metadata is a proper object
-    const metadataObj = typeof activity.metadata === 'string' 
-      ? JSON.parse(activity.metadata) 
-      : (activity.metadata || {});
+    let metadataObj: Record<string, any> = {};
+    
+    if (typeof activity.metadata === 'string') {
+      try {
+        metadataObj = JSON.parse(activity.metadata);
+      } catch {
+        metadataObj = {};
+      }
+    } else if (activity.metadata && typeof activity.metadata === 'object') {
+      metadataObj = activity.metadata;
+    }
     
     return {
       id: activity.id,
