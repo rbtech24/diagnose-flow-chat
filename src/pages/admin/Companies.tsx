@@ -1,13 +1,14 @@
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building2, Plus, Search } from "lucide-react";
+import { Plus, Search, Building2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserManagementStore } from "@/store/userManagementStore";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default function AdminCompanies() {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ export default function AdminCompanies() {
   // Filter companies based on search query
   const filteredCompanies = companies.filter(company => 
     company.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    company.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    company.contactName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     company.status.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -29,18 +30,29 @@ export default function AdminCompanies() {
     navigate("/admin/companies/new");
   };
 
-  const getBadgeVariant = (status: string) => {
+  // Helper function to get company initials for avatar fallback
+  const getCompanyInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
+  // Helper function to get status badge style
+  const getStatusBadgeStyle = (status: string) => {
     switch (status) {
       case 'active':
-        return 'success';
+        return 'bg-green-100 text-green-800 hover:bg-green-200';
       case 'trial':
-        return 'warning';
+        return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
       case 'expired':
-        return 'destructive';
+        return 'bg-red-100 text-red-800 hover:bg-red-200';
       case 'inactive':
-        return 'outline';
+        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
       default:
-        return 'default';
+        return '';
     }
   };
 
@@ -85,7 +97,8 @@ export default function AdminCompanies() {
                       <Skeleton className="h-3 w-32 mt-2" />
                     </div>
                   </div>
-                  <div>
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-6 w-16" />
                     <Skeleton className="h-9 w-24" />
                   </div>
                 </div>
@@ -100,22 +113,31 @@ export default function AdminCompanies() {
               {filteredCompanies.map((company) => (
                 <div key={company.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                      <Building2 className="h-5 w-5 text-primary" />
-                    </div>
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={company.logoUrl} alt={company.name} />
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {getCompanyInitials(company.name)}
+                      </AvatarFallback>
+                    </Avatar>
                     <div>
                       <h3 className="font-medium">{company.name}</h3>
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm text-muted-foreground">{company.technicianCount} technicians</p>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span>{company.technicianCount} technicians</span>
                         <span>•</span>
-                        <p className="text-sm text-muted-foreground">{company.planName || "No"} plan</p>
-                        <Badge variant="outline">{company.status}</Badge>
+                        <span>{company.planName || "Basic"} plan</span>
                       </div>
                     </div>
                   </div>
-                  <Link to={`/admin/companies/${company.id}`}>
-                    <Button variant="outline" size="sm">View Details</Button>
-                  </Link>
+                  <div className="flex items-center gap-3">
+                    <Badge className={getStatusBadgeStyle(company.status)}>
+                      {company.status}
+                    </Badge>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link to={`/admin/companies/${company.id}`}>
+                        View Details
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserManagementStore } from "@/store/userManagementStore";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default function AdminUsers() {
   const navigate = useNavigate();
@@ -27,6 +28,16 @@ export default function AdminUsers() {
 
   const handleAddUser = () => {
     navigate("/admin/users/new");
+  };
+
+  // Helper function to get user initials for avatar fallback
+  const getUserInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
   };
 
   return (
@@ -86,9 +97,12 @@ export default function AdminUsers() {
               {filteredUsers.map((user) => (
                 <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                      <Users className="h-5 w-5 text-primary" />
-                    </div>
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={user.avatarUrl} alt={user.name} />
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {getUserInitials(user.name)}
+                      </AvatarFallback>
+                    </Avatar>
                     <div>
                       <h3 className="font-medium">{user.name}</h3>
                       <p className="text-sm text-muted-foreground">{user.email}</p>
