@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Upload, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
 
 interface AvatarUploadProps {
   currentAvatarUrl?: string;
@@ -58,22 +59,29 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
       
       // Generate a unique filename
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `${fileName}`; // Store directly in avatars bucket root
       
       // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError, data } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
         
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Supabase upload error:', uploadError);
+        throw uploadError;
+      }
       
       // Get public URL
-      const { data } = supabase.storage
+      const { data: publicUrlData } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
         
-      const publicUrl = data.publicUrl;
+      const publicUrl = publicUrlData.publicUrl;
+      console.log('Upload successful, public URL:', publicUrl);
       
       // Update state and call onAvatarChange callback
       setAvatarUrl(publicUrl);
@@ -87,7 +95,7 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
       console.error('Error uploading avatar:', error);
       toast({
         title: "Upload failed",
-        description: "There was an error uploading your image.",
+        description: "There was an error uploading your image. Please ensure you're signed in.",
         variant: "destructive",
       });
     } finally {
@@ -98,6 +106,25 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
   const handleRemoveAvatar = async () => {
     try {
       setIsUploading(true);
+      
+      if (avatarUrl) {
+        // Extract the file path from the URL
+        const urlParts = avatarUrl.split('/');
+        const fileName = urlParts[urlParts.length - 1];
+        
+        // Delete the file from storage if it exists
+        if (fileName) {
+          const { error } = await supabase.storage
+            .from('avatars')
+            .remove([fileName]);
+            
+          if (error) {
+            console.error('Error removing file from storage:', error);
+            // Continue anyway - we still want to clear the avatar URL
+          }
+        }
+      }
+      
       await onAvatarChange('');
       setAvatarUrl(undefined);
       toast({
@@ -105,6 +132,7 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
         description: "Your profile picture has been removed.",
       });
     } catch (error) {
+      console.error('Error removing avatar:', error);
       toast({
         title: "Error",
         description: "Failed to remove profile picture.",
