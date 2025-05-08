@@ -14,8 +14,8 @@ const createVotes = (userId: string, count: number): FeatureVote[] => {
   for (let i = 0; i < count; i++) {
     votes.push({
       id: `vote-${userId}-${i}`,
-      user_id: `user-${i}`,
       feature_id: userId,
+      user_id: `user-${i}`,
       created_at: daysAgo(Math.floor(Math.random() * 30)).toISOString(),
     });
   }

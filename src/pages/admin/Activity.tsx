@@ -32,10 +32,19 @@ export default function ActivityPage() {
       try {
         setLoading(true);
         
-        // In a real implementation, we would fetch from user_activity_logs
         const { data, error } = await supabase
           .from('user_activity_logs')
-          .select('*')
+          .select(`
+            id,
+            activity_type,
+            description,
+            created_at,
+            ip_address,
+            user_agent,
+            metadata,
+            user_id,
+            users:user_id (name, email, role)
+          `)
           .order('created_at', { ascending: false })
           .limit(100);
           
@@ -43,23 +52,22 @@ export default function ActivityPage() {
           throw error;
         }
         
-        // Transform data to match ActivityLog type
-        // If no data or empty array, use sample data
-        if (!data || data.length === 0) {
-          // Use sample data for demonstration
-          setActivityLogs(getSampleActivityData());
-        } else {
-          const formattedLogs = data.map((log: any): ActivityLog => ({
+        if (data && data.length > 0) {
+          // Transform data to match ActivityLog type
+          const formattedLogs: ActivityLog[] = data.map((log): ActivityLog => ({
             id: log.id,
             type: log.activity_type || 'system',
             icon: getIconForType(log.activity_type || 'system'),
-            title: log.description || 'System Activity',
-            description: log.metadata?.details || 'Activity recorded',
+            title: getActivityTitle(log.activity_type || 'system', log.description),
+            description: log.description || 'Activity recorded',
             timestamp: log.created_at,
             severity: getSeverityForType(log.activity_type || 'system')
           }));
           
           setActivityLogs(formattedLogs);
+        } else {
+          // Use sample data for demonstration if no logs are available
+          setActivityLogs(getSampleActivityData());
         }
       } catch (error) {
         console.error('Error fetching activity logs:', error);
@@ -77,6 +85,35 @@ export default function ActivityPage() {
     
     fetchActivityLogs();
   }, [toast]);
+  
+  const getActivityTitle = (type: string, description: string): string => {
+    if (description && description.length > 0) return description;
+    
+    switch (type) {
+      case 'login':
+        return 'User Login';
+      case 'logout':
+        return 'User Logout';
+      case 'password_reset':
+        return 'Password Reset';
+      case 'account_update':
+        return 'Account Updated';
+      case 'company':
+        return 'Company Action';
+      case 'user':
+        return 'User Action';
+      case 'workflow':
+        return 'Workflow Action';
+      case 'support':
+        return 'Support Action';
+      case 'system':
+        return 'System Event';
+      case 'billing':
+        return 'Billing Action';
+      default:
+        return 'System Activity';
+    }
+  };
   
   const getSampleActivityData = (): ActivityLog[] => {
     return [
@@ -142,12 +179,17 @@ export default function ActivityPage() {
       case 'company':
         return <Building2 className="h-4 w-4 text-blue-600" />;
       case 'user':
+      case 'login':
+      case 'logout':
+      case 'password_reset':
+      case 'account_update':
         return <Users className="h-4 w-4 text-green-600" />;
       case 'workflow':
         return <Wrench className="h-4 w-4 text-purple-600" />;
       case 'support':
         return <MessageSquare className="h-4 w-4 text-amber-600" />;
       case 'system':
+      case 'error':
         return <AlertTriangle className="h-4 w-4 text-red-600" />;
       case 'billing':
         return <FileText className="h-4 w-4 text-indigo-600" />;
@@ -159,6 +201,7 @@ export default function ActivityPage() {
   const getSeverityForType = (type: string): 'info' | 'warning' | 'error' => {
     switch (type) {
       case 'system_error':
+      case 'error':
         return 'error';
       case 'warning':
       case 'security':

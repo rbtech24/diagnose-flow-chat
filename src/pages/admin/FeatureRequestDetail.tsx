@@ -2,13 +2,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
-import { FeatureRequest, FeatureRequestStatus, FeatureRequestPriority, FeatureComment } from "@/types/feature-request";
-import { ArrowLeft, Loader2 } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+import { FeatureRequest, FeatureRequestStatus, FeatureComment } from "@/types/feature-request";
+import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 export default function AdminFeatureRequestDetailPage() {
   const [featureRequest, setFeatureRequest] = useState<FeatureRequest | null>(null);
@@ -16,199 +14,186 @@ export default function AdminFeatureRequestDetailPage() {
   const [loading, setLoading] = useState(true);
   const { id } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   useEffect(() => {
-    if (id) {
-      fetchFeatureRequestDetails();
-    }
+    const fetchFeatureRequest = async () => {
+      if (!id) return;
+      
+      try {
+        setLoading(true);
+        
+        // Get the feature request
+        const { data: requestData, error: requestError } = await supabase
+          .from("feature_requests")
+          .select(`
+            *,
+            created_by_user:created_by(name, email, avatar_url, role)
+          `)
+          .eq("id", id)
+          .single();
+
+        if (requestError) throw requestError;
+        
+        if (!requestData) {
+          toast.error("Feature request not found");
+          return;
+        }
+
+        // Get votes count
+        const { count: votesCount, error: votesError } = await supabase
+          .from("feature_votes")
+          .select("*", { count: "exact", head: true })
+          .eq("feature_id", id);
+
+        if (votesError) throw votesError;
+        
+        // Check if current user has voted
+        const { data: userSession } = await supabase.auth.getSession();
+        const currentUserId = userSession?.session?.user?.id;
+        
+        let userHasVoted = false;
+        if (currentUserId) {
+          const { data: voteData } = await supabase
+            .from("feature_votes")
+            .select("*")
+            .eq("feature_id", id)
+            .eq("user_id", currentUserId)
+            .maybeSingle();
+            
+          userHasVoted = !!voteData;
+        }
+
+        // Get comments
+        const { data: commentsData, error: commentsError } = await supabase
+          .from("feature_comments")
+          .select(`
+            *,
+            created_by_user:created_by(name, email, avatar_url, role)
+          `)
+          .eq("feature_id", id)
+          .order("created_at", { ascending: true });
+
+        if (commentsError) throw commentsError;
+
+        // Calculate comments count
+        const commentsCount = commentsData?.length || 0;
+
+        // Construct the feature request with additional data
+        const featureRequestWithData = {
+          ...requestData,
+          votes_count: votesCount || 0,
+          user_has_voted: userHasVoted,
+          comments_count: commentsCount,
+          priority: requestData.priority || "medium" // Ensure priority exists
+        } as FeatureRequest;
+
+        setFeatureRequest(featureRequestWithData);
+        setComments(commentsData || []);
+      } catch (error) {
+        console.error("Error fetching feature request:", error);
+        toast.error("Failed to load feature request details");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeatureRequest();
   }, [id]);
 
-  const fetchFeatureRequestDetails = async () => {
+  const handleUpdateStatus = async (id: string, status: FeatureRequestStatus) => {
     try {
-      setLoading(true);
-      
-      // Get feature request details
-      const { data: requestData, error: requestError } = await supabase
+      const { error } = await supabase
         .from("feature_requests")
-        .select(`
-          *,
-          created_by_user:created_by(id, name, email, avatar_url, role)
-        `)
-        .eq("id", id)
-        .single();
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq("id", id);
         
-      if (requestError) throw requestError;
+      if (error) throw error;
       
-      // Get votes count
-      const { count: votesCount, error: votesError } = await supabase
-        .from("feature_votes")
-        .select("id", { count: true, head: true })
-        .eq("feature_id", id);
-        
-      if (votesError) throw votesError;
-      
-      // Get comments
-      const { data: commentsData, error: commentsError } = await supabase
-        .from("feature_comments")
-        .select(`
-          *,
-          created_by_user:created_by(id, name, email, avatar_url, role)
-        `)
-        .eq("feature_id", id)
-        .order("created_at", { ascending: true });
-        
-      if (commentsError) throw commentsError;
-      
-      // Check if current user has voted
-      const { data: userData } = await supabase.auth.getUser();
-      let userHasVoted = false;
-      
-      if (userData?.user) {
-        const { data: userVote } = await supabase
-          .from("feature_votes")
-          .select("id")
-          .eq("feature_id", id)
-          .eq("user_id", userData.user.id)
-          .maybeSingle();
-          
-        userHasVoted = !!userVote;
+      if (featureRequest) {
+        setFeatureRequest({
+          ...featureRequest,
+          status
+        });
       }
-
-      // Build the request object with all the data we need
-      const featureRequestWithMetadata = {
-        ...requestData,
-        votes_count: votesCount || 0,
-        comments_count: commentsData?.length || 0,
-        user_has_voted: userHasVoted
-      };
       
-      setFeatureRequest(featureRequestWithMetadata as FeatureRequest);
-      setComments(commentsData || []);
-    } catch (err) {
-      console.error("Error fetching feature request:", err);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load feature request details."
-      });
-    } finally {
-      setLoading(false);
+      toast.success(`Status updated to ${status}`);
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error("Failed to update status");
     }
   };
 
-  const handleUpdateStatus = async (requestId: string, status: FeatureRequestStatus) => {
+  const handleUpdatePriority = async (id: string, priority: string) => {
     try {
       const { error } = await supabase
         .from("feature_requests")
-        .update({
-          status,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", requestId);
+        .update({ priority, updated_at: new Date().toISOString() })
+        .eq("id", id);
         
       if (error) throw error;
       
-      setFeatureRequest(prev => prev ? { 
-        ...prev, 
-        status, 
-        updated_at: new Date().toISOString()
-      } : null);
+      if (featureRequest) {
+        setFeatureRequest({
+          ...featureRequest,
+          priority
+        });
+      }
       
-      toast({
-        title: "Status updated",
-        description: `Feature request status changed to ${status}`
-      });
-    } catch (err) {
-      console.error("Error updating status:", err);
-      toast({
-        variant: "destructive",
-        title: "Update failed",
-        description: "Failed to update feature request status."
-      });
+      toast.success(`Priority updated to ${priority}`);
+    } catch (error) {
+      console.error("Error updating priority:", error);
+      toast.error("Failed to update priority");
     }
   };
 
-  const handleUpdatePriority = async (requestId: string, priority: string) => {
+  const handleAddComment = async (featureId: string, content: string) => {
     try {
-      const { error } = await supabase
-        .from("feature_requests")
-        .update({
-          priority,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", requestId);
-        
-      if (error) throw error;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData?.session?.user?.id;
       
-      setFeatureRequest(prev => prev ? {
-        ...prev,
-        priority: priority as FeatureRequestPriority,
-        updated_at: new Date().toISOString(),
-      } : null);
+      if (!userId) {
+        toast.error("You must be logged in to add comments");
+        return;
+      }
       
-      toast({
-        title: "Priority updated",
-        description: `Feature request priority changed to ${priority}`
-      });
-    } catch (err) {
-      console.error("Error updating priority:", err);
-      toast({
-        variant: "destructive",
-        title: "Update failed",
-        description: "Failed to update feature request priority."
-      });
-    }
-  };
-
-  const handleAddComment = async (requestId: string, content: string) => {
-    try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error("User not authenticated");
-      
-      const { data: newComment, error } = await supabase
+      const { data: commentData, error } = await supabase
         .from("feature_comments")
         .insert({
-          feature_id: requestId,
+          feature_id: featureId,
           content,
-          created_by: userData.user.id
+          created_by: userId
         })
         .select(`
           *,
-          created_by_user:created_by(id, name, email, avatar_url, role)
+          created_by_user:created_by(name, email, avatar_url, role)
         `)
         .single();
-        
+      
       if (error) throw error;
       
-      // Update local state
-      setComments(prev => [...prev, newComment as FeatureComment]);
-      setFeatureRequest(prev => prev ? {
-        ...prev,
-        comments_count: (prev.comments_count || 0) + 1,
-        updated_at: new Date().toISOString()
-      } : null);
+      setComments(prevComments => [...prevComments, commentData]);
       
-      toast({
-        title: "Comment added",
-        description: "Your comment has been added to the feature request."
-      });
-    } catch (err) {
-      console.error("Error adding comment:", err);
-      toast({
-        variant: "destructive",
-        title: "Comment failed",
-        description: "Failed to add your comment."
-      });
+      if (featureRequest) {
+        setFeatureRequest({
+          ...featureRequest,
+          comments_count: (featureRequest.comments_count || 0) + 1
+        });
+      }
+      
+      toast.success("Comment added successfully");
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      toast.error("Failed to add comment");
     }
   };
 
   if (loading) {
     return (
       <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <span className="ml-2">Loading feature request details...</span>
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="h-32 bg-gray-200 rounded"></div>
         </div>
       </div>
     );
@@ -231,62 +216,21 @@ export default function AdminFeatureRequestDetailPage() {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="mb-6 flex justify-between items-center">
+      <div className="mb-6">
         <Button variant="ghost" onClick={() => navigate("/admin/feature-requests")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Feature Requests
         </Button>
-        
-        <div className="flex items-center gap-4">
-          <div>
-            <span className="text-sm text-gray-500 mr-2">Status:</span>
-            <Select
-              value={featureRequest?.status}
-              onValueChange={(value) => handleUpdateStatus(featureRequest?.id || "", value as FeatureRequestStatus)}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="in-progress">In Progress</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div>
-            <span className="text-sm text-gray-500 mr-2">Priority:</span>
-            <Select
-              value={featureRequest?.priority}
-              onValueChange={(value) => handleUpdatePriority(featureRequest?.id || "", value)}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="critical">Critical</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
       </div>
-      
-      <Separator className="my-4" />
       
       {featureRequest && (
         <FeatureRequestDetail
           featureRequest={featureRequest}
           comments={comments}
           onAddComment={handleAddComment}
-          isAdmin={true}
           onUpdateStatus={handleUpdateStatus}
           onUpdatePriority={handleUpdatePriority}
+          isAdmin={true}
         />
       )}
     </div>
