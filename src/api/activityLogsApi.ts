@@ -44,13 +44,7 @@ export async function fetchActivityLogs(
         created_at,
         ip_address,
         user_agent,
-        metadata,
-        users:user_id (
-          name,
-          email,
-          role,
-          avatar_url
-        )
+        metadata
       `);
     
     // Apply timeframe filter
@@ -96,6 +90,32 @@ export async function fetchActivityLogs(
       throw error;
     }
     
+    // Get user data separately for each activity log with a user_id
+    const userIds = data
+      .filter(log => log.user_id)
+      .map(log => log.user_id) as string[];
+
+    // Get unique user IDs
+    const uniqueUserIds = [...new Set(userIds)];
+    
+    // Fetch users data if we have user IDs
+    let usersMap: Record<string, any> = {};
+    
+    if (uniqueUserIds.length > 0) {
+      const { data: usersData } = await supabase
+        .from('users')
+        .select('id, name, email, role, avatar_url')
+        .in('id', uniqueUserIds);
+        
+      if (usersData) {
+        // Create map of user_id -> user data
+        usersMap = usersData.reduce((acc, user) => {
+          acc[user.id] = user;
+          return acc;
+        }, {} as Record<string, any>);
+      }
+    }
+    
     // Transform the data to match our ActivityLog interface
     const activityLogs: ActivityLog[] = (data || []).map(log => ({
       id: log.id,
@@ -105,8 +125,9 @@ export async function fetchActivityLogs(
       timestamp: log.created_at,
       ip_address: log.ip_address,
       user_agent: log.user_agent,
-      metadata: log.metadata ? log.metadata as Record<string, any> : {}, // Cast metadata to Record<string, any>
-      user: log.users  // Changed from log.user to log.users to match the query alias
+      metadata: log.metadata ? log.metadata as Record<string, any> : {}, 
+      // Use user data from usersMap if available
+      user: log.user_id ? usersMap[log.user_id] || {} : {} 
     }));
     
     return activityLogs;
@@ -152,6 +173,6 @@ export async function logActivity(activityData: {
     timestamp: data.created_at,
     ip_address: data.ip_address,
     user_agent: data.user_agent,
-    metadata: data.metadata as Record<string, any> // Cast metadata to Record<string, any>
+    metadata: data.metadata as Record<string, any>
   };
 }
