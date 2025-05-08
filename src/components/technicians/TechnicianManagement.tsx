@@ -25,9 +25,10 @@ export function TechnicianManagement({ companyId }: TechnicianManagementProps) {
   const [invites, setInvites] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [technicianLimits, setTechnicianLimits] = useState({
-    maxTechs: 5,
-    currentCount: 0,
+    maxTechnicians: 5,
+    activeCount: 0,
     pendingCount: 0,
+    totalCount: 0,
     isAtLimit: false
   });
   
@@ -63,10 +64,14 @@ export function TechnicianManagement({ companyId }: TechnicianManagementProps) {
       setInvites(inviteData || []);
       
       if (limitsData) {
+        const activeCount = limitsData.active_count || 0;
+        const pendingCount = limitsData.pending_count || 0;
+        
         setTechnicianLimits({
-          maxTechs: limitsData.max_technicians || 5,
-          currentCount: limitsData.active_count || 0,
-          pendingCount: limitsData.pending_count || 0,
+          maxTechnicians: limitsData.max_technicians || 5,
+          activeCount: activeCount,
+          pendingCount: pendingCount,
+          totalCount: activeCount + pendingCount,
           isAtLimit: limitsData.is_at_limit || false
         });
       }

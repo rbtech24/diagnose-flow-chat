@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
-interface TechnicianLimits {
+export interface TechnicianLimits {
   activeCount: number;
   pendingCount: number;
   maxTechnicians: number;

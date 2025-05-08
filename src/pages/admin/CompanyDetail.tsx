@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -114,10 +113,18 @@ export default function CompanyDetail() {
 
   const getPlanDetails = () => {
     const planId = company.plan_id;
-    if (!planId) return { name: company.subscription_tier || "Basic" };
+    if (!planId) return { 
+      name: company.subscription_tier || "Basic",
+      dailyDiagnostics: 10,
+      storageLimit: "5GB"
+    };
     
     const plan = plans.find(p => p.id === planId);
-    return plan || { name: company.subscription_tier || "Basic" };
+    return plan || { 
+      name: company.subscription_tier || "Basic",
+      dailyDiagnostics: 10,
+      storageLimit: "5GB"
+    };
   };
 
   const plan = getPlanDetails();
