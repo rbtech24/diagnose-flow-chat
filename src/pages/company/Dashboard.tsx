@@ -34,6 +34,17 @@ interface ActivityItem {
   status?: string;
 }
 
+interface ActivityLogItem {
+  id: string;
+  activity_type: string;
+  description: string;
+  created_at: string;
+  metadata: {
+    status?: string;
+    [key: string]: any;
+  } | null;
+}
+
 export default function CompanyDashboard() {
   // State for company data
   const [company, setCompany] = useState<CompanyData | null>(null);
@@ -150,13 +161,19 @@ export default function CompanyDashboard() {
         if (activityError) throw activityError;
         
         // Format activity data
-        const formattedActivity = activityData.map(item => ({
-          id: item.id,
-          type: item.activity_type,
-          description: item.description || `${item.activity_type} activity`,
-          timestamp: new Date(item.created_at).toLocaleString(),
-          status: item.metadata?.status?.toString() || undefined
-        }));
+        const formattedActivity = (activityData || []).map((item: ActivityLogItem) => {
+          const statusValue = item.metadata && typeof item.metadata === 'object' && 'status' in item.metadata
+            ? String(item.metadata.status)
+            : undefined;
+            
+          return {
+            id: item.id,
+            type: item.activity_type,
+            description: item.description || `${item.activity_type} activity`,
+            timestamp: new Date(item.created_at).toLocaleString(),
+            status: statusValue
+          };
+        });
         
         setRecentActivity(formattedActivity);
         

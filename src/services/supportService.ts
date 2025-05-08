@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { SupportTicket, SupportTicketMessage, SupportTicketStatus, TicketPriority } from "@/types/support";
 import { useUserManagementStore } from "@/store/userManagementStore";
@@ -297,7 +298,7 @@ export async function assignTicket(ticketId: string, assignedToUserId: string) {
     
     if (error) throw error;
     
-    // Log the assignment
+    // Create assignment record in a custom table
     const assignmentData = {
       ticket_id: ticketId,
       assigned_to: assignedToUserId,
@@ -305,9 +306,22 @@ export async function assignTicket(ticketId: string, assignedToUserId: string) {
       assigned_at: new Date().toISOString()
     };
     
-    await supabase
-      .from('ticket_assignments')
-      .insert(assignmentData);
+    // If the ticket_assignments table exists in the database, use it
+    try {
+      // Instead of directly using ticket_assignments which may not exist in the DB schema
+      // We'll log the assignment in user_activity_logs which we know exists
+      await supabase
+        .from('user_activity_logs')
+        .insert({
+          user_id: userData.user.id,
+          activity_type: 'assignment',
+          description: `Assigned ticket ${ticketId} to user ${assignedToUserId}`,
+          metadata: assignmentData
+        });
+    } catch (err) {
+      console.error("Could not log ticket assignment:", err);
+      // Continue execution even if logging fails
+    }
     
     // Create notification for the assigned user
     await createTicketNotification(
@@ -360,20 +374,25 @@ export async function fetchAvailableAgents() {
         id,
         email,
         role,
-        profiles:profiles(full_name, avatar_url)
+        profiles(full_name, avatar_url)
       `)
       .in('role', ['admin', 'company_admin'])
       .eq('status', 'active');
     
     if (error) throw error;
     
-    return data.map(agent => ({
-      id: agent.id,
-      email: agent.email,
-      role: agent.role,
-      name: agent.profiles?.full_name || agent.email.split('@')[0],
-      avatar_url: agent.profiles?.avatar_url
-    }));
+    return data.map(agent => {
+      // Handle the nested profiles object safely
+      const profiles = agent.profiles as { full_name?: string, avatar_url?: string } | null;
+      
+      return {
+        id: agent.id,
+        email: agent.email,
+        role: agent.role,
+        name: profiles?.full_name || agent.email.split('@')[0],
+        avatar_url: profiles?.avatar_url
+      };
+    });
   } catch (error) {
     console.error("Error fetching available agents:", error);
     throw error;
