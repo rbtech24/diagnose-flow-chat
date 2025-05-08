@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +11,7 @@ import { ArrowLeft, Calendar, MapPin, UserRound, Package, Wrench, AlertTriangle,
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { handleApiError } from "@/utils/errorHandler";
 import { toast } from "sonner";
-import { ActivityItem as ActivityData, FormattedActivity as FormattedActivityData } from "@/types/activity";
+import { ActivityItem, ActivityMetadata } from "@/types/activity";
 
 // Define proper interface for company address to avoid deep instantiation
 interface CompanyAddress {
@@ -20,7 +21,7 @@ interface CompanyAddress {
   zip?: string | null;
 }
 
-// Define proper type for JSON metadata
+// Define type for JSON metadata
 type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
 
 // Define types for company and activity data
@@ -36,13 +37,16 @@ interface CompanyData {
   company_address?: CompanyAddress | null;
 }
 
-// Define a formatted activity type for UI display
-interface FormattedActivity {
+// Use a simpler type for user activities to avoid infinite type depth
+interface UserActivityData {
   id: string;
-  title: string;
-  timestamp: string;
-  activity_type: string;
-  metadata: Record<string, any>;
+  description?: string;
+  activity_type: string; 
+  created_at: string;
+  metadata: any; // Using any temporarily to avoid type depth issues
+  ip_address?: string;
+  user_agent?: string;
+  user_id?: string;
 }
 
 export default function CompanyDetail() {
@@ -50,7 +54,7 @@ export default function CompanyDetail() {
   const navigate = useNavigate();
   const [company, setCompany] = useState<CompanyData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activities, setActivities] = useState<ActivityData[]>([]);
+  const [activities, setActivities] = useState<UserActivityData[]>([]);
   const [activeTechnicians, setActiveTechnicians] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const { toast: uiToast } = useToast();
@@ -93,9 +97,9 @@ export default function CompanyDetail() {
         
         if (activityError) throw activityError;
         
-        // Safely handle the activity data with proper typing
-        const typedActivities: ActivityData[] = activityData || [];
-        setActivities(typedActivities);
+        if (activityData) {
+          setActivities(activityData);
+        }
         
       } catch (err) {
         const apiError = handleApiError(err, "fetching company details", false);
@@ -113,9 +117,9 @@ export default function CompanyDetail() {
   }, [id]);
 
   // Function to format activity items for display
-  const formatActivity = (activity: ActivityData): FormattedActivity => {
-    // Ensure metadata is a proper object
-    let metadataObj: Record<string, any> = {};
+  const formatActivity = (activity: UserActivityData): ActivityItem => {
+    // Ensure metadata is properly typed
+    let metadataObj: ActivityMetadata = {};
     
     if (typeof activity.metadata === 'string') {
       try {
@@ -124,7 +128,27 @@ export default function CompanyDetail() {
         metadataObj = {};
       }
     } else if (activity.metadata && typeof activity.metadata === 'object') {
-      metadataObj = activity.metadata;
+      // Convert complex metadata to ActivityMetadata format
+      const typedMetadata = activity.metadata as Record<string, any>;
+      
+      if (typedMetadata.repair_id) {
+        metadataObj.repair_id = String(typedMetadata.repair_id);
+      }
+      
+      if (typedMetadata.technician_name) {
+        metadataObj.technician_name = String(typedMetadata.technician_name);
+      }
+      
+      if (typedMetadata.status) {
+        metadataObj.status = String(typedMetadata.status);
+      }
+      
+      // Add any other properties as-is
+      Object.entries(typedMetadata).forEach(([key, value]) => {
+        if (!['repair_id', 'technician_name', 'status'].includes(key)) {
+          metadataObj[key] = value;
+        }
+      });
     }
     
     return {
@@ -132,6 +156,7 @@ export default function CompanyDetail() {
       title: activity.description || `${activity.activity_type} activity`,
       timestamp: new Date(activity.created_at).toLocaleString(),
       activity_type: activity.activity_type,
+      description: activity.description || '',
       metadata: metadataObj
     };
   };

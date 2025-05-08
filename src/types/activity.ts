@@ -10,13 +10,11 @@ export interface ActivityMetadata {
 export interface ActivityItem {
   id: string;
   activity_type: string;
-  created_at: string;
+  created_at?: string;
   description: string;
-  ip_address: string;
-  metadata: ActivityMetadata | string | null;
-  user_agent: string;
-  user_id: string;
-  company_id?: string;
+  timestamp: string;
+  metadata: ActivityMetadata;
+  title: string;
 }
 
 export interface FormattedActivity {

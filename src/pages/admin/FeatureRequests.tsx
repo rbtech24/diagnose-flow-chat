@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -51,6 +50,14 @@ export default function AdminFeatureRequests() {
     return 0;
   });
   
+  // Updated to match the expected signature
+  const handleSubmit = async () => {
+    // This function no longer receives a parameter
+    // Will be used as a callback after the form submission is complete
+    setIsNewRequestDialogOpen(false);
+  };
+  
+  // This is the actual function that will create a new request
   const handleCreateRequest = (newRequest: Omit<FeatureRequest, "id" | "created_at" | "updated_at" | "votes_count" | "user_has_voted" | "comments_count">) => {
     setIsSubmitting(true);
     
@@ -101,8 +108,7 @@ export default function AdminFeatureRequests() {
               </DialogDescription>
             </DialogHeader>
             <NewFeatureRequestForm 
-              onSubmit={handleCreateRequest} 
-              isSubmitting={isSubmitting} 
+              onSubmit={handleSubmit}
             />
           </DialogContent>
         </Dialog>
