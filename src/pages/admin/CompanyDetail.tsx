@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +11,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { handleApiError } from "@/utils/errorHandler";
 import { toast } from "sonner";
 
+// Define proper interface for company address to avoid deep instantiation
+interface CompanyAddress {
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip?: string | null;
+}
+
 // Define types for company and activity data
 interface CompanyData {
   id: string;
@@ -22,12 +29,7 @@ interface CompanyData {
   trial_status?: string;
   trial_period?: number;
   trial_end_date?: string;
-  company_address?: {
-    address?: string | null;
-    city?: string | null;
-    state?: string | null;
-    zip?: string | null;
-  } | null;
+  company_address?: CompanyAddress | null;
 }
 
 interface ActivityItem {
@@ -36,7 +38,7 @@ interface ActivityItem {
   created_at: string;
   description: string;
   ip_address: string;
-  metadata: any;
+  metadata: Record<string, any>;
   user_agent: string;
   user_id: string;
 }
@@ -125,6 +127,20 @@ export default function CompanyDetail() {
     };
   };
 
+  // Get company address information safely
+  const getFormattedAddress = (company: CompanyData): string => {
+    if (!company.company_address) return 'No address provided';
+    
+    const address = company.company_address.address || '';
+    const city = company.company_address.city || '';
+    const state = company.company_address.state || '';
+    const zip = company.company_address.zip || '';
+    
+    return address && city && state && zip
+      ? `${address}, ${city}, ${state} ${zip}`
+      : 'No address provided';
+  };
+
   // Render loading state
   if (loading) {
     return (
@@ -169,18 +185,7 @@ export default function CompanyDetail() {
     );
   }
 
-  // Get company address information safely
-  const companyAddress = company.company_address || {};
-  const address = companyAddress.address || "";
-  const city = companyAddress.city || "";
-  const state = companyAddress.state || "";
-  const zip = companyAddress.zip || "";
-
-  // Format address for display
-  const formattedAddress = address && city && state && zip
-    ? `${address}, ${city}, ${state} ${zip}`
-    : 'No address provided';
-
+  // Render company details
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center mb-6">
@@ -196,13 +201,13 @@ export default function CompanyDetail() {
           <CardHeader>
             <CardTitle>{company.name}</CardTitle>
             <CardDescription>
-              {formattedAddress}
+              {getFormattedAddress(company)}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span>{formattedAddress}</span>
+              <span>{getFormattedAddress(company)}</span>
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />

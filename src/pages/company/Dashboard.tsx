@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,23 +27,27 @@ interface Technician {
   job_count: number;
 }
 
+// Define a simpler type for activity item metadata
+interface ActivityMetadata {
+  status?: string;
+  [key: string]: any;
+}
+
+// Define separate interfaces to avoid deep instantiation
+interface ActivityLogItem {
+  id: string;
+  activity_type: string;
+  description: string;
+  created_at: string;
+  metadata: ActivityMetadata | null;
+}
+
 interface ActivityItem {
   id: string;
   type: string;
   description: string;
   timestamp: string;
   status?: string;
-}
-
-interface ActivityLogItem {
-  id: string;
-  activity_type: string;
-  description: string;
-  created_at: string;
-  metadata: {
-    status?: string;
-    [key: string]: any;
-  } | null;
 }
 
 export default function CompanyDashboard() {
@@ -162,9 +167,12 @@ export default function CompanyDashboard() {
         
         // Format activity data
         const formattedActivity = (activityData || []).map((item: ActivityLogItem) => {
-          const statusValue = item.metadata && typeof item.metadata === 'object' && 'status' in item.metadata
-            ? String(item.metadata.status)
-            : undefined;
+          // Safely extract status from metadata if it exists
+          let statusValue: string | undefined;
+          
+          if (item.metadata && typeof item.metadata === 'object') {
+            statusValue = item.metadata.status?.toString();
+          }
             
           return {
             id: item.id,
