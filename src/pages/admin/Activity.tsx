@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,19 +31,10 @@ export default function ActivityPage() {
       try {
         setLoading(true);
         
+        // Query user_activity_logs directly with appropriate selection
         const { data, error } = await supabase
           .from('user_activity_logs')
-          .select(`
-            id,
-            activity_type,
-            description,
-            created_at,
-            ip_address,
-            user_agent,
-            metadata,
-            user_id,
-            users:user_id (name, email, role)
-          `)
+          .select('id, activity_type, description, created_at, metadata, user_id')
           .order('created_at', { ascending: false })
           .limit(100);
           

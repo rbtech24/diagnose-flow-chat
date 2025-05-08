@@ -38,10 +38,27 @@ serve(async (req) => {
       )
     }
 
-    // Call the database function
-    const { data: activities, error } = await supabaseClient.rpc('get_user_activity', {
-      p_user_id: userId
-    })
+    // Try to call the RPC function first
+    let data, error;
+    try {
+      const result = await supabaseClient.rpc('get_user_activity', {
+        p_user_id: userId
+      })
+      data = result.data
+      error = result.error
+    } catch (rpcError) {
+      console.error('RPC error, falling back to direct query:', rpcError)
+      // Fall back to direct query if RPC fails
+      const result = await supabaseClient
+        .from('user_activity_logs')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(50)
+      
+      data = result.data
+      error = result.error
+    }
 
     if (error) {
       console.error('Error fetching user activities:', error)
@@ -52,7 +69,7 @@ serve(async (req) => {
     }
 
     // If no activities found, create a default message
-    const formattedActivities = activities.length > 0 ? activities : [
+    const activitiesData = data && data.length > 0 ? data : [
       {
         id: 'default',
         activity_type: 'info',
@@ -62,17 +79,17 @@ serve(async (req) => {
     ]
 
     // Map the activities to a more friendly format for the frontend
-    const formattedResult = formattedActivities.map(activity => ({
+    const formattedActivities = activitiesData.map(activity => ({
       id: activity.id,
       title: activity.activity_type === 'info' ? activity.description : 
-             `${activity.activity_type.charAt(0).toUpperCase() + activity.activity_type.slice(1)} - ${activity.description || ''}`,
+             `${activity.activity_type?.charAt(0).toUpperCase() + activity.activity_type?.slice(1) || 'Activity'} - ${activity.description || ''}`,
       timestamp: activity.created_at,
       metadata: activity.metadata || {}
     }))
 
     // Return the activities
     return new Response(
-      JSON.stringify(formattedResult),
+      JSON.stringify(formattedActivities),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
   } catch (error) {

@@ -2,11 +2,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-interface UserActivity {
+export interface UserActivity {
   id: string;
   title: string;
   timestamp: string;
   metadata?: Record<string, any>;
+  activity_type?: string;
+  description?: string;
 }
 
 export function useUserActivity(userId: string | undefined) {
@@ -34,7 +36,9 @@ export function useUserActivity(userId: string | undefined) {
           throw new Error(error.message);
         }
 
-        setActivities(data || []);
+        // Ensure data is properly formatted as UserActivity[]
+        const formattedActivities: UserActivity[] = Array.isArray(data) ? data : [];
+        setActivities(formattedActivities);
       } catch (err) {
         console.error("Error fetching user activity:", err);
         setError(err instanceof Error ? err.message : "Failed to fetch user activity");
