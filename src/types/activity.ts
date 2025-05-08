@@ -4,7 +4,7 @@ export interface ActivityMetadata {
   repair_id?: string;
   technician_name?: string;
   status?: string;
-  [key: string]: any;
+  [key: string]: string | number | boolean | null | undefined;
 }
 
 export interface ActivityItem {

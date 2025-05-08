@@ -118,35 +118,44 @@ export default function CompanyDetail() {
 
   // Function to format activity items for display
   const formatActivity = (activity: UserActivityData): ActivityItem => {
-    // Ensure metadata is properly typed
+    // Create a safe metadata object that conforms to ActivityMetadata
     let metadataObj: ActivityMetadata = {};
     
     if (typeof activity.metadata === 'string') {
       try {
-        metadataObj = JSON.parse(activity.metadata);
+        const parsed = JSON.parse(activity.metadata);
+        // Copy allowed properties
+        if (parsed.repair_id) metadataObj.repair_id = String(parsed.repair_id);
+        if (parsed.technician_name) metadataObj.technician_name = String(parsed.technician_name);
+        if (parsed.status) metadataObj.status = String(parsed.status);
+        
+        // Copy other properties safely
+        Object.entries(parsed).forEach(([key, value]) => {
+          if (!['repair_id', 'technician_name', 'status'].includes(key)) {
+            // Only add string, number, boolean, or null values to avoid recursion
+            if (value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+              metadataObj[key] = value;
+            }
+          }
+        });
       } catch {
         metadataObj = {};
       }
     } else if (activity.metadata && typeof activity.metadata === 'object') {
-      // Convert complex metadata to ActivityMetadata format
       const typedMetadata = activity.metadata as Record<string, any>;
       
-      if (typedMetadata.repair_id) {
-        metadataObj.repair_id = String(typedMetadata.repair_id);
-      }
+      // Copy allowed properties
+      if (typedMetadata.repair_id) metadataObj.repair_id = String(typedMetadata.repair_id);
+      if (typedMetadata.technician_name) metadataObj.technician_name = String(typedMetadata.technician_name);
+      if (typedMetadata.status) metadataObj.status = String(typedMetadata.status);
       
-      if (typedMetadata.technician_name) {
-        metadataObj.technician_name = String(typedMetadata.technician_name);
-      }
-      
-      if (typedMetadata.status) {
-        metadataObj.status = String(typedMetadata.status);
-      }
-      
-      // Add any other properties as-is
+      // Copy other properties safely
       Object.entries(typedMetadata).forEach(([key, value]) => {
         if (!['repair_id', 'technician_name', 'status'].includes(key)) {
-          metadataObj[key] = value;
+          // Only add string, number, boolean, or null values to avoid recursion
+          if (value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+            metadataObj[key] = value;
+          }
         }
       });
     }
@@ -233,23 +242,23 @@ export default function CompanyDetail() {
       <div className="grid gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>{company.name}</CardTitle>
+            <CardTitle>{company?.name}</CardTitle>
             <CardDescription>
-              {getFormattedAddress(company)}
+              {company && getFormattedAddress(company)}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span>{getFormattedAddress(company)}</span>
+              <span>{company && getFormattedAddress(company)}</span>
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span>Joined {new Date(company.created_at).toLocaleDateString()}</span>
+              <span>Joined {company && new Date(company.created_at).toLocaleDateString()}</span>
             </div>
             <div className="flex items-center gap-2">
               <Package className="h-4 w-4 text-muted-foreground" />
-              <span>Subscription: <Badge variant="secondary">{company.subscription_tier}</Badge></span>
+              <span>Subscription: <Badge variant="secondary">{company?.subscription_tier}</Badge></span>
             </div>
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-muted-foreground" />

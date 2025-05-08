@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -109,6 +110,7 @@ export default function AdminFeatureRequests() {
             </DialogHeader>
             <NewFeatureRequestForm 
               onSubmit={handleSubmit}
+              onCreateRequest={handleCreateRequest}
             />
           </DialogContent>
         </Dialog>
