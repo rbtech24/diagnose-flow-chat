@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -323,9 +322,7 @@ export default function UserDetail() {
                   <div key={activity.id || index} className="p-3 border rounded-md">
                     <div className="font-medium">{activity.title}</div>
                     <div className="text-sm text-muted-foreground">
-                      {typeof activity.timestamp === 'string' 
-                        ? new Date(activity.timestamp).toLocaleString() 
-                        : activity.timestamp.toLocaleString()}
+                      {new Date(activity.timestamp).toLocaleString()}
                     </div>
                   </div>
                 ))
