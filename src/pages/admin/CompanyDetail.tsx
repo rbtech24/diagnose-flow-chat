@@ -80,33 +80,33 @@ export default function CompanyDetail() {
   const fetchCompanyActivities = async (companyId: string) => {
     setLoadingActivities(true);
     try {
-      // Using explicit type casting to avoid complex type inference
-      type ActivityResponse = {
+      // Define explicit interface for activity data to avoid deep type instantiation
+      interface ActivityData {
         id: string;
         description?: string;
         created_at: string;
         activity_type?: string;
-        metadata: any;
-      };
+        metadata: Record<string, any> | null;
+      }
 
       const { data, error } = await supabase
         .from('user_activity_logs')
         .select('*')
         .eq('metadata->company_id', companyId)
         .order('created_at', { ascending: false })
-        .limit(5) as { data: ActivityResponse[] | null, error: any };
+        .limit(5);
       
       if (error) {
         throw error;
       }
 
       if (data && data.length > 0) {
-        const formattedActivities: CompanyActivity[] = data.map(item => ({
+        const formattedActivities: CompanyActivity[] = data.map((item: ActivityData) => ({
           id: item.id,
           title: item.description || getActivityTypeLabel(item.activity_type || ''),
           timestamp: item.created_at,
           activity_type: item.activity_type,
-          metadata: item.metadata as Record<string, any> | null
+          metadata: item.metadata
         }));
         setCompanyActivities(formattedActivities);
       } else {

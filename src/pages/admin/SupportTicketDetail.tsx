@@ -6,7 +6,7 @@ import { SupportTicket } from "@/components/support/SupportTicket";
 import { SupportTicket as SupportTicketType, SupportTicketStatus, SupportTicketMessage } from "@/types/support";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { mockSupportTickets } from "@/data/mockSupportTickets";
+import { fetchTicketById, fetchTicketMessages, updateTicketStatus, addTicketMessage } from "@/services/supportService";
 
 export default function AdminSupportTicketDetail() {
   const { ticketId } = useParams<{ ticketId: string }>();
@@ -26,46 +26,17 @@ export default function AdminSupportTicketDetail() {
     try {
       setLoading(true);
       
-      // Since we don't have a proper database table, use mock data
-      const foundTicket = mockSupportTickets.find(ticket => ticket.id === ticketId);
-      
-      if (!foundTicket) {
-        throw new Error("Ticket not found");
+      if (!ticketId) {
+        throw new Error("Ticket ID is missing");
       }
       
-      setTicket(foundTicket);
+      // Fetch ticket details
+      const ticketData = await fetchTicketById(ticketId);
+      setTicket(ticketData);
       
-      // Mock messages
-      const mockMessages: SupportTicketMessage[] = [
-        {
-          id: "msg1",
-          ticket_id: ticketId || "",
-          content: "I'm experiencing an issue with the technician assignment feature. When I try to assign a technician to a repair, the app freezes.",
-          user_id: foundTicket.user_id,
-          created_at: foundTicket.created_at,
-          sender: {
-            name: foundTicket.created_by_user?.name || "User",
-            email: foundTicket.created_by_user?.email || "",
-            avatar_url: foundTicket.created_by_user?.avatar_url,
-            role: foundTicket.created_by_user?.role || "user"
-          }
-        },
-        {
-          id: "msg2",
-          ticket_id: ticketId || "",
-          content: "Thank you for reporting this. Could you please provide more details about when this happens? Does it occur with specific technicians or all of them?",
-          user_id: "admin1",
-          created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          sender: {
-            name: "Support Team",
-            email: "support@example.com",
-            avatar_url: "",
-            role: "admin"
-          }
-        }
-      ];
-      
-      setMessages(mockMessages);
+      // Fetch ticket messages
+      const messagesData = await fetchTicketMessages(ticketId);
+      setMessages(messagesData);
     } catch (err) {
       console.error("Error fetching ticket details:", err);
       toast({
@@ -80,7 +51,9 @@ export default function AdminSupportTicketDetail() {
 
   const handleUpdateStatus = async (ticketId: string, status: SupportTicketStatus) => {
     try {
-      // Update local state since we're using mock data
+      const updatedTicket = await updateTicketStatus(ticketId, status);
+      
+      // Update local state
       setTicket(prev => prev ? { ...prev, status, updated_at: new Date().toISOString() } : null);
 
       toast({
@@ -99,21 +72,11 @@ export default function AdminSupportTicketDetail() {
 
   const handleAddMessage = async (ticketId: string, content: string) => {
     try {
-      // Create a mock message
-      const newMessage: SupportTicketMessage = {
-        id: `msg-${Date.now()}`,
-        ticket_id: ticketId,
-        content,
-        user_id: "admin-user",
-        created_at: new Date().toISOString(),
-        sender: {
-          name: "Admin User",
-          email: "admin@example.com",
-          role: "admin"
-        }
-      };
+      // Add message to the ticket
+      const newMessage = await addTicketMessage(ticketId, content);
       
-      setMessages(prev => [...prev, newMessage]);
+      // Refresh messages to get the sender information
+      await fetchTicketDetails();
 
       toast({
         title: "Message sent",

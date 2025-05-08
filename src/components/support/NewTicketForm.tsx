@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { TicketPriority } from "@/types/support";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { createSupportTicket } from "@/services/supportService";
+import { useToast } from "@/components/ui/use-toast";
 
 interface NewTicketFormProps {
   onSubmit: (title: string, description: string, priority: TicketPriority) => void;
@@ -20,13 +22,48 @@ export function NewTicketForm({ onSubmit, isSubmitting = false, error }: NewTick
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<TicketPriority>("medium");
+  const { toast } = useToast();
+  const [localIsSubmitting, setLocalIsSubmitting] = useState(false);
+  const [localError, setLocalError] = useState<string | undefined>(undefined);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (title.trim() && description.trim()) {
-      onSubmit(title, description, priority);
+      try {
+        setLocalIsSubmitting(true);
+        setLocalError(undefined);
+        
+        await createSupportTicket(title, description, priority);
+        
+        toast({
+          title: "Ticket created",
+          description: "Your support ticket has been submitted successfully."
+        });
+        
+        // Clear form
+        setTitle("");
+        setDescription("");
+        setPriority("medium");
+        
+        // Call parent handler
+        onSubmit(title, description, priority);
+      } catch (error) {
+        console.error('Error creating ticket:', error);
+        setLocalError("Failed to create ticket. Please try again.");
+        
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to create your ticket. Please try again."
+        });
+      } finally {
+        setLocalIsSubmitting(false);
+      }
     }
   };
+
+  const effectiveIsSubmitting = isSubmitting || localIsSubmitting;
+  const effectiveError = error || localError;
 
   return (
     <Card>
@@ -38,10 +75,10 @@ export function NewTicketForm({ onSubmit, isSubmitting = false, error }: NewTick
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
+          {effectiveError && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>{effectiveError}</AlertDescription>
             </Alert>
           )}
           
@@ -89,9 +126,9 @@ export function NewTicketForm({ onSubmit, isSubmitting = false, error }: NewTick
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={isSubmitting || !title.trim() || !description.trim()}
+            disabled={effectiveIsSubmitting || !title.trim() || !description.trim()}
           >
-            {isSubmitting ? (
+            {effectiveIsSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Submitting...

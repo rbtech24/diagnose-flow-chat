@@ -7,11 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Search, Filter, RotateCw, AlertCircle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { SupportTicket as SupportTicketType, SupportTicketStatus } from "@/types/support";
 import { Card, CardContent } from "@/components/ui/card";
-import { mockSupportTickets } from "@/data/mockSupportTickets";
+import { fetchSupportTickets, updateTicketStatus } from "@/services/supportService";
 
 export default function AdminSupport() {
   const [tickets, setTickets] = useState<SupportTicketType[]>([]);
@@ -23,15 +22,14 @@ export default function AdminSupport() {
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchTickets();
+    loadTickets();
   }, []);
 
-  const fetchTickets = async () => {
+  const loadTickets = async () => {
     try {
       setLoading(true);
-      
-      // Use mock data since the ticket_messages table doesn't exist in Supabase
-      setTickets(mockSupportTickets);
+      const data = await fetchSupportTickets();
+      setTickets(data);
       setError(null);
     } catch (err) {
       console.error("Error fetching tickets:", err);
@@ -51,8 +49,10 @@ export default function AdminSupport() {
 
   const handleUpdateStatus = async (ticketId: string, status: SupportTicketStatus) => {
     try {
-      // Since we're using mock data, just update the state directly
-      setTickets(tickets.map(ticket => 
+      await updateTicketStatus(ticketId, status);
+      
+      // Update local state
+      setTickets(prevTickets => prevTickets.map(ticket => 
         ticket.id === ticketId 
           ? { ...ticket, status, updated_at: new Date().toISOString() } 
           : ticket
@@ -74,14 +74,11 @@ export default function AdminSupport() {
 
   const handleAddMessage = async (ticketId: string, content: string) => {
     try {
+      // We'll implement this in the ticket detail page
       toast({
         title: "Message sent",
         description: "Your message has been added to the ticket."
       });
-
-      // In a real application, we would send the message to the server here
-      console.log("Message added to ticket:", ticketId, content);
-      
     } catch (err) {
       console.error("Error adding message:", err);
       toast({
@@ -125,7 +122,7 @@ export default function AdminSupport() {
           <Button 
             variant="ghost" 
             size="icon" 
-            onClick={fetchTickets}
+            onClick={loadTickets}
             disabled={loading}
           >
             <RotateCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
