@@ -5,83 +5,83 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Loader2, Send } from "lucide-react";
 import { SupportTicket, SupportTicketMessage } from "@/types/support";
-import { mockSupportTickets } from "@/data/mockSupportTickets";
-import { currentUser } from "@/data/mockTickets";
+import { fetchSupportTicketById, fetchTicketMessages, addTicketMessage } from "@/api/supportTicketsApi";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function TechSupportTicketDetail() {
   const [ticket, setTicket] = useState<SupportTicket | null>(null);
   const [messages, setMessages] = useState<SupportTicketMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const { id } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Simulate API call to fetch ticket details
-    setTimeout(() => {
-      if (id) {
-        const foundTicket = mockSupportTickets.find(t => t.id === id);
-        
-        if (foundTicket) {
-          setTicket(foundTicket);
-          
-          // Mock messages
-          const mockMessages: SupportTicketMessage[] = [
-            {
-              id: "msg1",
-              ticket_id: id,
-              content: "I'm experiencing an issue with the technician assignment feature. When I try to assign a technician to a repair, the app freezes.",
-              user_id: foundTicket.user_id,
-              created_at: foundTicket.created_at,
-              sender: foundTicket.created_by_user
-            },
-            {
-              id: "msg2",
-              ticket_id: id,
-              content: "Thank you for reporting this. Could you please provide more details about when this happens? Does it occur with specific technicians or all of them?",
-              user_id: "admin1",
-              created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-              sender: {
-                name: "Support Team",
-                email: "support@example.com",
-                avatar_url: "",
-                role: "admin"
-              }
-            }
-          ];
-          
-          setMessages(mockMessages);
-        }
-      }
-      
-      setLoading(false);
-    }, 800);
+    if (id) {
+      fetchTicketData(id);
+    }
   }, [id]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const fetchTicketData = async (ticketId: string) => {
+    try {
+      setLoading(true);
+      
+      // Fetch ticket details
+      const ticketData = await fetchSupportTicketById(ticketId);
+      setTicket(ticketData);
+      
+      // Fetch messages for this ticket
+      const messagesData = await fetchTicketMessages(ticketId);
+      setMessages(messagesData);
+      
+    } catch (error) {
+      console.error("Error fetching ticket data:", error);
+      toast({
+        variant: "destructive",
+        title: "Error loading ticket",
+        description: "Failed to load the support ticket details."
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!newMessage.trim() || !ticket) return;
+    if (!newMessage.trim() || !ticket || submitting) return;
     
-    // Add new message
-    const newMessageObj: SupportTicketMessage = {
-      id: `msg-${Date.now()}`,
-      ticket_id: ticket.id,
-      content: newMessage.trim(),
-      user_id: currentUser.id,
-      created_at: new Date().toISOString(),
-      sender: {
-        name: currentUser.name,
-        email: currentUser.email,
-        avatar_url: currentUser.avatar_url,
-        role: currentUser.role
-      }
-    };
-    
-    setMessages([...messages, newMessageObj]);
-    setNewMessage("");
+    try {
+      setSubmitting(true);
+      
+      // Add new message to the ticket
+      const newMessageObj = await addTicketMessage({
+        ticket_id: ticket.id,
+        content: newMessage.trim()
+      });
+      
+      // Update the messages state
+      setMessages([...messages, newMessageObj]);
+      setNewMessage("");
+      
+      toast({
+        title: "Message sent",
+        description: "Your reply has been added to the ticket."
+      });
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast({
+        variant: "destructive",
+        title: "Failed to send message",
+        description: "There was a problem sending your reply."
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -107,11 +107,9 @@ export default function TechSupportTicketDetail() {
   if (loading) {
     return (
       <div className="container mx-auto p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-10 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-          <div className="h-40 bg-gray-200 rounded"></div>
-          <div className="h-20 bg-gray-200 rounded"></div>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="ml-2">Loading ticket details...</span>
         </div>
       </div>
     );
@@ -202,11 +200,24 @@ export default function TechSupportTicketDetail() {
             onChange={(e) => setNewMessage(e.target.value)}
             rows={4}
             className="resize-none"
+            disabled={ticket.status === "closed" || submitting}
           />
           <div className="flex justify-end">
-            <Button type="submit" disabled={!newMessage.trim()}>
-              <Send className="mr-2 h-4 w-4" />
-              Send Reply
+            <Button 
+              type="submit" 
+              disabled={!newMessage.trim() || ticket.status === "closed" || submitting}
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Send className="mr-2 h-4 w-4" />
+                  Send Reply
+                </>
+              )}
             </Button>
           </div>
         </form>

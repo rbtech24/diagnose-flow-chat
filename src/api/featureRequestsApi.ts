@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { FeatureRequest, FeatureComment, FeatureRequestStatus, FeatureRequestPriority } from "@/types/feature-request";
 
@@ -194,7 +193,7 @@ export async function fetchFeatureRequestById(requestId: string): Promise<Featur
   let createdByUser = {
     name: 'Unknown User',
     email: '',
-    role: 'user',
+    role: 'user' as "admin" | "company" | "tech",
     avatar_url: null
   };
   
@@ -205,7 +204,7 @@ export async function fetchFeatureRequestById(requestId: string): Promise<Featur
       createdByUser = {
         name: userData.name || 'Unknown User',
         email: userData.email || '',
-        role: userData.role || 'user',
+        role: (userData.role || 'user') as "admin" | "company" | "tech",
         avatar_url: userData.avatar_url || null
       };
     }
@@ -477,6 +476,27 @@ export async function updateFeatureRequest(
     throw error;
   }
   
+  // Ensure we have a valid created_by_user object
+  let createdByUser = {
+    name: 'Unknown User',
+    email: '',
+    role: 'user' as "admin" | "company" | "tech",
+    avatar_url: null
+  };
+  
+  if (data.created_by_user && typeof data.created_by_user === 'object') {
+    // Handle case when created_by_user is an object (successful join)
+    if (!('error' in data.created_by_user)) {
+      const userData = data.created_by_user as Record<string, any>;
+      createdByUser = {
+        name: userData.name || 'Unknown User',
+        email: userData.email || '',
+        role: (userData.role || 'user') as "admin" | "company" | "tech",
+        avatar_url: userData.avatar_url || null
+      };
+    }
+  }
+  
   // Create a properly typed FeatureRequest object
   const featureRequest: FeatureRequest = {
     id: data.id,
@@ -490,7 +510,8 @@ export async function updateFeatureRequest(
     updated_at: data.updated_at,
     votes_count: 0, // We don't have this info from the update query
     comments_count: 0, // We don't have this info from the update query
-    user_has_voted: false // We don't have this info from the update query
+    user_has_voted: false, // We don't have this info from the update query
+    created_by_user: createdByUser
   };
   
   return featureRequest;

@@ -6,21 +6,37 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { SupportTicket } from "@/types/support";
 import { useNavigate } from "react-router-dom";
-import { mockSupportTickets } from "@/data/mockSupportTickets";
+import { fetchSupportTickets } from "@/api/supportTicketsApi";
+import { Loader2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function TechSupport() {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Simulating API call with mock data
-    setTimeout(() => {
-      setTickets(mockSupportTickets);
-      setLoading(false);
-    }, 800);
+    fetchTickets();
   }, []);
+
+  const fetchTickets = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchSupportTickets();
+      setTickets(data);
+    } catch (error) {
+      console.error("Error fetching tickets:", error);
+      toast({
+        variant: "destructive",
+        title: "Error loading tickets",
+        description: "Failed to load support tickets. Please try again later."
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredTickets = tickets.filter(ticket => 
     ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) || 

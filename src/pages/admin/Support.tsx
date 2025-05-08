@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,11 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Search, Filter, RotateCw, AlertCircle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { SupportTicket as SupportTicketType, SupportTicketStatus } from "@/types/support";
 import { Card, CardContent } from "@/components/ui/card";
-import { mockSupportTickets } from "@/data/mockSupportTickets";
+import { fetchSupportTickets, updateSupportTicket, addTicketMessage } from "@/api/supportTicketsApi";
 
 export default function AdminSupport() {
   const [tickets, setTickets] = useState<SupportTicketType[]>([]);
@@ -30,8 +28,9 @@ export default function AdminSupport() {
     try {
       setLoading(true);
       
-      // Use mock data since the ticket_messages table doesn't exist in Supabase
-      setTickets(mockSupportTickets);
+      // Fetch real data from the API
+      const data = await fetchSupportTickets();
+      setTickets(data);
       setError(null);
     } catch (err) {
       console.error("Error fetching tickets:", err);
@@ -51,7 +50,10 @@ export default function AdminSupport() {
 
   const handleUpdateStatus = async (ticketId: string, status: SupportTicketStatus) => {
     try {
-      // Since we're using mock data, just update the state directly
+      // Update the ticket in the database
+      const updatedTicket = await updateSupportTicket(ticketId, { status });
+      
+      // Update the local state
       setTickets(tickets.map(ticket => 
         ticket.id === ticketId 
           ? { ...ticket, status, updated_at: new Date().toISOString() } 
@@ -74,14 +76,13 @@ export default function AdminSupport() {
 
   const handleAddMessage = async (ticketId: string, content: string) => {
     try {
+      // Add the message to the database
+      await addTicketMessage({ ticket_id: ticketId, content });
+      
       toast({
         title: "Message sent",
         description: "Your message has been added to the ticket."
       });
-
-      // In a real application, we would send the message to the server here
-      console.log("Message added to ticket:", ticketId, content);
-      
     } catch (err) {
       console.error("Error adding message:", err);
       toast({

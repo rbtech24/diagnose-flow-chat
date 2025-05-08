@@ -2800,6 +2800,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          sender_id: string | null
           ticket_id: string | null
           user_id: string | null
         }
@@ -2807,6 +2808,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          sender_id?: string | null
           ticket_id?: string | null
           user_id?: string | null
         }
@@ -2814,10 +2816,18 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          sender_id?: string | null
           ticket_id?: string | null
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "support_ticket_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "support_ticket_messages_ticket_id_fkey"
             columns: ["ticket_id"]
@@ -2832,6 +2842,7 @@ export type Database = {
           assigned_to: string | null
           company_id: string | null
           created_at: string | null
+          created_by_user_id: string | null
           description: string
           id: string
           priority: string | null
@@ -2844,6 +2855,7 @@ export type Database = {
           assigned_to?: string | null
           company_id?: string | null
           created_at?: string | null
+          created_by_user_id?: string | null
           description: string
           id?: string
           priority?: string | null
@@ -2856,6 +2868,7 @@ export type Database = {
           assigned_to?: string | null
           company_id?: string | null
           created_at?: string | null
+          created_by_user_id?: string | null
           description?: string
           id?: string
           priority?: string | null
@@ -2884,6 +2897,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_tickets_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
