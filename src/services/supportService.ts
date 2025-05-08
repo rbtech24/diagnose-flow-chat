@@ -16,10 +16,7 @@ export async function fetchSupportTickets() {
         assigned_to, 
         company_id, 
         created_at, 
-        updated_at,
-        user_id (
-          raw_user_meta_data
-        )
+        updated_at
       `)
       .order('created_at', { ascending: false });
 
@@ -27,15 +24,16 @@ export async function fetchSupportTickets() {
 
     // Format tickets to match our interface
     const formattedTickets: SupportTicket[] = data.map(ticket => {
-      const userData = ticket.user_id?.raw_user_meta_data || {};
-      
+      // Default user info if we can't get metadata
       return {
         ...ticket,
+        // Ensure status is cast to the correct type
+        status: ticket.status as SupportTicketStatus,
+        // Add placeholder user data until we can fetch it properly
         created_by_user: {
-          name: userData.name || 'Unknown User',
-          email: userData.email || '',
-          avatar_url: userData.avatar_url,
-          role: userData.role || 'user'
+          name: 'User',
+          email: '',
+          role: 'user'
         }
       };
     });
@@ -61,10 +59,7 @@ export async function fetchTicketById(ticketId: string) {
         assigned_to, 
         company_id, 
         created_at, 
-        updated_at,
-        user_id (
-          raw_user_meta_data
-        )
+        updated_at
       `)
       .eq('id', ticketId)
       .single();
@@ -72,15 +67,15 @@ export async function fetchTicketById(ticketId: string) {
     if (error) throw error;
 
     // Format ticket to match our interface
-    const userData = data.user_id?.raw_user_meta_data || {};
-    
     const ticket: SupportTicket = {
       ...data,
+      // Ensure status is cast to the correct type
+      status: data.status as SupportTicketStatus,
+      // Add placeholder user data until we can fetch it properly
       created_by_user: {
-        name: userData.name || 'Unknown User',
-        email: userData.email || '',
-        avatar_url: userData.avatar_url,
-        role: userData.role || 'user'
+        name: 'User',
+        email: '',
+        role: 'user'
       }
     };
 
@@ -100,10 +95,7 @@ export async function fetchTicketMessages(ticketId: string) {
         ticket_id, 
         content, 
         user_id, 
-        created_at,
-        user_id (
-          raw_user_meta_data
-        )
+        created_at
       `)
       .eq('ticket_id', ticketId)
       .order('created_at', { ascending: true });
@@ -112,19 +104,17 @@ export async function fetchTicketMessages(ticketId: string) {
 
     // Format messages
     const messages: SupportTicketMessage[] = data.map(message => {
-      const userData = message.user_id?.raw_user_meta_data || {};
-      
       return {
         id: message.id,
         ticket_id: message.ticket_id,
         content: message.content,
         user_id: message.user_id,
         created_at: message.created_at,
+        // Add placeholder sender info
         sender: {
-          name: userData.name || 'Unknown User',
-          email: userData.email || '',
-          avatar_url: userData.avatar_url,
-          role: userData.role || 'user'
+          name: 'User',
+          email: '',
+          role: 'user'
         }
       };
     });

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,6 +35,15 @@ interface ActivityItem {
   user_id: string;
 }
 
+// Define a formatted activity type for UI display
+interface FormattedActivity {
+  id: string;
+  title: string;
+  timestamp: string;
+  activity_type: string;
+  metadata: Record<string, any>;
+}
+
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -60,7 +70,19 @@ export default function CompanyDetail() {
 
         if (companyError) throw companyError;
         
-        setCompany(companyData);
+        // Create a properly typed company object with default values for missing fields
+        const typedCompany: CompanyData = {
+          id: companyData.id,
+          name: companyData.name,
+          address: companyData.address || '',
+          city: companyData.city || '',
+          state: companyData.state || '',
+          zip: companyData.zip || '',
+          subscription_tier: companyData.subscription_tier,
+          created_at: companyData.created_at
+        };
+        
+        setCompany(typedCompany);
         
         // Fetch active technicians count
         const { count, error: techError } = await supabase
@@ -99,7 +121,7 @@ export default function CompanyDetail() {
   }, [id]);
 
   // Function to format activity items for display
-  const formatActivity = (activity: ActivityItem) => {
+  const formatActivity = (activity: ActivityItem): FormattedActivity => {
     return {
       id: activity.id,
       title: activity.description || `${activity.activity_type} activity`,
