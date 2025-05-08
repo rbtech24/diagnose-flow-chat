@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -89,7 +88,7 @@ export default function CompanyDetail() {
             activity_type: act.activity_type,
             created_at: act.created_at,
             description: act.description || '',
-            metadata: typeof act.metadata === 'string' ? JSON.parse(act.metadata) : act.metadata || {},
+            metadata: act.metadata || {},
             ip_address: act.ip_address,
             user_agent: act.user_agent,
             user_id: act.user_id,
@@ -115,21 +114,20 @@ export default function CompanyDetail() {
 
   // Fixed formatActivity function to avoid type recursion
   const formatActivity = (activity: UserActivityData): ActivityItem => {
-    // Use a simpler approach for metadata to avoid deep type recursion
-    const safeMetadata: ActivityMetadata = {};
+    const metadata: ActivityMetadata = {};
     
-    // Extract specific known fields from metadata
-    if (activity.metadata) {
-      if (typeof activity.metadata === 'object') {
-        // Copy known fields we care about
-        if ('repair_id' in activity.metadata) 
-          safeMetadata.repair_id = String(activity.metadata.repair_id);
-          
-        if ('technician_name' in activity.metadata) 
-          safeMetadata.technician_name = String(activity.metadata.technician_name);
-          
-        if ('status' in activity.metadata) 
-          safeMetadata.status = String(activity.metadata.status);
+    // Safely extract metadata properties without creating deep type references
+    if (activity.metadata && typeof activity.metadata === 'object') {
+      if ('repair_id' in activity.metadata && activity.metadata.repair_id) {
+        metadata.repair_id = String(activity.metadata.repair_id);
+      }
+      
+      if ('technician_name' in activity.metadata && activity.metadata.technician_name) {
+        metadata.technician_name = String(activity.metadata.technician_name);
+      }
+      
+      if ('status' in activity.metadata && activity.metadata.status) {
+        metadata.status = String(activity.metadata.status);
       }
     }
     
@@ -139,7 +137,7 @@ export default function CompanyDetail() {
       timestamp: new Date(activity.created_at).toLocaleString(),
       activity_type: activity.activity_type,
       description: activity.description || '',
-      metadata: safeMetadata
+      metadata
     };
   };
 
