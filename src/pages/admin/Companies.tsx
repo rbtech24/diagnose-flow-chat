@@ -26,7 +26,10 @@ export default function AdminCompanies() {
     company.status.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleAddCompany = () => {
+  const handleAddCompany = (e) => {
+    // Prevent default to stop form submission or link navigation behavior
+    e.preventDefault();
+    // Navigate to the new company page
     navigate("/admin/companies/new");
   };
 
