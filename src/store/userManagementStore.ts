@@ -15,7 +15,7 @@ interface UserManagementState {
   // Fetch operations
   fetchUsers: () => Promise<void>;
   fetchUserById: (id: string) => Promise<User | null>;
-  fetchCompanies: () => Promise<void>;
+  fetchCompanies: () => Promise<any[]>; // Changed return type to match implementation
   fetchCompanyById: (id: string) => Promise<any | null>;
   
   // CRUD operations for users
