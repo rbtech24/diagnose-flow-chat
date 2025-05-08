@@ -15,6 +15,16 @@ import { AvatarUpload } from "@/components/shared/AvatarUpload";
 import { ActivityItem } from "@/components/activity/ActivityItem";
 import { supabase } from "@/integrations/supabase/client";
 
+// Define activity type to avoid deep type instantiation
+interface CompanyActivity {
+  id: string;
+  title?: string;
+  description?: string;
+  timestamp: string;
+  activity_type?: string;
+  metadata?: Record<string, any>;
+}
+
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -22,7 +32,7 @@ export default function CompanyDetail() {
   const { companies, users, fetchCompanyById, fetchUsers, deleteCompany, updateCompany } = useUserManagementStore();
   const [companyData, setCompanyData] = useState<any>(null);
   const [companyUsers, setCompanyUsers] = useState<any[]>([]);
-  const [companyActivities, setCompanyActivities] = useState<any[]>([]);
+  const [companyActivities, setCompanyActivities] = useState<CompanyActivity[]>([]);
   const [loadingActivities, setLoadingActivities] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -431,10 +441,16 @@ export default function CompanyDetail() {
             ) : companyActivities.length > 0 ? (
               <div className="space-y-4">
                 {companyActivities.map(activity => (
-                  <div key={activity.id} className="p-3 border rounded-md">
-                    <div className="font-medium">{activity.title}</div>
-                    <div className="text-sm text-muted-foreground">{formatActivityDate(activity.timestamp)}</div>
-                  </div>
+                  <ActivityItem
+                    key={activity.id}
+                    id={activity.id}
+                    title={activity.title || "System Activity"}
+                    description={activity.description || ""}
+                    timestamp={activity.timestamp}
+                    icon={<FileText className="h-4 w-4 text-gray-600" />}
+                    type={activity.activity_type || "activity"}
+                    severity="info"
+                  />
                 ))}
               </div>
             ) : (
