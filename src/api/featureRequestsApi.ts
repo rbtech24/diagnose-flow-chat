@@ -391,7 +391,7 @@ export async function addFeatureComment(commentData: { feature_id: string, conte
   
   if (data.created_by_user && typeof data.created_by_user === 'object') {
     // Handle case when created_by_user is an object (successful join)
-    if (!('error' in data.created_by_user)) {
+    if (!('error' in data.created_by_user!)) {
       const userData = data.created_by_user as Record<string, any>;
       createdByUser = {
         name: userData.name || 'Current User',
