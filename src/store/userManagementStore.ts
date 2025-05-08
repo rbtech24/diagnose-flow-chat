@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { supabase } from '@/utils/supabaseClient';
 import { User, UserWithPassword } from '@/types/user';
@@ -28,7 +27,7 @@ interface UserManagementState {
   addUser: (user: UserWithPassword) => Promise<any>;
   
   // CRUD operations for companies
-  addCompany: (company: any) => Promise<any>;
+  addCompany: (company: CompanyServiceParams) => Promise<any>;
   updateCompany: (id: string, companyData: Partial<CompanyServiceParams>) => Promise<any>;
   deleteCompany: (id: string) => Promise<boolean>;
   
@@ -55,14 +54,13 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       
       // Handle super admin case
       if (id === 'super-admin-id') {
-        const superAdmin = {
+        const superAdmin: User = {
           id: 'super-admin-id',
           name: 'Super Admin',
           email: 'admin@repairautopilot.com',
-          role: 'admin' as const,
-          status: 'active' as const,
-          companyId: null,
-          companyName: '',
+          role: 'admin',
+          status: 'active',
+          avatarUrl: '',
           isMainAdmin: true
         };
         set({ currentUser: superAdmin });
@@ -82,12 +80,12 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       }
       
       if (data) {
-        const user = {
+        const user: User = {
           id: data.id,
           name: data.name,
           email: data.email,
-          role: data.role,
-          status: data.status,
+          role: data.role as "admin" | "company" | "tech",
+          status: data.status as "active" | "inactive" | "pending" | "archived" | "deleted",
           companyId: data.company_id,
           avatarUrl: data.avatar_url,
           isMainAdmin: false
@@ -114,7 +112,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       console.log("Fetching users...");
       
       // Add super admin to the list first
-      const superAdmin = {
+      const superAdmin: User = {
         id: 'super-admin-id',
         name: 'Super Admin',
         email: 'admin@repairautopilot.com',
@@ -141,15 +139,15 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         id: user.id,
         name: user.name || '',
         email: user.email,
-        role: user.role,
-        status: user.status,
+        role: user.role as "admin" | "company" | "tech",
+        status: user.status as "active" | "inactive" | "pending" | "archived" | "deleted",
         avatarUrl: user.avatar_url,
         companyId: user.company_id,
         isMainAdmin: false
       })) : [];
       
       // Combine super admin with database users
-      const allUsers = [superAdmin, ...dbUsers];
+      const allUsers: User[] = [superAdmin, ...dbUsers];
       console.log("Total users to display:", allUsers.length);
       
       set({ users: allUsers });
@@ -165,21 +163,25 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
   fetchCompanies: async () => {
     set({ isLoadingCompanies: true, error: null });
     try {
+      console.log("Fetching companies...");
       // Get real companies from database
       const { data, error } = await supabase
         .from('companies')
         .select('*');
 
       if (error) {
+        console.error('Error fetching companies:', error);
         throw error;
       }
 
+      console.log("Companies fetched:", data ? data.length : 0);
+
       // Add company metadata
-      const companiesWithMetadata = data.map(company => ({
+      const companiesWithMetadata = data ? data.map(company => ({
         ...company,
         technicianCount: 0, // Will need to be calculated later
         planName: company.subscription_tier || 'Basic'
-      }));
+      })) : [];
       
       set({ companies: companiesWithMetadata });
       return companiesWithMetadata;
@@ -298,16 +300,31 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
   addCompany: async (company: CompanyServiceParams) => {
     try {
       set({ error: null });
+      console.log("Creating company with data:", company);
+      
+      // Ensure required fields are present
+      if (!company.name) {
+        toast.error('Company name is required');
+        set({ error: 'Company name is required' });
+        return null;
+      }
+
       const companyData = await companyService.createCompany(company);
       if (companyData) {
+        console.log("Company created successfully:", companyData);
         toast.success('Company created successfully!');
         get().fetchCompanies(); // Refresh companies
+      } else {
+        console.error("Company creation returned no data");
+        toast.error('Failed to create company');
+        set({ error: 'Failed to create company: No data returned' });
       }
       return companyData;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating company:', error);
-      toast.error('Failed to create company');
-      set({ error: 'Failed to create company' });
+      const errorMessage = error.message || 'Failed to create company';
+      toast.error(errorMessage);
+      set({ error: errorMessage });
       return null;
     }
   },
@@ -396,10 +413,10 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         id: data.id,
         name: data.name,
         email: data.email,
-        role: data.role,
+        role: data.role as "admin" | "company" | "tech",
         phone: data.phone,
         companyId: data.company_id,
-        status: data.status,
+        status: data.status as "active" | "inactive" | "pending" | "archived" | "deleted",
         avatarUrl: data.avatar_url,
         isMainAdmin: false
       };
@@ -409,10 +426,10 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       
       toast.success('User added successfully!');
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding user:', error);
-      toast.error('Failed to add user');
-      set({ error: 'Failed to add user' });
+      toast.error(error.message || 'Failed to add user');
+      set({ error: error.message || 'Failed to add user' });
       return null;
     }
   }

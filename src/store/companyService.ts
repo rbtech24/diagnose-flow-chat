@@ -29,12 +29,18 @@ export const companyService = {
   // Fetch all companies
   async fetchCompanies(): Promise<CompanyWithMetadata[]> {
     try {
+      console.log("CompanyService: Fetching companies");
       const { data, error } = await supabase
         .from('companies')
         .select('*');
 
-      if (error) throw error;
+      if (error) {
+        console.error('CompanyService: Error fetching companies:', error);
+        throw error;
+      }
 
+      console.log(`CompanyService: ${data?.length || 0} companies fetched`);
+      
       // Add technicianCount field with default value for UI display
       const companiesWithCounts = (data || []).map(company => ({
         ...company,
@@ -44,7 +50,7 @@ export const companyService = {
 
       return companiesWithCounts;
     } catch (error) {
-      console.error('Error fetching companies:', error);
+      console.error('CompanyService: Error in fetchCompanies:', error);
       throw error;
     }
   },
@@ -52,16 +58,25 @@ export const companyService = {
   // Fetch company by ID
   async fetchCompanyById(id: string): Promise<CompanyWithMetadata | null> {
     try {
+      console.log(`CompanyService: Fetching company with ID: ${id}`);
       const { data, error } = await supabase
         .from('companies')
         .select('*')
         .eq('id', id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('CompanyService: Error fetching company by ID:', error);
+        throw error;
+      }
 
-      if (!data) return null;
+      if (!data) {
+        console.log('CompanyService: No company found with ID:', id);
+        return null;
+      }
 
+      console.log('CompanyService: Company fetched successfully:', data.name);
+      
       // Add metadata for UI display
       return {
         ...data,
@@ -69,7 +84,7 @@ export const companyService = {
         planName: data.subscription_tier || 'Basic'
       };
     } catch (error) {
-      console.error('Error fetching company by ID:', error);
+      console.error('CompanyService: Error in fetchCompanyById:', error);
       throw error;
     }
   },
@@ -77,6 +92,14 @@ export const companyService = {
   // Create a new company
   async createCompany(companyData: CompanyServiceParams): Promise<CompanyWithMetadata | null> {
     try {
+      console.log('CompanyService: Creating new company:', companyData.name);
+      
+      if (!companyData.name) {
+        const error = new Error('Company name is required');
+        console.error('CompanyService:', error);
+        throw error;
+      }
+      
       const { data, error } = await supabase
         .from('companies')
         .insert([{
@@ -97,15 +120,25 @@ export const companyService = {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('CompanyService: Error creating company in Supabase:', error);
+        throw error;
+      }
 
+      if (!data) {
+        console.error('CompanyService: Company creation returned no data');
+        throw new Error('No data returned from company creation');
+      }
+
+      console.log('CompanyService: Company created successfully:', data.id);
+      
       return {
         ...data,
         technicianCount: 0,
         planName: data.subscription_tier || 'Basic'
       };
     } catch (error) {
-      console.error('Error creating company:', error);
+      console.error('CompanyService: Error in createCompany:', error);
       throw error;
     }
   },
@@ -113,6 +146,7 @@ export const companyService = {
   // Update an existing company
   async updateCompany(id: string, companyData: Partial<CompanyServiceParams>): Promise<CompanyWithMetadata | null> {
     try {
+      console.log(`CompanyService: Updating company with ID: ${id}`);
       const { data, error } = await supabase
         .from('companies')
         .update(companyData)
@@ -120,15 +154,20 @@ export const companyService = {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('CompanyService: Error updating company:', error);
+        throw error;
+      }
 
+      console.log('CompanyService: Company updated successfully');
+      
       return {
         ...data,
         technicianCount: 0, // Will be populated in a more advanced implementation
         planName: data.subscription_tier || 'Basic'
       };
     } catch (error) {
-      console.error('Error updating company:', error);
+      console.error('CompanyService: Error in updateCompany:', error);
       throw error;
     }
   },
@@ -136,16 +175,21 @@ export const companyService = {
   // Delete a company
   async deleteCompany(id: string): Promise<boolean> {
     try {
+      console.log(`CompanyService: Deleting company with ID: ${id}`);
       const { error } = await supabase
         .from('companies')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('CompanyService: Error deleting company:', error);
+        throw error;
+      }
 
+      console.log('CompanyService: Company deleted successfully');
       return true;
     } catch (error) {
-      console.error('Error deleting company:', error);
+      console.error('CompanyService: Error in deleteCompany:', error);
       throw error;
     }
   }

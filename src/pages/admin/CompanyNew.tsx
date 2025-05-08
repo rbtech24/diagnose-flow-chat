@@ -8,11 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'react-hot-toast';
+import { Alert, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 export default function CompanyNew() {
   const navigate = useNavigate();
-  const { addCompany } = useUserManagementStore();
+  const { addCompany, error: storeError, clearError } = useUserManagementStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -30,27 +33,50 @@ export default function CompanyNew() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear form error if the user is changing input
+    if (formError) setFormError(null);
   };
   
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (formError) setFormError(null);
+  };
+
+  const validateForm = () => {
+    if (!formData.name.trim()) {
+      setFormError('Company name is required');
+      return false;
+    }
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    clearError();
     setIsSubmitting(true);
     
     try {
+      console.log("Submitting company data:", formData);
       const result = await addCompany(formData);
-      if (result) {
+      
+      if (result && result.id) {
         toast.success(`Company ${formData.name} created successfully`);
+        console.log("Company created, navigating to:", `/admin/companies/${result.id}`);
         navigate(`/admin/companies/${result.id}`);
       } else {
+        console.error("Company creation failed: No result returned");
         toast.error("Failed to create company");
+        setFormError("Company creation failed. Please try again.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating company:", error);
-      toast.error("An error occurred while creating the company");
+      toast.error(error.message || "An error occurred while creating the company");
+      setFormError(error.message || "Failed to create company");
     } finally {
       setIsSubmitting(false);
     }
@@ -64,6 +90,13 @@ export default function CompanyNew() {
           <p className="text-muted-foreground">Add a new company to the platform</p>
         </div>
       </div>
+
+      {(formError || storeError) && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>{formError || storeError}</AlertTitle>
+        </Alert>
+      )}
 
       <Card>
         <CardHeader>
@@ -195,7 +228,11 @@ export default function CompanyNew() {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="min-w-[120px]"
+              >
                 {isSubmitting ? "Creating..." : "Create Company"}
               </Button>
             </div>
