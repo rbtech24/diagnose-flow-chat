@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { User } from "@/types/user";
 import { Session } from '@supabase/supabase-js';
 import { AuthContextType } from "@/types/auth";
+import { toast } from "react-hot-toast";
 
 // Mock user data for testing
 const superAdmin: User = {
@@ -133,6 +134,11 @@ export function useMockAuth(): AuthContextType {
     if (user) {
       const updatedUser = { ...user, ...data };
       setUser(updatedUser);
+      
+      // Show a success message to confirm the update
+      toast.success("Profile updated successfully");
+      
+      console.log("User updated:", updatedUser);
       return true;
     }
     return false;

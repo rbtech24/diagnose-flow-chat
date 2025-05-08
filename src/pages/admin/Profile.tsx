@@ -9,19 +9,29 @@ import { ThemePreferences } from "@/components/profile/ThemePreferences";
 import { NotificationSettings } from "@/components/profile/NotificationSettings";
 import { AccountDeletion } from "@/components/profile/AccountDeletion";
 import { getUserInitials, getUserAvatarColor } from "@/utils/avatarUtils";
+import { useState } from "react";
 
 export default function AdminProfile() {
   const { user, updateUser } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const userInitials = getUserInitials(user);
   const avatarColor = getUserAvatarColor(user);
   
-  const handleUpdateProfile = (values: any) => {
-    updateUser({
-      name: values.name,
-      email: values.email,
-      phone: values.phone,
-    });
+  const handleUpdateProfile = async (values: any) => {
+    setIsSubmitting(true);
+    try {
+      await updateUser({
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+      });
+      console.log("Profile update submitted with values:", values);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -63,6 +73,7 @@ export default function AdminProfile() {
                 title: 'System Administrator',
               }}
               onSubmit={handleUpdateProfile}
+              isSubmitting={isSubmitting}
               title="Personal Information"
               description="Update your personal details and contact information"
             />

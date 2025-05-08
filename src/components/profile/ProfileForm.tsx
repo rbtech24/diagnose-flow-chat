@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, Save } from "lucide-react";
 
 const profileFormSchema = z.object({
   name: z.string().min(2, {
@@ -35,6 +36,7 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 interface ProfileFormProps {
   defaultValues: Partial<ProfileFormValues>;
   onSubmit?: (values: ProfileFormValues) => void;
+  isSubmitting?: boolean;
   title?: string;
   description?: string;
 }
@@ -42,10 +44,11 @@ interface ProfileFormProps {
 export function ProfileForm({ 
   defaultValues, 
   onSubmit, 
+  isSubmitting = false,
   title = "Profile",
   description = "Update your profile information."
 }: ProfileFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLocalSubmitting, setIsLocalSubmitting] = useState(false);
   const { toast } = useToast();
   
   const form = useForm<ProfileFormValues>({
@@ -54,23 +57,28 @@ export function ProfileForm({
   });
 
   function handleSubmit(values: ProfileFormValues) {
-    setIsSubmitting(true);
+    console.log("Form submitted with values:", values);
     
-    // Simulate API call
-    setTimeout(() => {
-      if (onSubmit) {
-        onSubmit(values);
-      }
+    if (onSubmit) {
+      onSubmit(values);
+    } else {
+      setIsLocalSubmitting(true);
       
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully.",
-        type: "success" // Always include the type property
-      });
-      
-      setIsSubmitting(false);
-    }, 1000);
+      // Simulate API call if no onSubmit provided
+      setTimeout(() => {
+        toast({
+          title: "Profile updated",
+          description: "Your profile has been updated successfully.",
+          type: "success" // Always include the type property
+        });
+        
+        setIsLocalSubmitting(false);
+      }, 1000);
+    }
   }
+
+  // Use the prop value if provided, otherwise use local state
+  const submitting = isSubmitting !== undefined ? isSubmitting : isLocalSubmitting;
 
   return (
     <Card>
@@ -143,8 +151,18 @@ export function ProfileForm({
               )}
             />
             
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save Changes"}
+            <Button type="submit" disabled={submitting} className="flex items-center gap-2">
+              {submitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Save Changes
+                </>
+              )}
             </Button>
           </form>
         </Form>
