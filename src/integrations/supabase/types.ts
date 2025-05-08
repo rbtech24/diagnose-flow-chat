@@ -4575,6 +4575,10 @@ export type Database = {
         Args: { p_company_id: string }
         Returns: boolean
       }
+      can_access_company_data: {
+        Args: { company_id: string }
+        Returns: boolean
+      }
       check_api_quota: {
         Args: { p_company_id: string; p_provider: string }
         Returns: boolean
