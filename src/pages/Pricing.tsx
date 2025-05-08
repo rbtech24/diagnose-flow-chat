@@ -1,110 +1,82 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check } from "lucide-react";
+import { useSubscriptions } from '@/hooks/useSubscriptions';
 
 export function Pricing() {
-  // Sample pricing data - in a real app, this would come from the database
-  const plans = [
-    {
-      name: "Basic",
-      price: 29,
-      description: "Essential diagnostics and support for small operations",
-      features: [
-        "Up to 5 technicians",
-        "20 diagnostics per day",
-        "10GB storage",
-        "Email support",
-        "Basic workflows"
-      ],
-      recommended: false
-    },
-    {
-      name: "Professional",
-      price: 89,
-      description: "Advanced features for growing businesses",
-      features: [
-        "Up to 20 technicians",
-        "Unlimited diagnostics",
-        "50GB storage",
-        "Priority support",
-        "Custom workflows",
-        "Advanced analytics"
-      ],
-      recommended: true
-    },
-    {
-      name: "Enterprise",
-      price: 249,
-      description: "Full-featured solution for large organizations",
-      features: [
-        "Unlimited technicians",
-        "Unlimited diagnostics",
-        "100GB storage",
-        "24/7 priority support",
-        "Custom integrations",
-        "Dedicated account manager",
-        "On-premises deployment option"
-      ],
-      recommended: false
-    }
-  ];
+  const navigate = useNavigate();
+  const { plans, isLoading } = useSubscriptions();
+
+  const handleSelectPlan = (planId: string) => {
+    navigate('/signup', { state: { selectedPlan: planId } });
+  };
 
   return (
     <div className="container mx-auto py-12 px-4">
       <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold mb-3">Simple, Transparent Pricing</h1>
-        <p className="text-xl text-muted-foreground">
-          Choose the plan that works best for your business
+        <h1 className="text-4xl font-bold mb-4">Choose the Right Plan</h1>
+        <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+          Select the plan that best fits your business needs. All plans include a free trial period.
         </p>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-3">
-        {plans.map((plan, i) => (
-          <Card 
-            key={i} 
-            className={`flex flex-col ${
-              plan.recommended ? 'border-primary shadow-lg' : ''
-            }`}
-          >
-            <CardHeader>
-              <CardTitle className="text-2xl">{plan.name}</CardTitle>
-              <CardDescription>{plan.description}</CardDescription>
-              <div className="mt-4">
-                <span className="text-4xl font-bold">${plan.price}</span>
-                <span className="text-muted-foreground">/month</span>
-              </div>
-            </CardHeader>
-            <CardContent className="flex-grow">
-              <ul className="space-y-2">
-                {plan.features.map((feature, j) => (
-                  <li key={j} className="flex items-center">
-                    <Check className="h-4 w-4 mr-2 text-primary" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-            <CardFooter>
-              <Button 
-                className="w-full" 
-                variant={plan.recommended ? "default" : "outline"}
-              >
-                {plan.recommended ? "Start Free Trial" : "Choose Plan"}
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
+      {isLoading.plans ? (
+        <div className="flex justify-center">
+          <p>Loading plans...</p>
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {plans.map((plan) => (
+            <Card key={plan.id} className={plan.name === 'Professional' ? 'border-primary shadow-lg' : ''}>
+              <CardHeader>
+                {plan.name === 'Professional' && (
+                  <div className="bg-primary text-primary-foreground text-xs font-bold tracking-wide uppercase py-1 px-3 rounded-full mb-3 inline-block">
+                    Most Popular
+                  </div>
+                )}
+                <CardTitle>{plan.name}</CardTitle>
+                <div className="flex items-baseline mt-2">
+                  <span className="text-3xl font-bold">${plan.monthlyPrice}</span>
+                  <span className="text-muted-foreground ml-1">/month</span>
+                </div>
+                <CardDescription className="mt-2">{plan.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {plan.features.map((feature, i) => (
+                    <li key={i} className="flex items-center">
+                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  onClick={() => handleSelectPlan(plan.id)} 
+                  className="w-full" 
+                  variant={plan.name === 'Professional' ? 'default' : 'outline'}
+                >
+                  Start {plan.trialPeriod}-Day Free Trial
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
 
-      <div className="text-center mt-12">
-        <h2 className="text-2xl font-bold mb-3">Need a custom solution?</h2>
-        <p className="mb-6">Contact our sales team for a tailored plan that fits your specific requirements</p>
-        <Button variant="outline" size="lg">Contact Sales</Button>
+      <div className="mt-16 text-center">
+        <h2 className="text-2xl font-semibold mb-4">Need a Custom Plan?</h2>
+        <p className="mb-6 text-muted-foreground max-w-2xl mx-auto">
+          Contact our sales team to discuss custom solutions for your enterprise needs.
+        </p>
+        <Button variant="outline" onClick={() => navigate('/contact')}>
+          Contact Sales
+        </Button>
       </div>
     </div>
   );
 }
-
-export default Pricing;

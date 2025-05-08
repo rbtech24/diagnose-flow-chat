@@ -50,6 +50,27 @@ export interface SupportTicketMessage {
   }>;
 }
 
+export interface TicketComment {
+  id: string;
+  ticket_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  is_internal: boolean;
+  attachments: Array<{
+    id: string;
+    filename: string;
+    url: string;
+  }>;
+  created_by_user: {
+    name: string;
+    email: string;
+    role: string;
+    avatar_url?: string;
+  };
+}
+
 export interface TicketAssignment {
   ticket_id: string;
   assigned_to: string;
