@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Calendar, CheckCheck, Clock, MapPin, UserRound, Package, Wrench, Shield, AlertTriangle, Users } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { handleApiError, withErrorHandling } from "@/utils/errorHandler";
+import { handleApiError } from "@/utils/errorHandler";
 import { toast } from "sonner";
 
 // Define types for company and activity data
@@ -248,10 +248,10 @@ export default function CompanyDetail() {
                           </div>
                           <span className="text-sm text-muted-foreground">{formatted.timestamp}</span>
                         </div>
-                        {formatted.activity_type === "repair" && (
+                        {formatted.activity_type === "repair" && formatted.metadata && (
                           <div className="mt-2 text-sm">
-                            <p>Repair ID: {formatted.metadata?.repair_id}</p>
-                            <p>Technician: {formatted.metadata?.technician_name}</p>
+                            <p>Repair ID: {formatted.metadata.repair_id}</p>
+                            <p>Technician: {formatted.metadata.technician_name}</p>
                           </div>
                         )}
                       </div>
