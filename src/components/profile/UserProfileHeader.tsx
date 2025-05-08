@@ -3,6 +3,7 @@ import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/context/AuthContext";
 import { User } from "@/types/user";
+import { getUserInitials, getUserAvatarColor } from "@/utils/avatarUtils";
 
 interface UserProfileHeaderProps {
   user: User | null;
@@ -11,13 +12,8 @@ interface UserProfileHeaderProps {
 export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({ user }) => {
   if (!user) return null;
   
-  const initials = user.name
-    ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-    : user.email.substring(0, 2).toUpperCase();
+  const initials = getUserInitials(user);
+  const avatarColor = getUserAvatarColor(user);
 
   const roleBadgeColor = 
     user.role === "admin" 
@@ -30,7 +26,7 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({ user }) =>
     <div className="flex flex-col md:flex-row items-center gap-6 p-6 bg-white rounded-lg shadow mb-6">
       <Avatar className="h-24 w-24 border-2 border-primary/10">
         <AvatarImage src={user.avatarUrl} alt={user.name || user.email} />
-        <AvatarFallback className="text-xl bg-primary/10 text-primary">
+        <AvatarFallback className="text-xl font-medium" style={{ backgroundColor: avatarColor, color: "white" }}>
           {initials}
         </AvatarFallback>
       </Avatar>

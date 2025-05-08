@@ -1,7 +1,9 @@
 
 import { User } from "@/types/user";
-import { Archive, X, UserIcon, Mail, Phone } from "lucide-react";
+import { Archive, X, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getUserInitials, getUserAvatarColor } from "@/utils/avatarUtils";
 
 interface TechnicianCardProps {
   technician: User;
@@ -10,19 +12,19 @@ interface TechnicianCardProps {
 }
 
 export function TechnicianCard({ technician, onArchive, onDelete }: TechnicianCardProps) {
+  const initials = getUserInitials(technician);
+  const avatarColor = getUserAvatarColor(technician);
+
   return (
     <div className="flex items-center justify-between p-4 border rounded-lg">
       <div className="flex items-center">
-        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-4">
-          {technician.avatarUrl ? (
-            <img 
-              src={technician.avatarUrl} 
-              alt={technician.name} 
-              className="w-10 h-10 rounded-full object-cover"
-            />
-          ) : (
-            <UserIcon className="h-5 w-5 text-gray-500" />
-          )}
+        <div className="mr-4">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={technician.avatarUrl} alt={technician.name} />
+            <AvatarFallback style={{ backgroundColor: avatarColor, color: "white" }}>
+              {initials}
+            </AvatarFallback>
+          </Avatar>
         </div>
         <div>
           <h3 className="font-medium">{technician.name}</h3>

@@ -8,9 +8,13 @@ import { ProfileImageUpload } from "@/components/profile/ProfileImageUpload";
 import { ThemePreferences } from "@/components/profile/ThemePreferences";
 import { NotificationSettings } from "@/components/profile/NotificationSettings";
 import { AccountDeletion } from "@/components/profile/AccountDeletion";
+import { getUserInitials, getUserAvatarColor } from "@/utils/avatarUtils";
 
 export default function AdminProfile() {
   const { user, updateUser } = useAuth();
+  
+  const userInitials = getUserInitials(user);
+  const avatarColor = getUserAvatarColor(user);
   
   const handleUpdateProfile = (values: any) => {
     updateUser({
@@ -35,8 +39,10 @@ export default function AdminProfile() {
           </CardHeader>
           <CardContent>
             <ProfileImageUpload
-              currentImageUrl={user?.avatarUrl || 'https://i.pravatar.cc/300'}
+              currentImageUrl={user?.avatarUrl}
               onImageUpdate={(url) => updateUser({ avatarUrl: url })}
+              userInitials={userInitials}
+              avatarColor={avatarColor}
             />
           </CardContent>
         </Card>

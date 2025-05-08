@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,9 +11,11 @@ import { Label } from "@/components/ui/label";
 interface ProfileImageUploadProps {
   currentImageUrl?: string;
   onImageUpdate: (url: string) => void;
+  userInitials?: string;
+  avatarColor?: string;
 }
 
-export function ProfileImageUpload({ currentImageUrl, onImageUpdate }: ProfileImageUploadProps) {
+export function ProfileImageUpload({ currentImageUrl, onImageUpdate, userInitials = "AT", avatarColor = "#3498db" }: ProfileImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null);
   
@@ -73,8 +76,8 @@ export function ProfileImageUpload({ currentImageUrl, onImageUpdate }: ProfileIm
         <div className="flex flex-col items-center space-y-4">
           <Avatar className="h-32 w-32 border-2 border-primary/10">
             <AvatarImage src={previewUrl || undefined} alt="Profile" />
-            <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-              {!previewUrl && "AT"}
+            <AvatarFallback className="text-2xl" style={{ backgroundColor: avatarColor, color: "white" }}>
+              {!previewUrl && userInitials}
             </AvatarFallback>
           </Avatar>
           
