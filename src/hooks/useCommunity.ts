@@ -30,7 +30,7 @@ export function useCommunity() {
       // Fetch all users in one query
       const { data: usersData } = await supabase
         .from('profiles')
-        .select('id, name, email, role, avatar_url')
+        .select('id, full_name, avatar_url, role')
         .in('id', userIds);
       
       // Create a map of user data for quick lookup
@@ -41,7 +41,11 @@ export function useCommunity() {
       
       // Format the data to match our CommunityPost type
       const formattedPosts: CommunityPost[] = data?.map(post => {
-        const authorData = userMap.get(post.author_id);
+        const authorData = userMap.get(post.author_id) || {
+          id: 'unknown',
+          full_name: 'Unknown User',
+          avatar_url: ''
+        };
         
         return {
           id: post.id,
@@ -50,11 +54,11 @@ export function useCommunity() {
           type: post.type as CommunityPostType,
           authorId: post.author_id,
           author: {
-            id: authorData?.id || 'unknown',
-            name: authorData?.name || 'Unknown User',
-            email: authorData?.email || '',
-            role: authorData?.role || 'user',
-            avatarUrl: authorData?.avatar_url || ''
+            id: authorData.id || 'unknown',
+            name: authorData.full_name || 'Unknown User',
+            email: '', // Email may not be accessible from profiles
+            role: authorData.role || 'user',
+            avatarUrl: authorData.avatar_url || ''
           },
           attachments: [], // We would need to fetch attachments separately
           createdAt: new Date(post.created_at),
@@ -96,7 +100,7 @@ export function useCommunity() {
       // Get author information
       const { data: authorData, error: authorError } = await supabase
         .from('profiles')
-        .select('id, name, email, role, avatar_url')
+        .select('id, full_name, role, avatar_url')
         .eq('id', postData.author_id)
         .single();
       
@@ -125,7 +129,7 @@ export function useCommunity() {
       const commentAuthorIds = commentsData?.map(comment => comment.author_id) || [];
       const { data: commentAuthorsData } = await supabase
         .from('profiles')
-        .select('id, name, email, role, avatar_url')
+        .select('id, full_name, role, avatar_url')
         .in('id', commentAuthorIds);
       
       // Create a map of comment authors for quick lookup
@@ -143,8 +147,8 @@ export function useCommunity() {
         authorId: postData.author_id,
         author: {
           id: authorData?.id || 'unknown',
-          name: authorData?.name || 'Unknown User',
-          email: authorData?.email || '',
+          name: authorData?.full_name || 'Unknown User',
+          email: '', // Email may not be accessible from profiles
           role: authorData?.role || 'user',
           avatarUrl: authorData?.avatar_url || ''
         },
@@ -156,7 +160,12 @@ export function useCommunity() {
         isSolved: postData.is_solved || false,
         tags: postData.tags || [],
         comments: commentsData?.map(comment => {
-          const commentAuthor = commentAuthorMap.get(comment.author_id);
+          const commentAuthor = commentAuthorMap.get(comment.author_id) || {
+            id: 'unknown',
+            full_name: 'Unknown User',
+            avatar_url: '',
+            role: 'user'
+          };
           
           return {
             id: comment.id,
@@ -164,11 +173,11 @@ export function useCommunity() {
             content: comment.content,
             authorId: comment.author_id,
             author: {
-              id: commentAuthor?.id || 'unknown',
-              name: commentAuthor?.name || 'Unknown User',
-              email: commentAuthor?.email || '',
-              role: commentAuthor?.role || 'user',
-              avatarUrl: commentAuthor?.avatar_url || ''
+              id: commentAuthor.id || 'unknown',
+              name: commentAuthor.full_name || 'Unknown User',
+              email: '',
+              role: commentAuthor.role || 'user',
+              avatarUrl: commentAuthor.avatar_url || ''
             },
             attachments: [],
             createdAt: new Date(comment.created_at),

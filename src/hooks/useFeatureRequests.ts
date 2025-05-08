@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { FeatureRequest } from '@/types/feature-request';
+import { FeatureRequest, FeatureRequestStatus, FeatureRequestPriority } from '@/types/feature-request';
 import { toast } from 'sonner';
 
 export function useFeatureRequests(companyId?: string) {
@@ -19,13 +19,7 @@ export function useFeatureRequests(companyId?: string) {
         .from('feature_requests')
         .select(`
           *,
-          created_by_user:user_id(
-            id,
-            name,
-            email,
-            role,
-            avatar_url
-          ),
+          created_by_user:profiles(id, full_name, email, role, avatar_url),
           votes_count:feature_votes(count),
           comments_count:ticket_comments(count)
         `)
@@ -53,27 +47,57 @@ export function useFeatureRequests(companyId?: string) {
         const userVoteMap = new Map(userVotes?.map(vote => [vote.feature_id, true]) || []);
         
         // Format the data to match our FeatureRequest type
-        const formattedRequests: FeatureRequest[] = data.map(item => ({
-          id: item.id,
-          title: item.title,
-          description: item.description,
-          status: item.status,
-          priority: item.priority || 'medium',
-          company_id: item.company_id,
-          user_id: item.user_id,
-          created_at: item.created_at,
-          updated_at: item.updated_at,
-          votes_count: item.votes_count || 0,
-          comments_count: item.comments_count || 0,
-          user_has_voted: userVoteMap.has(item.id),
-          created_by_user: item.created_by_user || {
-            id: 'unknown',
-            name: 'Unknown User',
-            email: '',
-            role: 'user',
-            avatar_url: ''
+        const formattedRequests: FeatureRequest[] = data.map(item => {
+          // Ensure status is a valid FeatureRequestStatus
+          let status: FeatureRequestStatus = 'pending';
+          if (item.status === 'pending' || 
+              item.status === 'submitted' || 
+              item.status === 'approved' || 
+              item.status === 'in-progress' || 
+              item.status === 'completed' || 
+              item.status === 'rejected') {
+            status = item.status as FeatureRequestStatus;
           }
-        }));
+          
+          // Ensure priority is a valid FeatureRequestPriority
+          let priority: FeatureRequestPriority = 'medium';
+          if (item.priority === 'low' || 
+              item.priority === 'medium' || 
+              item.priority === 'high' || 
+              item.priority === 'critical') {
+            priority = item.priority as FeatureRequestPriority;
+          }
+          
+          const user = item.created_by_user;
+          
+          return {
+            id: item.id,
+            title: item.title,
+            description: item.description,
+            status: status,
+            priority: priority,
+            company_id: item.company_id,
+            user_id: item.user_id,
+            created_at: item.created_at,
+            updated_at: item.updated_at,
+            votes_count: typeof item.votes_count === 'number' ? item.votes_count : 
+                         Array.isArray(item.votes_count) ? item.votes_count.length : 0,
+            comments_count: typeof item.comments_count === 'number' ? item.comments_count : 
+                         Array.isArray(item.comments_count) ? item.comments_count.length : 0,
+            user_has_voted: userVoteMap.has(item.id),
+            created_by_user: user ? {
+              name: user.full_name || 'Unknown User',
+              email: user.email || '',
+              avatar_url: user.avatar_url || '',
+              role: user.role || 'user'
+            } : {
+              name: 'Unknown User',
+              email: '',
+              avatar_url: '',
+              role: 'user'
+            }
+          };
+        });
         
         setFeatureRequests(formattedRequests);
       }

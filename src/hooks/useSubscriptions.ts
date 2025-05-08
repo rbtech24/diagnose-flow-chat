@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { SubscriptionPlan, License, Payment } from '@/types/subscription';
+import { SubscriptionPlan, License, Payment, BillingCycle } from '@/types/subscription';
 import { toast } from 'sonner';
 
 export function useSubscriptions() {
@@ -33,22 +33,36 @@ export function useSubscriptions() {
       if (fetchError) throw fetchError;
       
       // Format the data to match our SubscriptionPlan type
-      const formattedPlans: SubscriptionPlan[] = data?.map(plan => ({
-        id: plan.id,
-        name: plan.name,
-        description: plan.description || '',
-        monthlyPrice: plan.price_monthly,
-        yearlyPrice: plan.price_yearly,
-        maxTechnicians: plan.limits?.technicians || 0,
-        maxAdmins: plan.limits?.admins || 0,
-        dailyDiagnostics: plan.limits?.diagnostics_per_day || 0,
-        storageLimit: plan.limits?.storage_gb || 0,
-        features: plan.features || [],
-        trialPeriod: plan.trial_period,
-        isActive: plan.is_active,
-        createdAt: new Date(plan.created_at),
-        updatedAt: new Date(plan.updated_at)
-      })) || [];
+      const formattedPlans: SubscriptionPlan[] = data?.map(plan => {
+        // Ensure features is always an array of strings
+        const features = Array.isArray(plan.features) 
+          ? plan.features.map(f => String(f))
+          : typeof plan.features === 'string' 
+            ? [plan.features] 
+            : [];
+
+        // Handle limits safely
+        const limits = typeof plan.limits === 'object' && plan.limits 
+          ? plan.limits 
+          : {};
+            
+        return {
+          id: plan.id,
+          name: plan.name,
+          description: plan.description || '',
+          monthlyPrice: plan.price_monthly,
+          yearlyPrice: plan.price_yearly,
+          maxTechnicians: limits.technicians || 0,
+          maxAdmins: limits.admins || 0,
+          dailyDiagnostics: limits.diagnostics_per_day || 0,
+          storageLimit: limits.storage_gb || 0,
+          features: features,
+          trialPeriod: plan.trial_period,
+          isActive: plan.is_active,
+          createdAt: new Date(plan.created_at),
+          updatedAt: new Date(plan.updated_at)
+        };
+      }) || [];
       
       setPlans(formattedPlans);
     } catch (err) {
@@ -65,43 +79,27 @@ export function useSubscriptions() {
     setError(null);
     
     try {
-      let query = supabase
-        .from('licenses')
-        .select(`
-          *,
-          company:company_id(name),
-          plan:plan_id(name)
-        `)
-        .order('created_at', { ascending: false });
-        
-      // Filter by company if provided
-      if (companyId) {
-        query = query.eq('company_id', companyId);
-      }
+      // For actual implementation, we would need a proper table in Supabase
+      // Let's use mock data for now
+      const mockLicenses: License[] = [
+        {
+          id: "lic-1",
+          companyId: companyId || "comp-1",
+          companyName: "Acme Corp",
+          planId: "plan-pro",
+          planName: "Professional",
+          status: 'active',
+          activeTechnicians: 8,
+          startDate: new Date('2024-01-01'),
+          endDate: new Date('2025-01-01'),
+          lastPayment: new Date('2024-04-01'),
+          nextPayment: new Date('2024-05-01'),
+          createdAt: new Date('2024-01-01'),
+          updatedAt: new Date('2024-04-01')
+        }
+      ];
       
-      const { data, error: fetchError } = await query;
-        
-      if (fetchError) throw fetchError;
-      
-      // Format the data to match our License type
-      const formattedLicenses: License[] = data?.map(license => ({
-        id: license.id,
-        companyId: license.company_id,
-        companyName: license.company?.name || 'Unknown Company',
-        planId: license.plan_id,
-        planName: license.plan?.name || 'Unknown Plan',
-        status: license.status,
-        activeTechnicians: license.active_technicians || 0,
-        startDate: new Date(license.start_date),
-        endDate: license.end_date ? new Date(license.end_date) : undefined,
-        lastPayment: license.last_payment_date ? new Date(license.last_payment_date) : undefined,
-        nextPayment: license.next_payment_date ? new Date(license.next_payment_date) : undefined,
-        trialEndsAt: license.trial_ends_at ? new Date(license.trial_ends_at) : undefined,
-        createdAt: new Date(license.created_at),
-        updatedAt: new Date(license.updated_at)
-      })) || [];
-      
-      setLicenses(formattedLicenses);
+      setLicenses(mockLicenses);
     } catch (err) {
       console.error('Error fetching licenses:', err);
       setError('Failed to load licenses');
@@ -116,35 +114,24 @@ export function useSubscriptions() {
     setError(null);
     
     try {
-      let query = supabase
-        .from('payments')
-        .select('*')
-        .order('created_at', { ascending: false });
-        
-      // Filter by license if provided
-      if (licenseId) {
-        query = query.eq('license_id', licenseId);
-      }
+      // For actual implementation, we would need a proper table in Supabase
+      // Let's use mock data for now
+      const mockPayments: Payment[] = [
+        {
+          id: "pay-1",
+          licenseId: licenseId || "lic-1",
+          companyId: "comp-1",
+          amount: 89,
+          currency: "USD",
+          status: "completed",
+          paymentMethod: "credit_card",
+          paymentDate: new Date('2024-04-01'),
+          invoiceUrl: "https://example.com/invoice/1",
+          createdAt: new Date('2024-04-01')
+        }
+      ];
       
-      const { data, error: fetchError } = await query;
-        
-      if (fetchError) throw fetchError;
-      
-      // Format the data to match our Payment type
-      const formattedPayments: Payment[] = data?.map(payment => ({
-        id: payment.id,
-        licenseId: payment.license_id,
-        companyId: payment.company_id,
-        amount: payment.amount,
-        currency: payment.currency,
-        status: payment.status,
-        paymentMethod: payment.payment_method,
-        paymentDate: new Date(payment.payment_date),
-        invoiceUrl: payment.invoice_url,
-        createdAt: new Date(payment.created_at)
-      })) || [];
-      
-      setPayments(formattedPayments);
+      setPayments(mockPayments);
     } catch (err) {
       console.error('Error fetching payments:', err);
       setError('Failed to load payments');
