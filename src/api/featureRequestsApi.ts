@@ -199,7 +199,7 @@ export async function fetchFeatureRequestById(requestId: string): Promise<Featur
   
   if (data.created_by_user && typeof data.created_by_user === 'object') {
     // Handle case when created_by_user is an object (successful join)
-    if (!('error' in data.created_by_user)) {
+    if (!('error' in data.created_by_user!)) {
       const userData = data.created_by_user as Record<string, any>;
       createdByUser = {
         name: userData.name || 'Unknown User',
@@ -334,7 +334,13 @@ export async function createFeatureRequest(requestData: Partial<FeatureRequest>)
     updated_at: data.updated_at,
     votes_count: 0,
     comments_count: 0,
-    user_has_voted: false
+    user_has_voted: false,
+    created_by_user: { 
+      name: 'Current User',
+      email: '',
+      role: 'user' as "admin" | "company" | "tech",
+      avatar_url: null
+    }
   };
   
   return featureRequest;
@@ -468,7 +474,15 @@ export async function updateFeatureRequest(
     .from('feature_requests')
     .update(updateData)
     .eq('id', requestId)
-    .select()
+    .select(`
+      *,
+      created_by_user:user_id(
+        name,
+        email,
+        avatar_url,
+        role
+      )
+    `)
     .single();
   
   if (error) {
@@ -486,7 +500,7 @@ export async function updateFeatureRequest(
   
   if (data.created_by_user && typeof data.created_by_user === 'object') {
     // Handle case when created_by_user is an object (successful join)
-    if (!('error' in data.created_by_user)) {
+    if (!('error' in data.created_by_user!)) {
       const userData = data.created_by_user as Record<string, any>;
       createdByUser = {
         name: userData.name || 'Unknown User',
