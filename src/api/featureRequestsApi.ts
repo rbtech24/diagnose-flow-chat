@@ -87,15 +87,15 @@ export async function fetchFeatureRequests(
       name: 'Unknown User',
       email: '',
       role: 'user',
-      avatar_url: undefined
+      avatar_url: null
     };
     
     if (item.created_by_user && typeof item.created_by_user === 'object' && !('error' in item.created_by_user)) {
-      createdByUser = item.created_by_user as {
-        name: string;
-        email: string;
-        role: string;
-        avatar_url?: string;
+      createdByUser = {
+        name: item.created_by_user.name || 'Unknown User',
+        email: item.created_by_user.email || '',
+        role: item.created_by_user.role || 'user',
+        avatar_url: item.created_by_user.avatar_url || null
       };
     }
     
@@ -191,15 +191,15 @@ export async function fetchFeatureRequestById(requestId: string): Promise<Featur
     name: 'Unknown User',
     email: '',
     role: 'user',
-    avatar_url: undefined
+    avatar_url: null
   };
   
   if (data.created_by_user && typeof data.created_by_user === 'object' && !('error' in data.created_by_user)) {
-    createdByUser = data.created_by_user as {
-      name: string;
-      email: string;
-      role: string;
-      avatar_url?: string;
+    createdByUser = {
+      name: data.created_by_user.name || 'Unknown User',
+      email: data.created_by_user.email || '',
+      role: data.created_by_user.role || 'user',
+      avatar_url: data.created_by_user.avatar_url || null
     };
   }
   
@@ -256,13 +256,15 @@ export async function fetchFeatureComments(requestId: string): Promise<FeatureCo
       name: 'Unknown User',
       email: '',
       role: 'user' as "admin" | "company" | "tech",
-      avatar_url: undefined
+      avatar_url: null
     };
     
     if (comment.created_by_user && typeof comment.created_by_user === 'object' && !('error' in comment.created_by_user)) {
       createdByUser = {
-        ...comment.created_by_user,
-        role: (comment.created_by_user.role || 'user') as "admin" | "company" | "tech"
+        name: comment.created_by_user.name || 'Unknown User',
+        email: comment.created_by_user.email || '',
+        role: (comment.created_by_user.role || 'user') as "admin" | "company" | "tech",
+        avatar_url: comment.created_by_user.avatar_url || null
       };
     }
     
@@ -367,13 +369,15 @@ export async function addFeatureComment(commentData: { feature_id: string, conte
     name: 'Current User',
     email: 'user@example.com',
     role: 'user' as "admin" | "company" | "tech",
-    avatar_url: undefined
+    avatar_url: null
   };
   
   if (data.created_by_user && typeof data.created_by_user === 'object' && !('error' in data.created_by_user)) {
     createdByUser = {
-      ...data.created_by_user,
-      role: (data.created_by_user.role || 'user') as "admin" | "company" | "tech"
+      name: data.created_by_user.name || 'Current User',
+      email: data.created_by_user.email || 'user@example.com',
+      role: (data.created_by_user.role || 'user') as "admin" | "company" | "tech",
+      avatar_url: data.created_by_user.avatar_url || null
     };
   }
   
