@@ -1,164 +1,78 @@
-import { FeatureRequest, FeatureRequestStatus } from "@/types/feature-request";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+
+import React from "react";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ArrowUp, MessageSquare, Calendar } from "lucide-react";
+import { ThumbsUp, MessageSquare, Calendar } from "lucide-react";
+import { FeatureRequest, FeatureRequestStatus } from "@/types/feature-request";
 import { format } from "date-fns";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface FeatureRequestCardProps {
-  featureRequest: FeatureRequest;
-  onVote?: (id: string) => void;
-  onViewDetails: (id: string) => void;
-  canVote?: boolean;
-  isAdmin?: boolean;
-  onUpdateStatus?: (id: string, status: FeatureRequestStatus) => void;
-  onUpdatePriority?: (id: string, priority: string) => void;
+  request: FeatureRequest;
 }
 
-export function FeatureRequestCard({ 
-  featureRequest, 
-  onVote, 
-  onViewDetails, 
-  canVote = true,
-  isAdmin = false,
-  onUpdateStatus,
-  onUpdatePriority
-}: FeatureRequestCardProps) {
+export function FeatureRequestCard({ request }: FeatureRequestCardProps) {
   const statusColors: Record<FeatureRequestStatus, string> = {
     "pending": "bg-yellow-100 text-yellow-800",
-    "submitted": "bg-yellow-100 text-yellow-800",
-    "approved": "bg-blue-100 text-blue-800",
-    "rejected": "bg-red-100 text-red-800",
+    "submitted": "bg-blue-100 text-blue-800",
+    "approved": "bg-green-100 text-green-800",
     "in-progress": "bg-purple-100 text-purple-800",
-    "completed": "bg-green-100 text-green-800"
+    "completed": "bg-blue-100 text-blue-800",
+    "rejected": "bg-red-100 text-red-800"
   };
-
+  
   const priorityColors = {
     "low": "bg-gray-100 text-gray-800",
     "medium": "bg-blue-100 text-blue-800",
     "high": "bg-orange-100 text-orange-800",
     "critical": "bg-red-100 text-red-800"
   };
-
-  const handleStatusChange = (status: FeatureRequestStatus) => {
-    if (onUpdateStatus) {
-      onUpdateStatus(featureRequest.id, status);
-    }
-  };
-
-  const handlePriorityChange = (priority: string) => {
-    if (onUpdatePriority) {
-      onUpdatePriority(featureRequest.id, priority);
+  
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), "MMM d, yyyy");
+    } catch (error) {
+      return dateString;
     }
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="text-lg font-semibold">{featureRequest.title}</h3>
-            <div className="text-sm text-gray-500 flex items-center mt-1">
-              <Calendar className="h-3 w-3 mr-1" />
-              {format(new Date(featureRequest.created_at), 'MMM d, yyyy')}
-            </div>
-          </div>
-          <div className="flex gap-2 flex-col items-end">
-            {featureRequest.priority && (
-              isAdmin ? (
-                <Select 
-                  value={featureRequest.priority} 
-                  onValueChange={handlePriorityChange}
-                >
-                  <SelectTrigger className="h-7 text-xs w-[140px]">
-                    <SelectValue placeholder="Priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="critical">Critical</SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Badge className={priorityColors[featureRequest.priority as keyof typeof priorityColors]}>
-                  {featureRequest.priority}
-                </Badge>
-              )
-            )}
-            
-            {isAdmin ? (
-              <Select 
-                value={featureRequest.status} 
-                onValueChange={(value) => handleStatusChange(value as FeatureRequestStatus)}
-              >
-                <SelectTrigger className={`h-7 text-xs w-[140px] ${statusColors[featureRequest.status as FeatureRequestStatus]}`}>
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="submitted">Submitted</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="in-progress">In Progress</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
-              <Badge className={statusColors[featureRequest.status as FeatureRequestStatus]}>
-                {featureRequest.status.replace('-', ' ')}
-              </Badge>
-            )}
+    <Card className="hover:border-primary/50 transition-all">
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="font-medium text-lg">{request.title}</h3>
+          <div className="flex gap-2">
+            <Badge variant="outline" className={statusColors[request.status]}>
+              {request.status === "in-progress" ? "In Progress" : 
+                request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+            </Badge>
+            <Badge variant="outline" className={priorityColors[request.priority]}>
+              {request.priority.charAt(0).toUpperCase() + request.priority.slice(1)}
+            </Badge>
           </div>
         </div>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-gray-700 line-clamp-2">{featureRequest.description}</p>
+        <p className="text-gray-600 line-clamp-2 mb-2">{request.description}</p>
         
-        <div className="mt-3 flex items-center text-sm text-gray-500">
-          <span className="font-medium">Requested by:</span>
-          <span className="ml-1">{featureRequest.created_by_user?.name || "Unknown"}</span>
-        </div>
+        {request.created_by_user && (
+          <div className="flex items-center text-sm text-muted-foreground mb-2">
+            <span>Requested by {request.created_by_user.name || "User"}</span>
+          </div>
+        )}
       </CardContent>
-      <CardFooter className="border-t pt-3 flex justify-between">
-        <div className="flex gap-3">
-          {onVote && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={(e) => { e.stopPropagation(); onVote(featureRequest.id); }}
-              disabled={!canVote || featureRequest.user_has_voted}
-              className="flex items-center gap-1"
-            >
-              <ArrowUp className={`h-4 w-4 ${featureRequest.user_has_voted ? "text-primary" : ""}`} />
-              <span>{featureRequest.votes_count || 0}</span>
-            </Button>
-          )}
-          
-          <Button 
-            variant="ghost" 
-            size="sm"
-            className="flex items-center gap-1"
-          >
+      <CardFooter className="px-4 py-3 border-t flex items-center justify-between text-sm text-muted-foreground">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1">
+            <ThumbsUp className="h-4 w-4" />
+            <span>{request.votes_count}</span>
+          </div>
+          <div className="flex items-center gap-1">
             <MessageSquare className="h-4 w-4" />
-            <span>{featureRequest.comments_count || 0}</span>
-          </Button>
+            <span>{request.comments_count}</span>
+          </div>
         </div>
-        
-        <Button 
-          variant="ghost" 
-          size="sm"
-          onClick={() => onViewDetails(featureRequest.id)}
-        >
-          View Details
-        </Button>
+        <div className="flex items-center gap-1">
+          <Calendar className="h-4 w-4" />
+          <span>{formatDate(request.created_at)}</span>
+        </div>
       </CardFooter>
     </Card>
   );

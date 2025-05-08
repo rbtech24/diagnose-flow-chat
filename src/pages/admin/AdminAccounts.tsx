@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -70,9 +69,15 @@ export default function AdminAccounts() {
   const handleResetPassword = async (adminId: string) => {
     try {
       // In a real app, this would call the API
-      await adminResetUserPassword(adminId, "newTemporaryPassword123");
-      toast.success("Password reset email sent to admin");
+      const result = await adminResetUserPassword(adminId, "newTemporaryPassword123");
+      
+      if (result.error) {
+        toast.error(`Failed to reset password: ${result.error.message}`);
+      } else {
+        toast.success("Password reset email sent to admin");
+      }
     } catch (error) {
+      console.error("Error resetting password:", error);
       toast.error("Failed to reset password");
     }
   };

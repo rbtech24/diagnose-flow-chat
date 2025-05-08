@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { updateUserPassword } from "@/utils/auth";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 
 const resetPasswordSchema = z.object({
   password: z.string().min(8, {

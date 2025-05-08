@@ -46,7 +46,7 @@ export function AdminPasswordResetForm({ userId, onSuccess, onCancel }: AdminPas
     try {
       const success = await resetUserPassword(userId, values.password);
       if (success) {
-        toast("The user's password has been reset.");
+        toast.success("The user's password has been reset.");
         onSuccess();
       } else {
         form.setError("root", { 

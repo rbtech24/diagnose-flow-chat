@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -54,6 +53,7 @@ export default function AdminFeatureRequestDetailPage() {
     };
 
     setComments(prevComments => [...prevComments, newComment]);
+    return Promise.resolve();
   };
 
   if (loading) {

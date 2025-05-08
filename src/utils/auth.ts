@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@/types/user";
 import { useUserManagementStore } from "@/store/userManagementStore";
+import { toast } from "sonner";
 
 /**
  * Sends a password reset email to the user
@@ -15,6 +16,7 @@ export async function sendPasswordResetEmail(email: string) {
   // });
   
   // For our mock implementation, we'll simulate success
+  console.log(`Password reset email sent to ${email}`);
   return {
     data: {},
     error: null
@@ -28,8 +30,21 @@ export async function sendPasswordResetEmail(email: string) {
  * @returns Promise with the operation result
  */
 export async function adminResetUserPassword(userId: string, newPassword: string) {
-  const { resetUserPassword } = useUserManagementStore.getState();
-  return resetUserPassword(userId, newPassword);
+  try {
+    const { resetUserPassword } = useUserManagementStore.getState();
+    const success = await resetUserPassword(userId, newPassword);
+    
+    if (success) {
+      console.log(`Password reset successful for user ${userId}`);
+      return { data: {}, error: null };
+    } else {
+      console.error(`Password reset failed for user ${userId}`);
+      return { data: null, error: { message: "Failed to reset user password" } };
+    }
+  } catch (error) {
+    console.error("Error in adminResetUserPassword:", error);
+    return { data: null, error: { message: "An unexpected error occurred" } };
+  }
 }
 
 /**
@@ -44,6 +59,7 @@ export async function updateUserPassword(newPassword: string) {
   // });
   
   // For our mock implementation, we'll simulate success
+  console.log(`User password updated successfully`);
   return {
     data: {},
     error: null

@@ -9,6 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { sendPasswordResetEmail } from "@/utils/auth";
+import { useNavigate } from "react-router-dom";
 
 const passwordResetSchema = z.object({
   email: z.string().email({
@@ -22,6 +23,7 @@ export function PasswordResetForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const form = useForm<PasswordResetFormValues>({
     resolver: zodResolver(passwordResetSchema),
@@ -101,7 +103,7 @@ export function PasswordResetForm() {
         )}
       </CardContent>
       <CardFooter className="justify-center">
-        <Button variant="link" onClick={() => window.history.back()}>
+        <Button variant="link" onClick={() => navigate("/login")}>
           Back to Login
         </Button>
       </CardFooter>
