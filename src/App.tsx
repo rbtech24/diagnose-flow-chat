@@ -65,6 +65,7 @@ import ApiKeys from "./pages/admin/ApiKeys";
 import { AuthProvider } from "./context/AuthContext";
 import UserEdit from "./pages/admin/UserEdit";
 import UserNew from "./pages/admin/UserNew";
+import ActivityPage from "./pages/admin/Activity";
 
 const router = createBrowserRouter([
   {
@@ -193,6 +194,7 @@ const router = createBrowserRouter([
       { path: "workflow-editor", element: <WorkflowEditor /> },
       { path: "/admin/admin-accounts", element: <AdminAccounts /> },
       { path: "/admin/api-keys", element: <ApiKeys /> },
+      { path: "activity", element: <ActivityPage /> },
     ]
   },
   {
