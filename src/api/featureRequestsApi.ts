@@ -91,12 +91,13 @@ export async function fetchFeatureRequests(
     };
     
     if (item.created_by_user && typeof item.created_by_user === 'object' && !('error' in item.created_by_user)) {
-      const userData = item.created_by_user || {};
+      // We need to treat userData as a potentially typed object, not just empty {}
+      const userData = item.created_by_user as Record<string, any>;
       createdByUser = {
-        name: userData?.name || 'Unknown User',
-        email: userData?.email || '',
-        role: userData?.role || 'user',
-        avatar_url: userData?.avatar_url || null
+        name: userData.name || 'Unknown User',
+        email: userData.email || '',
+        role: userData.role || 'user',
+        avatar_url: userData.avatar_url || null
       };
     }
     
@@ -106,7 +107,7 @@ export async function fetchFeatureRequests(
       title: item.title,
       description: item.description,
       status: (item.status || 'pending') as FeatureRequestStatus,
-      priority: (item.priority || 'medium') as FeatureRequestPriority,
+      priority: (item.priority || 'medium') as FeatureRequestPriority, // Default to medium if missing
       company_id: item.company_id,
       user_id: item.user_id,
       created_at: item.created_at,
@@ -196,12 +197,13 @@ export async function fetchFeatureRequestById(requestId: string): Promise<Featur
   };
   
   if (data.created_by_user && typeof data.created_by_user === 'object' && !('error' in data.created_by_user)) {
-    const userData = data.created_by_user || {};
+    // We need to treat userData as a potentially typed object, not just empty {}
+    const userData = data.created_by_user as Record<string, any>;
     createdByUser = {
-      name: userData?.name || 'Unknown User',
-      email: userData?.email || '',
-      role: userData?.role || 'user',
-      avatar_url: userData?.avatar_url || null
+      name: userData.name || 'Unknown User',
+      email: userData.email || '',
+      role: userData.role || 'user',
+      avatar_url: userData.avatar_url || null
     };
   }
   
@@ -211,7 +213,7 @@ export async function fetchFeatureRequestById(requestId: string): Promise<Featur
     title: data.title,
     description: data.description,
     status: (data.status || 'pending') as FeatureRequestStatus,
-    priority: (data.priority || 'medium') as FeatureRequestPriority,
+    priority: (data.priority || 'medium') as FeatureRequestPriority, // Default to medium if missing
     company_id: data.company_id,
     user_id: data.user_id,
     created_at: data.created_at,
@@ -262,12 +264,13 @@ export async function fetchFeatureComments(requestId: string): Promise<FeatureCo
     };
     
     if (comment.created_by_user && typeof comment.created_by_user === 'object' && !('error' in comment.created_by_user)) {
-      const userData = comment.created_by_user || {};
+      // We need to treat userData as a potentially typed object, not just empty {}
+      const userData = comment.created_by_user as Record<string, any>;
       createdByUser = {
-        name: userData?.name || 'Unknown User',
-        email: userData?.email || '',
-        role: (userData?.role || 'user') as "admin" | "company" | "tech",
-        avatar_url: userData?.avatar_url || null
+        name: userData.name || 'Unknown User',
+        email: userData.email || '',
+        role: (userData.role || 'user') as "admin" | "company" | "tech",
+        avatar_url: userData.avatar_url || null
       };
     }
     
@@ -319,7 +322,7 @@ export async function createFeatureRequest(requestData: Partial<FeatureRequest>)
     title: data.title,
     description: data.description,
     status: (data.status || 'pending') as FeatureRequestStatus,
-    priority: (data.priority || 'medium') as FeatureRequestPriority,
+    priority: (data.priority || 'medium') as FeatureRequestPriority, // Default to medium if missing
     company_id: data.company_id,
     user_id: data.user_id,
     created_at: data.created_at,
@@ -376,12 +379,13 @@ export async function addFeatureComment(commentData: { feature_id: string, conte
   };
   
   if (data.created_by_user && typeof data.created_by_user === 'object' && !('error' in data.created_by_user)) {
-    const userData = data.created_by_user || {};
+    // We need to treat userData as a potentially typed object, not just empty {}
+    const userData = data.created_by_user as Record<string, any>;
     createdByUser = {
-      name: userData?.name || 'Current User',
-      email: userData?.email || 'user@example.com',
-      role: (userData?.role || 'user') as "admin" | "company" | "tech",
-      avatar_url: userData?.avatar_url || null
+      name: userData.name || 'Current User',
+      email: userData.email || 'user@example.com',
+      role: (userData.role || 'user') as "admin" | "company" | "tech",
+      avatar_url: userData.avatar_url || null
     };
   }
   
@@ -471,7 +475,7 @@ export async function updateFeatureRequest(
     title: data.title,
     description: data.description,
     status: (data.status || 'pending') as FeatureRequestStatus,
-    priority: (data.priority || 'medium') as FeatureRequestPriority,
+    priority: (data.priority || 'medium') as FeatureRequestPriority, // Default to medium if missing
     company_id: data.company_id,
     user_id: data.user_id,
     created_at: data.created_at,
