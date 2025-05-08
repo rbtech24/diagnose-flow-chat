@@ -80,12 +80,21 @@ export default function CompanyDetail() {
   const fetchCompanyActivities = async (companyId: string) => {
     setLoadingActivities(true);
     try {
+      // Using explicit type casting to avoid complex type inference
+      type ActivityResponse = {
+        id: string;
+        description?: string;
+        created_at: string;
+        activity_type?: string;
+        metadata: any;
+      };
+
       const { data, error } = await supabase
         .from('user_activity_logs')
         .select('*')
         .eq('metadata->company_id', companyId)
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(5) as { data: ActivityResponse[] | null, error: any };
       
       if (error) {
         throw error;
@@ -94,7 +103,7 @@ export default function CompanyDetail() {
       if (data && data.length > 0) {
         const formattedActivities: CompanyActivity[] = data.map(item => ({
           id: item.id,
-          title: item.description || getActivityTypeLabel(item.activity_type),
+          title: item.description || getActivityTypeLabel(item.activity_type || ''),
           timestamp: item.created_at,
           activity_type: item.activity_type,
           metadata: item.metadata as Record<string, any> | null
