@@ -1,6 +1,6 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FeatureRequest, FeatureComment } from "@/types/feature-request";
@@ -19,12 +19,18 @@ export const FeatureRequestDetail: React.FC<FeatureRequestDetailProps> = ({
   onVote,
 }) => {
   const [commentText, setCommentText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmitComment = (e: React.FormEvent) => {
+  const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (commentText.trim()) {
-      onAddComment(featureRequest.id, commentText);
-      setCommentText("");
+    if (commentText.trim() && !isSubmitting) {
+      setIsSubmitting(true);
+      try {
+        await onAddComment(featureRequest.id, commentText);
+        setCommentText("");
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -89,8 +95,8 @@ export const FeatureRequestDetail: React.FC<FeatureRequestDetailProps> = ({
               onChange={(e) => setCommentText(e.target.value)}
               className="resize-none"
             />
-            <Button type="submit" disabled={!commentText.trim()}>
-              Add Comment
+            <Button type="submit" disabled={!commentText.trim() || isSubmitting}>
+              {isSubmitting ? "Adding..." : "Add Comment"}
             </Button>
           </div>
         </form>

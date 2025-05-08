@@ -36,7 +36,7 @@ export default function CompanyFeatureRequestDetailPage() {
     });
   };
 
-  const handleAddComment = (requestId: string, content: string) => {
+  const handleAddComment = async (requestId: string, content: string): Promise<void> => {
     if (!featureRequest) return;
     
     const newComment: FeatureComment = {

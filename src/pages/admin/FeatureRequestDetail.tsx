@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,7 @@ export default function AdminFeatureRequestDetailPage() {
     });
   };
 
-  const handleAddComment = (featureId: string, content: string) => {
+  const handleAddComment = async (featureId: string, content: string): Promise<void> => {
     if (!featureRequest) return;
 
     const newComment: FeatureComment = {
