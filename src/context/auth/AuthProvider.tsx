@@ -1,40 +1,21 @@
 
-import React, { ReactNode, useState, useEffect } from 'react';
-import AuthContext from './AuthContext';
+import React, { ReactNode } from "react";
+import AuthContext from "./AuthContext";
+import { useMockAuth } from "./mockAuth";
 
-interface AuthProviderProps {
+type AuthProviderProps = {
   children: ReactNode;
-}
+};
 
-export const AuthProvider = ({ children }: AuthProviderProps) => {
-  // Since authentication is bypassed, we'll provide a default user
-  const [user] = useState({
-    id: '1',
-    email: 'user@example.com',
-    role: 'admin'
-  });
+export function AuthProvider({ children }: AuthProviderProps) {
+  console.log("AuthProvider rendering with mock auth");
   
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulate loading authentication state
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, []);
+  // Use the mock auth implementation
+  const authValues = useMockAuth();
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user,
-        userRole: user?.role || null,
-        isLoading,
-        isAuthenticated: !!user
-      }}
-    >
+    <AuthContext.Provider value={authValues}>
       {children}
     </AuthContext.Provider>
   );
-};
+}

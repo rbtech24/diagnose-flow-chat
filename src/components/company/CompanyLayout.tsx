@@ -1,30 +1,105 @@
 
-import React, { ReactNode } from 'react';
+import { Outlet } from "react-router-dom";
+import { CompanySidebar } from "./CompanySidebar";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useUserMessages, useSystemMessages } from "@/context/SystemMessageContext";
+import { SystemMessage } from "@/components/system/SystemMessage";
+import { OfflineIndicator } from "@/components/system/OfflineIndicator";
+import { Search, Menu, LogOut } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useState } from "react";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useAuth } from "@/context/AuthContext";
 
-interface CompanyLayoutProps {
-  children: ReactNode;
-}
+export function CompanyLayout() {
+  const navigate = useNavigate();
+  const userMessages = useUserMessages("company");
+  const { removeMessage } = useSystemMessages();
+  const isMobile = useIsMobile();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
-export function CompanyLayout({ children }: CompanyLayoutProps) {
+  const handleLogout = () => {
+    signOut();
+  };
+
   return (
-    <div className="company-layout flex">
-      <div className="company-sidebar w-64 bg-blue-50 min-h-screen p-4">
-        {/* Company Sidebar Content */}
-        <h2 className="font-bold text-xl mb-4">Company Dashboard</h2>
-        <nav className="space-y-2">
-          <a href="/company" className="block p-2 hover:bg-blue-100 rounded">Dashboard</a>
-          <a href="/company/technicians" className="block p-2 hover:bg-blue-100 rounded">Technicians</a>
-          <a href="/company/appointments" className="block p-2 hover:bg-blue-100 rounded">Appointments</a>
-          <a href="/company/knowledge" className="block p-2 hover:bg-blue-100 rounded">Knowledge Base</a>
-          <a href="/company/community" className="block p-2 hover:bg-blue-100 rounded">Community</a>
-          <a href="/company/feature-requests" className="block p-2 hover:bg-blue-100 rounded">Feature Requests</a>
-          <a href="/company/profile" className="block p-2 hover:bg-blue-100 rounded">Profile</a>
-          <a href="/company/settings" className="block p-2 hover:bg-blue-100 rounded">Settings</a>
-          <a href="/company/billing" className="block p-2 hover:bg-blue-100 rounded">Billing</a>
-        </nav>
-      </div>
-      <div className="company-content flex-1 p-6">
-        {children}
+    <div className="flex h-screen w-full">
+      {isMobile ? (
+        <>
+          <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+            <SheetContent side="left" className="p-0 w-64">
+              <CompanySidebar />
+            </SheetContent>
+          </Sheet>
+        </>
+      ) : (
+        <CompanySidebar />
+      )}
+      
+      <div className="flex-1 overflow-auto">
+        <div className="p-3 sm:p-4 border-b flex items-center justify-between">
+          {isMobile && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="mr-2" 
+              onClick={() => setSidebarOpen(true)}
+            >
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle menu</span>
+            </Button>
+          )}
+          
+          <div className="relative w-full max-w-[180px] sm:max-w-[250px]">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Search..." className="pl-8 py-1 h-9 text-sm" />
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={handleLogout}
+              className="h-8 w-8"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+            
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              className="h-8 w-8 rounded-full"
+              onClick={() => navigate("/company/profile")}
+            >
+              <span className="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full">
+                <img 
+                  className="aspect-square h-full w-full" 
+                  src={user?.avatarUrl || "https://i.pravatar.cc/300"} 
+                  alt={user?.name || "Profile"} 
+                />
+              </span>
+            </Button>
+          </div>
+        </div>
+        
+        <div className="p-3 sm:p-6">
+          {userMessages.map(msg => (
+            <SystemMessage
+              key={msg.id}
+              id={msg.id}
+              type={msg.type}
+              title={msg.title}
+              message={msg.message}
+              dismissible={msg.dismissible}
+              onDismiss={() => removeMessage(msg.id)}
+            />
+          ))}
+          <Outlet />
+          <OfflineIndicator />
+        </div>
       </div>
     </div>
   );
