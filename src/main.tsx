@@ -4,11 +4,16 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
 import './index.css';
+import { Toaster } from 'sonner';
+import { SystemMessageProvider } from './context/SystemMessageContext';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <App />
+      <SystemMessageProvider>
+        <App />
+        <Toaster position="top-right" />
+      </SystemMessageProvider>
     </BrowserRouter>
   </React.StrictMode>,
 );

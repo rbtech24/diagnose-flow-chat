@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,13 +33,14 @@ export function NewFeatureRequestForm({ onSubmit, onCancel, onCreateRequest }: N
     
     try {
       if (onCreateRequest) {
-        // If onCreateRequest is provided, use it
+        // If onCreateRequest is provided, use it with a default user_id
         onCreateRequest({
           title,
           description,
           priority: priority as "low" | "medium" | "high" | "critical",
           status: "pending",
           company_id: "current-company", // This would normally come from context or props
+          user_id: "current-user", // Add the missing user_id field with a default value
         });
       } else {
         // Otherwise just simulate submission for backward compatibility

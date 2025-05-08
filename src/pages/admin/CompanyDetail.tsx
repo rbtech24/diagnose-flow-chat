@@ -11,7 +11,7 @@ import { ArrowLeft, Calendar, MapPin, UserRound, Package, Wrench, AlertTriangle,
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { handleApiError } from "@/utils/errorHandler";
 import { toast } from "sonner";
-import { ActivityItem, ActivityMetadata } from "@/types/activity";
+import { ActivityItem, ActivityMetadata, UserActivityData } from "@/types/activity";
 
 // Define proper interface for company address to avoid deep instantiation
 interface CompanyAddress {
@@ -21,7 +21,7 @@ interface CompanyAddress {
   zip?: string | null;
 }
 
-// Define type for company and activity data
+// Define type for company data
 interface CompanyData {
   id: string;
   name: string;
@@ -32,18 +32,6 @@ interface CompanyData {
   trial_period?: number;
   trial_end_date?: string;
   company_address?: CompanyAddress | null;
-}
-
-// Simplified user activity data interface
-interface UserActivityData {
-  id: string;
-  description?: string;
-  activity_type: string; 
-  created_at: string;
-  metadata: Record<string, any>; // Using a simple record type
-  ip_address?: string;
-  user_agent?: string;
-  user_id?: string;
 }
 
 export default function CompanyDetail() {
@@ -95,7 +83,19 @@ export default function CompanyDetail() {
         if (activityError) throw activityError;
         
         if (activityData) {
-          setActivities(activityData);
+          // Convert the activityData to UserActivityData type explicitly
+          const typedActivities: UserActivityData[] = activityData.map(act => ({
+            id: act.id,
+            activity_type: act.activity_type,
+            created_at: act.created_at,
+            description: act.description || '',
+            metadata: typeof act.metadata === 'string' ? JSON.parse(act.metadata) : act.metadata || {},
+            ip_address: act.ip_address,
+            user_agent: act.user_agent,
+            user_id: act.user_id,
+          }));
+          
+          setActivities(typedActivities);
         }
         
       } catch (err) {

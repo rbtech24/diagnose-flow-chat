@@ -24,3 +24,15 @@ export interface FormattedActivity {
   activity_type: string;
   metadata: ActivityMetadata;
 }
+
+// Add a specific type for user activity data
+export interface UserActivityData {
+  id: string;
+  activity_type: string;
+  created_at: string;
+  description?: string;
+  metadata: Record<string, any>;
+  ip_address?: string;
+  user_agent?: string;
+  user_id?: string;
+}
