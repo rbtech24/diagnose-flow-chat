@@ -3,7 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './context/auth';
 import { SystemMessageProvider } from './context/SystemMessageContext';
 import { Toaster } from 'react-hot-toast';
 import { addCacheControlMetaTags, registerCacheEventListeners } from './utils/cacheControl';
@@ -49,8 +49,10 @@ root.render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <App />
-        <Toaster position="top-right" />
+        <SystemMessageProvider>
+          <App />
+          <Toaster position="top-right" />
+        </SystemMessageProvider>
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>
