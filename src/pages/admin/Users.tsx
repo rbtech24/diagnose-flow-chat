@@ -2,31 +2,49 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Users } from "lucide-react";
+import { Plus, Search, Users, AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserManagementStore } from "@/store/userManagementStore";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 export default function AdminUsers() {
   const navigate = useNavigate();
-  const { users, isLoadingUsers, fetchUsers } = useUserManagementStore();
+  const { 
+    users, 
+    isLoadingUsers, 
+    fetchUsers,
+    error,
+    clearError
+  } = useUserManagementStore();
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchUsers();
-  }, [fetchUsers]);
+    
+    // Clean up error state when component unmounts
+    return () => {
+      clearError();
+    };
+  }, [fetchUsers, clearError]);
 
   // Filter users based on search query
   const filteredUsers = users.filter(user => 
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    user.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
     user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.role.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleAddUser = () => {
     navigate("/admin/users/new");
+  };
+
+  // Retry loading users if there was an error
+  const handleRetry = () => {
+    clearError();
+    fetchUsers();
   };
 
   return (
@@ -52,6 +70,19 @@ export default function AdminUsers() {
           </Button>
         </div>
       </div>
+
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription className="flex justify-between items-center">
+            <span>{error}</span>
+            <Button variant="outline" size="sm" onClick={handleRetry}>
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Card>
         <CardHeader className="pb-3">
@@ -90,7 +121,7 @@ export default function AdminUsers() {
                       <Users className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-medium">{user.name}</h3>
+                      <h3 className="font-medium">{user.name || "Unnamed User"}</h3>
                       <p className="text-sm text-muted-foreground">{user.email}</p>
                     </div>
                   </div>
