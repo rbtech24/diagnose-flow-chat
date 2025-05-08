@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { supabase } from '@/utils/supabaseClient';
 import { User, UserWithPassword } from '@/types/user';
@@ -55,13 +56,13 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       // For now, let's use mock data to avoid the database issues
       const mockUser = {
         id: id,
-        name: 'Test User',
-        email: 'user@example.com',
-        role: 'admin' as 'admin' | 'company' | 'tech',
-        status: 'active' as 'active' | 'inactive' | 'pending' | 'archived' | 'deleted',
+        name: id === 'super-admin-id' ? 'Super Admin' : 'Test User',
+        email: id === 'super-admin-id' ? 'admin@repairautopilot.com' : 'user@example.com',
+        role: 'admin' as const,
+        status: 'active' as const,
         companyId: null,
         companyName: '',
-        isMainAdmin: false
+        isMainAdmin: id === 'super-admin-id' // Set isMainAdmin to true for super admin
       };
       
       set({ currentUser: mockUser });
@@ -82,12 +83,13 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       // For now, let's use mock data to avoid the database issues
       const mockUsers: User[] = [
         {
-          id: 'user-1',
-          name: 'Admin User',
-          email: 'admin@example.com',
+          id: 'super-admin-id',
+          name: 'Super Admin',
+          email: 'admin@repairautopilot.com',
           role: 'admin',
           status: 'active',
           avatarUrl: '',
+          isMainAdmin: true, // This is the super admin
         },
         {
           id: 'user-2',
@@ -325,6 +327,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         phone: user.phone,
         company_id: user.companyId,
         status: user.status,
+        isMainAdmin: false, // New users are never super admins
       };
 
       // Update the users list with the new user

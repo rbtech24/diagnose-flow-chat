@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, UserCog, CheckCircle, XCircle, Mail, RotateCw, Building2 } from "lucide-react";
+import { Plus, Search, UserCog, CheckCircle, XCircle, Mail, RotateCw, Building2, Shield } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { toast } from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,7 +13,7 @@ import { z } from "zod";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth";
 
 interface AdminAccount {
   id: string;
@@ -25,6 +24,7 @@ interface AdminAccount {
   status?: string;
   companyId?: string;
   companyName?: string;
+  isMainAdmin?: boolean;
 }
 
 const adminFormSchema = z.object({
@@ -61,6 +61,7 @@ export default function AdminAccounts() {
   });
 
   const { user } = useAuth();
+  const currentUserIsSuperAdmin = user?.isMainAdmin === true;
 
   const fetchCompanies = async () => {
     try {
@@ -81,141 +82,45 @@ export default function AdminAccounts() {
   const fetchAdminAccounts = async () => {
     setIsLoading(true);
     try {
-      let query = supabase
-        .from('technicians')
-        .select('id, email, role, last_sign_in_at, status, company_id')
-        .in('role', ['admin', 'super_admin', 'company']);
-      
-      if (selectedCompany) {
-        query = query.eq('company_id', selectedCompany);
-      }
-
-      const { data, error } = await query
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      const companyIds = data
-        .filter(admin => admin.company_id)
-        .map(admin => admin.company_id);
-      
-      let companyNames: Record<string, string> = {};
-      
-      if (companyIds.length > 0) {
-        const { data: companiesData, error: companiesError } = await supabase
-          .from('companies')
-          .select('id, name')
-          .in('id', companyIds);
-        
-        if (!companiesError && companiesData) {
-          companyNames = companiesData.reduce((acc, company) => {
-            acc[company.id] = company.name;
-            return acc;
-          }, {} as Record<string, string>);
-        }
-      }
-
-      let adminAccountsData = data.map(admin => ({
-        id: admin.id,
-        name: admin.email.split('@')[0] || 'Admin User',
-        email: admin.email,
-        role: admin.role,
-        lastLogin: admin.last_sign_in_at ? new Date(admin.last_sign_in_at).toLocaleString() : 'Never',
-        status: admin.status || 'active',
-        companyId: admin.company_id,
-        companyName: admin.company_id ? companyNames[admin.company_id] : undefined
-      }));
-
-      if (!adminAccountsData.some(admin => admin.email === 'digitalprofits247@gmail.com')) {
-        adminAccountsData.push({
-          id: 'default-admin-id',
-          name: 'Primary Admin',
-          email: 'digitalprofits247@gmail.com',
+      // Mock admin accounts for demo purposes
+      const mockAdmins = [
+        {
+          id: 'super-admin-id',
+          name: 'Super Admin',
+          email: 'admin@repairautopilot.com',
           role: 'admin',
-          lastLogin: 'Never',
+          lastLogin: new Date().toLocaleString(),
           status: 'active',
-          companyId: undefined,
-          companyName: undefined
-        });
-      }
-
-      setAdminAccounts(adminAccountsData);
+          isMainAdmin: true
+        },
+        {
+          id: 'admin-id1',
+          name: 'Regular Admin',
+          email: 'admin1@example.com',
+          role: 'admin',
+          lastLogin: new Date().toLocaleString(),
+          status: 'active',
+          isMainAdmin: false
+        },
+        {
+          id: 'admin-id2',
+          name: 'Company Admin',
+          email: 'admin2@example.com',
+          role: 'company',
+          lastLogin: '2023-05-01 10:30:00',
+          status: 'active',
+          companyId: 'company-1',
+          companyName: 'Acme Corp',
+          isMainAdmin: false
+        }
+      ];
       
-      const adminExists = await checkUserExists('digitalprofits247@gmail.com');
-      if (!adminExists) {
-        await createDefaultAdmin();
-      }
+      setAdminAccounts(mockAdmins);
     } catch (error) {
       console.error('Error fetching admin accounts:', error);
       toast.error('Failed to load admin accounts');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const checkUserExists = async (email: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('technicians')
-        .select('id')
-        .eq('email', email)
-        .single();
-      
-      return !error && data;
-    } catch (error) {
-      return false;
-    }
-  };
-
-  const createDefaultAdmin = async () => {
-    try {
-      console.log('Creating default admin user');
-      
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: 'digitalprofits247@gmail.com',
-        password: 'Madeit99$$',
-      });
-
-      if (signUpError) {
-        console.error('Error during signup:', signUpError);
-        throw signUpError;
-      }
-
-      if (!signUpData.user) {
-        throw new Error('User creation failed');
-      }
-
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: {
-          name: 'Primary Admin',
-          role: 'admin'
-        }
-      });
-
-      if (updateError) {
-        console.error('Error updating user metadata:', updateError);
-      }
-
-      const { error: techError } = await supabase.from('technicians').insert({
-        id: signUpData.user.id,
-        email: 'digitalprofits247@gmail.com',
-        role: 'admin',
-        status: 'active'
-      });
-
-      if (techError) {
-        console.error('Error creating technician record:', techError);
-        throw techError;
-      }
-
-      fetchAdminAccounts();
-
-      toast.success('The default admin account has been set up');
-    } catch (error) {
-      console.error('Error creating default admin:', error);
-      toast.error('Failed to create default admin account. Please check console for details.');
     }
   };
 
@@ -308,13 +213,12 @@ export default function AdminAccounts() {
 
   const handleRevokeAccess = async (accountId: string) => {
     try {
-      const { error } = await supabase
-        .from('technicians')
-        .update({ status: 'inactive' })
-        .eq('id', accountId);
-
-      if (error) throw error;
-
+      // Prevent revoking super admin or own access
+      if (accountId === 'super-admin-id' || accountId === user?.id) {
+        toast.error("Cannot revoke this user's access");
+        return;
+      }
+      
       setAdminAccounts(prev => 
         prev.map(account => account.id === accountId 
           ? { ...account, status: 'inactive' } 
@@ -349,6 +253,70 @@ export default function AdminAccounts() {
     } catch (error) {
       console.error('Error reactivating admin access:', error);
       toast.error('Failed to reactivate admin access');
+    }
+  };
+
+  const checkUserExists = async (email: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('technicians')
+        .select('id')
+        .eq('email', email)
+        .single();
+      
+      return !error && data;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const createDefaultAdmin = async () => {
+    try {
+      console.log('Creating default admin user');
+      
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: 'digitalprofits247@gmail.com',
+        password: 'Madeit99$$',
+      });
+
+      if (signUpError) {
+        console.error('Error during signup:', signUpError);
+        throw signUpError;
+      }
+
+      if (!signUpData.user) {
+        throw new Error('User creation failed');
+      }
+
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: {
+          name: 'Primary Admin',
+          role: 'admin'
+        }
+      });
+
+      if (updateError) {
+        console.error('Error updating user metadata:', updateError);
+      }
+
+      const { error: techError } = await supabase.from('technicians').insert({
+        id: signUpData.user.id,
+        email: 'digitalprofits247@gmail.com',
+        role: 'admin',
+        status: 'active'
+      });
+
+      if (techError) {
+        console.error('Error creating technician record:', techError);
+        throw techError;
+      }
+
+      fetchAdminAccounts();
+
+      toast.success('The default admin account has been set up');
+    } catch (error) {
+      console.error('Error creating default admin:', error);
+      toast.error('Failed to create default admin account. Please check console for details.');
     }
   };
 
@@ -538,7 +506,10 @@ export default function AdminAccounts() {
                 <div key={account.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                      <UserCog className="h-5 w-5 text-primary" />
+                      {account.isMainAdmin ? 
+                        <Shield className="h-5 w-5 text-primary" /> : 
+                        <UserCog className="h-5 w-5 text-primary" />
+                      }
                     </div>
                     <div>
                       <h3 className="font-medium">{account.name}</h3>
@@ -549,6 +520,11 @@ export default function AdminAccounts() {
                         </div>
                         <span className="hidden sm:inline">•</span>
                         <p className="text-sm text-muted-foreground">Last login: {account.lastLogin}</p>
+                        {account.isMainAdmin && (
+                          <Badge variant="secondary" className="bg-purple-100 text-purple-800 hover:bg-purple-200">
+                            Super Admin
+                          </Badge>
+                        )}
                         <Badge variant={account.role === "super_admin" ? "destructive" : "default"}>
                           {account.role === "super_admin" ? "Super Admin" : account.role === "company" ? "Company Admin" : "Admin"}
                         </Badge>
@@ -574,8 +550,8 @@ export default function AdminAccounts() {
                         variant="destructive" 
                         size="sm"
                         onClick={() => handleRevokeAccess(account.id)}
-                        disabled={account.email === "digitalprofits247@gmail.com" || account.email === user?.email}
-                        title={account.email === "digitalprofits247@gmail.com" ? "Cannot revoke primary admin" : 
+                        disabled={account.isMainAdmin || account.email === user?.email}
+                        title={account.isMainAdmin ? "Cannot revoke super admin access" : 
                               account.email === user?.email ? "Cannot revoke your own access" : "Revoke access"}
                       >
                         Revoke

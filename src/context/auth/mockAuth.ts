@@ -1,65 +1,159 @@
 
+import { useState, useEffect } from "react";
 import { User } from "@/types/user";
 import { Session } from '@supabase/supabase-js';
-import { useState, useEffect } from 'react';
 import { AuthContextType } from "@/types/auth";
+
+// Mock user data for testing
+const superAdmin: User = {
+  id: "super-admin-id",
+  name: "Super Admin",
+  email: "admin@repairautopilot.com",
+  role: "admin",
+  status: "active",
+  isMainAdmin: true,
+};
+
+const regularAdmin: User = {
+  id: "admin-id",
+  name: "Admin User",
+  email: "admin@example.com",
+  role: "admin",
+  status: "active",
+  isMainAdmin: false,
+};
+
+const companyUser: User = {
+  id: "company-id",
+  name: "Company Manager",
+  email: "company@example.com",
+  role: "company",
+  status: "active",
+};
+
+const techUser: User = {
+  id: "tech-id",
+  name: "Tech Support",
+  email: "tech@example.com",
+  role: "tech",
+  status: "active",
+};
 
 export function useMockAuth(): AuthContextType {
   console.log("Using mock auth provider");
   
-  // Create a mock user that's always logged in
-  const mockUser: User = {
-    id: "mock-user-id",
-    email: "mock@example.com",
-    name: "Mock User",
-    role: "admin",
-    status: "active"
+  // Default to super admin for easier testing
+  const storedUser = localStorage.getItem("currentUser")
+    ? JSON.parse(localStorage.getItem("currentUser")!)
+    : superAdmin;
+  
+  const [user, setUser] = useState<User | null>(storedUser);
+  const [session, setSession] = useState<Session | null>({
+    access_token: "mock_token",
+    refresh_token: "mock_refresh_token",
+    expires_in: 3600,
+    expires_at: Date.now() + 3600000,
+    user: user as any,
+  } as Session);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Save the user to localStorage when it changes
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem("currentUser", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("currentUser");
+    }
+  }, [user]);
+
+  const signIn = async (email: string, password: string): Promise<boolean> => {
+    setIsLoading(true);
+
+    // Simple mock login
+    try {
+      let loginUser: User | null = null;
+
+      if (email === "admin@repairautopilot.com") {
+        loginUser = superAdmin;
+      } else if (email === "admin@example.com") {
+        loginUser = regularAdmin;
+      } else if (email === "company@example.com") {
+        loginUser = companyUser;
+      } else if (email === "tech@example.com") {
+        loginUser = techUser;
+      }
+
+      if (loginUser) {
+        // Mock successful login
+        setUser(loginUser);
+        setSession({
+          access_token: "mock_token",
+          refresh_token: "mock_refresh_token",
+          expires_in: 3600,
+          expires_at: Date.now() + 3600000,
+          user: loginUser as any,
+        } as Session);
+        return true;
+      } else {
+        console.error("User not found");
+        return false;
+      }
+    } catch (error) {
+      console.error("Error signing in:", error);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Set up mock authentication state
-  const [user] = useState<User | null>(mockUser);
-  const [userRole] = useState<'admin' | 'company' | 'tech' | null>("admin");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated] = useState(true);
-  const [session] = useState<Session | null>({
-    access_token: "mock-token",
-    refresh_token: "mock-refresh-token",
-    user: {
-      id: mockUser.id,
-      email: mockUser.email,
-      user_metadata: { role: mockUser.role, name: mockUser.name },
-      app_metadata: {},
-      aud: "authenticated"
-    },
-    expires_in: 3600
-  } as unknown as Session);
+  const signUp = async (
+    email: string,
+    password: string,
+    role: "admin" | "company" | "tech",
+    userData?: Record<string, any>
+  ): Promise<boolean> => {
+    // Mock signup
+    setUser({
+      id: `user-${Date.now()}`,
+      name: userData?.name || email.split("@")[0],
+      email,
+      role,
+      status: "active",
+    });
+    return true;
+  };
 
-  useEffect(() => {
-    // Simulate loading completion after mount
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
+  const signOut = async (): Promise<void> => {
+    setUser(null);
+    setSession(null);
+    localStorage.removeItem("currentUser");
+  };
 
-    return () => clearTimeout(timer);
-  }, []);
+  const updateUser = async (data: Partial<User>): Promise<boolean> => {
+    if (user) {
+      const updatedUser = { ...user, ...data };
+      setUser(updatedUser);
+      return true;
+    }
+    return false;
+  };
 
-  // Mock auth functions that always succeed
-  const signIn = async () => true;
-  const signUp = async () => true;
-  const signOut = async () => {};
-  const updateUser = async () => true;
-  const resendVerificationEmail = async () => true;
+  const resendVerificationEmail = async (email: string): Promise<boolean> => {
+    // Mock implementation
+    console.log(`Verification email would be resent to ${email}`);
+    return true;
+  };
 
   return {
     user,
-    userRole,
-    isAuthenticated,
+    userRole: user?.role || null,
+    isAuthenticated: !!user,
     isLoading,
     session,
     signIn,
     signUp,
     signOut,
     updateUser,
-    resendVerificationEmail
+    resendVerificationEmail,
   };
 }

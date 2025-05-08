@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 
 export type MessageType = 'info' | 'warning' | 'error' | 'success';
@@ -25,14 +24,6 @@ const SystemMessageContext = createContext<SystemMessageContextValue | undefined
 
 export const SystemMessageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [messages, setMessages] = useState<SystemMessage[]>([
-    {
-      id: '1',
-      type: 'info',
-      title: 'Welcome to the Admin Panel',
-      message: 'You can manage all aspects of the platform from here.',
-      dismissible: true,
-      audience: ['admin']
-    },
     {
       id: '2',
       type: 'info',
