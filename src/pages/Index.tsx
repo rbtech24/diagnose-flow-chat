@@ -63,7 +63,7 @@ export default function Index() {
                 <div className="flex items-center gap-6 text-sm text-gray-500">
                   <div className="flex items-center gap-1">
                     <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>14-day trial</span>
+                    <span>30-day trial</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <CheckCircle className="h-4 w-4 text-green-500" />
