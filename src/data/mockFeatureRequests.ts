@@ -9,12 +9,12 @@ const daysAgo = (days: number) => {
 };
 
 // Helper function to create empty vote arrays
-const createVotes = (userId: string, count: number): FeatureVote[] => {
+const createVotes = (featureId: string, count: number): FeatureVote[] => {
   const votes: FeatureVote[] = [];
   for (let i = 0; i < count; i++) {
     votes.push({
-      id: `vote-${userId}-${i}`,
-      feature_id: userId,
+      id: `vote-${featureId}-${i}`,
+      feature_id: featureId,
       user_id: `user-${i}`,
       created_at: daysAgo(Math.floor(Math.random() * 30)).toISOString(),
     });
@@ -32,7 +32,7 @@ export const mockFeatureRequests: FeatureRequest[] = [
     priority: "high" as FeatureRequestPriority,
     created_at: daysAgo(30).toISOString(),
     updated_at: daysAgo(30).toISOString(),
-    created_by: "u-123",
+    user_id: "u-123",
     company_id: null,
     votes_count: 63,
     user_has_voted: false,
@@ -52,7 +52,7 @@ export const mockFeatureRequests: FeatureRequest[] = [
     priority: "medium" as FeatureRequestPriority,
     created_at: daysAgo(22).toISOString(),
     updated_at: daysAgo(22).toISOString(),
-    created_by: "u-456",
+    user_id: "u-456",
     company_id: null,
     votes_count: 51,
     user_has_voted: false,
@@ -72,7 +72,7 @@ export const mockFeatureRequests: FeatureRequest[] = [
     priority: "high" as FeatureRequestPriority,
     created_at: daysAgo(18).toISOString(),
     updated_at: daysAgo(18).toISOString(),
-    created_by: "u-789",
+    user_id: "u-789",
     company_id: null,
     votes_count: 38,
     user_has_voted: false,
@@ -92,7 +92,7 @@ export const mockFeatureRequests: FeatureRequest[] = [
     priority: "medium" as FeatureRequestPriority,
     created_at: daysAgo(15).toISOString(),
     updated_at: daysAgo(15).toISOString(),
-    created_by: "u-789",
+    user_id: "u-789",
     company_id: null,
     votes_count: 42,
     user_has_voted: false,
@@ -112,7 +112,7 @@ export const mockFeatureRequests: FeatureRequest[] = [
     priority: "high" as FeatureRequestPriority,
     created_at: daysAgo(8).toISOString(),
     updated_at: daysAgo(8).toISOString(),
-    created_by: "u-1011",
+    user_id: "u-1011",
     company_id: null,
     votes_count: 28,
     user_has_voted: false,

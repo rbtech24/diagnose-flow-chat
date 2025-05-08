@@ -54,7 +54,7 @@ const createMockTicket = (
   description: string,
   status: SupportTicketStatus,
   priority: TicketPriority,
-  created_by: string,
+  user_id: string,
   assigned_to: string | null,
   daysAgo: number
 ): SupportTicket => {
@@ -72,10 +72,10 @@ const createMockTicket = (
     priority,
     created_at: createdDate.toISOString(),
     updated_at: updatedDate.toISOString(),
-    created_by,
+    user_id,
     assigned_to,
     company_id: null,
-    creator: mockUsers[created_by as keyof typeof mockUsers],
+    creator: mockUsers[user_id as keyof typeof mockUsers],
     assignee: assigned_to ? mockUsers[assigned_to as keyof typeof mockUsers] : undefined
   };
 };
