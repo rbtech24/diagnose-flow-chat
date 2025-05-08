@@ -21,10 +21,7 @@ interface CompanyAddress {
   zip?: string | null;
 }
 
-// Define type for JSON metadata
-type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
-
-// Define types for company and activity data
+// Define type for company and activity data
 interface CompanyData {
   id: string;
   name: string;
@@ -37,13 +34,13 @@ interface CompanyData {
   company_address?: CompanyAddress | null;
 }
 
-// Use a simpler type for user activities to avoid infinite type depth
+// Simplified user activity data interface
 interface UserActivityData {
   id: string;
   description?: string;
   activity_type: string; 
   created_at: string;
-  metadata: any; // Using any temporarily to avoid type depth issues
+  metadata: Record<string, any>; // Using a simple record type
   ip_address?: string;
   user_agent?: string;
   user_id?: string;
@@ -116,57 +113,76 @@ export default function CompanyDetail() {
     fetchCompany();
   }, [id]);
 
-  // Function to format activity items for display
+  // Completely rewritten formatActivity function to avoid type recursion issues
   const formatActivity = (activity: UserActivityData): ActivityItem => {
-    // Create a safe metadata object that conforms to ActivityMetadata
-    let metadataObj: ActivityMetadata = {};
+    // Create a safe metadata object
+    const safeMetadata: ActivityMetadata = {};
     
-    if (typeof activity.metadata === 'string') {
-      try {
-        const parsed = JSON.parse(activity.metadata);
-        // Copy allowed properties
-        if (parsed.repair_id) metadataObj.repair_id = String(parsed.repair_id);
-        if (parsed.technician_name) metadataObj.technician_name = String(parsed.technician_name);
-        if (parsed.status) metadataObj.status = String(parsed.status);
+    // Process metadata safely based on its type
+    if (activity.metadata) {
+      // Handle string metadata (needs parsing)
+      if (typeof activity.metadata === 'string') {
+        try {
+          const parsed = JSON.parse(activity.metadata);
+          // Safely copy properties we know about
+          if (parsed.repair_id) safeMetadata.repair_id = String(parsed.repair_id);
+          if (parsed.technician_name) safeMetadata.technician_name = String(parsed.technician_name);
+          if (parsed.status) safeMetadata.status = String(parsed.status);
+          
+          // Copy other primitive values
+          Object.entries(parsed).forEach(([key, value]) => {
+            if (!['repair_id', 'technician_name', 'status'].includes(key)) {
+              // Only add primitive values to avoid recursion
+              if (value === null || 
+                  typeof value === 'string' || 
+                  typeof value === 'number' || 
+                  typeof value === 'boolean') {
+                safeMetadata[key] = value as string | number | boolean | null;
+              }
+            }
+          });
+        } catch (e) {
+          // If parsing fails, use empty metadata
+          console.error('Failed to parse activity metadata:', e);
+        }
+      } 
+      // Handle object metadata directly
+      else if (typeof activity.metadata === 'object' && activity.metadata !== null) {
+        // Safely copy properties
+        const metadata = activity.metadata;
         
-        // Copy other properties safely
-        Object.entries(parsed).forEach(([key, value]) => {
+        if ('repair_id' in metadata && metadata.repair_id) 
+          safeMetadata.repair_id = String(metadata.repair_id);
+        
+        if ('technician_name' in metadata && metadata.technician_name) 
+          safeMetadata.technician_name = String(metadata.technician_name);
+        
+        if ('status' in metadata && metadata.status) 
+          safeMetadata.status = String(metadata.status);
+        
+        // Copy other primitive values
+        Object.entries(metadata).forEach(([key, value]) => {
           if (!['repair_id', 'technician_name', 'status'].includes(key)) {
-            // Only add string, number, boolean, or null values to avoid recursion
-            if (value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-              metadataObj[key] = value;
+            // Only add primitive values to avoid recursion
+            if (value === null || 
+                typeof value === 'string' || 
+                typeof value === 'number' || 
+                typeof value === 'boolean') {
+              safeMetadata[key] = value as string | number | boolean | null;
             }
           }
         });
-      } catch {
-        metadataObj = {};
       }
-    } else if (activity.metadata && typeof activity.metadata === 'object') {
-      const typedMetadata = activity.metadata as Record<string, any>;
-      
-      // Copy allowed properties
-      if (typedMetadata.repair_id) metadataObj.repair_id = String(typedMetadata.repair_id);
-      if (typedMetadata.technician_name) metadataObj.technician_name = String(typedMetadata.technician_name);
-      if (typedMetadata.status) metadataObj.status = String(typedMetadata.status);
-      
-      // Copy other properties safely
-      Object.entries(typedMetadata).forEach(([key, value]) => {
-        if (!['repair_id', 'technician_name', 'status'].includes(key)) {
-          // Only add string, number, boolean, or null values to avoid recursion
-          if (value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-            metadataObj[key] = value;
-          }
-        }
-      });
     }
     
+    // Format and return the activity item
     return {
       id: activity.id,
       title: activity.description || `${activity.activity_type} activity`,
       timestamp: new Date(activity.created_at).toLocaleString(),
       activity_type: activity.activity_type,
       description: activity.description || '',
-      metadata: metadataObj
+      metadata: safeMetadata
     };
   };
 

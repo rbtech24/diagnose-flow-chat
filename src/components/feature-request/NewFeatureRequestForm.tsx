@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,13 +6,15 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useFeatureRequests } from "@/hooks/useFeatureRequests";
+import { FeatureRequest } from "@/types/feature-request";
 
 export interface NewFeatureRequestFormProps {
   onSubmit: () => Promise<void> | void;
   onCancel?: () => void;
+  onCreateRequest?: (request: Omit<FeatureRequest, "id" | "created_at" | "updated_at" | "votes_count" | "user_has_voted" | "comments_count">) => void;
 }
 
-export function NewFeatureRequestForm({ onSubmit, onCancel }: NewFeatureRequestFormProps) {
+export function NewFeatureRequestForm({ onSubmit, onCancel, onCreateRequest }: NewFeatureRequestFormProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("medium");
@@ -29,16 +30,28 @@ export function NewFeatureRequestForm({ onSubmit, onCancel }: NewFeatureRequestF
     
     setIsSubmitting(true);
     
-    // Here we would normally submit the form data
-    // For now let's just simulate a submission
     try {
-      setTimeout(() => {
-        toast.success("Feature request submitted successfully");
-        setTitle("");
-        setDescription("");
-        setPriority("medium");
-        if (onSubmit) onSubmit();
-      }, 1000);
+      if (onCreateRequest) {
+        // If onCreateRequest is provided, use it
+        onCreateRequest({
+          title,
+          description,
+          priority: priority as "low" | "medium" | "high" | "critical",
+          status: "pending",
+          company_id: "current-company", // This would normally come from context or props
+        });
+      } else {
+        // Otherwise just simulate submission for backward compatibility
+        setTimeout(() => {
+          toast.success("Feature request submitted successfully");
+          setTitle("");
+          setDescription("");
+          setPriority("medium");
+        }, 1000);
+      }
+      
+      // Call onSubmit in any case
+      if (onSubmit) await onSubmit();
     } catch (error) {
       toast.error("Failed to submit feature request");
     } finally {
