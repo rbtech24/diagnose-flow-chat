@@ -11,23 +11,25 @@ import { format } from "date-fns";
 
 export interface SupportTicketProps {
   ticket: SupportTicketType;
-  messages: SupportTicketMessage[];
-  onAddMessage: (ticketId: string, content: string) => Promise<void>;
-  onUpdateStatus: (ticketId: string, status: SupportTicketStatus) => Promise<void>;
+  messages?: SupportTicketMessage[];
+  onAddMessage?: (ticketId: string, content: string) => Promise<void>;
+  onUpdateStatus?: (ticketId: string, status: SupportTicketStatus) => Promise<void>;
+  isDetailView?: boolean;
 }
 
 export const SupportTicket: React.FC<SupportTicketProps> = ({
   ticket,
-  messages,
+  messages = [],
   onAddMessage,
   onUpdateStatus,
+  isDetailView = false,
 }) => {
   const [newMessage, setNewMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !onAddMessage) return;
     
     setIsSubmitting(true);
     try {
@@ -41,6 +43,8 @@ export const SupportTicket: React.FC<SupportTicketProps> = ({
   };
 
   const handleStatusChange = async (status: string) => {
+    if (!onUpdateStatus) return;
+    
     setIsUpdatingStatus(true);
     try {
       await onUpdateStatus(ticket.id, status as SupportTicketStatus);
@@ -111,27 +115,29 @@ export const SupportTicket: React.FC<SupportTicketProps> = ({
         </div>
         
         <div className="flex items-center gap-2">
-          <Select
-            value={ticket.status}
-            onValueChange={handleStatusChange}
-            disabled={isUpdatingStatus || ticket.status === "closed"}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Update Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="open">Open</SelectItem>
-              <SelectItem value="in-progress">In Progress</SelectItem>
-              <SelectItem value="resolved">Resolved</SelectItem>
-              <SelectItem value="closed">Closed</SelectItem>
-            </SelectContent>
-          </Select>
+          {onUpdateStatus && (
+            <Select
+              value={ticket.status}
+              onValueChange={handleStatusChange}
+              disabled={isUpdatingStatus || ticket.status === "closed"}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Update Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="open">Open</SelectItem>
+                <SelectItem value="in-progress">In Progress</SelectItem>
+                <SelectItem value="resolved">Resolved</SelectItem>
+                <SelectItem value="closed">Closed</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </div>
 
       <Card className="mt-4">
         <CardHeader>
-          <CardTitle className="text-lg">Conversation</CardTitle>
+          <CardTitle className="text-lg">{ticket.title}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
@@ -158,8 +164,8 @@ export const SupportTicket: React.FC<SupportTicketProps> = ({
               </div>
             </div>
 
-            {/* Message thread */}
-            {messages.map((message) => (
+            {/* Message thread - only shown in detail view or if messages exist */}
+            {(isDetailView || messages.length > 0) && messages.map((message) => (
               <div key={message.id} className="flex gap-4">
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={message.sender?.avatar_url} alt={message.sender?.name || "User"} />
@@ -183,8 +189,8 @@ export const SupportTicket: React.FC<SupportTicketProps> = ({
               </div>
             ))}
 
-            {/* Reply input */}
-            {ticket.status !== "closed" && (
+            {/* Reply input - only shown if onAddMessage is provided and ticket is not closed */}
+            {onAddMessage && ticket.status !== "closed" && (
               <div className="pt-4 border-t">
                 <Textarea
                   placeholder="Type your reply..."
@@ -208,3 +214,6 @@ export const SupportTicket: React.FC<SupportTicketProps> = ({
     </div>
   );
 };
+
+// Alias export to match the import name in other files
+export const SupportTicketComponent = SupportTicket;

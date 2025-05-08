@@ -1,5 +1,5 @@
 
-export type FeatureRequestStatus = "pending" | "approved" | "rejected" | "in-progress" | "completed";
+export type FeatureRequestStatus = "pending" | "approved" | "rejected" | "in-progress" | "completed" | "submitted";
 export type FeatureRequestPriority = "low" | "medium" | "high" | "critical";
 
 export interface User {
@@ -16,7 +16,7 @@ export interface FeatureRequest {
   title: string;
   description: string;
   status: FeatureRequestStatus;
-  priority: FeatureRequestPriority;
+  priority?: FeatureRequestPriority;
   company_id?: string;
   user_id?: string;
   created_at: string;

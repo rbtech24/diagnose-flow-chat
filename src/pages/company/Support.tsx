@@ -1,7 +1,8 @@
+
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SupportTicketComponent, SupportTicket, SupportTicketStatus } from "@/components/support/SupportTicket";
+import { SupportTicket, SupportTicketProps } from "@/components/support/SupportTicket";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, Filter, RotateCw } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,10 +10,11 @@ import { mockTickets, currentUser } from "@/data/mockTickets";
 import { NewTicketForm } from "@/components/support/NewTicketForm";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
+import { SupportTicket as SupportTicketType, SupportTicketStatus } from "@/types/support";
 
 export default function CompanySupport() {
-  const [tickets, setTickets] = useState<SupportTicket[]>(
-    mockTickets.filter(ticket => ticket.createdBy.id === "company1")
+  const [tickets, setTickets] = useState<SupportTicketType[]>(
+    mockTickets.filter(ticket => ticket.createdBy?.id === "company1")
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -20,27 +22,34 @@ export default function CompanySupport() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const navigate = useNavigate();
 
-  const handleAddMessage = (ticketId: string, content: string) => {
+  const handleAddMessage = async (ticketId: string, content: string) => {
+    // Update for mocked data
     setTickets(
       tickets.map((ticket) => 
         ticket.id === ticketId 
           ? { 
               ...ticket, 
               messages: [
-                ...ticket.messages,
+                ...ticket.messages || [],
                 {
                   id: `message-${Date.now()}`,
-                  ticketId,
+                  ticket_id: ticketId,
                   content,
-                  createdAt: new Date(),
-                  sender: currentUser
+                  created_at: new Date().toISOString(),
+                  sender_id: currentUser.id,
+                  sender: {
+                    name: currentUser.name,
+                    email: currentUser.email,
+                    avatar_url: currentUser.avatarUrl
+                  }
                 }
               ],
-              updatedAt: new Date()
+              updated_at: new Date().toISOString()
             } 
           : ticket
       )
     );
+    return Promise.resolve();
   };
 
   const handleCreateTicket = (title: string, description: string, priority: any) => {
@@ -48,16 +57,20 @@ export default function CompanySupport() {
     
     // Simulate API call
     setTimeout(() => {
-      const newTicket: SupportTicket = {
+      const newTicket: SupportTicketType = {
         id: `ticket-${Date.now()}`,
         title,
         description,
         status: "open",
         priority,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        createdBy: currentUser,
-        messages: []
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        user_id: currentUser.id,
+        creator: {
+          name: currentUser.name,
+          email: currentUser.email,
+          avatar_url: currentUser.avatarUrl
+        }
       };
       
       setTickets([newTicket, ...tickets]);
@@ -168,7 +181,7 @@ export default function CompanySupport() {
           {activeTickets.length > 0 ? (
             activeTickets.map((ticket) => (
               <div key={ticket.id} onClick={() => viewTicketDetails(ticket.id)} className="cursor-pointer">
-                <SupportTicketComponent
+                <SupportTicket
                   ticket={ticket}
                   onAddMessage={handleAddMessage}
                 />
@@ -199,7 +212,7 @@ export default function CompanySupport() {
           {resolvedTickets.length > 0 ? (
             resolvedTickets.map((ticket) => (
               <div key={ticket.id} onClick={() => viewTicketDetails(ticket.id)} className="cursor-pointer">
-                <SupportTicketComponent
+                <SupportTicket
                   ticket={ticket}
                   onAddMessage={handleAddMessage}
                 />
@@ -216,7 +229,7 @@ export default function CompanySupport() {
           {closedTickets.length > 0 ? (
             closedTickets.map((ticket) => (
               <div key={ticket.id} onClick={() => viewTicketDetails(ticket.id)} className="cursor-pointer">
-                <SupportTicketComponent
+                <SupportTicket
                   ticket={ticket}
                   onAddMessage={handleAddMessage}
                 />
