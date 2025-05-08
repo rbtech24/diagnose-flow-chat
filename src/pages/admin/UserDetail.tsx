@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { AvatarUpload } from "@/components/shared/AvatarUpload";
+import UserCompanyAssignment from "@/components/admin/UserCompanyAssignment";
 
 // Sample activity data for when no real data is available
 const sampleUserActivity = [
@@ -166,33 +166,37 @@ export default function UserDetail() {
     }
   };
 
-  const handleAssignToCompany = async () => {
-    if (!id || !selectedCompanyId) return;
+  const handleCompanyChange = async (companyId: string | null) => {
+    if (!id) return;
     
     try {
       const updatedUser = await updateUser(id, {
-        companyId: selectedCompanyId,
+        companyId
       });
       
       if (updatedUser) {
-        setUserData(updatedUser);
-        // Fetch the company data to display it
-        const company = await fetchCompanyById(selectedCompanyId);
-        setCompanyData(company);
+        setUserData({...userData, companyId});
         
-        setIsAssignCompanyDialogOpen(false);
-        setSelectedCompanyId("");
+        // Fetch the company data if a new company is assigned
+        if (companyId) {
+          const company = await fetchCompanyById(companyId);
+          setCompanyData(company);
+        } else {
+          setCompanyData(null);
+        }
         
         toast({
-          title: "Success",
-          description: "User has been assigned to the company successfully.",
+          title: companyId ? "Company assigned" : "Company unassigned",
+          description: companyId 
+            ? "User has been successfully assigned to the company." 
+            : "User has been unassigned from the company.",
         });
       }
     } catch (error) {
-      console.error('Error assigning user to company:', error);
+      console.error('Error updating company assignment:', error);
       toast({
         title: "Error",
-        description: "Failed to assign user to company.",
+        description: "Failed to update company assignment.",
         variant: "destructive",
       });
     }
@@ -338,6 +342,15 @@ export default function UserDetail() {
         </Card>
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <UserCompanyAssignment 
+          userId={id}
+          currentCompanyId={userData.companyId}
+          userRole={userData.role}
+          onCompanyChange={handleCompanyChange}
+        />
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Account Management</CardTitle>
@@ -402,51 +415,6 @@ export default function UserDetail() {
             }}
             onCancel={() => setIsResetDialogOpen(false)}
           />
-        </DialogContent>
-      </Dialog>
-
-      {/* Assign to Company Dialog */}
-      <Dialog open={isAssignCompanyDialogOpen} onOpenChange={setIsAssignCompanyDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Assign User to Company</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label htmlFor="company-select" className="text-sm font-medium">
-                Select Company
-              </label>
-              <select
-                id="company-select"
-                className="w-full p-2 border rounded-md"
-                value={selectedCompanyId}
-                onChange={(e) => setSelectedCompanyId(e.target.value)}
-              >
-                <option value="">Select a company</option>
-                {companies.map((company) => (
-                  <option key={company.id} value={company.id}>
-                    {company.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex justify-end gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsAssignCompanyDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="button" 
-                onClick={handleAssignToCompany}
-                disabled={!selectedCompanyId}
-              >
-                Assign
-              </Button>
-            </div>
-          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AvatarUpload } from "@/components/shared/AvatarUpload";
+import UserCompanyAssignment from "@/components/admin/UserCompanyAssignment";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -101,6 +101,33 @@ export default function UserEdit() {
     } catch (error) {
       console.error('Error updating avatar:', error);
       throw error;
+    }
+  };
+
+  const handleCompanyChange = async (companyId: string | null) => {
+    if (!id) return;
+    
+    try {
+      const updatedUser = await updateUser(id, {
+        companyId
+      });
+      
+      if (updatedUser) {
+        setUserData({...userData, companyId});
+        form.setValue("companyId", companyId || undefined);
+        
+        toast({
+          title: "Company updated",
+          description: "User's company assignment has been updated successfully.",
+        });
+      }
+    } catch (error) {
+      console.error('Error updating company assignment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update company assignment.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -275,37 +302,7 @@ export default function UserEdit() {
                   )}
                 />
 
-                {(selectedRole === "company" || selectedRole === "tech") && (
-                  <FormField
-                    control={form.control}
-                    name="companyId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Company</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value || undefined}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a company" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {companies.map((company) => (
-                              <SelectItem key={company.id} value={company.id}>
-                                {company.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          {selectedRole === "company" 
-                            ? "The company this manager will oversee" 
-                            : "The company this technician belongs to"}
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
+                {/* Remove the CompanyId field since we have a dedicated component for that now */}
 
                 <div className="flex justify-end gap-3">
                   <Button
@@ -322,6 +319,18 @@ export default function UserEdit() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Add company assignment component if role is not admin */}
+      {userData && userData.role !== 'admin' && (
+        <div className="mb-6">
+          <UserCompanyAssignment 
+            userId={id || ""}
+            currentCompanyId={userData.companyId}
+            userRole={userData.role}
+            onCompanyChange={handleCompanyChange}
+          />
+        </div>
+      )}
     </div>
   );
 }

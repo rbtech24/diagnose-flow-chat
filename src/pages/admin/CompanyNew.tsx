@@ -1,96 +1,93 @@
+
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
+import { useUserManagementStore } from "@/store/userManagementStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useUserManagementStore } from "@/store/userManagementStore";
 
-const companyFormSchema = z.object({
+const formSchema = z.object({
   name: z.string().min(2, "Company name must be at least 2 characters"),
   contactName: z.string().min(2, "Contact name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   phone: z.string().optional(),
-  address: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  zipCode: z.string().optional(),
-  country: z.string().optional(),
-  planId: z.string().optional(),
-  planName: z.string().optional(),
   status: z.enum(["active", "inactive", "trial", "expired"]),
+  planName: z.string().optional(),
 });
 
-type CompanyFormValues = z.infer<typeof companyFormSchema>;
+type CompanyFormValues = z.infer<typeof formSchema>;
 
 export default function CompanyNew() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { addCompany } = useUserManagementStore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<CompanyFormValues>({
-    resolver: zodResolver(companyFormSchema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       contactName: "",
       email: "",
       phone: "",
-      address: "",
-      city: "",
-      state: "",
-      zipCode: "",
-      country: "",
-      planId: undefined,
-      planName: "Basic",
       status: "trial",
+      planName: "Basic",
     },
   });
 
-  const onSubmit = async (data: z.infer<typeof companyFormSchema>) => {
+  const onSubmit = async (data: CompanyFormValues) => {
+    setIsSubmitting(true);
+    
     try {
-      const companyData = {
-        name: data.name,
-        contactName: data.contactName,
-        email: data.email,
-        phone: data.phone || "",
-        address: data.address || "",
-        city: data.city || "",
-        state: data.state || "",
-        zipCode: data.zipCode || "",
-        country: data.country || "",
-        planId: data.planId || "",
-        planName: data.planName || "Basic",
-        status: data.status
-      };
-      const newCompany = await addCompany(companyData);
+      const newCompany = await addCompany({
+        ...data,
+        technicianCount: 0
+      });
+      
+      toast({
+        title: "Company created",
+        description: "The company has been created successfully.",
+      });
+      
       navigate(`/admin/companies/${newCompany.id}`);
     } catch (error) {
-      console.error("Failed to create company:", error);
+      console.error("Error creating company:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create company.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center mb-6">
-        <Button
-          variant="outline"
-          onClick={() => navigate("/admin/companies")}
+        <Button 
+          variant="outline" 
+          onClick={() => navigate("/admin/companies")} 
           className="mr-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
-        <h1 className="text-3xl font-bold">Add New Company</h1>
+        <h1 className="text-3xl font-bold">New Company</h1>
       </div>
 
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle>Company Information</CardTitle>
           <CardDescription>
-            Create a new company account in the system
+            Enter the details for the new company
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -103,42 +100,40 @@ export default function CompanyNew() {
                   <FormItem>
                     <FormLabel>Company Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Acme Repairs" {...field} />
+                      <Input placeholder="Acme Inc." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="contactName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Primary Contact</FormLabel>
-                      <FormControl>
-                        <Input placeholder="John Doe" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name="contactName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contact Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Company Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="info@acmerepairs.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="contact@company.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
@@ -147,7 +142,7 @@ export default function CompanyNew() {
                   <FormItem>
                     <FormLabel>Phone (Optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="(555) 123-4567" {...field} />
+                      <Input placeholder="(555) 123-4567" {...field} value={field.value || ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -156,124 +151,56 @@ export default function CompanyNew() {
 
               <FormField
                 control={form.control}
-                name="address"
+                name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Address (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="123 Main St" {...field} />
-                    </FormControl>
+                    <FormLabel>Status</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select company status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="trial">Trial</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="expired">Expired</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Current status of the company account
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>City (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Los Angeles" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="state"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>State (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="CA" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="zipCode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Zip Code (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="90210" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
 
               <FormField
                 control={form.control}
-                name="country"
+                name="planName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Country (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="USA" {...field} />
-                    </FormControl>
+                    <FormLabel>Subscription Plan (Optional)</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a plan" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Basic">Basic</SelectItem>
+                        <SelectItem value="Premium">Premium</SelectItem>
+                        <SelectItem value="Enterprise">Enterprise</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      The subscription plan for this company
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="planName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Subscription Plan</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a plan" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Basic">Basic</SelectItem>
-                          <SelectItem value="Premium">Premium</SelectItem>
-                          <SelectItem value="Enterprise">Enterprise</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="trial">Trial</SelectItem>
-                          <SelectItem value="inactive">Inactive</SelectItem>
-                          <SelectItem value="expired">Expired</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
 
               <div className="flex justify-end gap-3">
                 <Button
@@ -283,7 +210,9 @@ export default function CompanyNew() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit">Create Company</Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Creating..." : "Create Company"}
+                </Button>
               </div>
             </form>
           </Form>

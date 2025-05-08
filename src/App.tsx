@@ -1,4 +1,3 @@
-
 import {
   createBrowserRouter,
   RouterProvider,
@@ -38,6 +37,7 @@ import Index from "./pages/Index";
 import AdminUsers from "./pages/admin/Users";
 import UserDetail from "./pages/admin/UserDetail";
 import AdminCompanies from "./pages/admin/Companies";
+import CompanyNew from "./pages/admin/CompanyNew";
 import AdminWorkflows from "./pages/admin/Workflows";
 import CompanyDetail from "./pages/admin/CompanyDetail";
 import NotFound from "./pages/NotFound";
