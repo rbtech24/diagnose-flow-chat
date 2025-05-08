@@ -1,4 +1,3 @@
-
 import {
   createBrowserRouter,
   RouterProvider,
@@ -64,6 +63,8 @@ import { SystemMessageProvider } from "./context/SystemMessageContext";
 import AdminAccounts from "./pages/admin/AdminAccounts";
 import ApiKeys from "./pages/admin/ApiKeys";
 import { AuthProvider } from "./context/AuthContext";
+import UserEdit from "./pages/admin/UserEdit";
+import UserNew from "./pages/admin/UserNew";
 
 const router = createBrowserRouter([
   {
@@ -185,6 +186,8 @@ const router = createBrowserRouter([
       { path: "system-messages", element: <SystemMessagesPage /> },
       { path: "users", element: <AdminUsers /> },
       { path: "users/:id", element: <UserDetail /> },
+      { path: "users/:id/edit", element: <UserEdit /> },
+      { path: "users/new", element: <UserNew /> },
       { path: "companies", element: <AdminCompanies /> },
       { path: "companies/:id", element: <CompanyDetail /> },
       { path: "workflows", element: <AdminWorkflows /> },
