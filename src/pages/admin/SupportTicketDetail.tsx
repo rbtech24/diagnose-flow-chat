@@ -7,6 +7,8 @@ import { SupportTicket as SupportTicketType, SupportTicketStatus, SupportTicketM
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { fetchTicketById, fetchTicketMessages, updateTicketStatus, addTicketMessage } from "@/services/supportService";
+import { handleApiError, withErrorHandling } from "@/utils/errorHandler";
+import { toast } from "sonner";
 
 export default function AdminSupportTicketDetail() {
   const { ticketId } = useParams<{ ticketId: string }>();
@@ -14,7 +16,8 @@ export default function AdminSupportTicketDetail() {
   const [ticket, setTicket] = useState<SupportTicketType | null>(null);
   const [messages, setMessages] = useState<SupportTicketMessage[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const [error, setError] = useState<string | null>(null);
+  const { toast: uiToast } = useToast();
 
   useEffect(() => {
     if (ticketId) {
@@ -30,18 +33,40 @@ export default function AdminSupportTicketDetail() {
         throw new Error("Ticket ID is missing");
       }
       
-      // Fetch ticket details
-      const ticketData = await fetchTicketById(ticketId);
+      // Use withErrorHandling to fetch ticket details
+      const { data: ticketData, error: ticketError } = await withErrorHandling(
+        async () => await fetchTicketById(ticketId),
+        "fetching ticket details",
+        false
+      );
+      
+      if (ticketError) {
+        setError(ticketError.message);
+        return;
+      }
+      
       setTicket(ticketData);
       
-      // Fetch ticket messages
-      const messagesData = await fetchTicketMessages(ticketId);
-      setMessages(messagesData);
+      // Use withErrorHandling to fetch ticket messages
+      const { data: messagesData, error: messagesError } = await withErrorHandling(
+        async () => await fetchTicketMessages(ticketId),
+        "fetching ticket messages",
+        false
+      );
+      
+      if (messagesError) {
+        toast.error("Error loading messages", {
+          description: messagesError.message
+        });
+      } else {
+        setMessages(messagesData || []);
+      }
+      
     } catch (err) {
-      console.error("Error fetching ticket details:", err);
-      toast({
-        variant: "destructive",
-        title: "Error loading ticket",
+      const apiError = handleApiError(err, "loading ticket details", false);
+      setError(apiError.message);
+      
+      toast.error("Error loading ticket", {
         description: "There was a problem retrieving the ticket details."
       });
     } finally {
@@ -50,44 +75,33 @@ export default function AdminSupportTicketDetail() {
   };
 
   const handleUpdateStatus = async (ticketId: string, status: SupportTicketStatus) => {
-    try {
-      const updatedTicket = await updateTicketStatus(ticketId, status);
-      
+    const { data, error: apiError } = await withErrorHandling(
+      async () => await updateTicketStatus(ticketId, status),
+      "updating ticket status"
+    );
+    
+    if (data) {
       // Update local state
       setTicket(prev => prev ? { ...prev, status, updated_at: new Date().toISOString() } : null);
 
-      toast({
-        title: "Status updated",
-        description: `Ticket status changed to ${status}`,
-      });
-    } catch (err) {
-      console.error("Error updating ticket status:", err);
-      toast({
-        variant: "destructive",
-        title: "Update failed",
-        description: "Failed to update ticket status."
+      toast.success("Status updated", {
+        description: `Ticket status changed to ${status}`
       });
     }
   };
 
   const handleAddMessage = async (ticketId: string, content: string) => {
-    try {
-      // Add message to the ticket
-      const newMessage = await addTicketMessage(ticketId, content);
-      
-      // Refresh messages to get the sender information
+    const { data, error: apiError } = await withErrorHandling(
+      async () => await addTicketMessage(ticketId, content),
+      "adding message"
+    );
+    
+    if (data) {
+      // Refresh all ticket data to get the latest messages with full sender details
       await fetchTicketDetails();
-
-      toast({
-        title: "Message sent",
+      
+      toast.success("Message sent", {
         description: "Your message has been added to the ticket."
-      });
-    } catch (err) {
-      console.error("Error adding message:", err);
-      toast({
-        variant: "destructive",
-        title: "Failed to send message",
-        description: "There was a problem adding your message."
       });
     }
   };
@@ -103,7 +117,7 @@ export default function AdminSupportTicketDetail() {
     );
   }
 
-  if (!ticket) {
+  if (error || !ticket) {
     return (
       <div className="container mx-auto p-6">
         <div className="flex items-center mb-6">
@@ -114,7 +128,7 @@ export default function AdminSupportTicketDetail() {
           <h1 className="text-3xl font-bold">Ticket Not Found</h1>
         </div>
         <div className="p-8 text-center border rounded-lg">
-          <p className="text-gray-500">The requested ticket could not be found.</p>
+          <p className="text-gray-500">{error || "The requested ticket could not be found."}</p>
           <Button onClick={() => navigate("/admin/support")} className="mt-4">
             Return to Support Dashboard
           </Button>

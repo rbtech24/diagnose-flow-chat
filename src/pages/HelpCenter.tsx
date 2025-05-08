@@ -7,6 +7,7 @@ import { NewTicketForm } from "@/components/support/NewTicketForm";
 import { toast } from "sonner";
 import { createSupportTicket } from "@/services/supportService";
 import { TicketPriority } from "@/types/support";
+import { handleApiError, withErrorHandling } from "@/utils/errorHandler";
 
 export default function HelpCenter() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -16,23 +17,25 @@ export default function HelpCenter() {
     setIsSubmitting(true);
     setError(undefined);
     
-    try {
-      await createSupportTicket(title, description, priority);
-      
+    const { data, error: apiError } = await withErrorHandling(
+      async () => {
+        return await createSupportTicket(title, description, priority);
+      },
+      "submitting support ticket"
+    );
+    
+    if (data) {
       // Show success message
       toast.success("Support ticket submitted successfully!", {
         description: "Our team will respond to your inquiry as soon as possible."
       });
-    } catch (error) {
-      console.error("Error submitting ticket:", error);
-      setError("Failed to submit ticket. Please try again later.");
-      
-      toast.error("Failed to submit support ticket", {
-        description: "Please try again or contact us directly."
-      });
-    } finally {
-      setIsSubmitting(false);
     }
+    
+    if (apiError) {
+      setError(apiError.message || "Failed to submit ticket. Please try again later.");
+    }
+    
+    setIsSubmitting(false);
   };
 
   return (

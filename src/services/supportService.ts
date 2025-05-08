@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { SupportTicket, SupportTicketMessage, SupportTicketStatus } from "@/types/support";
 import { useUserManagementStore } from "@/store/userManagementStore";

@@ -1,516 +1,279 @@
-
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Building2, Users, CreditCard, Calendar, Mail, Phone, MapPin, FileText } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
-import { useUserManagementStore } from "@/store/userManagementStore";
-import { Skeleton } from "@/components/ui/skeleton";
-import { format } from "date-fns";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { useToast } from "@/components/ui/use-toast";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { AvatarUpload } from "@/components/shared/AvatarUpload";
-import { ActivityItem } from "@/components/activity/ActivityItem";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Calendar, CheckCheck, Clock, MapPin, UserRound, Package, Wrench, Shield, AlertTriangle, Users } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { handleApiError, withErrorHandling } from "@/utils/errorHandler";
+import { toast } from "sonner";
 
-// Define activity type to avoid deep type instantiation
-interface CompanyActivity {
+// Define types for company and activity data
+interface CompanyData {
   id: string;
-  title?: string;
-  description?: string;
-  timestamp: string;
-  activity_type?: string;
-  metadata?: Record<string, any> | null;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
+  subscription_tier: string;
+  created_at: string;
+}
+
+interface ActivityItem {
+  id: string;
+  activity_type: string;
+  created_at: string;
+  description: string;
+  ip_address: string;
+  metadata: any;
+  user_agent: string;
+  user_id: string;
 }
 
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const { companies, users, fetchCompanyById, fetchUsers, deleteCompany, updateCompany } = useUserManagementStore();
-  const [companyData, setCompanyData] = useState<any>(null);
-  const [companyUsers, setCompanyUsers] = useState<any[]>([]);
-  const [companyActivities, setCompanyActivities] = useState<CompanyActivity[]>([]);
-  const [loadingActivities, setLoadingActivities] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
+  const [company, setCompany] = useState<CompanyData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [activeTechnicians, setActiveTechnicians] = useState<number>(0);
+  const [error, setError] = useState<string | null>(null);
+  const { toast: uiToast } = useToast();
 
   useEffect(() => {
-    const loadData = async () => {
+    const fetchCompany = async () => {
       if (!id) return;
-      
-      setIsLoading(true);
-      try {
-        await fetchUsers();
-        const company = await fetchCompanyById(id);
-        if (company) {
-          setCompanyData(company);
-          
-          // Filter users that belong to this company
-          const relatedUsers = users.filter(user => user.companyId === id);
-          setCompanyUsers(relatedUsers);
 
-          // Fetch company activities
-          await fetchCompanyActivities(id);
-        } else {
-          toast({
-            title: "Company not found",
-            description: "The requested company could not be found.",
-            variant: "destructive",
-          });
-          navigate("/admin/companies");
-        }
-      } catch (error) {
-        console.error("Error loading company data:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load company data.",
-          variant: "destructive",
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const { data: companyData, error: companyError } = await supabase
+          .from('companies')
+          .select()
+          .eq('id', id)
+          .single();
+
+        if (companyError) throw companyError;
+        
+        setCompany(companyData);
+        
+        // Fetch active technicians count
+        const { count, error: techError } = await supabase
+          .from('technicians')
+          .select('id', { count: 'exact', head: true })
+          .eq('company_id', id)
+          .eq('status', 'active');
+          
+        if (techError) throw techError;
+        setActiveTechnicians(count || 0);
+        
+        // Fetch recent activities
+        const { data: activityData, error: activityError } = await supabase
+          .from('user_activity_logs')
+          .select()
+          .eq('company_id', id)
+          .order('created_at', { ascending: false })
+          .limit(10);
+        
+        if (activityError) throw activityError;
+        setActivities(activityData || []);
+        
+      } catch (err) {
+        const apiError = handleApiError(err, "fetching company details", false);
+        setError(`Failed to load company: ${apiError.message}`);
+        
+        toast.error("Error loading company", {
+          description: "Could not fetch company data. Please try again."
         });
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
-    
-    loadData();
-  }, [id, fetchCompanyById, fetchUsers, users, navigate, toast]);
 
-  const fetchCompanyActivities = async (companyId: string) => {
-    setLoadingActivities(true);
-    try {
-      // Define explicit interface for activity data to avoid deep type instantiation
-      interface ActivityData {
-        id: string;
-        description?: string;
-        created_at: string;
-        activity_type?: string;
-        metadata: Record<string, any> | null;
-      }
+    fetchCompany();
+  }, [id]);
 
-      const { data, error } = await supabase
-        .from('user_activity_logs')
-        .select('*')
-        .eq('metadata->company_id', companyId)
-        .order('created_at', { ascending: false })
-        .limit(5);
-      
-      if (error) {
-        throw error;
-      }
-
-      if (data && data.length > 0) {
-        const formattedActivities: CompanyActivity[] = data.map((item: ActivityData) => ({
-          id: item.id,
-          title: item.description || getActivityTypeLabel(item.activity_type || ''),
-          timestamp: item.created_at,
-          activity_type: item.activity_type,
-          metadata: item.metadata
-        }));
-        setCompanyActivities(formattedActivities);
-      } else {
-        setCompanyActivities([]);
-      }
-    } catch (error) {
-      console.error("Error fetching company activities:", error);
-      setCompanyActivities([]);
-    } finally {
-      setLoadingActivities(false);
-    }
+  // Function to format activity items for display
+  const formatActivity = (activity: ActivityItem) => {
+    return {
+      id: activity.id,
+      title: activity.description || `${activity.activity_type} activity`,
+      timestamp: new Date(activity.created_at).toLocaleString(),
+      activity_type: activity.activity_type,
+      metadata: activity.metadata || {}
+    };
   };
 
-  const getActivityTypeLabel = (type: string): string => {
-    switch(type) {
-      case 'login': return 'User Login';
-      case 'logout': return 'User Logout';
-      case 'user_create': return 'User Created';
-      case 'user_update': return 'User Updated';
-      case 'subscription_update': return 'Subscription Updated';
-      default: return 'System Activity';
-    }
-  };
-
-  const formatActivityDate = (timestamp: string) => {
-    try {
-      const date = new Date(timestamp);
-      return date.toLocaleString();
-    } catch (error) {
-      console.error("Invalid date format:", timestamp);
-      return "Unknown date";
-    }
-  };
-
-  const handleDeleteCompany = async () => {
-    if (!id) return;
-    
-    try {
-      const success = await deleteCompany(id);
-      if (success) {
-        toast({
-          title: "Company deleted",
-          description: "The company has been successfully deleted.",
-        });
-        navigate("/admin/companies");
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to delete company.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error deleting company:", error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleEditCompany = () => {
-    navigate(`/admin/companies/${id}/edit`);
-  };
-  
-  const handleAvatarChange = async (avatarUrl: string) => {
-    if (!id) return;
-    
-    try {
-      const updatedCompany = await updateCompany(id, {
-        logoUrl: avatarUrl
-      });
-      
-      if (updatedCompany) {
-        setCompanyData(updatedCompany);
-      }
-    } catch (error) {
-      console.error('Error updating company logo:', error);
-      throw error;
-    }
-  };
-
-  if (isLoading) {
+  // Render loading state
+  if (loading) {
     return (
       <div className="container mx-auto p-6">
         <div className="flex items-center mb-6">
-          <Button 
-            variant="outline" 
-            onClick={() => navigate("/admin/companies")} 
-            className="mr-4"
-          >
+          <Button variant="ghost" onClick={() => navigate("/admin/companies")} className="mr-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <Skeleton className="h-9 w-40" />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <Skeleton className="h-64" />
-          <Skeleton className="h-40" />
-          <Skeleton className="h-40" />
-        </div>
-      </div>
-    );
-  }
-
-  if (!companyData) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-bold mb-2">Company Not Found</h2>
-          <p className="text-muted-foreground mb-4">The company you're looking for doesn't exist or has been deleted.</p>
-          <Button onClick={() => navigate("/admin/companies")}>
             Back to Companies
           </Button>
+          <div className="h-8 bg-gray-200 animate-pulse rounded w-1/3"></div>
+        </div>
+        <div className="grid gap-6">
+          <div className="h-40 bg-gray-200 animate-pulse rounded"></div>
+          <div className="h-60 bg-gray-200 animate-pulse rounded"></div>
         </div>
       </div>
     );
   }
 
-  const getStatusBadgeStyle = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800 hover:bg-green-200';
-      case 'trial':
-        return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
-      case 'expired':
-        return 'bg-red-100 text-red-800 hover:bg-red-200';
-      case 'inactive':
-        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
-      default:
-        return '';
-    }
-  };
-
-  const mainAdmin = companyUsers.find(user => user.role === 'company' && user.isMainAdmin);
+  // Handle error state
+  if (error || !company) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="flex items-center mb-6">
+          <Button variant="ghost" onClick={() => navigate("/admin/companies")} className="mr-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Companies
+          </Button>
+          <h1 className="text-2xl font-bold">Company Not Found</h1>
+        </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center justify-center py-12">
+              <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
+              <h2 className="text-xl font-semibold mb-2">Error Loading Company</h2>
+              <p className="text-muted-foreground mb-6">{error || "The company could not be found or you don't have access."}</p>
+              <Button onClick={() => navigate("/admin/companies")}>Return to Companies</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center mb-6">
-        <Button 
-          variant="outline" 
-          onClick={() => navigate("/admin/companies")} 
-          className="mr-4"
-        >
+        <Button variant="ghost" onClick={() => navigate("/admin/companies")} className="mr-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
+          Back to Companies
         </Button>
         <h1 className="text-3xl font-bold">Company Details</h1>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium">
-              {companyData.name}
-              <Badge className={`ml-2 ${getStatusBadgeStyle(companyData.status)}`}>
-                {companyData.status}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center mb-6">
-              <AvatarUpload
-                currentAvatarUrl={companyData.logoUrl}
-                name={companyData.name}
-                onAvatarChange={handleAvatarChange}
-                size="lg"
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1">
-                <span className="text-sm text-muted-foreground">Contact</span>
-                <span className="font-medium">{companyData.contactName}</span>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-sm text-muted-foreground">Email</span>
-                <span className="font-medium">{companyData.email}</span>
-              </div>
-              {companyData.phone && (
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm text-muted-foreground">Phone</span>
-                  <span className="font-medium">{companyData.phone}</span>
-                </div>
-              )}
-              {companyData.city && companyData.state && (
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm text-muted-foreground">Location</span>
-                  <span className="font-medium">{companyData.city}, {companyData.state}</span>
-                </div>
-              )}
-            </div>
-
-            {companyData.address && (
-              <div className="mt-4 pt-4 border-t">
-                <div className="flex items-center gap-2 mb-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">Address</span>
-                </div>
-                <p className="text-sm">
-                  {companyData.address}
-                  {companyData.city && companyData.state && (
-                    <>, {companyData.city}, {companyData.state} {companyData.zipCode}</>
-                  )}
-                  {companyData.country && <>, {companyData.country}</>}
-                </p>
-              </div>
-            )}
-
-            <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t">
-              <Button variant="outline" size="sm" onClick={handleEditCompany}>
-                Edit Company
-              </Button>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="sm">Delete Company</Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action will permanently delete the company and all associated users. This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteCompany}>
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-green-50 border-green-100">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium flex items-center gap-2">
-              <Users className="h-5 w-5 text-green-600" />
-              Technicians
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold mb-2">{companyData.technicianCount}</div>
-            <p className="text-sm text-muted-foreground">
-              {companyUsers.filter(u => u.role === 'tech').length} active technicians
-            </p>
-            <Link to={`/admin/companies/${id}/technicians`}>
-              <Button className="w-full mt-4" variant="outline">
-                View Technicians
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-blue-50 border-blue-100">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium flex items-center gap-2">
-              <CreditCard className="h-5 w-5 text-blue-600" />
-              Subscription
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold mb-2">{companyData.planName || "No"} Plan</div>
-            {companyData.status === 'trial' && companyData.trialEndsAt && (
-              <div className="flex items-center gap-2 text-sm text-amber-600 mb-1">
-                <Calendar className="h-4 w-4" />
-                Trial ends on {format(new Date(companyData.trialEndsAt), "MMM d, yyyy")}
-              </div>
-            )}
-            {companyData.status === 'active' && companyData.subscriptionEndsAt && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                <Calendar className="h-4 w-4" />
-                Renews on {format(new Date(companyData.subscriptionEndsAt), "MMM d, yyyy")}
-              </div>
-            )}
-            <Link to={`/admin/companies/${id}/subscription`}>
-              <Button className="w-full mt-4" variant="outline">
-                Manage Subscription
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div className="grid gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Company Admins</CardTitle>
+            <CardTitle>{company.name}</CardTitle>
+            <CardDescription>
+              {company.address}, {company.city}, {company.state} {company.zip}
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            {companyUsers.filter(u => u.role === 'company').length === 0 ? (
-              <div className="text-center py-4 text-muted-foreground">
-                No company admins found
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {companyUsers
-                  .filter(u => u.role === 'company')
-                  .map(admin => (
-                    <div key={admin.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarFallback className="bg-primary/10">
-                            {admin.name.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h3 className="font-medium">{admin.name}</h3>
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm text-muted-foreground">{admin.email}</p>
-                            {admin.isMainAdmin && (
-                              <Badge variant="secondary" className="text-xs">Primary</Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to={`/admin/users/${admin.id}`}>
-                          View
-                        </Link>
-                      </Button>
-                    </div>
-                  ))}
-              </div>
-            )}
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <span>{company.address}, {company.city}, {company.state} {company.zip}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <span>Joined {new Date(company.created_at).toLocaleDateString()}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Package className="h-4 w-4 text-muted-foreground" />
+              <span>Subscription: <Badge variant="secondary">{company.subscription_tier}</Badge></span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              <span><Badge variant="secondary">{activeTechnicians} Active Technicians</Badge></span>
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
+            <CardDescription>Latest actions performed by this company</CardDescription>
           </CardHeader>
           <CardContent>
-            {loadingActivities ? (
-              <div className="text-center py-4">
-                <p className="text-muted-foreground">Loading activities...</p>
-              </div>
-            ) : companyActivities.length > 0 ? (
-              <div className="space-y-4">
-                {companyActivities.map(activity => (
-                  <ActivityItem
-                    key={activity.id}
-                    id={activity.id}
-                    title={activity.title || "System Activity"}
-                    description={activity.description || ""}
-                    timestamp={activity.timestamp}
-                    icon={<FileText className="h-4 w-4 text-gray-600" />}
-                    type={activity.activity_type || "activity"}
-                    severity="info"
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4">
-                <p className="text-muted-foreground">No current activity</p>
-              </div>
-            )}
+            <Tabs defaultValue="all" className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="repairs">Repairs</TabsTrigger>
+                <TabsTrigger value="account">Account</TabsTrigger>
+              </TabsList>
+              <TabsContent value="all" className="space-y-2">
+                {activities.length > 0 ? (
+                  activities.map((activity) => {
+                    const formatted = formatActivity(activity);
+                    return (
+                      <div key={formatted.id} className="border rounded-md p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            {formatted.activity_type === "repair" && <Wrench className="h-4 w-4" />}
+                            {formatted.activity_type === "account" && <UserRound className="h-4 w-4" />}
+                            <span className="font-medium">{formatted.title}</span>
+                          </div>
+                          <span className="text-sm text-muted-foreground">{formatted.timestamp}</span>
+                        </div>
+                        {formatted.activity_type === "repair" && (
+                          <div className="mt-2 text-sm">
+                            <p>Repair ID: {formatted.metadata?.repair_id}</p>
+                            <p>Technician: {formatted.metadata?.technician_name}</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center text-muted-foreground py-4">No recent activity</div>
+                )}
+              </TabsContent>
+              <TabsContent value="repairs" className="space-y-2">
+                {activities
+                  .filter((activity) => activity.activity_type === "repair")
+                  .map((activity) => {
+                    const formatted = formatActivity(activity);
+                    return (
+                      <div key={formatted.id} className="border rounded-md p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Wrench className="h-4 w-4" />
+                            <span className="font-medium">{formatted.title}</span>
+                          </div>
+                          <span className="text-sm text-muted-foreground">{formatted.timestamp}</span>
+                        </div>
+                        <div className="mt-2 text-sm">
+                          <p>Repair ID: {formatted.metadata?.repair_id}</p>
+                          <p>Technician: {formatted.metadata?.technician_name}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </TabsContent>
+              <TabsContent value="account" className="space-y-2">
+                {activities
+                  .filter((activity) => activity.activity_type === "account")
+                  .map((activity) => {
+                    const formatted = formatActivity(activity);
+                    return (
+                      <div key={formatted.id} className="border rounded-md p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <UserRound className="h-4 w-4" />
+                            <span className="font-medium">{formatted.title}</span>
+                          </div>
+                          <span className="text-sm text-muted-foreground">{formatted.timestamp}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Technicians ({companyUsers.filter(u => u.role === 'tech').length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {companyUsers.filter(u => u.role === 'tech').length === 0 ? (
-            <div className="text-center py-4 text-muted-foreground">
-              No technicians found for this company
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {companyUsers
-                .filter(u => u.role === 'tech')
-                .map(tech => (
-                  <div key={tech.id} className="p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarFallback className="bg-blue-100 text-blue-600">
-                          {tech.name.substring(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h3 className="font-medium">{tech.name}</h3>
-                        <p className="text-sm text-muted-foreground">{tech.email}</p>
-                      </div>
-                    </div>
-                    <div className="mt-3 flex justify-end">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to={`/admin/users/${tech.id}`}>
-                          View Profile
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }
