@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { supabase } from '@/utils/supabaseClient';
 import { User, UserWithPassword } from '@/types/user';
@@ -52,7 +53,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
     try {
       set({ isLoadingCurrentUser: true, error: null });
       
-      // Keep super admin only
+      // Handle super admin case
       if (id === 'super-admin-id') {
         const superAdmin = {
           id: 'super-admin-id',
@@ -76,6 +77,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         .single();
       
       if (error) {
+        console.error('Error fetching user by ID:', error);
         throw error;
       }
       
@@ -99,7 +101,6 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       return null;
     } catch (error) {
       console.error('Error fetching user by ID:', error);
-      toast.error('Failed to load user details');
       set({ error: 'Failed to load user details' });
       return null;
     } finally {
@@ -110,17 +111,33 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
   fetchUsers: async () => {
     set({ isLoadingUsers: true, error: null });
     try {
-      // Get real users from database
+      console.log("Fetching users...");
+      
+      // Add super admin to the list first
+      const superAdmin = {
+        id: 'super-admin-id',
+        name: 'Super Admin',
+        email: 'admin@repairautopilot.com',
+        role: 'admin',
+        status: 'active',
+        avatarUrl: '',
+        isMainAdmin: true
+      };
+      
+      // Fetch real users from database
       const { data, error } = await supabase
         .from('users')
         .select('*');
 
       if (error) {
+        console.error('Error fetching users from Supabase:', error);
         throw error;
       }
 
-      // Convert to User type
-      let users: User[] = data.map(user => ({
+      console.log("Database users:", data ? data.length : 0);
+      
+      // Convert database users to User type
+      const dbUsers: User[] = data ? data.map(user => ({
         id: user.id,
         name: user.name || '',
         email: user.email,
@@ -129,24 +146,13 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         avatarUrl: user.avatar_url,
         companyId: user.company_id,
         isMainAdmin: false
-      }));
-
-      // Add super admin to the list if not already there
-      const superAdminExists = users.some(user => user.email === 'admin@repairautopilot.com');
+      })) : [];
       
-      if (!superAdminExists) {
-        users.unshift({
-          id: 'super-admin-id',
-          name: 'Super Admin',
-          email: 'admin@repairautopilot.com',
-          role: 'admin',
-          status: 'active',
-          avatarUrl: '',
-          isMainAdmin: true
-        });
-      }
-
-      set({ users });
+      // Combine super admin with database users
+      const allUsers = [superAdmin, ...dbUsers];
+      console.log("Total users to display:", allUsers.length);
+      
+      set({ users: allUsers });
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Failed to load users');

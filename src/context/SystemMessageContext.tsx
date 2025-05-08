@@ -24,26 +24,8 @@ interface SystemMessageContextValue {
 const SystemMessageContext = createContext<SystemMessageContextValue | undefined>(undefined);
 
 export const SystemMessageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Start with an empty array of messages - removed welcome messages
-  const [messages, setMessages] = useState<SystemMessage[]>([
-    // Admin welcome message removed as requested
-    {
-      id: '2',
-      type: 'info',
-      title: 'Welcome to the Company Portal',
-      message: 'You can manage your technicians and subscription from here.',
-      dismissible: true,
-      audience: ['company']
-    },
-    {
-      id: '3',
-      type: 'info',
-      title: 'Welcome to the Tech Portal',
-      message: 'You can access all your diagnostics tools from here.',
-      dismissible: true,
-      audience: ['tech']
-    }
-  ]);
+  // Start with an empty array of messages
+  const [messages, setMessages] = useState<SystemMessage[]>([]);
 
   const addMessage = useCallback((message: Omit<SystemMessage, 'id'>) => {
     const id = `msg-${Date.now()}`;

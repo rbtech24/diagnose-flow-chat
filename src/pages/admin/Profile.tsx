@@ -21,12 +21,14 @@ export default function AdminProfile() {
   const handleUpdateProfile = async (values: any) => {
     setIsSubmitting(true);
     try {
-      await updateUser({
+      console.log("Submitting profile update with values:", values);
+      const result = await updateUser({
         name: values.name,
         email: values.email,
         phone: values.phone,
       });
-      console.log("Profile update submitted with values:", values);
+      
+      console.log("Profile update result:", result);
     } catch (error) {
       console.error("Error updating profile:", error);
     } finally {

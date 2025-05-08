@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { User } from "@/types/user";
 import { Session } from '@supabase/supabase-js';
@@ -35,6 +36,7 @@ export function useMockAuth(): AuthContextType {
   // Save the user to localStorage when it changes
   useEffect(() => {
     if (user) {
+      console.log("Saving user to localStorage:", user);
       localStorage.setItem("currentUser", JSON.stringify(user));
     } else {
       localStorage.removeItem("currentUser");
@@ -50,6 +52,7 @@ export function useMockAuth(): AuthContextType {
 
       if (email === "admin@repairautopilot.com") {
         loginUser = superAdmin;
+        console.log("Super admin login successful");
       }
 
       if (loginUser) {
@@ -101,12 +104,12 @@ export function useMockAuth(): AuthContextType {
   const updateUser = async (data: Partial<User>): Promise<boolean> => {
     if (user) {
       const updatedUser = { ...user, ...data };
+      console.log("Updating user profile:", updatedUser);
       setUser(updatedUser);
       
       // Show a success message to confirm the update
       toast.success("Profile updated successfully");
       
-      console.log("User updated:", updatedUser);
       return true;
     }
     return false;
