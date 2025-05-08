@@ -1,263 +1,286 @@
 
-import { useState } from "react";
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from "react";
+import { useAuth } from "@/context/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useUserManagementStore } from "@/store/userManagementStore";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Building2, Mail, Phone, MapPin } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 export default function CompanyProfile() {
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+  const { fetchCompanyById, updateUser } = useUserManagementStore();
+  const [company, setCompany] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
   
-  // Mock company profile state
-  const [profile, setProfile] = useState({
-    name: "Acme Repair Services",
-    email: "contact@acmerepair.com",
-    phone: "555-123-4567",
-    address: {
-      street: "123 Repair Lane",
-      city: "Fixitville",
-      state: "CA",
-      zip: "90210",
-      country: "United States"
-    },
-    description: "Leading provider of appliance repair services with over 20 years of experience.",
-    industry: "Appliance Repair",
-    website: "https://acmerepair.com",
-    taxId: "12-3456789",
-    foundedYear: 2000,
-    employeeCount: "10-49"
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    contact_name: ''
   });
 
-  const handleInputChange = (field: string, value: string) => {
-    setProfile(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleAddressChange = (field: string, value: string) => {
-    setProfile(prev => ({
-      ...prev,
-      address: {
-        ...prev.address,
-        [field]: value
+  useEffect(() => {
+    const loadCompanyData = async () => {
+      if (!user?.companyId) return;
+      
+      setLoading(true);
+      try {
+        const companyData = await fetchCompanyById(user.companyId);
+        if (companyData) {
+          setCompany(companyData);
+          setFormData({
+            name: companyData.name || '',
+            email: companyData.email || '',
+            phone: companyData.phone || '',
+            address: companyData.address || '',
+            contact_name: companyData.contact_name || '',
+          });
+        }
+      } catch (error) {
+        console.error("Error loading company data:", error);
+        toast.error("Failed to load company information");
+      } finally {
+        setLoading(false);
       }
+    };
+    
+    loadCompanyData();
+  }, [user, fetchCompanyById]);
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value
     }));
   };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    try {
-      // Simulate API call to update profile
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      toast({
-        title: "Profile updated",
-        description: "Your company profile has been updated successfully.",
-        type: "success"
-      });
-    } catch (error) {
-      console.error("Error updating profile:", error);
-    } finally {
-      setLoading(false);
-    }
+  
+  const handleSave = async () => {
+    // Here we would update the company profile
+    // This is a placeholder for actual implementation
+    setEditing(false);
+    toast.success("Profile updated successfully");
   };
-
-  return (
-    <div className="space-y-6">
-      <h1 className="text-2xl sm:text-3xl font-bold">Company Profile</h1>
-      
-      <form onSubmit={handleSubmit}>
-        <div className="grid gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Company Name</Label>
-                  <Input 
-                    id="name"
-                    value={profile.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="industry">Industry</Label>
-                  <Select 
-                    value={profile.industry}
-                    onValueChange={(value) => handleInputChange('industry', value)}
-                  >
-                    <SelectTrigger id="industry">
-                      <SelectValue placeholder="Select industry" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Appliance Repair">Appliance Repair</SelectItem>
-                      <SelectItem value="HVAC">HVAC</SelectItem>
-                      <SelectItem value="Plumbing">Plumbing</SelectItem>
-                      <SelectItem value="Electrical">Electrical</SelectItem>
-                      <SelectItem value="General Contracting">General Contracting</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Company Description</Label>
-                <Textarea 
-                  id="description"
-                  value={profile.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  rows={4}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="website">Website</Label>
-                  <Input 
-                    id="website"
-                    type="url"
-                    value={profile.website}
-                    onChange={(e) => handleInputChange('website', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="foundedYear">Year Founded</Label>
-                  <Input 
-                    id="foundedYear"
-                    type="number"
-                    value={profile.foundedYear.toString()}
-                    onChange={(e) => handleInputChange('foundedYear', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="taxId">Tax ID / EIN</Label>
-                  <Input 
-                    id="taxId"
-                    value={profile.taxId}
-                    onChange={(e) => handleInputChange('taxId', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="employeeCount">Number of Employees</Label>
-                  <Select 
-                    value={profile.employeeCount}
-                    onValueChange={(value) => handleInputChange('employeeCount', value)}
-                  >
-                    <SelectTrigger id="employeeCount">
-                      <SelectValue placeholder="Select employee count" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1-9">1-9</SelectItem>
-                      <SelectItem value="10-49">10-49</SelectItem>
-                      <SelectItem value="50-99">50-99</SelectItem>
-                      <SelectItem value="100-499">100-499</SelectItem>
-                      <SelectItem value="500+">500+</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Contact Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input 
-                    id="email"
-                    type="email"
-                    value={profile.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input 
-                    id="phone"
-                    type="tel"
-                    value={profile.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Address</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="street">Street Address</Label>
-                <Input 
-                  id="street"
-                  value={profile.address.street}
-                  onChange={(e) => handleAddressChange('street', e.target.value)}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
-                  <Input 
-                    id="city"
-                    value={profile.address.city}
-                    onChange={(e) => handleAddressChange('city', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="state">State / Province</Label>
-                  <Input 
-                    id="state"
-                    value={profile.address.state}
-                    onChange={(e) => handleAddressChange('state', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="zip">ZIP / Postal Code</Label>
-                  <Input 
-                    id="zip"
-                    value={profile.address.zip}
-                    onChange={(e) => handleAddressChange('zip', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="country">Country</Label>
-                  <Input 
-                    id="country"
-                    value={profile.address.country}
-                    onChange={(e) => handleAddressChange('country', e.target.value)}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="flex justify-end">
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : "Save Changes"}
-            </Button>
+  
+  if (loading) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/3 mb-8"></div>
+          
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <div className="h-6 bg-gray-200 rounded w-1/4 mb-6"></div>
+            <div className="space-y-4">
+              <div className="h-10 bg-gray-200 rounded"></div>
+              <div className="h-10 bg-gray-200 rounded"></div>
+              <div className="h-10 bg-gray-200 rounded"></div>
+            </div>
           </div>
         </div>
-      </form>
+      </div>
+    );
+  }
+  
+  if (!company) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <h1 className="text-2xl font-bold mb-2">Company Profile</h1>
+        <p className="text-red-500 mb-4">Unable to load company information</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto py-8 px-4">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">Company Profile</h1>
+          <p className="text-muted-foreground">View and update your company information</p>
+        </div>
+        {!editing && (
+          <Button onClick={() => setEditing(true)}>Edit Profile</Button>
+        )}
+      </div>
+      
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Company Information</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {editing ? (
+            <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Company Name</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="contact_name">Primary Contact Name</Label>
+                  <Input
+                    id="contact_name"
+                    name="contact_name"
+                    value={formData.contact_name}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="address">Address</Label>
+                  <Input
+                    id="address"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end gap-3 pt-4">
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditing(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">Save Changes</Button>
+              </div>
+            </form>
+          ) : (
+            <div className="space-y-6">
+              <div className="flex items-center">
+                <Building2 className="h-5 w-5 text-gray-400 mr-4" />
+                <div>
+                  <p className="text-sm text-gray-500">Company Name</p>
+                  <p className="font-medium">{company.name}</p>
+                </div>
+              </div>
+              
+              {company.contact_name && (
+                <div className="flex items-center">
+                  <div className="h-5 w-5 mr-4 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Primary Contact</p>
+                    <p className="font-medium">{company.contact_name}</p>
+                  </div>
+                </div>
+              )}
+              
+              {company.email && (
+                <div className="flex items-center">
+                  <Mail className="h-5 w-5 text-gray-400 mr-4" />
+                  <div>
+                    <p className="text-sm text-gray-500">Email</p>
+                    <p className="font-medium">{company.email}</p>
+                  </div>
+                </div>
+              )}
+              
+              {company.phone && (
+                <div className="flex items-center">
+                  <Phone className="h-5 w-5 text-gray-400 mr-4" />
+                  <div>
+                    <p className="text-sm text-gray-500">Phone</p>
+                    <p className="font-medium">{company.phone}</p>
+                  </div>
+                </div>
+              )}
+              
+              {company.address && (
+                <div className="flex items-center">
+                  <MapPin className="h-5 w-5 text-gray-400 mr-4" />
+                  <div>
+                    <p className="text-sm text-gray-500">Address</p>
+                    <p className="font-medium">{company.address}</p>
+                    {(company.city || company.state) && (
+                      <p>{[company.city, company.state, company.zip_code].filter(Boolean).join(', ')}</p>
+                    )}
+                    {company.country && <p>{company.country}</p>}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Subscription Information</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            <div className="flex justify-between border-b pb-2">
+              <span className="font-medium">Current Plan</span>
+              <span>{company.subscription_tier ? company.subscription_tier.charAt(0).toUpperCase() + company.subscription_tier.slice(1) : 'Basic'}</span>
+            </div>
+            
+            <div className="flex justify-between border-b pb-2">
+              <span className="font-medium">Status</span>
+              <div className="flex items-center">
+                <span className={`inline-block h-2 w-2 rounded-full mr-2 ${
+                  company.trial_status === 'active' ? 'bg-green-500' : 'bg-red-500'
+                }`}></span>
+                <span className="capitalize">{company.trial_status || 'Active'}</span>
+              </div>
+            </div>
+            
+            {company.trial_period && (
+              <div className="flex justify-between border-b pb-2">
+                <span className="font-medium">Trial Period</span>
+                <span>{company.trial_period} days</span>
+              </div>
+            )}
+            
+            <div className="flex justify-between border-b pb-2">
+              <span className="font-medium">Member Since</span>
+              <span>{new Date(company.created_at).toLocaleDateString()}</span>
+            </div>
+            
+            <div className="pt-2">
+              <Button>Manage Subscription</Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

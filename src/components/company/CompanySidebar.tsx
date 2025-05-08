@@ -1,102 +1,116 @@
 
-import { Link, useLocation } from "react-router-dom";
-import { 
-  BarChart3, 
-  Users, 
-  CreditCard, 
-  MessageCircle, 
-  Lightbulb, 
-  HelpCircle,
-  Book,
-  Calendar
+import { NavLink, useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import {
+  LayoutDashboard,
+  Users,
+  Settings,
+  Calendar,
+  ClipboardList,
+  LineChart,
+  MessageCircle,
+  LifeBuoy,
+  BadgeDollarSign,
+  FileText,
+  Building2
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function CompanySidebar() {
   const location = useLocation();
-  const currentPath = location.pathname;
   
-  const sidebarLinks = [
+  const links = [
     {
-      title: "Dashboard",
-      icon: <BarChart3 className="h-5 w-5" />,
       href: "/company",
-      active: currentPath === "/company" || currentPath === "/company/dashboard"
+      label: "Dashboard",
+      icon: <LayoutDashboard className="h-5 w-5" />,
+      exact: true,
     },
     {
-      title: "Technicians",
-      icon: <Users className="h-5 w-5" />,
       href: "/company/technicians",
-      active: currentPath === "/company/technicians"
+      label: "Technicians",
+      icon: <Users className="h-5 w-5" />,
     },
     {
-      title: "Appointments",
+      href: "/company/schedules",
+      label: "Schedules",
       icon: <Calendar className="h-5 w-5" />,
-      href: "/company/appointments",
-      active: currentPath === "/company/appointments"
     },
     {
-      title: "Knowledge Base",
-      icon: <Book className="h-5 w-5" />,
-      href: "/company/knowledge",
-      active: currentPath === "/company/knowledge"
+      href: "/company/repairs",
+      label: "Repairs",
+      icon: <ClipboardList className="h-5 w-5" />,
     },
     {
-      title: "Subscription",
-      icon: <CreditCard className="h-5 w-5" />,
-      href: "/company/subscription",
-      active: currentPath.startsWith("/company/subscription")
+      href: "/company/customers",
+      label: "Customers",
+      icon: <Users className="h-5 w-5" />,
     },
     {
-      title: "Community",
-      icon: <MessageCircle className="h-5 w-5" />,
+      href: "/company/reports",
+      label: "Reports",
+      icon: <LineChart className="h-5 w-5" />,
+    },
+    {
+      href: "/company/documents",
+      label: "Documents",
+      icon: <FileText className="h-5 w-5" />,
+    },
+    {
       href: "/company/community",
-      active: currentPath.startsWith("/company/community")
+      label: "Community",
+      icon: <MessageCircle className="h-5 w-5" />,
     },
     {
-      title: "Feature Requests",
-      icon: <Lightbulb className="h-5 w-5" />,
-      href: "/company/feature-requests",
-      active: currentPath.startsWith("/company/feature-requests")
-    },
-    {
-      title: "Support",
-      icon: <HelpCircle className="h-5 w-5" />,
       href: "/company/support",
-      active: currentPath.startsWith("/company/support")
+      label: "Support",
+      icon: <LifeBuoy className="h-5 w-5" />,
+    },
+    {
+      href: "/company/subscription",
+      label: "Subscription",
+      icon: <BadgeDollarSign className="h-5 w-5" />,
+    },
+    {
+      href: "/company/profile",
+      label: "Company Profile",
+      icon: <Building2 className="h-5 w-5" />,
+    },
+    {
+      href: "/company/settings",
+      label: "Settings",
+      icon: <Settings className="h-5 w-5" />,
     }
   ];
 
   return (
-    <div className="h-screen flex flex-col border-r">
-      <div className="p-6">
-        <h2 className="text-lg font-semibold">Company Portal</h2>
+    <div className="flex h-screen w-64 flex-col border-r bg-background">
+      <div className="p-4">
+        <h1 className="text-xl font-bold">Company Dashboard</h1>
       </div>
-      <ScrollArea className="flex-1 px-4">
-        <nav className="flex flex-col gap-2">
-          {sidebarLinks.map((link, index) => (
-            <Button
-              key={index}
-              variant={link.active ? "default" : "ghost"}
-              className="justify-start"
-              asChild
-            >
-              <Link to={link.href} className="flex items-center gap-2">
+      <div className="flex-1 overflow-auto py-2">
+        <nav className="grid items-start px-2 text-sm">
+          {links.map((link, index) => {
+            const isActive = link.exact 
+              ? location.pathname === link.href
+              : location.pathname.startsWith(link.href);
+            
+            return (
+              <NavLink
+                key={index}
+                to={link.href}
+                end={link.exact}
+                className={cn(
+                  "flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground hover:text-foreground",
+                  "transition-all hover:bg-accent",
+                  isActive ? "bg-accent text-foreground font-medium" : ""
+                )}
+              >
                 {link.icon}
-                {link.title}
-              </Link>
-            </Button>
-          ))}
+                {link.label}
+              </NavLink>
+            );
+          })}
         </nav>
-      </ScrollArea>
-      <div className="p-4 border-t">
-        <Button variant="outline" className="w-full justify-start" asChild>
-          <Link to="/company/profile" className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Company Profile
-          </Link>
-        </Button>
       </div>
     </div>
   );

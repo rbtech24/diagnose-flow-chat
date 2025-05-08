@@ -1,6 +1,7 @@
 
+import { Outlet } from "react-router-dom";
 import { CompanySidebar } from "./CompanySidebar";
-import { Outlet, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUserMessages, useSystemMessages } from "@/context/SystemMessageContext";
@@ -18,7 +19,7 @@ export function CompanyLayout() {
   const { removeMessage } = useSystemMessages();
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
 
   const handleLogout = () => {
     signOut();
@@ -74,7 +75,11 @@ export function CompanyLayout() {
               onClick={() => navigate("/company/profile")}
             >
               <span className="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full">
-                <img className="aspect-square h-full w-full" src="https://i.pravatar.cc/300" alt="Profile" />
+                <img 
+                  className="aspect-square h-full w-full" 
+                  src={user?.avatarUrl || "https://i.pravatar.cc/300"} 
+                  alt={user?.name || "Profile"} 
+                />
               </span>
             </Button>
           </div>

@@ -38,9 +38,12 @@ import AdminApiKeys from './pages/admin/ApiKeys';
 import AdminProfile from './pages/admin/Profile';
 import AdminCommunityPostDetail from './pages/admin/CommunityPostDetail';
 import AdminUserDetail from './pages/admin/UserDetail';
+import CompanyDetail from './pages/admin/CompanyDetail';
+import CompanyNew from './pages/admin/CompanyNew';
 
 // Import company pages
 import CompanyDashboard from './pages/company/Dashboard';
+import CompanyProfile from './pages/company/CompanyProfile';
 
 function App() {
   console.log("App mounted, current path:", window.location.pathname);
@@ -67,6 +70,8 @@ function App() {
               <Route path="users" element={<AdminUsers />} />
               <Route path="users/:userId" element={<AdminUserDetail />} />
               <Route path="companies" element={<AdminCompanies />} />
+              <Route path="companies/:id" element={<CompanyDetail />} />
+              <Route path="companies/new" element={<CompanyNew />} />
               <Route path="workflows" element={<AdminWorkflows />} />
               <Route path="subscription-plans" element={<AdminSubscriptionPlans />} />
               <Route path="licenses" element={<AdminLicenses />} />
@@ -84,6 +89,7 @@ function App() {
             {/* Company routes */}
             <Route path="/company" element={<ProtectedRoute><CompanyLayout /></ProtectedRoute>}>
               <Route index element={<CompanyDashboard />} />
+              <Route path="profile" element={<CompanyProfile />} />
             </Route>
 
             {/* Tech routes */}
