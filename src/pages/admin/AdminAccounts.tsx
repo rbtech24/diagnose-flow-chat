@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { adminResetUserPassword } from "@/utils/auth";
+import { AdminPasswordResetForm } from "@/components/admin/AdminPasswordResetForm";
 
 // Form schema for new admin
 const newAdminSchema = z.object({
@@ -41,6 +42,7 @@ export default function AdminAccounts() {
   
   const [isAddAdminOpen, setIsAddAdminOpen] = useState(false);
   const [maxAdmins] = useState(3);
+  const [resetPasswordAdminId, setResetPasswordAdminId] = useState<string | null>(null);
   
   const form = useForm<NewAdminValues>({
     resolver: zodResolver(newAdminSchema),
@@ -66,20 +68,20 @@ export default function AdminAccounts() {
     toast.success("Admin account created successfully");
   };
   
-  const handleResetPassword = async (adminId: string) => {
-    try {
-      // In a real app, this would call the API
-      const result = await adminResetUserPassword(adminId, "newTemporaryPassword123");
-      
-      if (result.error) {
-        toast.error(`Failed to reset password: ${result.error.message}`);
-      } else {
-        toast.success("Password reset email sent to admin");
-      }
-    } catch (error) {
-      console.error("Error resetting password:", error);
-      toast.error("Failed to reset password");
-    }
+  const handleResetPassword = (adminId: string) => {
+    // Open the reset password dialog by setting the adminId
+    setResetPasswordAdminId(adminId);
+  };
+  
+  const handlePasswordResetSuccess = () => {
+    // Close the reset password dialog
+    setResetPasswordAdminId(null);
+    toast.success("Admin password has been reset successfully");
+  };
+  
+  const handlePasswordResetCancel = () => {
+    // Close the reset password dialog
+    setResetPasswordAdminId(null);
   };
   
   const handleRemoveAdmin = (adminId: string) => {
@@ -213,6 +215,31 @@ export default function AdminAccounts() {
           </p>
         </CardFooter>
       </Card>
+
+      {/* Password Reset Dialog */}
+      <Dialog 
+        open={resetPasswordAdminId !== null} 
+        onOpenChange={(isOpen) => {
+          if (!isOpen) setResetPasswordAdminId(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset Admin Password</DialogTitle>
+            <DialogDescription>
+              Enter a new password for this administrator account.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {resetPasswordAdminId && (
+            <AdminPasswordResetForm
+              userId={resetPasswordAdminId}
+              onSuccess={handlePasswordResetSuccess}
+              onCancel={handlePasswordResetCancel}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
