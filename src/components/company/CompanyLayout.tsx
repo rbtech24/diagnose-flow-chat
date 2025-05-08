@@ -1,8 +1,11 @@
 
-import React from 'react';
-import { Outlet } from 'react-router-dom';
+import React, { ReactNode } from 'react';
 
-export function CompanyLayout() {
+interface CompanyLayoutProps {
+  children: ReactNode;
+}
+
+export function CompanyLayout({ children }: CompanyLayoutProps) {
   return (
     <div className="company-layout flex">
       <div className="company-sidebar w-64 bg-blue-50 min-h-screen p-4">
@@ -21,7 +24,7 @@ export function CompanyLayout() {
         </nav>
       </div>
       <div className="company-content flex-1 p-6">
-        <Outlet />
+        {children}
       </div>
     </div>
   );

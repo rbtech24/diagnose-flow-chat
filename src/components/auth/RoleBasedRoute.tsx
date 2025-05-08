@@ -1,10 +1,10 @@
 
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
 interface RoleBasedRouteProps {
-  children: React.ReactNode;
+  children: ReactNode;
   allowedRoles: string[];
 }
 

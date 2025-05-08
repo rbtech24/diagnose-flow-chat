@@ -1,8 +1,11 @@
 
-import React from 'react';
-import { Outlet } from 'react-router-dom';
+import React, { ReactNode } from 'react';
 
-export function AdminLayout() {
+interface AdminLayoutProps {
+  children: ReactNode;
+}
+
+export function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <div className="admin-layout flex">
       <div className="admin-sidebar w-64 bg-gray-100 min-h-screen p-4">
@@ -19,7 +22,7 @@ export function AdminLayout() {
         </nav>
       </div>
       <div className="admin-content flex-1 p-6">
-        <Outlet />
+        {children}
       </div>
     </div>
   );

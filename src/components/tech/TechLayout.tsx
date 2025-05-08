@@ -1,8 +1,11 @@
 
-import React from 'react';
-import { Outlet } from 'react-router-dom';
+import React, { ReactNode } from 'react';
 
-export function TechLayout() {
+interface TechLayoutProps {
+  children: ReactNode;
+}
+
+export function TechLayout({ children }: TechLayoutProps) {
   return (
     <div className="tech-layout flex">
       <div className="tech-sidebar w-64 bg-green-50 min-h-screen p-4">
@@ -15,7 +18,7 @@ export function TechLayout() {
         </nav>
       </div>
       <div className="tech-content flex-1 p-6">
-        <Outlet />
+        {children}
       </div>
     </div>
   );
