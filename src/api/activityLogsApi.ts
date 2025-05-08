@@ -45,7 +45,7 @@ export async function fetchActivityLogs(
         ip_address,
         user_agent,
         metadata,
-        user:user_id (
+        users:user_id (
           name,
           email,
           role,
@@ -105,8 +105,8 @@ export async function fetchActivityLogs(
       timestamp: log.created_at,
       ip_address: log.ip_address,
       user_agent: log.user_agent,
-      metadata: log.metadata,
-      user: log.user
+      metadata: log.metadata ? log.metadata as Record<string, any> : {}, // Cast metadata to Record<string, any>
+      user: log.users  // Changed from log.user to log.users to match the query alias
     }));
     
     return activityLogs;
@@ -152,6 +152,6 @@ export async function logActivity(activityData: {
     timestamp: data.created_at,
     ip_address: data.ip_address,
     user_agent: data.user_agent,
-    metadata: data.metadata
+    metadata: data.metadata as Record<string, any> // Cast metadata to Record<string, any>
   };
 }

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,38 +5,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Search, Building2, Users, Wrench, FileText, MessageSquare, AlertTriangle } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { fetchActivityLogs, ActivityLog, ActivityTimeframe } from "@/api/activityLogsApi";
+import { useActivityLogs } from "@/hooks/useActivityLogs";
+import { ActivityTimeframe } from "@/api/activityLogsApi";
 
 export default function ActivityPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTimeframe, setSelectedTimeframe] = useState<ActivityTimeframe>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
-  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const { logs: activityLogs, isLoading: loading, error, loadLogs } = useActivityLogs();
   
   // Fetch activity logs from database
   useEffect(() => {
-    const loadActivityLogs = async () => {
-      try {
-        setLoading(true);
-        const logs = await fetchActivityLogs(selectedTimeframe, selectedType, searchQuery);
-        setActivityLogs(logs);
-      } catch (error) {
-        console.error('Error loading activity logs:', error);
-        toast({
-          title: 'Error loading activity logs',
-          description: 'There was a problem fetching the activity logs.',
-          variant: 'destructive'
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadActivityLogs();
-  }, [selectedTimeframe, selectedType, searchQuery, toast]);
+    loadLogs(selectedTimeframe, selectedType, searchQuery);
+  }, [selectedTimeframe, selectedType, searchQuery, loadLogs]);
   
   const getIconForType = (type: string) => {
     switch (type) {
