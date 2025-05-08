@@ -5,8 +5,8 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { SystemMessageProvider } from './context/SystemMessageContext';
 import { ThemeProvider } from './components/theme-provider';
-import ProtectedRoute from './components/auth/ProtectedRoute';
-import RoleBasedRoute from './components/auth/RoleBasedRoute';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { RoleBasedRoute } from './components/auth/RoleBasedRoute';
 import { AdminLayout } from './components/admin/AdminLayout';
 import { CompanyLayout } from './components/company/CompanyLayout';
 import { TechLayout } from './components/tech/TechLayout';
@@ -86,8 +86,7 @@ function App() {
                     </AdminLayout>
                   </RoleBasedRoute>
                 </ProtectedRoute>
-              }>
-              </Route>
+              } />
               <Route path="/admin/users" element={
                 <ProtectedRoute>
                   <RoleBasedRoute allowedRoles={['admin']}>

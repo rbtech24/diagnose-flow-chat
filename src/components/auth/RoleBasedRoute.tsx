@@ -8,7 +8,7 @@ interface RoleBasedRouteProps {
   allowedRoles: string[];
 }
 
-export default function RoleBasedRoute({ children, allowedRoles }: RoleBasedRouteProps) {
+export function RoleBasedRoute({ children, allowedRoles }: RoleBasedRouteProps) {
   const { user } = useAuth();
 
   if (!user) {
