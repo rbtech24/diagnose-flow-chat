@@ -6,7 +6,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { SupportTicket } from "@/types/support";
 import { useNavigate } from "react-router-dom";
-import { mockSupportTickets } from "@/data/mockSupportTickets";
+import { fetchSupportTickets } from "@/services/supportService";
+import { withErrorHandling } from "@/utils/errorHandler";
+import { toast } from "sonner";
 
 export default function TechSupport() {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
@@ -15,12 +17,29 @@ export default function TechSupport() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Simulating API call with mock data
-    setTimeout(() => {
-      setTickets(mockSupportTickets);
-      setLoading(false);
-    }, 800);
+    loadTickets();
   }, []);
+
+  const loadTickets = async () => {
+    setLoading(true);
+    
+    const { data, error } = await withErrorHandling(
+      async () => await fetchSupportTickets(),
+      "fetching support tickets"
+    );
+    
+    if (error) {
+      toast.error("Error loading tickets", {
+        description: error.message || "Could not load support tickets"
+      });
+    }
+    
+    if (data) {
+      setTickets(data);
+    }
+    
+    setLoading(false);
+  };
 
   const filteredTickets = tickets.filter(ticket => 
     ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) || 

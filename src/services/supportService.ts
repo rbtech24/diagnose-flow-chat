@@ -1,5 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { SupportTicket, SupportTicketMessage, SupportTicketStatus } from "@/types/support";
+import { SupportTicket, SupportTicketMessage, SupportTicketStatus, TicketPriority } from "@/types/support";
 import { useUserManagementStore } from "@/store/userManagementStore";
 
 export async function fetchSupportTickets() {
@@ -24,11 +25,12 @@ export async function fetchSupportTickets() {
 
     // Format tickets to match our interface
     const formattedTickets: SupportTicket[] = data.map(ticket => {
-      // Default user info if we can't get metadata
       return {
         ...ticket,
         // Ensure status is cast to the correct type
         status: ticket.status as SupportTicketStatus,
+        // Ensure priority is cast to the correct type
+        priority: ticket.priority as TicketPriority,
         // Add placeholder user data until we can fetch it properly
         created_by_user: {
           name: 'User',
@@ -71,6 +73,8 @@ export async function fetchTicketById(ticketId: string) {
       ...data,
       // Ensure status is cast to the correct type
       status: data.status as SupportTicketStatus,
+      // Ensure priority is cast to the correct type
+      priority: data.priority as TicketPriority,
       // Add placeholder user data until we can fetch it properly
       created_by_user: {
         name: 'User',

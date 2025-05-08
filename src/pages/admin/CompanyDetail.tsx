@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,12 +15,12 @@ import { toast } from "sonner";
 interface CompanyData {
   id: string;
   name: string;
-  address: string;
-  city: string;
-  state: string;
-  zip: string;
   subscription_tier: string;
   created_at: string;
+  updated_at?: string;
+  trial_status?: string;
+  trial_period?: number;
+  trial_end_date?: string;
 }
 
 interface ActivityItem {
@@ -70,16 +69,16 @@ export default function CompanyDetail() {
 
         if (companyError) throw companyError;
         
-        // Create a properly typed company object with default values for missing fields
+        // Create a properly typed company object
         const typedCompany: CompanyData = {
           id: companyData.id,
           name: companyData.name,
-          address: companyData.address || '',
-          city: companyData.city || '',
-          state: companyData.state || '',
-          zip: companyData.zip || '',
           subscription_tier: companyData.subscription_tier,
-          created_at: companyData.created_at
+          created_at: companyData.created_at,
+          updated_at: companyData.updated_at,
+          trial_status: companyData.trial_status,
+          trial_period: companyData.trial_period,
+          trial_end_date: companyData.trial_end_date
         };
         
         setCompany(typedCompany);
