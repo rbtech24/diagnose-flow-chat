@@ -9,7 +9,7 @@ import { useWorkflows } from "@/hooks/useWorkflows";
 import { useUserRole } from "@/hooks/useUserRole";
 import { SavedWorkflow } from '@/utils/flow/types';
 
-export default function DiagnosticsPage() {
+export function DiagnosticsPage() {
   const navigate = useNavigate();
   const { workflows } = useWorkflows();
   const { userRole } = useUserRole();
@@ -76,3 +76,5 @@ export default function DiagnosticsPage() {
     </div>
   );
 }
+
+export default DiagnosticsPage;

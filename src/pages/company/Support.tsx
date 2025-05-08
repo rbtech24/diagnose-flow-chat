@@ -1,45 +1,20 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { SupportTicket } from "@/types/support";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { fetchSupportTickets } from "@/services/supportService";
-import { withErrorHandling } from "@/utils/errorHandler";
-import { toast } from "sonner";
+import { useSupportTickets } from "@/hooks/useSupportTickets";
 
-export default function CompanySupport() {
-  const [tickets, setTickets] = useState<SupportTicket[]>([]);
-  const [loading, setLoading] = useState(true);
+export function CompanySupport() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [showNewTicket, setShowNewTicket] = useState(false);
+  const { tickets, isLoading } = useSupportTickets();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    loadTickets();
-  }, []);
-
-  const loadTickets = async () => {
-    setLoading(true);
-    
-    const { data, error } = await withErrorHandling(
-      async () => await fetchSupportTickets(),
-      "fetching support tickets"
-    );
-    
-    if (error) {
-      toast.error("Error loading tickets", {
-        description: error.message || "Could not load support tickets"
-      });
-    }
-    
-    if (data) {
-      setTickets(data);
-    }
-    
-    setLoading(false);
-  };
 
   const filteredTickets = tickets.filter(ticket => 
     ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -70,24 +45,30 @@ export default function CompanySupport() {
     <div className="container mx-auto p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Support Tickets</h1>
-          <p className="text-muted-foreground">View and manage company support requests</p>
+          <h1 className="text-3xl font-bold">Support</h1>
+          <p className="text-muted-foreground">Get help with your technical issues</p>
         </div>
         <div>
-          <Button onClick={() => navigate("/company/support/new")}>Create Ticket</Button>
+          <Button onClick={() => setShowNewTicket(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Ticket
+          </Button>
         </div>
       </div>
 
       <div className="mb-6">
-        <Input
-          placeholder="Search tickets..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-md"
-        />
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search tickets..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="border rounded-lg p-6 animate-pulse">
@@ -138,10 +119,28 @@ export default function CompanySupport() {
       ) : (
         <div className="text-center py-12 border rounded-lg">
           <h3 className="text-lg font-medium mb-2">No tickets found</h3>
-          <p className="text-muted-foreground mb-4">Try adjusting your search criteria</p>
-          <Button onClick={() => navigate("/company/support/new")}>Create New Ticket</Button>
+          <p className="text-muted-foreground mb-4">Try adjusting your search or create a new support ticket</p>
+          <Button onClick={() => setShowNewTicket(true)}>Create New Ticket</Button>
         </div>
       )}
+
+      <Dialog open={showNewTicket} onOpenChange={setShowNewTicket}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Create Support Ticket</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {/* Form will be implemented using the NewTicketForm component */}
+            <p className="text-center text-muted-foreground">
+              Support ticket form goes here
+            </p>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline" onClick={() => setShowNewTicket(false)}>Cancel</Button>
+              <Button onClick={() => setShowNewTicket(false)}>Submit</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

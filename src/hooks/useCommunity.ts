@@ -18,42 +18,54 @@ export function useCommunity() {
         .from('community_posts')
         .select(`
           *,
-          author:author_id(
-            id, 
-            name, 
-            email, 
-            role, 
-            avatar_url
-          ),
           comments:community_post_comments(count)
         `)
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
       
+      // Get user information separately since the relation might not be set up correctly
+      const userIds = data?.map(post => post.author_id) || [];
+      
+      // Fetch all users in one query
+      const { data: usersData } = await supabase
+        .from('profiles')
+        .select('id, name, email, role, avatar_url')
+        .in('id', userIds);
+      
+      // Create a map of user data for quick lookup
+      const userMap = new Map();
+      usersData?.forEach(user => {
+        userMap.set(user.id, user);
+      });
+      
       // Format the data to match our CommunityPost type
-      const formattedPosts: CommunityPost[] = data?.map(post => ({
-        id: post.id,
-        title: post.title,
-        content: post.content,
-        type: post.type as CommunityPostType,
-        authorId: post.author_id,
-        author: {
-          id: post.author?.id || 'unknown',
-          name: post.author?.name || 'Unknown User',
-          email: post.author?.email || '',
-          role: post.author?.role || 'user',
-          avatarUrl: post.author?.avatar_url || ''
-        },
-        attachments: [], // We would need to fetch attachments separately
-        createdAt: new Date(post.created_at),
-        updatedAt: new Date(post.updated_at),
-        upvotes: post.upvotes || 0,
-        views: post.views || 0,
-        isSolved: post.is_solved || false,
-        tags: post.tags || [],
-        comments: []  // Comments would need to be fetched separately when viewing a post
-      })) || [];
+      const formattedPosts: CommunityPost[] = data?.map(post => {
+        const authorData = userMap.get(post.author_id);
+        
+        return {
+          id: post.id,
+          title: post.title,
+          content: post.content,
+          type: post.type as CommunityPostType,
+          authorId: post.author_id,
+          author: {
+            id: authorData?.id || 'unknown',
+            name: authorData?.name || 'Unknown User',
+            email: authorData?.email || '',
+            role: authorData?.role || 'user',
+            avatarUrl: authorData?.avatar_url || ''
+          },
+          attachments: [], // We would need to fetch attachments separately
+          createdAt: new Date(post.created_at),
+          updatedAt: new Date(post.updated_at),
+          upvotes: post.upvotes || 0,
+          views: post.views || 0,
+          isSolved: post.is_solved || false,
+          tags: post.tags || [],
+          comments: []  // Comments would need to be fetched separately when viewing a post
+        };
+      }) || [];
       
       setPosts(formattedPosts);
     } catch (err) {
@@ -75,20 +87,23 @@ export function useCommunity() {
       // Fetch the post
       const { data: postData, error: postError } = await supabase
         .from('community_posts')
-        .select(`
-          *,
-          author:author_id(
-            id, 
-            name, 
-            email, 
-            role, 
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('id', postId)
         .single();
 
       if (postError) throw postError;
+      
+      // Get author information
+      const { data: authorData, error: authorError } = await supabase
+        .from('profiles')
+        .select('id, name, email, role, avatar_url')
+        .eq('id', postData.author_id)
+        .single();
+      
+      if (authorError && authorError.code !== 'PGRST116') {
+        // Only throw if it's not a "not found" error
+        console.warn('Author not found:', authorError);
+      }
       
       // Increment view count
       await supabase.rpc('increment', { 
@@ -100,20 +115,24 @@ export function useCommunity() {
       // Fetch comments for the post
       const { data: commentsData, error: commentsError } = await supabase
         .from('community_post_comments')
-        .select(`
-          *,
-          author:author_id(
-            id, 
-            name, 
-            email, 
-            role, 
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
 
       if (commentsError) throw commentsError;
+      
+      // Get comment authors information
+      const commentAuthorIds = commentsData?.map(comment => comment.author_id) || [];
+      const { data: commentAuthorsData } = await supabase
+        .from('profiles')
+        .select('id, name, email, role, avatar_url')
+        .in('id', commentAuthorIds);
+      
+      // Create a map of comment authors for quick lookup
+      const commentAuthorMap = new Map();
+      commentAuthorsData?.forEach(author => {
+        commentAuthorMap.set(author.id, author);
+      });
       
       // Format the post with its comments
       const formattedPost: CommunityPost = {
@@ -123,11 +142,11 @@ export function useCommunity() {
         type: postData.type as CommunityPostType,
         authorId: postData.author_id,
         author: {
-          id: postData.author?.id || 'unknown',
-          name: postData.author?.name || 'Unknown User',
-          email: postData.author?.email || '',
-          role: postData.author?.role || 'user',
-          avatarUrl: postData.author?.avatar_url || ''
+          id: authorData?.id || 'unknown',
+          name: authorData?.name || 'Unknown User',
+          email: authorData?.email || '',
+          role: authorData?.role || 'user',
+          avatarUrl: authorData?.avatar_url || ''
         },
         attachments: [], // We would need to implement attachment handling
         createdAt: new Date(postData.created_at),
@@ -136,24 +155,28 @@ export function useCommunity() {
         views: postData.views || 0,
         isSolved: postData.is_solved || false,
         tags: postData.tags || [],
-        comments: commentsData?.map(comment => ({
-          id: comment.id,
-          postId: comment.post_id,
-          content: comment.content,
-          authorId: comment.author_id,
-          author: {
-            id: comment.author?.id || 'unknown',
-            name: comment.author?.name || 'Unknown User',
-            email: comment.author?.email || '',
-            role: comment.author?.role || 'user',
-            avatarUrl: comment.author?.avatar_url || ''
-          },
-          attachments: [],
-          createdAt: new Date(comment.created_at),
-          updatedAt: new Date(comment.updated_at),
-          upvotes: comment.upvotes || 0,
-          isAnswer: comment.is_answer || false
-        })) || []
+        comments: commentsData?.map(comment => {
+          const commentAuthor = commentAuthorMap.get(comment.author_id);
+          
+          return {
+            id: comment.id,
+            postId: comment.post_id,
+            content: comment.content,
+            authorId: comment.author_id,
+            author: {
+              id: commentAuthor?.id || 'unknown',
+              name: commentAuthor?.name || 'Unknown User',
+              email: commentAuthor?.email || '',
+              role: commentAuthor?.role || 'user',
+              avatarUrl: commentAuthor?.avatar_url || ''
+            },
+            attachments: [],
+            createdAt: new Date(comment.created_at),
+            updatedAt: new Date(comment.updated_at),
+            upvotes: comment.upvotes || 0,
+            isAnswer: comment.is_answer || false
+          };
+        }) || []
       };
       
       return formattedPost;

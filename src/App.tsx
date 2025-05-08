@@ -1,75 +1,64 @@
+
 import { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Layout } from './components/layout/Layout';
-import { AuthLayout } from './components/auth/AuthLayout';
-import { SignIn } from './pages/auth/SignIn';
-import { SignUp } from './pages/auth/SignUp';
+import { CompanyLayout } from './components/company/CompanyLayout';
+import { TechLayout } from './components/tech/TechLayout';
+import { AdminLayout } from './components/admin/AdminLayout';
 import { Pricing } from './pages/Pricing';
-import { CompanyDashboard } from './pages/company/Dashboard';
-import { CompanyRepairs } from './pages/company/Repairs';
-import { CompanyTechnicians } from './pages/company/Technicians';
-import { CompanyAccount } from './pages/company/Account';
-import { TechnicianDashboard } from './pages/tech/Dashboard';
-import { AdminDashboard } from './pages/admin/Dashboard';
-import { AdminCompanies } from './pages/admin/Companies';
-import { AdminCompanyDetail } from './pages/admin/CompanyDetail';
-import { AdminWorkflows } from './pages/admin/Workflows';
-import { AdminSupport } from './pages/admin/Support';
-import { AdminCommunity } from './pages/admin/Community';
-import { AdminAccounts } from './pages/admin/AdminAccounts';
-import { AdminNewCompany } from './pages/admin/NewCompany';
-import { CommunityPostDetail } from './components/community/CommunityPostDetail';
-import { SupportTicketDetail } from './components/support/SupportTicketDetail';
-import { RequireAuth } from './components/auth/RequireAuth';
-import { AuthProvider } from './components/auth/AuthProvider';
-import { ScrollToTop } from './utils/ScrollToTop';
+import CompanyDashboard from './pages/company/Dashboard';
+import { CompanyFeatureRequests } from './pages/company/FeatureRequests';
+import { CompanyCommunity } from './pages/company/Community';
+import { CompanySupport } from './pages/company/Support';
+import TechnicianDashboard from './pages/tech/Dashboard';
+import { TechCommunity } from './pages/tech/Community';
+import { TechSupport } from './pages/tech/Support';
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminCompanies from './pages/admin/Companies';
+import AdminCompanyDetail from './pages/admin/CompanyDetail';
+import AdminWorkflows from './pages/admin/Workflows';
+import AdminSupport from './pages/admin/Support';
+import AdminCommunity from './pages/admin/Community';
+import AdminAccounts from './pages/admin/AdminAccounts';
+import { DiagnosticsPage } from './pages/diagnostics/DiagnosticsPage';
 
 export default function App() {
   return (
-    <AuthProvider>
-      <ScrollToTop />
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/auth" element={<AuthLayout />}>
-          <Route path="sign-in" element={<SignIn />} />
-          <Route path="sign-up" element={<SignUp />} />
-          <Route index element={<Navigate to="sign-in" />} />
-        </Route>
-        <Route path="/pricing" element={<Pricing />} />
+    <Routes>
+      {/* Company Routes */}
+      <Route path="/company" element={<CompanyLayout />}>
+        <Route index element={<CompanyDashboard />} />
+        <Route path="dashboard" element={<CompanyDashboard />} />
+        <Route path="diagnostics" element={<DiagnosticsPage />} />
+        <Route path="feature-requests" element={<CompanyFeatureRequests />} />
+        <Route path="community" element={<CompanyCommunity />} />
+        <Route path="support" element={<CompanySupport />} />
+      </Route>
 
-        {/* Company Routes */}
-        <Route path="/company" element={<RequireAuth><Layout /></RequireAuth>}>
-          <Route index element={<CompanyDashboard />} />
-          <Route path="dashboard" element={<CompanyDashboard />} />
-          <Route path="repairs" element={<CompanyRepairs />} />
-          <Route path="technicians" element={<CompanyTechnicians />} />
-          <Route path="account" element={<CompanyAccount />} />
-        </Route>
+      {/* Technician Routes */}
+      <Route path="/tech" element={<TechLayout />}>
+        <Route index element={<TechnicianDashboard />} />
+        <Route path="dashboard" element={<TechnicianDashboard />} />
+        <Route path="community" element={<TechCommunity />} />
+        <Route path="support" element={<TechSupport />} />
+      </Route>
 
-        {/* Technician Routes */}
-        <Route path="/tech" element={<RequireAuth><Layout /></RequireAuth>}>
-          <Route index element={<TechnicianDashboard />} />
-          <Route path="dashboard" element={<TechnicianDashboard />} />
-        </Route>
+      {/* Admin Routes */}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<AdminDashboard />} />
+        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="companies" element={<AdminCompanies />} />
+        <Route path="companies/:id" element={<AdminCompanyDetail />} />
+        <Route path="workflows" element={<AdminWorkflows />} />
+        <Route path="support" element={<AdminSupport />} />
+        <Route path="community" element={<AdminCommunity />} />
+        <Route path="accounts" element={<AdminAccounts />} />
+      </Route>
 
-        {/* Admin Routes */}
-        <Route path="/admin" element={<RequireAuth requireAdmin><Layout /></RequireAuth>}>
-          <Route index element={<AdminDashboard />} />
-          <Route path="dashboard" element={<AdminDashboard />} />
-          <Route path="companies" element={<AdminCompanies />} />
-            <Route path="companies/new" element={<AdminNewCompany />} />
-          <Route path="companies/:id" element={<AdminCompanyDetail />} />
-          <Route path="workflows" element={<AdminWorkflows />} />
-          <Route path="support" element={<AdminSupport />} />
-          <Route path="support/:id" element={<SupportTicketDetail />} />
-          <Route path="community" element={<AdminCommunity />} />
-          <Route path="community/:id" element={<CommunityPostDetail />} />
-          <Route path="accounts" element={<AdminAccounts />} />
-        </Route>
+      {/* Public Routes */}
+      <Route path="/pricing" element={<Pricing />} />
 
-        {/* Catch-all route for redirecting to sign-in */}
-        <Route path="*" element={<Navigate to="/auth/sign-in" />} />
-      </Routes>
-    </AuthProvider>
+      {/* Catch-all route for redirecting to dashboard based on role */}
+      <Route path="*" element={<Navigate to="/admin/dashboard" />} />
+    </Routes>
   );
 }

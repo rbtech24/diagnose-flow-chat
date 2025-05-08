@@ -1,45 +1,18 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { SupportTicket } from "@/types/support";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
-import { fetchSupportTickets } from "@/services/supportService";
-import { withErrorHandling } from "@/utils/errorHandler";
-import { toast } from "sonner";
+import { useSupportTickets } from "@/hooks/useSupportTickets";
+import { Plus, Search } from "lucide-react";
 
-export default function TechSupport() {
-  const [tickets, setTickets] = useState<SupportTicket[]>([]);
-  const [loading, setLoading] = useState(true);
+export function TechSupport() {
   const [searchTerm, setSearchTerm] = useState("");
+  const { tickets, isLoading } = useSupportTickets();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    loadTickets();
-  }, []);
-
-  const loadTickets = async () => {
-    setLoading(true);
-    
-    const { data, error } = await withErrorHandling(
-      async () => await fetchSupportTickets(),
-      "fetching support tickets"
-    );
-    
-    if (error) {
-      toast.error("Error loading tickets", {
-        description: error.message || "Could not load support tickets"
-      });
-    }
-    
-    if (data) {
-      setTickets(data);
-    }
-    
-    setLoading(false);
-  };
 
   const filteredTickets = tickets.filter(ticket => 
     ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -74,20 +47,26 @@ export default function TechSupport() {
           <p className="text-muted-foreground">View and manage tech support requests</p>
         </div>
         <div>
-          <Button onClick={() => navigate("/tech/support/new")}>Create Ticket</Button>
+          <Button onClick={() => navigate("/tech/support/new")}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Ticket
+          </Button>
         </div>
       </div>
 
       <div className="mb-6">
-        <Input
-          placeholder="Search tickets..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-md"
-        />
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search tickets..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="border rounded-lg p-6 animate-pulse">
@@ -145,3 +124,5 @@ export default function TechSupport() {
     </div>
   );
 }
+
+export default TechSupport;
