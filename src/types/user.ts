@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   name: string;
@@ -33,4 +32,13 @@ export interface TechnicianInvite {
   status: 'pending' | 'accepted' | 'expired';
   createdAt: Date;
   expiresAt: Date;
+}
+
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  billingCycle: 'monthly' | 'yearly';
+  features: string[];
 }
