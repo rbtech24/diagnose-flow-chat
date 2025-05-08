@@ -37,7 +37,6 @@ export function AdminSidebar() {
     { path: "/admin/feature-requests", label: "Feature Requests", icon: <Lightbulb className="h-5 w-5" /> },
     { path: "/admin/community", label: "Community", icon: <Users className="h-5 w-5" /> },
     { path: "/admin/system-messages", label: "System Messages", icon: <BellRing className="h-5 w-5" /> },
-    { path: "/admin/crm-integration", label: "CRM Integration", icon: <Plug className="h-5 w-5" /> },
     { path: "/admin/api-integrations", label: "API Integrations", icon: <Plug className="h-5 w-5" /> },
     { path: "/admin/api-keys", label: "API Keys", icon: <Key className="h-5 w-5" /> },
     { path: "/admin/profile", label: "Profile", icon: <Settings className="h-5 w-5" /> },

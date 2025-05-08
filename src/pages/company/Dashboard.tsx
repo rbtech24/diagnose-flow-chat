@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { 
   Users, Wrench, Clock, AlertTriangle,
-  PlusCircle, ArrowUp, MessagesSquare,
+  PlusCircle, MessagesSquare,
   Play, Activity, Stethoscope
 } from "lucide-react";
 import { useWorkflows } from "@/hooks/useWorkflows";
@@ -236,24 +236,6 @@ export default function CompanyDashboard() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Add CRM Integration "Coming Soon" Section */}
-      <Card className="mb-8 border-2 border-dashed border-blue-200 bg-blue-50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ArrowUp className="h-5 w-5 text-blue-600" />
-            CRM Integration
-          </CardTitle>
-          <CardDescription>Connect with services like HouseCallPro</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-4">
-            <div className="bg-blue-100 text-blue-700 inline-block p-2 rounded-lg text-xs font-semibold mb-3">COMING SOON</div>
-            <p className="text-sm text-gray-600 mb-2">Seamlessly integrate with your favorite CRM platforms</p>
-            <p className="text-xs text-gray-500">We're working hard to bring this feature to you. Check back soon!</p>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

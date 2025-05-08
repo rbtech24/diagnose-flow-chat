@@ -1,3 +1,4 @@
+
 import {
   createBrowserRouter,
   RouterProvider,
@@ -57,7 +58,6 @@ import Status from "./pages/Status";
 import GetStarted from "./pages/GetStarted";
 import CaseStudies from "./pages/CaseStudies";
 import Updates from "./pages/Updates";
-import CRMIntegration from "./pages/admin/CRMIntegration";
 import SystemMessagesPage from "./pages/admin/SystemMessages";
 import { SystemMessageProvider } from "./context/SystemMessageContext";
 import AdminAccounts from "./pages/admin/AdminAccounts";
@@ -182,7 +182,6 @@ const router = createBrowserRouter([
       { path: "subscription-plans", element: <AdminSubscriptionPlans /> },
       { path: "licenses", element: <AdminLicenses /> },
       { path: "api-integrations", element: <APIIntegrations /> },
-      { path: "crm-integration", element: <CRMIntegration /> },
       { path: "system-messages", element: <SystemMessagesPage /> },
       { path: "users", element: <AdminUsers /> },
       { path: "users/:id", element: <UserDetail /> },
