@@ -1,3 +1,4 @@
+
 import {
   createBrowserRouter,
   RouterProvider,
@@ -62,6 +63,7 @@ import SystemMessagesPage from "./pages/admin/SystemMessages";
 import { SystemMessageProvider } from "./context/SystemMessageContext";
 import AdminAccounts from "./pages/admin/AdminAccounts";
 import ApiKeys from "./pages/admin/ApiKeys";
+import { AuthProvider } from "./context/AuthContext";
 
 const router = createBrowserRouter([
   {
@@ -207,9 +209,11 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <SystemMessageProvider>
-      <RouterProvider router={router} />
-    </SystemMessageProvider>
+    <AuthProvider>
+      <SystemMessageProvider>
+        <RouterProvider router={router} />
+      </SystemMessageProvider>
+    </AuthProvider>
   );
 }
 

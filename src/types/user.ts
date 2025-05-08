@@ -12,6 +12,7 @@ export interface User {
   planId?: string;
   isMainAdmin?: boolean;
   apiKeys?: ApiKey[];
+  status?: string;
 }
 
 export interface ApiKey {
