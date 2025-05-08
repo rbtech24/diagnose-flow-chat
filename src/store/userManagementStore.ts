@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User, TechnicianInvite } from '@/types/user';
@@ -24,6 +23,7 @@ export interface Company {
   technicianCount: number;
   createdAt: Date;
   updatedAt: Date;
+  logoUrl?: string; // Add new field for company logo
 }
 
 interface UserManagementState {
@@ -106,6 +106,7 @@ const initialCompanies: Company[] = [
     technicianCount: 5,
     createdAt: new Date(2023, 0, 15),
     updatedAt: new Date(2023, 2, 10),
+    logoUrl: "https://example.com/logo-acme.png"
   },
   {
     id: "company-fast-2",
@@ -143,6 +144,7 @@ const initialCompanies: Company[] = [
     technicianCount: 8,
     createdAt: new Date(2023, 1, 20),
     updatedAt: new Date(2023, 4, 15),
+    logoUrl: "https://example.com/logo-expert.png"
   }
 ];
 

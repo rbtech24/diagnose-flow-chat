@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -13,13 +12,14 @@ import { useUserManagementStore } from "@/store/userManagementStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AvatarUpload } from "@/components/shared/AvatarUpload";
 
 export default function UserDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const { toast } = useToast();
-  const { users, companies, fetchUserById, fetchCompanyById, deleteUser, resetUserPassword } = useUserManagementStore();
+  const { users, companies, fetchUserById, fetchCompanyById, deleteUser, resetUserPassword, updateUser } = useUserManagementStore();
   const [userData, setUserData] = useState<any>(null);
   const [companyData, setCompanyData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -120,6 +120,23 @@ export default function UserDetail() {
     navigate(`/admin/users/${id}/edit`);
   };
 
+  const handleAvatarChange = async (avatarUrl: string) => {
+    if (!id) return;
+    
+    try {
+      const updatedUser = await updateUser(id, {
+        avatarUrl
+      });
+      
+      if (updatedUser) {
+        setUserData(updatedUser);
+      }
+    } catch (error) {
+      console.error('Error updating avatar:', error);
+      throw error;
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto p-6">
@@ -177,10 +194,16 @@ export default function UserDetail() {
             <CardTitle className="text-lg font-medium">{userData.name}</CardTitle>
           </CardHeader>
           <CardContent>
+            <div className="flex flex-col items-center mb-6">
+              <AvatarUpload
+                currentAvatarUrl={userData.avatarUrl}
+                name={userData.name}
+                onAvatarChange={handleAvatarChange}
+                size="lg"
+              />
+            </div>
+            
             <div className="flex items-center gap-3 mb-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                <Users className="h-8 w-8 text-primary" />
-              </div>
               <div>
                 <Badge 
                   variant={

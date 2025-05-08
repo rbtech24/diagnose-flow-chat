@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -12,12 +11,13 @@ import { format } from "date-fns";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { AvatarUpload } from "@/components/shared/AvatarUpload";
 
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { companies, users, fetchCompanyById, fetchUsers, deleteCompany } = useUserManagementStore();
+  const { companies, users, fetchCompanyById, fetchUsers, deleteCompany, updateCompany } = useUserManagementStore();
   const [companyData, setCompanyData] = useState<any>(null);
   const [companyUsers, setCompanyUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -89,6 +89,23 @@ export default function CompanyDetail() {
 
   const handleEditCompany = () => {
     navigate(`/admin/companies/${id}/edit`);
+  };
+  
+  const handleAvatarChange = async (avatarUrl: string) => {
+    if (!id) return;
+    
+    try {
+      const updatedCompany = await updateCompany(id, {
+        logoUrl: avatarUrl
+      });
+      
+      if (updatedCompany) {
+        setCompanyData(updatedCompany);
+      }
+    } catch (error) {
+      console.error('Error updating company logo:', error);
+      throw error;
+    }
   };
 
   if (isLoading) {
@@ -171,17 +188,15 @@ export default function CompanyDetail() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                <Building2 className="h-8 w-8 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">{companyData.planName || "No"} Plan</p>
-                <p className="text-sm text-muted-foreground">
-                  Active since {format(new Date(companyData.createdAt), "MMM yyyy")}
-                </p>
-              </div>
+            <div className="flex flex-col items-center mb-6">
+              <AvatarUpload
+                currentAvatarUrl={companyData.logoUrl}
+                name={companyData.name}
+                onAvatarChange={handleAvatarChange}
+                size="lg"
+              />
             </div>
+            
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-1">
                 <span className="text-sm text-muted-foreground">Contact</span>
