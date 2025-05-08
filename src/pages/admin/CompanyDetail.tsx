@@ -113,69 +113,26 @@ export default function CompanyDetail() {
     fetchCompany();
   }, [id]);
 
-  // Completely rewritten formatActivity function to avoid type recursion issues
+  // Fixed formatActivity function to avoid type recursion
   const formatActivity = (activity: UserActivityData): ActivityItem => {
-    // Create a safe metadata object
+    // Use a simpler approach for metadata to avoid deep type recursion
     const safeMetadata: ActivityMetadata = {};
     
-    // Process metadata safely based on its type
+    // Extract specific known fields from metadata
     if (activity.metadata) {
-      // Handle string metadata (needs parsing)
-      if (typeof activity.metadata === 'string') {
-        try {
-          const parsed = JSON.parse(activity.metadata);
-          // Safely copy properties we know about
-          if (parsed.repair_id) safeMetadata.repair_id = String(parsed.repair_id);
-          if (parsed.technician_name) safeMetadata.technician_name = String(parsed.technician_name);
-          if (parsed.status) safeMetadata.status = String(parsed.status);
+      if (typeof activity.metadata === 'object') {
+        // Copy known fields we care about
+        if ('repair_id' in activity.metadata) 
+          safeMetadata.repair_id = String(activity.metadata.repair_id);
           
-          // Copy other primitive values
-          Object.entries(parsed).forEach(([key, value]) => {
-            if (!['repair_id', 'technician_name', 'status'].includes(key)) {
-              // Only add primitive values to avoid recursion
-              if (value === null || 
-                  typeof value === 'string' || 
-                  typeof value === 'number' || 
-                  typeof value === 'boolean') {
-                safeMetadata[key] = value as string | number | boolean | null;
-              }
-            }
-          });
-        } catch (e) {
-          // If parsing fails, use empty metadata
-          console.error('Failed to parse activity metadata:', e);
-        }
-      } 
-      // Handle object metadata directly
-      else if (typeof activity.metadata === 'object' && activity.metadata !== null) {
-        // Safely copy properties
-        const metadata = activity.metadata;
-        
-        if ('repair_id' in metadata && metadata.repair_id) 
-          safeMetadata.repair_id = String(metadata.repair_id);
-        
-        if ('technician_name' in metadata && metadata.technician_name) 
-          safeMetadata.technician_name = String(metadata.technician_name);
-        
-        if ('status' in metadata && metadata.status) 
-          safeMetadata.status = String(metadata.status);
-        
-        // Copy other primitive values
-        Object.entries(metadata).forEach(([key, value]) => {
-          if (!['repair_id', 'technician_name', 'status'].includes(key)) {
-            // Only add primitive values to avoid recursion
-            if (value === null || 
-                typeof value === 'string' || 
-                typeof value === 'number' || 
-                typeof value === 'boolean') {
-              safeMetadata[key] = value as string | number | boolean | null;
-            }
-          }
-        });
+        if ('technician_name' in activity.metadata) 
+          safeMetadata.technician_name = String(activity.metadata.technician_name);
+          
+        if ('status' in activity.metadata) 
+          safeMetadata.status = String(activity.metadata.status);
       }
     }
     
-    // Format and return the activity item
     return {
       id: activity.id,
       title: activity.description || `${activity.activity_type} activity`,
