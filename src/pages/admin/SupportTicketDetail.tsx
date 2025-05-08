@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { SupportTicket } from "@/components/support/SupportTicket";
 import { SupportTicket as SupportTicketType, SupportTicketStatus, SupportTicketMessage } from "@/types/support";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { mockSupportTickets } from "@/data/mockSupportTickets";
 
 export default function AdminSupportTicketDetail() {
   const { ticketId } = useParams<{ ticketId: string }>();
@@ -25,55 +25,47 @@ export default function AdminSupportTicketDetail() {
   const fetchTicketDetails = async () => {
     try {
       setLoading(true);
-      // Simplified query to avoid relationship errors
-      const { data: ticketData, error: ticketError } = await supabase
-        .from("support_tickets")
-        .select('*')
-        .eq("id", ticketId)
-        .single();
-
-      if (ticketError) throw ticketError;
       
-      const formattedTicket: SupportTicketType = {
-        ...ticketData,
-        status: (ticketData.status as SupportTicketStatus),
-        priority: (ticketData.priority as any),
-        creator: { 
-          name: "User", 
-          email: "user@example.com" 
-        },
-        assignee: ticketData.assigned_to ? { 
-          name: "Staff", 
-          email: "staff@example.com" 
-        } : undefined
-      };
-
-      setTicket(formattedTicket);
+      // Since we don't have a proper database table, use mock data
+      const foundTicket = mockSupportTickets.find(ticket => ticket.id === ticketId);
       
-      // Get messages separately
-      try {
-        const { data: messagesData, error: messagesError } = await supabase
-          .from("ticket_messages")
-          .select('*')
-          .eq("ticket_id", ticketId)
-          .order('created_at', { ascending: true });
-        
-        if (messagesError) throw messagesError;
-        
-        // Format messages
-        const formattedMessages: SupportTicketMessage[] = (messagesData || []).map(message => ({
-          ...message,
-          sender: {
-            name: "User",
-            email: "user@example.com"
-          }
-        }));
-        
-        setMessages(formattedMessages);
-      } catch (err) {
-        console.error("Error fetching messages:", err);
-        setMessages([]);
+      if (!foundTicket) {
+        throw new Error("Ticket not found");
       }
+      
+      setTicket(foundTicket);
+      
+      // Mock messages
+      const mockMessages: SupportTicketMessage[] = [
+        {
+          id: "msg1",
+          ticket_id: ticketId || "",
+          content: "I'm experiencing an issue with the technician assignment feature. When I try to assign a technician to a repair, the app freezes.",
+          user_id: foundTicket.user_id,
+          created_at: foundTicket.created_at,
+          sender: {
+            name: foundTicket.created_by_user?.name || "User",
+            email: foundTicket.created_by_user?.email || "",
+            avatar_url: foundTicket.created_by_user?.avatar_url,
+            role: foundTicket.created_by_user?.role || "user"
+          }
+        },
+        {
+          id: "msg2",
+          ticket_id: ticketId || "",
+          content: "Thank you for reporting this. Could you please provide more details about when this happens? Does it occur with specific technicians or all of them?",
+          user_id: "admin1",
+          created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+          sender: {
+            name: "Support Team",
+            email: "support@example.com",
+            avatar_url: "",
+            role: "admin"
+          }
+        }
+      ];
+      
+      setMessages(mockMessages);
     } catch (err) {
       console.error("Error fetching ticket details:", err);
       toast({
@@ -88,13 +80,7 @@ export default function AdminSupportTicketDetail() {
 
   const handleUpdateStatus = async (ticketId: string, status: SupportTicketStatus) => {
     try {
-      const { error } = await supabase
-        .from("support_tickets")
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq("id", ticketId);
-
-      if (error) throw error;
-
+      // Update local state since we're using mock data
       setTicket(prev => prev ? { ...prev, status, updated_at: new Date().toISOString() } : null);
 
       toast({
@@ -113,41 +99,21 @@ export default function AdminSupportTicketDetail() {
 
   const handleAddMessage = async (ticketId: string, content: string) => {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error("User not authenticated");
-
-      const { error: messageError, data: newMessage } = await supabase
-        .from("ticket_messages")
-        .insert({
-          ticket_id: ticketId,
-          content,
-          sender_id: userData.user.id
-        })
-        .select('*')
-        .single();
-
-      if (messageError) throw messageError;
-
-      // Update ticket updated_at timestamp
-      const { error: updateError } = await supabase
-        .from("support_tickets")
-        .update({ updated_at: new Date().toISOString() })
-        .eq("id", ticketId);
-
-      if (updateError) throw updateError;
-
-      // Add message to local state
-      if (newMessage) {
-        const formattedMessage: SupportTicketMessage = {
-          ...newMessage,
-          sender: {
-            name: "You",
-            email: userData.user.email || ""
-          }
-        };
-        
-        setMessages(prev => [...prev, formattedMessage]);
-      }
+      // Create a mock message
+      const newMessage: SupportTicketMessage = {
+        id: `msg-${Date.now()}`,
+        ticket_id: ticketId,
+        content,
+        user_id: "admin-user",
+        created_at: new Date().toISOString(),
+        sender: {
+          name: "Admin User",
+          email: "admin@example.com",
+          role: "admin"
+        }
+      };
+      
+      setMessages(prev => [...prev, newMessage]);
 
       toast({
         title: "Message sent",

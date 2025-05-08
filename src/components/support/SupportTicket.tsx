@@ -92,7 +92,7 @@ export const SupportTicket: React.FC<SupportTicketProps> = ({
     switch (status) {
       case "open":
         return <Badge variant="outline">Open</Badge>;
-      case "in-progress":
+      case "in_progress":
         return <Badge className="bg-blue-500">In Progress</Badge>;
       case "resolved":
         return <Badge className="bg-green-500">Resolved</Badge>;
@@ -126,7 +126,7 @@ export const SupportTicket: React.FC<SupportTicketProps> = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="open">Open</SelectItem>
-                <SelectItem value="in-progress">In Progress</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
                 <SelectItem value="resolved">Resolved</SelectItem>
                 <SelectItem value="closed">Closed</SelectItem>
               </SelectContent>
@@ -144,15 +144,15 @@ export const SupportTicket: React.FC<SupportTicketProps> = ({
             {/* Initial ticket description */}
             <div className="flex gap-4">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={ticket.creator?.avatar_url} alt={ticket.creator?.name || "User"} />
+                <AvatarImage src={ticket.created_by_user?.avatar_url} alt={ticket.created_by_user?.name || "User"} />
                 <AvatarFallback className="bg-primary/10 text-primary">
-                  {getInitials(ticket.creator?.name || "User")}
+                  {getInitials(ticket.created_by_user?.name || "User")}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="font-medium">{ticket.creator?.name || "User"}</span>
+                    <span className="font-medium">{ticket.created_by_user?.name || "User"}</span>
                     <span className="text-muted-foreground text-sm ml-2">
                       {formatDate(ticket.created_at)}
                     </span>

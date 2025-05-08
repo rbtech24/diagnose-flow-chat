@@ -18,6 +18,9 @@ export interface SupportTicket {
   };
 }
 
+export type TicketPriority = 'low' | 'medium' | 'high' | 'critical';
+export type SupportTicketStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
+
 export interface SupportTicketMessage {
   id: string;
   ticket_id: string;

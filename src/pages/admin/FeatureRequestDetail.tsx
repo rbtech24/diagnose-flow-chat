@@ -1,12 +1,11 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
-import { FeatureRequest, FeatureRequestStatus, FeatureComment } from "@/types/feature-request";
-import { ArrowLeft, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { FeatureRequest, FeatureComment, FeatureRequestStatus } from "@/types/feature-request";
 import { mockFeatureRequests } from "@/data/mockFeatureRequests";
+import { currentUser } from "@/data/mockTickets";
 
 export default function AdminFeatureRequestDetailPage() {
   const [featureRequest, setFeatureRequest] = useState<FeatureRequest | null>(null);
@@ -16,107 +15,53 @@ export default function AdminFeatureRequestDetailPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchFeatureRequest();
-  }, [id]);
-  
-  const fetchFeatureRequest = async () => {
-    if (!id) return;
-      
-    try {
-      setLoading(true);
-      
-      // For development, use mock data
-      const mockRequest = mockFeatureRequests.find(req => req.id === id);
-      if (mockRequest) {
-        setFeatureRequest(mockRequest);
-        // Mock comments
-        setComments([]);
-        setLoading(false);
-        return;
-      } else {
-        toast.error("Feature request not found");
-        setFeatureRequest(null);
-      }
-    } catch (error) {
-      console.error("Error fetching feature request:", error);
-      toast.error("Failed to load feature request details");
-    } finally {
+    // Simulate API call
+    setTimeout(() => {
+      const foundRequest = mockFeatureRequests.find(request => request.id === id);
+      setFeatureRequest(foundRequest || null);
+      setComments([]); // Initialize with empty comments
       setLoading(false);
-    }
+    }, 500);
+  }, [id]);
+
+  const handleVote = (featureId: string) => {
+    if (!featureRequest) return;
+
+    // Update vote count in the UI
+    setFeatureRequest({
+      ...featureRequest,
+      votes_count: (featureRequest.votes_count || 0) + 1,
+      user_has_voted: true
+    });
   };
 
-  const handleUpdateStatus = async (id: string, status: FeatureRequestStatus) => {
-    try {
-      // For demo purposes, update the local state directly
-      if (featureRequest) {
-        setFeatureRequest({
-          ...featureRequest,
-          status
-        });
-      }
-      
-      toast.success(`Status updated to ${status}`);
-    } catch (error) {
-      console.error("Error updating status:", error);
-      toast.error("Failed to update status");
-    }
-  };
+  const handleAddComment = (featureId: string, content: string) => {
+    if (!featureRequest) return;
 
-  const handleUpdatePriority = async (id: string, priority: string) => {
-    try {
-      // For demo purposes, update the local state directly
-      if (featureRequest) {
-        setFeatureRequest({
-          ...featureRequest,
-          priority: priority as any
-        });
-      }
-      
-      toast.success(`Priority updated to ${priority}`);
-    } catch (error) {
-      console.error("Error updating priority:", error);
-      toast.error("Failed to update priority");
-    }
-  };
+    const newComment: FeatureComment = {
+      id: `comment-${Date.now()}`,
+      feature_id: featureId,
+      user_id: currentUser.id,
+      content,
+      created_at: new Date().toISOString(),
+      created_by_user: {
+        name: currentUser.name,
+        email: currentUser.email,
+        role: currentUser.role as "admin" | "company" | "tech",
+        avatar_url: currentUser.avatar_url,
+      },
+    };
 
-  const handleAddComment = async (featureId: string, content: string) => {
-    try {
-      // Create a new comment in local state
-      const newComment: FeatureComment = {
-        id: `comment-${Date.now()}`,
-        feature_id: featureId,
-        content,
-        user_id: 'demo-user-id',
-        created_at: new Date().toISOString(),
-        created_by_user: {
-          name: "Demo User",
-          email: "demo@example.com",
-          role: "admin",
-        },
-      };
-      
-      setComments(prevComments => [...prevComments, newComment]);
-      
-      if (featureRequest) {
-        setFeatureRequest({
-          ...featureRequest,
-          comments_count: (featureRequest.comments_count || 0) + 1
-        });
-      }
-      
-      toast.success("Comment added successfully");
-    } catch (error) {
-      console.error("Error adding comment:", error);
-      toast.error("Failed to add comment");
-    }
+    setComments(prevComments => [...prevComments, newComment]);
   };
 
   if (loading) {
     return (
       <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <span className="ml-2">Loading feature request details...</span>
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="h-32 bg-gray-200 rounded"></div>
         </div>
       </div>
     );
@@ -145,15 +90,13 @@ export default function AdminFeatureRequestDetailPage() {
           Back to Feature Requests
         </Button>
       </div>
-      
+
       {featureRequest && (
         <FeatureRequestDetail
           featureRequest={featureRequest}
           comments={comments}
           onAddComment={handleAddComment}
-          onUpdateStatus={handleUpdateStatus}
-          onUpdatePriority={handleUpdatePriority}
-          isAdmin={true}
+          onVote={handleVote}
         />
       )}
     </div>
