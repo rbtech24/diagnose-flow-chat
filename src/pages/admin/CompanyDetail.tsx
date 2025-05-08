@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +22,11 @@ interface CompanyData {
   trial_status?: string;
   trial_period?: number;
   trial_end_date?: string;
+  // Address fields might be null
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
 }
 
 interface ActivityItem {
@@ -78,7 +84,11 @@ export default function CompanyDetail() {
           updated_at: companyData.updated_at,
           trial_status: companyData.trial_status,
           trial_period: companyData.trial_period,
-          trial_end_date: companyData.trial_end_date
+          trial_end_date: companyData.trial_end_date,
+          address: companyData.address || '',
+          city: companyData.city || '',
+          state: companyData.state || '',
+          zip: companyData.zip || ''
         };
         
         setCompany(typedCompany);
@@ -189,13 +199,13 @@ export default function CompanyDetail() {
           <CardHeader>
             <CardTitle>{company.name}</CardTitle>
             <CardDescription>
-              {company.address}, {company.city}, {company.state} {company.zip}
+              {company.address ? `${company.address}, ${company.city}, ${company.state} ${company.zip}` : 'No address provided'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span>{company.address}, {company.city}, {company.state} {company.zip}</span>
+              <span>{company.address ? `${company.address}, ${company.city}, ${company.state} ${company.zip}` : 'No address provided'}</span>
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
