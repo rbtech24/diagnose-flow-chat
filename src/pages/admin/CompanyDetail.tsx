@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,18 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/components/ui/use-toast";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AvatarUpload } from "@/components/shared/AvatarUpload";
+
+// Define interface for activity data to fix the type error
+interface UserActivityData {
+  id: string;
+  activity_type: string;
+  created_at: string;
+  description: string;
+  metadata: Record<string, any>; // Using Record<string, any> instead of complex nested types
+  ip_address: string;
+  user_agent: string;
+  user_id: string;
+}
 
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>();
@@ -106,6 +119,48 @@ export default function CompanyDetail() {
       console.error('Error updating company logo:', error);
       throw error;
     }
+  };
+
+  // Sample activity data - This should be replaced with actual API call
+  const recentActivity: UserActivityData[] = [
+    {
+      id: "activity-1",
+      activity_type: "user_added",
+      created_at: new Date().toISOString(),
+      description: "Technician Added",
+      metadata: { name: "John Doe" }, // Simplified metadata structure
+      ip_address: "192.168.1.1",
+      user_agent: "Mozilla/5.0",
+      user_id: "user-1"
+    },
+    {
+      id: "activity-2",
+      activity_type: "subscription_renewed",
+      created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+      description: "Subscription Renewed",
+      metadata: { plan: "Professional" }, // Simplified metadata structure
+      ip_address: "192.168.1.1",
+      user_agent: "Mozilla/5.0",
+      user_id: "user-1"
+    },
+    {
+      id: "activity-3",
+      activity_type: "profile_updated",
+      created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      description: "Profile Updated",
+      metadata: { fields: ["name", "email"] }, // Simplified metadata structure
+      ip_address: "192.168.1.1",
+      user_agent: "Mozilla/5.0",
+      user_id: "user-1"
+    }
+  ];
+  
+  // Format activity for display
+  const formatActivity = (activity: UserActivityData) => {
+    return {
+      title: activity.description,
+      time: activity.created_at
+    };
   };
 
   if (isLoading) {
@@ -363,18 +418,23 @@ export default function CompanyDetail() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="p-3 border rounded-md">
-                <div className="font-medium">Technician Added</div>
-                <div className="text-sm text-muted-foreground">Today at 3:45 PM</div>
-              </div>
-              <div className="p-3 border rounded-md">
-                <div className="font-medium">Subscription Renewed</div>
-                <div className="text-sm text-muted-foreground">Yesterday at 10:30 AM</div>
-              </div>
-              <div className="p-3 border rounded-md">
-                <div className="font-medium">Profile Updated</div>
-                <div className="text-sm text-muted-foreground">3 days ago</div>
-              </div>
+              {recentActivity.map(activity => {
+                const { title, time } = formatActivity(activity);
+                return (
+                  <div key={activity.id} className="p-3 border rounded-md">
+                    <div className="font-medium">{title}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {new Date(time).toLocaleDateString('en-US', {
+                        month: 'short', 
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
