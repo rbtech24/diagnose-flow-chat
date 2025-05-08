@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,7 @@ interface CompanyActivity {
   description?: string;
   timestamp: string;
   activity_type?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, any> | null;
 }
 
 export default function CompanyDetail() {
@@ -91,12 +92,12 @@ export default function CompanyDetail() {
       }
 
       if (data && data.length > 0) {
-        const formattedActivities = data.map(item => ({
+        const formattedActivities: CompanyActivity[] = data.map(item => ({
           id: item.id,
           title: item.description || getActivityTypeLabel(item.activity_type),
           timestamp: item.created_at,
           activity_type: item.activity_type,
-          metadata: item.metadata
+          metadata: item.metadata as Record<string, any> | null
         }));
         setCompanyActivities(formattedActivities);
       } else {
