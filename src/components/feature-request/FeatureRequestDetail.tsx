@@ -1,169 +1,148 @@
 
 import { useState } from "react";
-import { FeatureRequest, FeatureRequestStatus, FeatureComment, FeatureRequestPriority } from "@/types/feature-request";
-import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, ArrowUp, Calendar, Send } from "lucide-react";
-import { format, formatDistanceToNow } from "date-fns";
+import { ArrowBigUp, MessageSquare } from "lucide-react";
+import { FeatureRequest, FeatureComment } from "@/types/feature-request";
 
 interface FeatureRequestDetailProps {
   featureRequest: FeatureRequest;
   comments: FeatureComment[];
-  onAddComment: (id: string, content: string) => void;
-  onUpdateStatus?: (id: string, status: FeatureRequestStatus) => void;
-  onUpdatePriority?: (id: string, priority: string) => void;
-  onVote?: (id: string) => void;
-  isAdmin?: boolean;
+  onAddComment: (requestId: string, content: string) => void;
+  onVote: (requestId: string) => void;
 }
 
-export function FeatureRequestDetail({
+export const FeatureRequestDetail: React.FC<FeatureRequestDetailProps> = ({
   featureRequest,
   comments,
   onAddComment,
-  onUpdateStatus,
-  onUpdatePriority,
   onVote,
-  isAdmin = false,
-}: FeatureRequestDetailProps) {
-  const [comment, setComment] = useState("");
-  
-  const statusColors: Record<FeatureRequestStatus, string> = {
-    "pending": "bg-yellow-100 text-yellow-800",
-    "submitted": "bg-yellow-100 text-yellow-800",
-    "approved": "bg-blue-100 text-blue-800",
-    "rejected": "bg-red-100 text-red-800",
-    "in-progress": "bg-purple-100 text-purple-800",
-    "completed": "bg-green-100 text-green-800"
+}) => {
+  const [newComment, setNewComment] = useState("");
+
+  const handleSubmitComment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+    
+    onAddComment(featureRequest.id, newComment);
+    setNewComment("");
   };
 
-  const priorityColors = {
-    "low": "bg-gray-100 text-gray-800",
-    "medium": "bg-blue-100 text-blue-800",
-    "high": "bg-orange-100 text-orange-800",
-    "critical": "bg-red-100 text-red-800"
-  };
-
-  const handleAddComment = () => {
-    if (comment.trim()) {
-      onAddComment(featureRequest.id, comment);
-      setComment("");
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending": return "bg-yellow-100 text-yellow-800";
+      case "approved": return "bg-blue-100 text-blue-800";
+      case "in-progress": return "bg-purple-100 text-purple-800";
+      case "completed": return "bg-green-100 text-green-800";
+      case "rejected": return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
     }
   };
-  
-  const getInitials = (name?: string) => {
-    if (!name) return "?";
-    return name
-      .split(" ")
-      .map(n => n[0])
-      .join("")
-      .toUpperCase();
+
+  const getPriorityColor = (priority?: string) => {
+    switch (priority) {
+      case "low": return "bg-gray-100 text-gray-800";
+      case "medium": return "bg-blue-100 text-blue-800";
+      case "high": return "bg-orange-100 text-orange-800";
+      case "critical": return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-start">
-            <div>
-              <h2 className="text-2xl font-bold">{featureRequest.title}</h2>
-              <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-muted-foreground">
-                <div className="flex items-center">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  {format(new Date(featureRequest.created_at), 'MMM d, yyyy')}
-                </div>
-                <div className="flex items-center">
-                  <User className="h-4 w-4 mr-1" />
-                  {featureRequest.created_by_user?.name || "Unknown User"}
-                </div>
-                <Badge variant="outline" className="font-normal">
-                  {featureRequest.created_by_user?.role || "user"}
-                </Badge>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2 mt-2 md:mt-0">
-              <Badge className={statusColors[featureRequest.status as FeatureRequestStatus]}>
-                {featureRequest.status.replace('-', ' ')}
+    <div className="space-y-8">
+      <div className="space-y-4">
+        <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+          <h1 className="text-3xl font-bold">{featureRequest.title}</h1>
+          <div className="flex flex-wrap gap-2">
+            <Badge className={getStatusColor(featureRequest.status)}>
+              {featureRequest.status.replace("-", " ")}
+            </Badge>
+            {featureRequest.priority && (
+              <Badge className={getPriorityColor(featureRequest.priority)}>
+                {featureRequest.priority}
               </Badge>
-              {featureRequest.priority && (
-                <Badge className={priorityColors[featureRequest.priority as keyof typeof priorityColors]}>
-                  {featureRequest.priority}
-                </Badge>
-              )}
-              <Badge variant="outline" className="flex items-center gap-1">
-                <ArrowUp className="h-3 w-3" />
-                {featureRequest.votes_count || 0} votes
-              </Badge>
-            </div>
+            )}
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="prose max-w-none mt-4">
-            <p className="whitespace-pre-line">{featureRequest.description}</p>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader>
-          <h3 className="font-semibold text-xl">Comments ({comments.length})</h3>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {comments.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>No comments yet. Be the first to comment!</p>
+        </div>
+
+        <div className="flex items-center text-sm text-muted-foreground">
+          <span>Submitted by {featureRequest.created_by_user?.name || "Unknown"}</span>
+          <span className="mx-2">•</span>
+          <span>{new Date(featureRequest.created_at).toLocaleDateString()}</span>
+        </div>
+
+        <div className="border rounded-lg p-6 bg-card">
+          <p className="whitespace-pre-wrap">{featureRequest.description}</p>
+        </div>
+        
+        <div className="flex gap-4">
+          <Button 
+            variant={featureRequest.user_has_voted ? "secondary" : "outline"}
+            onClick={() => onVote(featureRequest.id)}
+            className={`flex items-center gap-2 ${featureRequest.user_has_voted ? 'bg-primary/10' : ''}`}
+            disabled={featureRequest.user_has_voted}
+          >
+            <ArrowBigUp className="h-5 w-5" />
+            {featureRequest.votes_count || 0} Votes
+          </Button>
+          <Button variant="outline" className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            {featureRequest.comments_count || comments.length} Comments
+          </Button>
+        </div>
+      </div>
+
+      <div className="border-t pt-6">
+        <h2 className="text-xl font-bold mb-4">Comments</h2>
+        
+        <div className="mb-6">
+          <form onSubmit={handleSubmitComment} className="space-y-4">
+            <Textarea 
+              placeholder="Add your comment..."
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              rows={4}
+            />
+            <div className="flex justify-end">
+              <Button type="submit" disabled={!newComment.trim()}>
+                Add Comment
+              </Button>
             </div>
-          ) : (
+          </form>
+        </div>
+        
+        <div className="space-y-6">
+          {comments.length > 0 ? (
             comments.map((comment) => (
-              <div key={comment.id} className="flex gap-4">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={comment.created_by_user?.avatar_url} alt={comment.created_by_user?.name || "User"} />
-                  <AvatarFallback>{getInitials(comment.created_by_user?.name)}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <div className="font-medium">
-                      {comment.created_by_user?.name || "Unknown User"}
-                      <span className="ml-2 text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+              <div key={comment.id} className="border rounded-lg p-4 bg-background">
+                <div className="flex items-start gap-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={comment.created_by_user?.avatar_url} alt={comment.created_by_user?.name || "User"} />
+                    <AvatarFallback>
+                      {comment.created_by_user?.name?.substring(0, 2).toUpperCase() || "??"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex items-center">
+                      <span className="font-medium">{comment.created_by_user?.name || "Unknown User"}</span>
+                      <span className="mx-2 text-xs text-muted-foreground">•</span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(comment.created_at).toLocaleString()}
                       </span>
                     </div>
-                    <Badge variant="outline" className="font-normal">
-                      {comment.created_by_user?.role || "user"}
-                    </Badge>
-                  </div>
-                  <div className="text-sm text-gray-700 mt-1">
-                    <p className="whitespace-pre-line">{comment.content}</p>
+                    <p className="mt-2">{comment.content}</p>
                   </div>
                 </div>
               </div>
             ))
+          ) : (
+            <p className="text-center text-muted-foreground py-4">No comments yet. Be the first to comment!</p>
           )}
-        </CardContent>
-        <CardFooter>
-          <div className="w-full space-y-4">
-            <Textarea 
-              placeholder="Add a comment..." 
-              className="w-full min-h-[100px]"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-            />
-            <div className="flex justify-end">
-              <Button 
-                onClick={handleAddComment}
-                disabled={!comment.trim()}
-              >
-                <Send className="mr-2 h-4 w-4" />
-                Post Comment
-              </Button>
-            </div>
-          </div>
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
     </div>
   );
-}
+};

@@ -1,261 +1,159 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Filter } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FeatureRequestCard } from "@/components/feature-request/FeatureRequestCard";
-import { NewFeatureRequestForm } from "@/components/feature-request/NewFeatureRequestForm";
-import { FeatureRequest, FeatureRequestPriority, FeatureRequestVote } from "@/types/feature-request";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { FeatureRequest } from "@/types/feature-request";
 import { mockFeatureRequests } from "@/data/mockFeatureRequests";
-import { currentUser } from "@/data/mockTickets";
 
 export default function TechFeatureRequests() {
-  const [featureRequests, setFeatureRequests] = useState<FeatureRequest[]>(mockFeatureRequests);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [featureRequests, setFeatureRequests] = useState<FeatureRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const navigate = useNavigate();
 
-  const handleVote = (id: string) => {
-    const updatedRequests = featureRequests.map((request) => {
-      if (request.id === id) {
-        const newVote: FeatureRequestVote = {
-          id: `vote-${Date.now()}`,
-          userId: currentUser.id,
-          featureRequestId: id,
-          createdAt: new Date(),
-          user: {
-            id: currentUser.id,
-            name: currentUser.name,
-            email: currentUser.email,
-            role: currentUser.role as "admin" | "company" | "tech", // Explicitly cast to union type
-            avatarUrl: currentUser.avatarUrl,
-          },
-        };
-        
-        return {
-          ...request,
-          score: request.score + 1,
-          votes: [...request.votes, newVote],
-        };
-      }
-      return request;
-    });
-    
-    setFeatureRequests(updatedRequests);
-  };
-
-  const handleAddFeatureRequest = (values: any) => {
-    setIsSubmitting(true);
-
+  useEffect(() => {
     // Simulate API call
     setTimeout(() => {
-      const newFeatureRequest: FeatureRequest = {
-        id: `fr-${Date.now()}`,
-        title: values.title,
-        description: values.description,
-        status: "pending",
-        priority: values.priority as FeatureRequestPriority,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        createdBy: {
-          id: currentUser.id,
-          name: currentUser.name,
-          email: currentUser.email,
-          role: currentUser.role as "admin" | "company" | "tech", // Explicitly cast to union type
-          avatarUrl: currentUser.avatarUrl,
-        },
-        votes: [],
-        score: 0,
-        comments: [],
-      };
-
-      setFeatureRequests([newFeatureRequest, ...featureRequests]);
-      setIsSubmitting(false);
-      setIsDialogOpen(false);
-    }, 1000);
-  };
+      setFeatureRequests(mockFeatureRequests);
+      setLoading(false);
+    }, 500);
+  }, []);
 
   const filteredRequests = featureRequests.filter((request) => {
-    const matchesSearch =
-      searchQuery === "" ||
-      request.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      request.description.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesStatus =
-      statusFilter === "all" ||
-      request.status === statusFilter;
-
+    const matchesSearch = 
+      request.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.description.toLowerCase().includes(searchTerm.toLowerCase());
+      
+    const matchesStatus = statusFilter === "all" || request.status === statusFilter;
+    
     return matchesSearch && matchesStatus;
   });
 
-  const pendingRequests = filteredRequests.filter((request) => request.status === "pending");
-  const approvedRequests = filteredRequests.filter((request) => 
-    ["approved", "in-progress"].includes(request.status)
-  );
-  const completedRequests = filteredRequests.filter((request) => request.status === "completed");
-  const rejectedRequests = filteredRequests.filter((request) => request.status === "rejected");
-
-  const viewRequestDetails = (id: string) => {
-    navigate(`/tech/feature-requests/${id}`);
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending": return "bg-yellow-100 text-yellow-800";
+      case "approved": return "bg-blue-100 text-blue-800";
+      case "in-progress": return "bg-purple-100 text-purple-800";
+      case "completed": return "bg-green-100 text-green-800";
+      case "rejected": return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
   };
 
   return (
     <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
           <h1 className="text-3xl font-bold">Feature Requests</h1>
-          <p className="text-gray-500">Request and vote on new features</p>
+          <p className="text-muted-foreground">Browse and vote on feature requests</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                New Request
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[550px]">
-              <NewFeatureRequestForm
-                onSubmit={handleAddFeatureRequest}
-                isSubmitting={isSubmitting}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
+        <Button onClick={() => {}} variant="default">New Feature Request</Button>
       </div>
 
-      <div className="mb-6 flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search feature requests..."
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <div className="w-full sm:w-48">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger>
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filter" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Requests</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="in-progress">In Progress</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <Input
+          placeholder="Search feature requests..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="sm:max-w-xs"
+        />
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="approved">Approved</SelectItem>
+            <SelectItem value="in-progress">In Progress</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="rejected">Rejected</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      <Tabs defaultValue="pending" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="pending">
-            Pending <span className="ml-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs text-yellow-600">{pendingRequests.length}</span>
-          </TabsTrigger>
-          <TabsTrigger value="approved">
-            Approved <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-600">{approvedRequests.length}</span>
-          </TabsTrigger>
-          <TabsTrigger value="completed">
-            Completed <span className="ml-1 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-600">{completedRequests.length}</span>
-          </TabsTrigger>
-          <TabsTrigger value="rejected">
-            Rejected <span className="ml-1 rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-600">{rejectedRequests.length}</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="pending" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {pendingRequests.length > 0 ? (
-            pendingRequests.map((request) => (
-              <FeatureRequestCard
-                key={request.id}
-                featureRequest={request}
-                onVote={handleVote}
-                onViewDetails={viewRequestDetails}
-              />
-            ))
-          ) : (
-            <div className="col-span-full p-8 text-center border rounded-lg">
-              <p className="text-gray-500">No pending feature requests</p>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button className="mt-4">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Submit a Feature Request
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[550px]">
-                  <NewFeatureRequestForm
-                    onSubmit={handleAddFeatureRequest}
-                    isSubmitting={isSubmitting}
-                  />
-                </DialogContent>
-              </Dialog>
+      {loading ? (
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="border rounded-lg p-6 animate-pulse">
+              <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
             </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="approved" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {approvedRequests.length > 0 ? (
-            approvedRequests.map((request) => (
-              <FeatureRequestCard
-                key={request.id}
-                featureRequest={request}
-                onVote={handleVote}
-                onViewDetails={viewRequestDetails}
-              />
-            ))
-          ) : (
-            <div className="col-span-full p-8 text-center border rounded-lg">
-              <p className="text-gray-500">No approved feature requests</p>
+          ))}
+        </div>
+      ) : filteredRequests.length > 0 ? (
+        <div className="space-y-4">
+          {filteredRequests.map((request) => (
+            <div 
+              key={request.id} 
+              className="border rounded-lg p-6 hover:border-primary/50 transition-colors cursor-pointer"
+              onClick={() => window.location.href = `/tech/feature-requests/${request.id}`}
+            >
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    {request.created_by_user && (
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={request.created_by_user.avatar_url} alt={request.created_by_user.name} />
+                        <AvatarFallback>{request.created_by_user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                    )}
+                    <span className="text-sm text-muted-foreground">
+                      {request.created_by_user?.name || "Unknown user"} • {new Date(request.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <h3 className="font-medium text-lg mb-2">{request.title}</h3>
+                  <p className="text-muted-foreground line-clamp-2 mb-3">
+                    {request.description}
+                  </p>
+                </div>
+                <Badge className={getStatusColor(request.status)}>
+                  {request.status.replace("-", " ")}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className="h-4 w-4" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                  </svg>
+                  <span>{request.votes_count || 0} votes</span>
+                </div>
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className="h-4 w-4" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  <span>{request.comments_count || 0} comments</span>
+                </div>
+              </div>
             </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="completed" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {completedRequests.length > 0 ? (
-            completedRequests.map((request) => (
-              <FeatureRequestCard
-                key={request.id}
-                featureRequest={request}
-                onVote={handleVote}
-                onViewDetails={viewRequestDetails}
-              />
-            ))
-          ) : (
-            <div className="col-span-full p-8 text-center border rounded-lg">
-              <p className="text-gray-500">No completed feature requests</p>
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="rejected" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {rejectedRequests.length > 0 ? (
-            rejectedRequests.map((request) => (
-              <FeatureRequestCard
-                key={request.id}
-                featureRequest={request}
-                onVote={handleVote}
-                onViewDetails={viewRequestDetails}
-              />
-            ))
-          ) : (
-            <div className="col-span-full p-8 text-center border rounded-lg">
-              <p className="text-gray-500">No rejected feature requests</p>
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12 border rounded-lg">
+          <h3 className="text-lg font-medium mb-2">No feature requests found</h3>
+          <p className="text-muted-foreground mb-4">Try adjusting your search or filter criteria</p>
+        </div>
+      )}
     </div>
   );
 }

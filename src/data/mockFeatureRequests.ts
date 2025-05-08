@@ -1,137 +1,105 @@
 
-import { FeatureRequest, FeatureRequestStatus, FeatureRequestPriority, FeatureComment, FeatureVote } from "@/types/feature-request";
+import { FeatureRequest } from "@/types/feature-request";
 
-// Helper function to create dates relative to now
-const daysAgo = (days: number) => {
-  const date = new Date();
-  date.setDate(date.getDate() - days);
-  return date;
-};
-
-// Helper function to create empty vote arrays
-const createVotes = (featureId: string, count: number): FeatureVote[] => {
-  const votes: FeatureVote[] = [];
-  for (let i = 0; i < count; i++) {
-    votes.push({
-      id: `vote-${featureId}-${i}`,
-      feature_id: featureId,
-      user_id: `user-${i}`,
-      created_at: daysAgo(Math.floor(Math.random() * 30)).toISOString(),
-    });
-  }
-  return votes;
-};
-
-// Mock feature requests data
 export const mockFeatureRequests: FeatureRequest[] = [
   {
-    id: "fr-123",
-    title: "Implement dark mode",
-    description: "Users have been requesting a dark mode to reduce eye strain in low-light environments.",
-    status: "pending" as FeatureRequestStatus,
-    priority: "high" as FeatureRequestPriority,
-    created_at: daysAgo(30).toISOString(),
-    updated_at: daysAgo(30).toISOString(),
-    user_id: "u-123",
-    company_id: null,
-    votes_count: 63,
+    id: "feature-1",
+    title: "Add dark mode support",
+    description: "It would be great to have a dark mode option for the application. This would reduce eye strain when using the app at night or in low-light conditions.",
+    status: "pending",
+    priority: "medium",
+    company_id: "company-1",
+    user_id: "user-1",
+    created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    votes_count: 12,
     user_has_voted: false,
-    comments_count: 2,
+    comments_count: 3,
     created_by_user: {
-      name: "Alice Johnson",
-      email: "alice@techsolutions.com",
-      role: "tech",
-      avatar_url: "https://i.pravatar.cc/150?img=4"
+      name: "John Manager",
+      email: "john@acme.com",
+      avatar_url: "https://i.pravatar.cc/150?u=john",
+      role: "company"
     }
   },
   {
-    id: "fr-456",
-    title: "Mobile app improvements",
-    description: "The mobile app needs better performance and a more intuitive UI.",
-    status: "in-progress" as FeatureRequestStatus,
-    priority: "medium" as FeatureRequestPriority,
-    created_at: daysAgo(22).toISOString(),
-    updated_at: daysAgo(22).toISOString(),
-    user_id: "u-456",
-    company_id: null,
-    votes_count: 51,
-    user_has_voted: false,
-    comments_count: 2,
+    id: "feature-2",
+    title: "Bulk technician assignment",
+    description: "Allow assigning multiple technicians to a repair job at once. This would be useful for large jobs that require multiple people.",
+    status: "approved",
+    priority: "high",
+    company_id: "company-1",
+    user_id: "user-2",
+    created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+    votes_count: 25,
+    user_has_voted: true,
+    comments_count: 8,
     created_by_user: {
-      name: "Bob Williams",
-      email: "bob@acme.com",
-      role: "company",
-      avatar_url: "https://i.pravatar.cc/150?img=11"
+      name: "Sarah Admin",
+      email: "sarah@acme.com",
+      avatar_url: "https://i.pravatar.cc/150?u=sarah",
+      role: "company"
     }
   },
   {
-    id: "fr-789",
-    title: "Add support for multiple languages",
-    description: "Our user base is growing internationally, and we need to support multiple languages.",
-    status: "approved" as FeatureRequestStatus,
-    priority: "high" as FeatureRequestPriority,
-    created_at: daysAgo(18).toISOString(),
-    updated_at: daysAgo(18).toISOString(),
-    user_id: "u-789",
-    company_id: null,
-    votes_count: 38,
-    user_has_voted: false,
-    comments_count: 2,
+    id: "feature-3",
+    title: "Calendar integration with Google Calendar",
+    description: "Would like to see integration with Google Calendar so technicians can see their repair schedules alongside their personal appointments.",
+    status: "in-progress",
+    priority: "medium",
+    company_id: "company-2",
+    user_id: "user-3",
+    created_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+    votes_count: 18,
+    user_has_voted: true,
+    comments_count: 5,
     created_by_user: {
-      name: "Carlos Rodriguez",
-      role: "admin",
-      email: "carlos@globaltech.com",
-      avatar_url: "https://i.pravatar.cc/150?img=27"
+      name: "Mike Technician",
+      email: "mike@fastfix.com",
+      avatar_url: "https://i.pravatar.cc/150?u=mike",
+      role: "tech"
     }
   },
   {
-    id: "fr-12345",
-    title: "Add batch processing for workflows",
-    description: "Would be great to have the ability to process multiple workflows at once.",
-    status: "pending" as FeatureRequestStatus,
-    priority: "medium" as FeatureRequestPriority,
-    created_at: daysAgo(15).toISOString(),
-    updated_at: daysAgo(15).toISOString(),
-    user_id: "u-789",
-    company_id: null,
-    votes_count: 42,
+    id: "feature-4",
+    title: "Export repair history to CSV",
+    description: "Need the ability to export repair history to CSV format for reporting and analysis purposes.",
+    status: "completed",
+    priority: "low",
+    company_id: "company-1",
+    user_id: "user-4",
+    created_at: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    votes_count: 7,
     user_has_voted: false,
     comments_count: 2,
     created_by_user: {
-      name: "John Smith",
-      role: "company",
-      email: "john@acmerepair.com",
-      avatar_url: "https://i.pravatar.cc/150?img=58"
+      name: "Lisa Support",
+      email: "lisa@acme.com",
+      avatar_url: "https://i.pravatar.cc/150?u=lisa",
+      role: "company"
     }
   },
   {
-    id: "fr-67890",
-    title: "Improve search functionality",
-    description: "The current search is too slow and doesn't provide accurate results.",
-    status: "pending" as FeatureRequestStatus,
-    priority: "high" as FeatureRequestPriority,
-    created_at: daysAgo(8).toISOString(),
-    updated_at: daysAgo(8).toISOString(),
-    user_id: "u-1011",
-    company_id: null,
-    votes_count: 28,
+    id: "feature-5",
+    title: "Offline mode for mobile app",
+    description: "Would be great if the mobile app could work offline and sync when back online. This is especially important for technicians in areas with poor connectivity.",
+    status: "pending",
+    priority: "critical",
+    company_id: "company-3",
+    user_id: "user-5",
+    created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    votes_count: 32,
     user_has_voted: false,
-    comments_count: 2,
+    comments_count: 12,
     created_by_user: {
-      name: "Emily White",
-      role: "tech",
-      email: "emily@techfix.com",
-      avatar_url: "https://i.pravatar.cc/150?img=39"
+      name: "David Field",
+      email: "david@expertrepair.com",
+      avatar_url: "https://i.pravatar.cc/150?u=david",
+      role: "tech"
     }
   }
 ];
-
-// Export a function to get feature requests
-export const getFeatureRequests = () => {
-  return mockFeatureRequests;
-};
-
-// Export a function to get a specific feature request by ID
-export const getFeatureRequestById = (id: string) => {
-  return mockFeatureRequests.find(request => request.id === id);
-};

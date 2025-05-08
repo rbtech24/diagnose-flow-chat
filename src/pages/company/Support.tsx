@@ -1,247 +1,128 @@
 
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SupportTicket, SupportTicketProps } from "@/components/support/SupportTicket";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Filter, RotateCw } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { mockTickets, currentUser } from "@/data/mockTickets";
-import { NewTicketForm } from "@/components/support/NewTicketForm";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { SupportTicket } from "@/types/support";
 import { useNavigate } from "react-router-dom";
-import { SupportTicket as SupportTicketType, SupportTicketStatus } from "@/types/support";
+import { mockSupportTickets } from "@/data/mockSupportTickets";
 
 export default function CompanySupport() {
-  const [tickets, setTickets] = useState<SupportTicketType[]>(
-    mockTickets.filter(ticket => ticket.createdBy?.id === "company1")
-  );
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
-  const handleAddMessage = async (ticketId: string, content: string) => {
-    // Update for mocked data
-    setTickets(
-      tickets.map((ticket) => 
-        ticket.id === ticketId 
-          ? { 
-              ...ticket, 
-              messages: [
-                ...ticket.messages || [],
-                {
-                  id: `message-${Date.now()}`,
-                  ticket_id: ticketId,
-                  content,
-                  created_at: new Date().toISOString(),
-                  sender_id: currentUser.id,
-                  sender: {
-                    name: currentUser.name,
-                    email: currentUser.email,
-                    avatar_url: currentUser.avatarUrl
-                  }
-                }
-              ],
-              updated_at: new Date().toISOString()
-            } 
-          : ticket
-      )
-    );
-    return Promise.resolve();
-  };
-
-  const handleCreateTicket = (title: string, description: string, priority: any) => {
-    setIsSubmitting(true);
-    
-    // Simulate API call
+  useEffect(() => {
+    // Simulating API call with mock data
     setTimeout(() => {
-      const newTicket: SupportTicketType = {
-        id: `ticket-${Date.now()}`,
-        title,
-        description,
-        status: "open",
-        priority,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        user_id: currentUser.id,
-        creator: {
-          name: currentUser.name,
-          email: currentUser.email,
-          avatar_url: currentUser.avatarUrl
-        }
-      };
-      
-      setTickets([newTicket, ...tickets]);
-      setIsSubmitting(false);
-      setIsDialogOpen(false);
-    }, 1000);
+      setTickets(mockSupportTickets);
+      setLoading(false);
+    }, 800);
+  }, []);
+
+  const filteredTickets = tickets.filter(ticket => 
+    ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    ticket.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "open": return "bg-blue-100 text-blue-800";
+      case "in_progress": return "bg-yellow-100 text-yellow-800";
+      case "resolved": return "bg-green-100 text-green-800";
+      case "closed": return "bg-gray-100 text-gray-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
   };
 
-  const filteredTickets = tickets.filter((ticket) => {
-    const matchesSearch = 
-      searchQuery === "" || 
-      ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      ticket.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = 
-      statusFilter === "all" || 
-      ticket.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
-
-  const activeTickets = filteredTickets.filter((ticket) => 
-    ["open", "in-progress"].includes(ticket.status)
-  );
-  
-  const resolvedTickets = filteredTickets.filter((ticket) => 
-    ticket.status === "resolved"
-  );
-  
-  const closedTickets = filteredTickets.filter((ticket) => 
-    ticket.status === "closed"
-  );
-
-  const viewTicketDetails = (ticketId: string) => {
-    navigate(`/company/support/${ticketId}`);
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "low": return "bg-gray-100 text-gray-800";
+      case "medium": return "bg-blue-100 text-blue-800";
+      case "high": return "bg-orange-100 text-orange-800";
+      case "critical": return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
   };
 
   return (
     <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Support Center</h1>
-          <p className="text-gray-500">Get help with your account or service</p>
+          <h1 className="text-3xl font-bold">Support Tickets</h1>
+          <p className="text-muted-foreground">View and manage company support requests</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                New Ticket
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <NewTicketForm
-                onSubmit={handleCreateTicket}
-                isSubmitting={isSubmitting}
-              />
-            </DialogContent>
-          </Dialog>
-          
-          <Button variant="ghost" size="icon">
-            <RotateCw className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      
-      <div className="mb-6 flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search tickets..."
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <div className="w-full sm:w-48">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger>
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filter" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Tickets</SelectItem>
-              <SelectItem value="open">Open</SelectItem>
-              <SelectItem value="in-progress">In Progress</SelectItem>
-              <SelectItem value="resolved">Resolved</SelectItem>
-              <SelectItem value="closed">Closed</SelectItem>
-            </SelectContent>
-          </Select>
+        <div>
+          <Button onClick={() => navigate("/company/support/new")}>Create Ticket</Button>
         </div>
       </div>
 
-      <Tabs defaultValue="active" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="active">
-            Active <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-600">{activeTickets.length}</span>
-          </TabsTrigger>
-          <TabsTrigger value="resolved">
-            Resolved <span className="ml-1 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-600">{resolvedTickets.length}</span>
-          </TabsTrigger>
-          <TabsTrigger value="closed">
-            Closed <span className="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{closedTickets.length}</span>
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="active" className="space-y-4">
-          {activeTickets.length > 0 ? (
-            activeTickets.map((ticket) => (
-              <div key={ticket.id} onClick={() => viewTicketDetails(ticket.id)} className="cursor-pointer">
-                <SupportTicket
-                  ticket={ticket}
-                  onAddMessage={handleAddMessage}
-                />
-              </div>
-            ))
-          ) : (
-            <div className="p-8 text-center border rounded-lg">
-              <p className="text-gray-500">No active tickets</p>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button className="mt-4">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create New Ticket
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px]">
-                  <NewTicketForm
-                    onSubmit={handleCreateTicket}
-                    isSubmitting={isSubmitting}
-                  />
-                </DialogContent>
-              </Dialog>
+      <div className="mb-6">
+        <Input
+          placeholder="Search tickets..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="max-w-md"
+        />
+      </div>
+
+      {loading ? (
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="border rounded-lg p-6 animate-pulse">
+              <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
             </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="resolved" className="space-y-4">
-          {resolvedTickets.length > 0 ? (
-            resolvedTickets.map((ticket) => (
-              <div key={ticket.id} onClick={() => viewTicketDetails(ticket.id)} className="cursor-pointer">
-                <SupportTicket
-                  ticket={ticket}
-                  onAddMessage={handleAddMessage}
-                />
+          ))}
+        </div>
+      ) : filteredTickets.length > 0 ? (
+        <div className="space-y-4">
+          {filteredTickets.map((ticket) => (
+            <div 
+              key={ticket.id} 
+              className="border rounded-lg p-6 hover:border-primary/50 transition-colors cursor-pointer"
+              onClick={() => navigate(`/company/support/${ticket.id}`)}
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    {ticket.created_by_user && (
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={ticket.created_by_user.avatar_url} alt={ticket.created_by_user.name} />
+                        <AvatarFallback>{ticket.created_by_user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                    )}
+                    <span className="text-sm text-muted-foreground">
+                      {ticket.created_by_user?.name || "Unknown user"} • {new Date(ticket.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <h3 className="font-medium text-lg">{ticket.title}</h3>
+                </div>
+                <div className="flex gap-2">
+                  <Badge className={getStatusColor(ticket.status)}>
+                    {ticket.status.replace("_", " ")}
+                  </Badge>
+                  <Badge className={getPriorityColor(ticket.priority)}>
+                    {ticket.priority}
+                  </Badge>
+                </div>
               </div>
-            ))
-          ) : (
-            <div className="p-8 text-center border rounded-lg">
-              <p className="text-gray-500">No resolved tickets</p>
+              <p className="text-muted-foreground line-clamp-2 mb-2">
+                {ticket.description}
+              </p>
             </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="closed" className="space-y-4">
-          {closedTickets.length > 0 ? (
-            closedTickets.map((ticket) => (
-              <div key={ticket.id} onClick={() => viewTicketDetails(ticket.id)} className="cursor-pointer">
-                <SupportTicket
-                  ticket={ticket}
-                  onAddMessage={handleAddMessage}
-                />
-              </div>
-            ))
-          ) : (
-            <div className="p-8 text-center border rounded-lg">
-              <p className="text-gray-500">No closed tickets</p>
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12 border rounded-lg">
+          <h3 className="text-lg font-medium mb-2">No tickets found</h3>
+          <p className="text-muted-foreground mb-4">Try adjusting your search criteria</p>
+          <Button onClick={() => navigate("/company/support/new")}>Create New Ticket</Button>
+        </div>
+      )}
     </div>
   );
 }
