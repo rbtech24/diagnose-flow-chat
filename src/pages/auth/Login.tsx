@@ -6,10 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export default function Login() {
   const navigate = useNavigate();
 
-  // Automatically redirect to home page
+  // Automatically redirect to admin dashboard
   useEffect(() => {
-    console.log("Login page bypassed, redirecting to home");
-    navigate("/");
+    console.log("Login page bypassed, redirecting to admin dashboard");
+    navigate("/admin");
   }, [navigate]);
 
   return (
@@ -18,11 +18,11 @@ export default function Login() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Redirecting...</CardTitle>
           <CardDescription>
-            Authentication has been disabled. You are being redirected to the home page.
+            Authentication has been disabled. You are being redirected to the admin dashboard.
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">
-          <p>If you are not redirected automatically, click <a href="/" className="text-blue-600 hover:underline">here</a>.</p>
+          <p>If you are not redirected automatically, click <a href="/admin" className="text-blue-600 hover:underline">here</a>.</p>
         </CardContent>
       </Card>
     </div>

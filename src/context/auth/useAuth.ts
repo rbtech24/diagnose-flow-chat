@@ -1,11 +1,21 @@
 
-import { useContext } from "react";
-import AuthContext from "./AuthContext";
+import { useContext } from 'react';
+import AuthContext from './AuthContext';
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
-  return context;
-}
+  
+  return {
+    ...context,
+    // Mock functions for authentication
+    login: async () => true,
+    logout: async () => true,
+    resetPassword: async () => true,
+    updateProfile: async () => true,
+    resendVerificationEmail: async () => true
+  };
+};
