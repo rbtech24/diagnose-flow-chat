@@ -1,25 +1,32 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlusCircle, Search, Filter } from "lucide-react";
+import { PlusCircle, Search } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FeatureRequestCard } from "@/components/feature-request/FeatureRequestCard";
 import { NewFeatureRequestForm } from "@/components/feature-request/NewFeatureRequestForm";
-import { FeatureRequest, FeatureRequestStatus } from "@/types/feature-request";
-import { mockFeatureRequests } from "@/data/mockFeatureRequests"; 
+import { FeatureRequest } from "@/types/feature-request";
+import { useFeatureRequests } from "@/hooks/useFeatureRequests";
 
 export default function AdminFeatureRequests() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<"newest" | "votes" | "priority">("newest");
-  const [featureRequests, setFeatureRequests] = useState<FeatureRequest[]>(mockFeatureRequests);
+  const [sortBy, setSortBy] = useState<"newest" | "votes" | "status">("newest");
   const [isNewRequestDialogOpen, setIsNewRequestDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"all" | "pending" | "approved" | "completed" | "rejected">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "pending" | "approved" | "completed">("all");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Filter requests based on search query, status, etc.
+  const { 
+    requests: featureRequests, 
+    isLoading, 
+    createRequest, 
+    loadRequests 
+  } = useFeatureRequests();
+  
+  // Filter requests based on search query, tab, etc.
   const filteredRequests = featureRequests.filter((request) => {
     const matchesSearch =
       request.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -28,10 +35,11 @@ export default function AdminFeatureRequests() {
     if (!matchesSearch) return false;
     
     if (activeTab === "all") return true;
+    if (activeTab === "pending") return ["pending", "submitted"].includes(request.status);
+    if (activeTab === "approved") return ["approved", "in-progress"].includes(request.status as string);
+    if (activeTab === "completed") return request.status === "completed";
     
-    // Map the tabs to the appropriate statuses
-    if (activeTab === "pending") return request.status === "pending" || request.status === "submitted";
-    return request.status === activeTab;
+    return true;
   });
   
   // Sort requests based on sortBy option
@@ -42,36 +50,50 @@ export default function AdminFeatureRequests() {
     if (sortBy === "votes") {
       return b.votes_count - a.votes_count;
     }
-    if (sortBy === "priority") {
-      const priorityOrder = { critical: 3, high: 2, medium: 1, low: 0 };
-      return priorityOrder[b.priority] - priorityOrder[a.priority];
+    if (sortBy === "status") {
+      const statusOrder: Record<string, number> = {
+        "completed": 4,
+        "in-progress": 3,
+        "approved": 2,
+        "pending": 1,
+        "submitted": 0,
+        "rejected": -1
+      };
+      return statusOrder[b.status as string] - statusOrder[a.status as string];
     }
     return 0;
   });
   
-  const handleCreateRequest = (newRequest: Omit<FeatureRequest, "id" | "created_at" | "updated_at" | "votes_count" | "user_has_voted" | "comments_count">) => {
-    const createdRequest: FeatureRequest = {
-      ...newRequest,
-      id: `fr-${Date.now()}`,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      votes_count: 0,
-      user_has_voted: false,
-      comments_count: 0,
-    };
-    
-    setFeatureRequests([createdRequest, ...featureRequests]);
-    setIsNewRequestDialogOpen(false);
+  const handleCreateRequest = async (newRequest: Omit<FeatureRequest, "id" | "created_at" | "updated_at" | "votes_count" | "user_has_voted" | "comments_count">) => {
+    setIsSubmitting(true);
+    try {
+      await createRequest(newRequest);
+      setIsNewRequestDialogOpen(false);
+    } catch (error) {
+      console.error("Error creating feature request:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Fix the approvedRequests filter to include both "approved" and "in-progress" statuses
-  const approvedRequests = filteredRequests.filter(request => 
-    ["approved", "in-progress"].includes(request.status as string)
+  // Fix the pendingRequests filter to include both "pending" and "submitted" statuses
+  const pendingRequests = filteredRequests.filter((request) => 
+    ["pending", "submitted"].includes(request.status)
   );
   
-  const totalPendingCount = featureRequests.filter(request => request.status === "pending" || request.status === "submitted").length;
-  const totalApprovedCount = approvedRequests.length;
-  const totalCompletedCount = featureRequests.filter(request => request.status === "completed").length;
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-6">
+        <h1 className="text-3xl font-bold mb-6">Feature Requests</h1>
+        <div className="animate-pulse space-y-4">
+          <div className="h-10 bg-gray-200 rounded w-full"></div>
+          <div className="h-40 bg-gray-200 rounded"></div>
+          <div className="h-40 bg-gray-200 rounded"></div>
+          <div className="h-40 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="container mx-auto p-6">
@@ -92,7 +114,7 @@ export default function AdminFeatureRequests() {
                 Submit a new feature request for the platform
               </DialogDescription>
             </DialogHeader>
-            <NewFeatureRequestForm onSubmit={handleCreateRequest} />
+            <NewFeatureRequestForm onSubmit={handleCreateRequest} isSubmitting={isSubmitting} />
           </DialogContent>
         </Dialog>
       </div>
@@ -105,12 +127,11 @@ export default function AdminFeatureRequests() {
             placeholder="Search feature requests..."
             className="pl-8"
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
         
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4" />
+        <div>
           <Select defaultValue={sortBy} onValueChange={(value: any) => setSortBy(value)}>
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Sort by" />
@@ -118,7 +139,7 @@ export default function AdminFeatureRequests() {
             <SelectContent>
               <SelectItem value="newest">Newest First</SelectItem>
               <SelectItem value="votes">Most Voted</SelectItem>
-              <SelectItem value="priority">Priority</SelectItem>
+              <SelectItem value="status">Status</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -132,20 +153,18 @@ export default function AdminFeatureRequests() {
           </TabsTrigger>
           <TabsTrigger value="pending">
             Pending
-            <Badge variant="secondary" className="ml-2">{totalPendingCount}</Badge>
+            <Badge variant="secondary" className="ml-2">{pendingRequests.length}</Badge>
           </TabsTrigger>
           <TabsTrigger value="approved">
-            Approved
-            <Badge variant="secondary" className="ml-2">{totalApprovedCount}</Badge>
+            Approved/In Progress
+            <Badge variant="secondary" className="ml-2">
+              {featureRequests.filter(r => ["approved", "in-progress"].includes(r.status as string)).length}
+            </Badge>
           </TabsTrigger>
           <TabsTrigger value="completed">
             Completed
-            <Badge variant="secondary" className="ml-2">{totalCompletedCount}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="rejected">
-            Rejected
             <Badge variant="secondary" className="ml-2">
-              {featureRequests.filter(r => r.status === "rejected").length}
+              {featureRequests.filter(r => r.status === "completed").length}
             </Badge>
           </TabsTrigger>
         </TabsList>
@@ -166,15 +185,16 @@ export default function AdminFeatureRequests() {
           </div>
         </TabsContent>
         
-        {/* Other tabs content would be similar, filtered by status */}
         <TabsContent value="pending" className="mt-0">
           <div className="grid grid-cols-1 gap-4">
-            {sortedRequests.length > 0 ? (
-              sortedRequests.map((request) => (
-                <Link to={`/admin/feature-requests/${request.id}`} key={request.id}>
-                  <FeatureRequestCard request={request} />
-                </Link>
-              ))
+            {sortedRequests.filter(r => ["pending", "submitted"].includes(r.status)).length > 0 ? (
+              sortedRequests
+                .filter(r => ["pending", "submitted"].includes(r.status))
+                .map((request) => (
+                  <Link to={`/admin/feature-requests/${request.id}`} key={request.id}>
+                    <FeatureRequestCard request={request} />
+                  </Link>
+                ))
             ) : (
               <div className="text-center py-8">
                 <p className="text-muted-foreground">No pending feature requests found</p>
@@ -183,15 +203,16 @@ export default function AdminFeatureRequests() {
           </div>
         </TabsContent>
         
-        {/* Similar structure for approved, completed, and rejected tabs */}
         <TabsContent value="approved" className="mt-0">
           <div className="grid grid-cols-1 gap-4">
-            {sortedRequests.length > 0 ? (
-              sortedRequests.map((request) => (
-                <Link to={`/admin/feature-requests/${request.id}`} key={request.id}>
-                  <FeatureRequestCard request={request} />
-                </Link>
-              ))
+            {sortedRequests.filter(r => ["approved", "in-progress"].includes(r.status as string)).length > 0 ? (
+              sortedRequests
+                .filter(r => ["approved", "in-progress"].includes(r.status as string))
+                .map((request) => (
+                  <Link to={`/admin/feature-requests/${request.id}`} key={request.id}>
+                    <FeatureRequestCard request={request} />
+                  </Link>
+                ))
             ) : (
               <div className="text-center py-8">
                 <p className="text-muted-foreground">No approved feature requests found</p>
@@ -199,32 +220,20 @@ export default function AdminFeatureRequests() {
             )}
           </div>
         </TabsContent>
+        
         <TabsContent value="completed" className="mt-0">
           <div className="grid grid-cols-1 gap-4">
-            {sortedRequests.length > 0 ? (
-              sortedRequests.map((request) => (
-                <Link to={`/admin/feature-requests/${request.id}`} key={request.id}>
-                  <FeatureRequestCard request={request} />
-                </Link>
-              ))
+            {sortedRequests.filter(r => r.status === "completed").length > 0 ? (
+              sortedRequests
+                .filter(r => r.status === "completed")
+                .map((request) => (
+                  <Link to={`/admin/feature-requests/${request.id}`} key={request.id}>
+                    <FeatureRequestCard request={request} />
+                  </Link>
+                ))
             ) : (
               <div className="text-center py-8">
                 <p className="text-muted-foreground">No completed feature requests found</p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-        <TabsContent value="rejected" className="mt-0">
-          <div className="grid grid-cols-1 gap-4">
-            {sortedRequests.length > 0 ? (
-              sortedRequests.map((request) => (
-                <Link to={`/admin/feature-requests/${request.id}`} key={request.id}>
-                  <FeatureRequestCard request={request} />
-                </Link>
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">No rejected feature requests found</p>
               </div>
             )}
           </div>

@@ -1,68 +1,114 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
-import { FeatureRequest, FeatureComment } from "@/types/feature-request";
-import { mockFeatureRequests } from "@/data/mockFeatureRequests";
-import { currentUser } from "@/data/mockTickets";
-import { ArrowLeft } from "lucide-react";
+import { FeatureComment } from "@/types/feature-request";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { fetchFeatureRequestById, fetchFeatureComments, voteForFeature, addFeatureComment } from "@/api/featureRequestsApi";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function CompanyFeatureRequestDetailPage() {
-  const [featureRequest, setFeatureRequest] = useState<FeatureRequest | null>(null);
+  const [featureRequest, setFeatureRequest] = useState<any | null>(null);
   const [comments, setComments] = useState<FeatureComment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const { id } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      const foundRequest = mockFeatureRequests.find(request => request.id === id);
-      setFeatureRequest(foundRequest || null);
-      setComments([]); // Initialize with empty comments
-      setLoading(false);
-    }, 500);
-  }, [id]);
+    async function loadData() {
+      if (!id) return;
+      
+      setLoading(true);
+      try {
+        const request = await fetchFeatureRequestById(id);
+        setFeatureRequest(request);
+        
+        const commentsList = await fetchFeatureComments(id);
+        setComments(commentsList);
+      } catch (error) {
+        console.error("Error loading feature request data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load feature request details.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    loadData();
+  }, [id, toast]);
 
-  const handleVote = (requestId: string) => {
+  const handleVote = async (requestId: string) => {
     if (!featureRequest) return;
     
-    // Update vote count in the UI
-    setFeatureRequest({
-      ...featureRequest,
-      votes_count: (featureRequest.votes_count || 0) + 1,
-      user_has_voted: true
-    });
+    try {
+      const result = await voteForFeature(requestId);
+      
+      if (result) {
+        setFeatureRequest({
+          ...featureRequest,
+          votes_count: featureRequest.votes_count + 1,
+          user_has_voted: true
+        });
+        
+        toast({
+          description: "Your vote has been recorded",
+        });
+      } else {
+        toast({
+          description: "You have already voted for this feature",
+        });
+      }
+    } catch (error) {
+      console.error("Error voting:", error);
+      toast({
+        title: "Error",
+        description: "Failed to register your vote.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleAddComment = async (requestId: string, content: string): Promise<void> => {
     if (!featureRequest) return;
     
-    const newComment: FeatureComment = {
-      id: `comment-${Date.now()}`,
-      feature_id: requestId,
-      user_id: currentUser.id,
-      content,
-      created_at: new Date().toISOString(),
-      created_by_user: {
-        name: currentUser.name,
-        email: currentUser.email,
-        role: currentUser.role as "admin" | "company" | "tech",
-        avatar_url: currentUser.avatar_url,
-      },
-    };
-    
-    setComments(prevComments => [...prevComments, newComment]);
-    return Promise.resolve();
+    setSubmitting(true);
+    try {
+      const newComment = await addFeatureComment({
+        feature_id: requestId,
+        content
+      });
+      
+      setComments(prevComments => [...prevComments, newComment]);
+      
+      toast({
+        description: "Your comment has been added",
+      });
+      
+      return Promise.resolve();
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add your comment.",
+        variant: "destructive"
+      });
+      throw error;
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (loading) {
     return (
       <div className="container mx-auto p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </div>
     );

@@ -1,68 +1,162 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
-import { FeatureRequest, FeatureComment, FeatureRequestStatus } from "@/types/feature-request";
-import { mockFeatureRequests } from "@/data/mockFeatureRequests";
-import { currentUser } from "@/data/mockTickets";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { FeatureRequestDetailAdmin } from "@/components/feature-request/FeatureRequestDetailAdmin";
+import { FeatureComment, FeatureRequestStatus } from "@/types/feature-request";
+import { 
+  fetchFeatureRequestById, 
+  fetchFeatureComments, 
+  voteForFeature, 
+  addFeatureComment,
+  updateFeatureRequest 
+} from "@/api/featureRequestsApi";
 
-export default function AdminFeatureRequestDetailPage() {
-  const [featureRequest, setFeatureRequest] = useState<FeatureRequest | null>(null);
+export default function AdminFeatureRequestDetail() {
+  const [featureRequest, setFeatureRequest] = useState<any | null>(null);
   const [comments, setComments] = useState<FeatureComment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const { id } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      const foundRequest = mockFeatureRequests.find(request => request.id === id);
-      setFeatureRequest(foundRequest || null);
-      setComments([]); // Initialize with empty comments
-      setLoading(false);
-    }, 500);
-  }, [id]);
+    async function loadData() {
+      if (!id) return;
+      
+      setLoading(true);
+      try {
+        const request = await fetchFeatureRequestById(id);
+        setFeatureRequest(request);
+        
+        const commentsList = await fetchFeatureComments(id);
+        setComments(commentsList);
+      } catch (error) {
+        console.error("Error loading feature request data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load feature request details.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    loadData();
+  }, [id, toast]);
 
-  const handleVote = (featureId: string) => {
+  const handleVote = async (requestId: string) => {
     if (!featureRequest) return;
-
-    // Update vote count in the UI
-    setFeatureRequest({
-      ...featureRequest,
-      votes_count: (featureRequest.votes_count || 0) + 1,
-      user_has_voted: true
-    });
+    
+    try {
+      const result = await voteForFeature(requestId);
+      
+      if (result) {
+        setFeatureRequest({
+          ...featureRequest,
+          votes_count: featureRequest.votes_count + 1,
+          user_has_voted: true
+        });
+        
+        toast({
+          description: "Your vote has been recorded",
+        });
+      } else {
+        toast({
+          description: "You have already voted for this feature",
+        });
+      }
+    } catch (error) {
+      console.error("Error voting:", error);
+      toast({
+        title: "Error",
+        description: "Failed to register your vote.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleAddComment = async (featureId: string, content: string): Promise<void> => {
     if (!featureRequest) return;
-
-    const newComment: FeatureComment = {
-      id: `comment-${Date.now()}`,
-      feature_id: featureId,
-      user_id: currentUser.id,
-      content,
-      created_at: new Date().toISOString(),
-      created_by_user: {
-        name: currentUser.name,
-        email: currentUser.email,
-        role: currentUser.role as "admin" | "company" | "tech",
-        avatar_url: currentUser.avatar_url,
-      },
-    };
-
-    setComments(prevComments => [...prevComments, newComment]);
-    return Promise.resolve();
+    
+    setSubmitting(true);
+    try {
+      const newComment = await addFeatureComment({
+        feature_id: featureId,
+        content
+      });
+      
+      setComments(prevComments => [...prevComments, newComment]);
+      
+      toast({
+        description: "Your comment has been added",
+      });
+      
+      return Promise.resolve();
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add your comment.",
+        variant: "destructive"
+      });
+      throw error;
+    } finally {
+      setSubmitting(false);
+    }
+  };
+  
+  const handleUpdateStatus = async (id: string, status: FeatureRequestStatus): Promise<void> => {
+    try {
+      const updatedRequest = await updateFeatureRequest(id, { status });
+      setFeatureRequest({
+        ...featureRequest,
+        status: updatedRequest.status
+      });
+      
+      toast({
+        description: `Status updated to ${status}`,
+      });
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update status.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const handleUpdatePriority = async (id: string, priority: string): Promise<void> => {
+    try {
+      const updatedRequest = await updateFeatureRequest(id, { priority });
+      setFeatureRequest({
+        ...featureRequest,
+        priority: updatedRequest.priority
+      });
+      
+      toast({
+        description: `Priority updated to ${priority}`,
+      });
+    } catch (error) {
+      console.error("Error updating priority:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update priority.",
+        variant: "destructive"
+      });
+    }
   };
 
   if (loading) {
     return (
       <div className="container mx-auto p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </div>
     );
@@ -91,15 +185,15 @@ export default function AdminFeatureRequestDetailPage() {
           Back to Feature Requests
         </Button>
       </div>
-
-      {featureRequest && (
-        <FeatureRequestDetail
-          featureRequest={featureRequest}
-          comments={comments}
-          onAddComment={handleAddComment}
-          onVote={handleVote}
-        />
-      )}
+      
+      <FeatureRequestDetailAdmin
+        featureRequest={featureRequest}
+        comments={comments}
+        onAddComment={handleAddComment}
+        onUpdateStatus={handleUpdateStatus}
+        onUpdatePriority={handleUpdatePriority}
+        isAdmin={true}
+      />
     </div>
   );
 }

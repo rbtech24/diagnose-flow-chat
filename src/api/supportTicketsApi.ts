@@ -106,6 +106,11 @@ export async function fetchTicketMessages(ticketId: string): Promise<SupportTick
  * @returns Created support ticket
  */
 export async function createSupportTicket(ticketData: Partial<SupportTicket>): Promise<SupportTicket> {
+  // Make sure required fields are present
+  if (!ticketData.title || !ticketData.description) {
+    throw new Error('Missing required fields for ticket creation');
+  }
+
   const { data, error } = await supabase
     .from('support_tickets')
     .insert([ticketData])
@@ -126,6 +131,11 @@ export async function createSupportTicket(ticketData: Partial<SupportTicket>): P
  * @returns Created message
  */
 export async function addTicketMessage(messageData: Partial<SupportTicketMessage>): Promise<SupportTicketMessage> {
+  // Make sure required fields are present
+  if (!messageData.content || !messageData.ticket_id) {
+    throw new Error('Missing required fields for message creation');
+  }
+
   const { data, error } = await supabase
     .from('support_ticket_messages')
     .insert([messageData])

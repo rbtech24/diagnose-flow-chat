@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,14 +11,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FeatureRequestCard } from "@/components/feature-request/FeatureRequestCard";
 import { NewFeatureRequestForm } from "@/components/feature-request/NewFeatureRequestForm";
 import { FeatureRequest } from "@/types/feature-request";
-import { mockFeatureRequests } from "@/data/mockFeatureRequests";
+import { useFeatureRequests } from "@/hooks/useFeatureRequests";
 
 export default function CompanyFeatureRequests() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "votes" | "status">("newest");
-  const [featureRequests, setFeatureRequests] = useState<FeatureRequest[]>(mockFeatureRequests);
   const [isNewRequestDialogOpen, setIsNewRequestDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "mine" | "pending" | "approved">("all");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const { 
+    requests: featureRequests, 
+    isLoading, 
+    createRequest 
+  } = useFeatureRequests();
   
   // Filter requests based on search query, tab, etc.
   const filteredRequests = featureRequests.filter((request) => {
@@ -57,25 +64,36 @@ export default function CompanyFeatureRequests() {
     return 0;
   });
   
-  const handleCreateRequest = (newRequest: Omit<FeatureRequest, "id" | "created_at" | "updated_at" | "votes_count" | "user_has_voted" | "comments_count">) => {
-    const createdRequest: FeatureRequest = {
-      ...newRequest,
-      id: `fr-${Date.now()}`,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      votes_count: 0,
-      user_has_voted: false,
-      comments_count: 0,
-    };
-    
-    setFeatureRequests([createdRequest, ...featureRequests]);
-    setIsNewRequestDialogOpen(false);
+  const handleCreateRequest = async (newRequest: Omit<FeatureRequest, "id" | "created_at" | "updated_at" | "votes_count" | "user_has_voted" | "comments_count">) => {
+    setIsSubmitting(true);
+    try {
+      await createRequest(newRequest);
+      setIsNewRequestDialogOpen(false);
+    } catch (error) {
+      console.error("Error creating feature request:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Fix the pendingRequests filter to include both "pending" and "submitted" statuses
   const pendingRequests = filteredRequests.filter((request) => 
     ["pending", "submitted"].includes(request.status)
   );
+  
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-6">
+        <h1 className="text-3xl font-bold mb-6">Feature Requests</h1>
+        <div className="animate-pulse space-y-4">
+          <div className="h-10 bg-gray-200 rounded w-full"></div>
+          <div className="h-40 bg-gray-200 rounded"></div>
+          <div className="h-40 bg-gray-200 rounded"></div>
+          <div className="h-40 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="container mx-auto p-6">
@@ -96,7 +114,7 @@ export default function CompanyFeatureRequests() {
                 Submit a new feature request for the platform
               </DialogDescription>
             </DialogHeader>
-            <NewFeatureRequestForm onSubmit={handleCreateRequest} />
+            <NewFeatureRequestForm onSubmit={handleCreateRequest} isSubmitting={isSubmitting} />
           </DialogContent>
         </Dialog>
       </div>
@@ -170,19 +188,55 @@ export default function CompanyFeatureRequests() {
         {/* Other tabs would have similar content */}
         <TabsContent value="mine" className="mt-0">
           <div className="grid grid-cols-1 gap-4">
-            {/* Similar to above but filtered for user's requests */}
+            {sortedRequests.filter(r => r.user_id === "current-user-id").length > 0 ? (
+              sortedRequests
+                .filter(r => r.user_id === "current-user-id")
+                .map((request) => (
+                  <Link to={`/company/feature-requests/${request.id}`} key={request.id}>
+                    <FeatureRequestCard request={request} />
+                  </Link>
+                ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">You haven't created any feature requests yet</p>
+              </div>
+            )}
           </div>
         </TabsContent>
         
         <TabsContent value="pending" className="mt-0">
           <div className="grid grid-cols-1 gap-4">
-            {/* Similar to above but filtered for pending requests */}
+            {sortedRequests.filter(r => ["pending", "submitted"].includes(r.status)).length > 0 ? (
+              sortedRequests
+                .filter(r => ["pending", "submitted"].includes(r.status))
+                .map((request) => (
+                  <Link to={`/company/feature-requests/${request.id}`} key={request.id}>
+                    <FeatureRequestCard request={request} />
+                  </Link>
+                ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No pending feature requests found</p>
+              </div>
+            )}
           </div>
         </TabsContent>
         
         <TabsContent value="approved" className="mt-0">
           <div className="grid grid-cols-1 gap-4">
-            {/* Similar to above but filtered for approved requests */}
+            {sortedRequests.filter(r => ["approved", "in-progress", "completed"].includes(r.status as string)).length > 0 ? (
+              sortedRequests
+                .filter(r => ["approved", "in-progress", "completed"].includes(r.status as string))
+                .map((request) => (
+                  <Link to={`/company/feature-requests/${request.id}`} key={request.id}>
+                    <FeatureRequestCard request={request} />
+                  </Link>
+                ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No approved feature requests found</p>
+              </div>
+            )}
           </div>
         </TabsContent>
       </Tabs>
