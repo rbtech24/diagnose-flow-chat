@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 
 export type MessageType = 'info' | 'warning' | 'error' | 'success';
@@ -23,7 +24,9 @@ interface SystemMessageContextValue {
 const SystemMessageContext = createContext<SystemMessageContextValue | undefined>(undefined);
 
 export const SystemMessageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  // Start with an empty array of messages - removed welcome messages
   const [messages, setMessages] = useState<SystemMessage[]>([
+    // Admin welcome message removed as requested
     {
       id: '2',
       type: 'info',

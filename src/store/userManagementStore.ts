@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { supabase } from '@/utils/supabaseClient';
 import { User, UserWithPassword } from '@/types/user';
@@ -53,20 +52,51 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
     try {
       set({ isLoadingCurrentUser: true, error: null });
       
-      // For now, let's use mock data to avoid the database issues
-      const mockUser = {
-        id: id,
-        name: id === 'super-admin-id' ? 'Super Admin' : 'Test User',
-        email: id === 'super-admin-id' ? 'admin@repairautopilot.com' : 'user@example.com',
-        role: 'admin' as const,
-        status: 'active' as const,
-        companyId: null,
-        companyName: '',
-        isMainAdmin: id === 'super-admin-id' // Set isMainAdmin to true for super admin
-      };
+      // Keep super admin only
+      if (id === 'super-admin-id') {
+        const superAdmin = {
+          id: 'super-admin-id',
+          name: 'Super Admin',
+          email: 'admin@repairautopilot.com',
+          role: 'admin' as const,
+          status: 'active' as const,
+          companyId: null,
+          companyName: '',
+          isMainAdmin: true
+        };
+        set({ currentUser: superAdmin });
+        return superAdmin;
+      }
       
-      set({ currentUser: mockUser });
-      return mockUser;
+      // For all other users, try to fetch from database
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data) {
+        const user = {
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          role: data.role,
+          status: data.status,
+          companyId: data.company_id,
+          avatarUrl: data.avatar_url,
+          isMainAdmin: false
+        };
+        
+        set({ currentUser: user });
+        return user;
+      }
+      
+      set({ error: 'User not found' });
+      return null;
     } catch (error) {
       console.error('Error fetching user by ID:', error);
       toast.error('Failed to load user details');
@@ -80,36 +110,43 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
   fetchUsers: async () => {
     set({ isLoadingUsers: true, error: null });
     try {
-      // For now, let's use mock data to avoid the database issues
-      const mockUsers: User[] = [
-        {
+      // Get real users from database
+      const { data, error } = await supabase
+        .from('users')
+        .select('*');
+
+      if (error) {
+        throw error;
+      }
+
+      // Convert to User type
+      let users: User[] = data.map(user => ({
+        id: user.id,
+        name: user.name || '',
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        avatarUrl: user.avatar_url,
+        companyId: user.company_id,
+        isMainAdmin: false
+      }));
+
+      // Add super admin to the list if not already there
+      const superAdminExists = users.some(user => user.email === 'admin@repairautopilot.com');
+      
+      if (!superAdminExists) {
+        users.unshift({
           id: 'super-admin-id',
           name: 'Super Admin',
           email: 'admin@repairautopilot.com',
           role: 'admin',
           status: 'active',
           avatarUrl: '',
-          isMainAdmin: true, // This is the super admin
-        },
-        {
-          id: 'user-2',
-          name: 'Company Manager',
-          email: 'company@example.com',
-          role: 'company',
-          status: 'active',
-          avatarUrl: '',
-        },
-        {
-          id: 'user-3',
-          name: 'Tech Support',
-          email: 'tech@example.com',
-          role: 'tech',
-          status: 'active',
-          avatarUrl: '',
-        },
-      ];
+          isMainAdmin: true
+        });
+      }
 
-      set({ users: mockUsers });
+      set({ users });
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Failed to load users');
@@ -122,36 +159,24 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
   fetchCompanies: async () => {
     set({ isLoadingCompanies: true, error: null });
     try {
-      // For now, let's use mock data to avoid the database issues
-      const mockCompanies = [
-        {
-          id: 'company-1',
-          name: 'Acme Corporation',
-          email: 'info@acme.com',
-          technicianCount: 5,
-          planName: 'Enterprise',
-          status: 'active'
-        },
-        {
-          id: 'company-2',
-          name: 'Stark Industries',
-          email: 'info@stark.com',
-          technicianCount: 12,
-          planName: 'Professional',
-          status: 'trial'
-        },
-        {
-          id: 'company-3',
-          name: 'Wayne Enterprises',
-          email: 'info@wayne.com',
-          technicianCount: 8,
-          planName: 'Enterprise',
-          status: 'active'
-        },
-      ];
+      // Get real companies from database
+      const { data, error } = await supabase
+        .from('companies')
+        .select('*');
+
+      if (error) {
+        throw error;
+      }
+
+      // Add company metadata
+      const companiesWithMetadata = data.map(company => ({
+        ...company,
+        technicianCount: 0, // Will need to be calculated later
+        planName: company.subscription_tier || 'Basic'
+      }));
       
-      set({ companies: mockCompanies });
-      return mockCompanies;
+      set({ companies: companiesWithMetadata });
+      return companiesWithMetadata;
     } catch (error) {
       console.error('Error fetching companies:', error);
       toast.error('Failed to load companies');
@@ -318,24 +343,66 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
   addUser: async (user: UserWithPassword) => {
     try {
       set({ error: null });
-      // Mock successful user creation
-      const mockNewUser = {
-        id: `user-${Date.now()}`,
-        name: user.name,
+      
+      // Create user with auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: user.email,
-        role: user.role,
-        phone: user.phone,
-        company_id: user.companyId,
-        status: user.status,
-        isMainAdmin: false, // New users are never super admins
+        password: user.password,
+        options: {
+          data: {
+            name: user.name,
+            role: user.role
+          }
+        }
+      });
+      
+      if (authError) {
+        throw authError;
+      }
+      
+      if (!authData.user) {
+        throw new Error('Failed to create user');
+      }
+      
+      // Insert into users table
+      const { data, error } = await supabase
+        .from('users')
+        .insert([{
+          id: authData.user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          phone: user.phone,
+          company_id: user.companyId,
+          status: user.status,
+          avatar_url: user.avatarUrl,
+          is_main_admin: false // New users are never super admins
+        }])
+        .select()
+        .single();
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Add to users list
+      const newUser: User = {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        phone: data.phone,
+        companyId: data.company_id,
+        status: data.status,
+        avatarUrl: data.avatar_url,
+        isMainAdmin: false
       };
-
-      // Update the users list with the new user
+      
       const currentUsers = get().users;
-      set({ users: [...currentUsers, mockNewUser as User] });
+      set({ users: [...currentUsers, newUser] });
       
       toast.success('User added successfully!');
-      return mockNewUser;
+      return data;
     } catch (error) {
       console.error('Error adding user:', error);
       toast.error('Failed to add user');

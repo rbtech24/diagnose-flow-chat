@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { User } from "@/types/user";
 import { Session } from '@supabase/supabase-js';
 import { AuthContextType } from "@/types/auth";
 import { toast } from "react-hot-toast";
 
-// Mock user data for testing
+// Keep only super admin for mock auth
 const superAdmin: User = {
   id: "super-admin-id",
   name: "Super Admin",
@@ -13,31 +12,6 @@ const superAdmin: User = {
   role: "admin",
   status: "active",
   isMainAdmin: true,
-};
-
-const regularAdmin: User = {
-  id: "admin-id",
-  name: "Admin User",
-  email: "admin@example.com",
-  role: "admin",
-  status: "active",
-  isMainAdmin: false,
-};
-
-const companyUser: User = {
-  id: "company-id",
-  name: "Company Manager",
-  email: "company@example.com",
-  role: "company",
-  status: "active",
-};
-
-const techUser: User = {
-  id: "tech-id",
-  name: "Tech Support",
-  email: "tech@example.com",
-  role: "tech",
-  status: "active",
 };
 
 export function useMockAuth(): AuthContextType {
@@ -70,18 +44,12 @@ export function useMockAuth(): AuthContextType {
   const signIn = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
 
-    // Simple mock login
+    // Simple mock login - only for the super admin
     try {
       let loginUser: User | null = null;
 
       if (email === "admin@repairautopilot.com") {
         loginUser = superAdmin;
-      } else if (email === "admin@example.com") {
-        loginUser = regularAdmin;
-      } else if (email === "company@example.com") {
-        loginUser = companyUser;
-      } else if (email === "tech@example.com") {
-        loginUser = techUser;
       }
 
       if (loginUser) {
