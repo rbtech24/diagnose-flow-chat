@@ -11,7 +11,7 @@ import { ArrowLeft, Calendar, MapPin, UserRound, Package, Wrench, AlertTriangle,
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { handleApiError } from "@/utils/errorHandler";
 import { toast } from "sonner";
-import { ActivityItem, ActivityMetadata } from "@/types/activity";
+import { ActivityItem } from "@/types/activity";
 
 // Define proper interface for company address to avoid deep instantiation
 interface CompanyAddress {
@@ -39,11 +39,11 @@ interface UserActivityData {
   id: string;
   activity_type: string;
   created_at: string;
-  description: string;
-  metadata: Record<string, any>;
-  ip_address: string;
-  user_agent: string;
-  user_id: string;
+  description?: string;
+  metadata?: Record<string, any>;
+  ip_address?: string;
+  user_agent?: string;
+  user_id?: string;
 }
 
 export default function CompanyDetail() {
@@ -95,16 +95,17 @@ export default function CompanyDetail() {
         if (activityError) throw activityError;
         
         if (activityData) {
-          // Convert the activityData to UserActivityData type explicitly
-          const typedActivities: UserActivityData[] = activityData.map(act => ({
+          // Explicitly convert metadata to ensure it's a safe object type
+          const typedActivities = activityData.map(act => ({
             id: act.id,
             activity_type: act.activity_type,
             created_at: act.created_at,
             description: act.description || '',
-            metadata: act.metadata || {},
+            // Ensure metadata is a plain object
+            metadata: typeof act.metadata === 'object' ? act.metadata || {} : {},
             ip_address: act.ip_address || '',
             user_agent: act.user_agent || '',
-            user_id: act.user_id,
+            user_id: act.user_id || '',
           }));
           
           setActivities(typedActivities);
@@ -125,22 +126,27 @@ export default function CompanyDetail() {
     fetchCompany();
   }, [id]);
 
-  // Fixed formatActivity function to avoid type recursion
+  // Refactored formatActivity function to avoid type recursion
   const formatActivity = (activity: UserActivityData): ActivityItem => {
-    const metadata: ActivityMetadata = {};
+    // Create a safe metadata object with specific properties
+    const safeMetadata = {
+      repair_id: '',
+      technician_name: '',
+      status: ''
+    };
     
-    // Safely extract metadata properties without creating deep type references
+    // Safely extract metadata properties
     if (activity.metadata && typeof activity.metadata === 'object') {
-      if ('repair_id' in activity.metadata && activity.metadata.repair_id) {
-        metadata.repair_id = String(activity.metadata.repair_id);
+      if ('repair_id' in activity.metadata) {
+        safeMetadata.repair_id = String(activity.metadata.repair_id || '');
       }
       
-      if ('technician_name' in activity.metadata && activity.metadata.technician_name) {
-        metadata.technician_name = String(activity.metadata.technician_name);
+      if ('technician_name' in activity.metadata) {
+        safeMetadata.technician_name = String(activity.metadata.technician_name || '');
       }
       
-      if ('status' in activity.metadata && activity.metadata.status) {
-        metadata.status = String(activity.metadata.status);
+      if ('status' in activity.metadata) {
+        safeMetadata.status = String(activity.metadata.status || '');
       }
     }
     
@@ -150,7 +156,7 @@ export default function CompanyDetail() {
       timestamp: new Date(activity.created_at).toLocaleString(),
       activity_type: activity.activity_type,
       description: activity.description || '',
-      metadata
+      metadata: safeMetadata
     };
   };
 
