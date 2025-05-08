@@ -18,6 +18,7 @@ export default function CompanyFeatureRequests() {
   const [featureRequests, setFeatureRequests] = useState<FeatureRequest[]>(mockFeatureRequests);
   const [isNewRequestDialogOpen, setIsNewRequestDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "mine" | "pending" | "approved">("all");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Filter requests based on search query, tab, etc.
   const filteredRequests = featureRequests.filter((request) => {
@@ -58,18 +59,24 @@ export default function CompanyFeatureRequests() {
   });
   
   const handleCreateRequest = (newRequest: Omit<FeatureRequest, "id" | "created_at" | "updated_at" | "votes_count" | "user_has_voted" | "comments_count">) => {
-    const createdRequest: FeatureRequest = {
-      ...newRequest,
-      id: `fr-${Date.now()}`,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      votes_count: 0,
-      user_has_voted: false,
-      comments_count: 0,
-    };
+    setIsSubmitting(true);
     
-    setFeatureRequests([createdRequest, ...featureRequests]);
-    setIsNewRequestDialogOpen(false);
+    // Simulate API call with setTimeout
+    setTimeout(() => {
+      const createdRequest: FeatureRequest = {
+        ...newRequest,
+        id: `fr-${Date.now()}`,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        votes_count: 0,
+        user_has_voted: false,
+        comments_count: 0,
+      };
+      
+      setFeatureRequests([createdRequest, ...featureRequests]);
+      setIsNewRequestDialogOpen(false);
+      setIsSubmitting(false);
+    }, 1000);
   };
 
   // Fix the pendingRequests filter to include both "pending" and "submitted" statuses
@@ -96,7 +103,10 @@ export default function CompanyFeatureRequests() {
                 Submit a new feature request for the platform
               </DialogDescription>
             </DialogHeader>
-            <NewFeatureRequestForm onSubmit={handleCreateRequest} />
+            <NewFeatureRequestForm 
+              onSubmit={handleCreateRequest}
+              isSubmitting={isSubmitting} 
+            />
           </DialogContent>
         </Dialog>
       </div>
