@@ -42,7 +42,7 @@ export async function fetchFeatureRequests(
   }
   
   // Process data to add additional fields we need
-  const requests = await Promise.all((data || []).map(async (item) => {
+  const requests = await Promise.all((data || []).map(async (item: any) => {
     // Count votes
     const { count: votesCount, error: votesError } = await supabase
       .from('feature_votes')
@@ -90,15 +90,17 @@ export async function fetchFeatureRequests(
       avatar_url: null
     };
     
-    if (item.created_by_user && typeof item.created_by_user === 'object' && !('error' in item.created_by_user)) {
-      // We need to treat userData as a potentially typed object, not just empty {}
-      const userData = item.created_by_user as Record<string, any>;
-      createdByUser = {
-        name: userData.name || 'Unknown User',
-        email: userData.email || '',
-        role: userData.role || 'user',
-        avatar_url: userData.avatar_url || null
-      };
+    if (item.created_by_user && typeof item.created_by_user === 'object') {
+      // Handle case when created_by_user is an object (successful join)
+      if (!('error' in item.created_by_user)) {
+        const userData = item.created_by_user as Record<string, any>;
+        createdByUser = {
+          name: userData.name || 'Unknown User',
+          email: userData.email || '',
+          role: userData.role || 'user',
+          avatar_url: userData.avatar_url || null
+        };
+      }
     }
     
     // Create a properly typed FeatureRequest object
@@ -107,7 +109,7 @@ export async function fetchFeatureRequests(
       title: item.title,
       description: item.description,
       status: (item.status || 'pending') as FeatureRequestStatus,
-      priority: (item.priority || 'medium') as FeatureRequestPriority, // Default to medium if missing
+      priority: ((item as any).priority || 'medium') as FeatureRequestPriority, // Cast to any to handle missing property
       company_id: item.company_id,
       user_id: item.user_id,
       created_at: item.created_at,
@@ -196,15 +198,17 @@ export async function fetchFeatureRequestById(requestId: string): Promise<Featur
     avatar_url: null
   };
   
-  if (data.created_by_user && typeof data.created_by_user === 'object' && !('error' in data.created_by_user)) {
-    // We need to treat userData as a potentially typed object, not just empty {}
-    const userData = data.created_by_user as Record<string, any>;
-    createdByUser = {
-      name: userData.name || 'Unknown User',
-      email: userData.email || '',
-      role: userData.role || 'user',
-      avatar_url: userData.avatar_url || null
-    };
+  if (data.created_by_user && typeof data.created_by_user === 'object') {
+    // Handle case when created_by_user is an object (successful join)
+    if (!('error' in data.created_by_user)) {
+      const userData = data.created_by_user as Record<string, any>;
+      createdByUser = {
+        name: userData.name || 'Unknown User',
+        email: userData.email || '',
+        role: userData.role || 'user',
+        avatar_url: userData.avatar_url || null
+      };
+    }
   }
   
   // Create a properly typed FeatureRequest object
@@ -213,7 +217,7 @@ export async function fetchFeatureRequestById(requestId: string): Promise<Featur
     title: data.title,
     description: data.description,
     status: (data.status || 'pending') as FeatureRequestStatus,
-    priority: (data.priority || 'medium') as FeatureRequestPriority, // Default to medium if missing
+    priority: ((data as any).priority || 'medium') as FeatureRequestPriority, // Cast to any to handle missing property
     company_id: data.company_id,
     user_id: data.user_id,
     created_at: data.created_at,
@@ -254,7 +258,7 @@ export async function fetchFeatureComments(requestId: string): Promise<FeatureCo
   }
   
   // Process and type the comments
-  const comments = (data || []).map(comment => {
+  const comments = (data || []).map((comment: any) => {
     // Ensure we have a valid created_by_user object
     let createdByUser = {
       name: 'Unknown User',
@@ -263,15 +267,17 @@ export async function fetchFeatureComments(requestId: string): Promise<FeatureCo
       avatar_url: null
     };
     
-    if (comment.created_by_user && typeof comment.created_by_user === 'object' && !('error' in comment.created_by_user)) {
-      // We need to treat userData as a potentially typed object, not just empty {}
-      const userData = comment.created_by_user as Record<string, any>;
-      createdByUser = {
-        name: userData.name || 'Unknown User',
-        email: userData.email || '',
-        role: (userData.role || 'user') as "admin" | "company" | "tech",
-        avatar_url: userData.avatar_url || null
-      };
+    if (comment.created_by_user && typeof comment.created_by_user === 'object') {
+      // Handle case when created_by_user is an object (successful join)
+      if (!('error' in comment.created_by_user)) {
+        const userData = comment.created_by_user as Record<string, any>;
+        createdByUser = {
+          name: userData.name || 'Unknown User',
+          email: userData.email || '',
+          role: (userData.role || 'user') as "admin" | "company" | "tech",
+          avatar_url: userData.avatar_url || null
+        };
+      }
     }
     
     return {
@@ -322,7 +328,7 @@ export async function createFeatureRequest(requestData: Partial<FeatureRequest>)
     title: data.title,
     description: data.description,
     status: (data.status || 'pending') as FeatureRequestStatus,
-    priority: (data.priority || 'medium') as FeatureRequestPriority, // Default to medium if missing
+    priority: ((data as any).priority || 'medium') as FeatureRequestPriority, // Cast to any to handle missing property
     company_id: data.company_id,
     user_id: data.user_id,
     created_at: data.created_at,
@@ -378,15 +384,17 @@ export async function addFeatureComment(commentData: { feature_id: string, conte
     avatar_url: null
   };
   
-  if (data.created_by_user && typeof data.created_by_user === 'object' && !('error' in data.created_by_user)) {
-    // We need to treat userData as a potentially typed object, not just empty {}
-    const userData = data.created_by_user as Record<string, any>;
-    createdByUser = {
-      name: userData.name || 'Current User',
-      email: userData.email || 'user@example.com',
-      role: (userData.role || 'user') as "admin" | "company" | "tech",
-      avatar_url: userData.avatar_url || null
-    };
+  if (data.created_by_user && typeof data.created_by_user === 'object') {
+    // Handle case when created_by_user is an object (successful join)
+    if (!('error' in data.created_by_user)) {
+      const userData = data.created_by_user as Record<string, any>;
+      createdByUser = {
+        name: userData.name || 'Current User',
+        email: userData.email || 'user@example.com',
+        role: (userData.role || 'user') as "admin" | "company" | "tech",
+        avatar_url: userData.avatar_url || null
+      };
+    }
   }
   
   // Create a properly typed FeatureComment object
@@ -475,7 +483,7 @@ export async function updateFeatureRequest(
     title: data.title,
     description: data.description,
     status: (data.status || 'pending') as FeatureRequestStatus,
-    priority: (data.priority || 'medium') as FeatureRequestPriority, // Default to medium if missing
+    priority: ((data as any).priority || 'medium') as FeatureRequestPriority, // Cast to any to handle missing property
     company_id: data.company_id,
     user_id: data.user_id,
     created_at: data.created_at,
