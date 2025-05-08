@@ -4,6 +4,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { SystemMessageProvider } from './context/SystemMessageContext';
+import { ThemeProvider } from './components/theme-provider';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import RoleBasedRoute from './components/auth/RoleBasedRoute';
+import { AdminLayout } from './components/admin/AdminLayout';
+import { CompanyLayout } from './components/company/CompanyLayout';
+import { TechLayout } from './components/tech/TechLayout';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -43,25 +49,19 @@ import TechProfile from './pages/tech/Profile';
 // Auth Pages
 import TechnicianSignUp from './pages/auth/TechnicianSignUp';
 import SignUp from './pages/auth/SignUp';
+import Login from './pages/auth/Login';
+import NotFound from './pages/errors/NotFound';
+import Unauthorized from './pages/errors/Unauthorized';
 
 // Create simple placeholder components for missing components
-const ThemeProvider = ({ children, defaultTheme, storageKey }) => <>{children}</>;
-const ProtectedRoute = ({ children }) => <>{children}</>;
-const RoleBasedRoute = ({ children, allowedRoles }) => <>{children}</>;
-const AdminLayout = ({ children }) => <div className="admin-layout">{children}</div>;
-const CompanyLayout = ({ children }) => <div className="company-layout">{children}</div>;
-const TechLayout = ({ children }) => <div className="tech-layout">{children}</div>;
-const Login = () => <div>Login Page</div>;
+const AdminSettings = () => <div>Admin Settings Page</div>;
 const Register = () => <div>Register Page</div>;
 const ForgotPassword = () => <div>Forgot Password Page</div>;
 const ResetPassword = () => <div>Reset Password Page</div>;
 const VerifyEmail = () => <div>Verify Email Page</div>;
-const AdminSettings = () => <div>Admin Settings Page</div>;
 const CompanySettings = () => <div>Company Settings Page</div>;
 const CompanyBilling = () => <div>Company Billing Page</div>;
 const TechSettings = () => <div>Tech Settings Page</div>;
-const NotFound = () => <div>404 Not Found</div>;
-const Unauthorized = () => <div>401 Unauthorized</div>;
 
 function App() {
   return (
@@ -81,56 +81,233 @@ function App() {
               <Route path="/admin" element={
                 <ProtectedRoute>
                   <RoleBasedRoute allowedRoles={['admin']}>
-                    <AdminLayout />
+                    <AdminLayout>
+                      <AdminDashboard />
+                    </AdminLayout>
                   </RoleBasedRoute>
                 </ProtectedRoute>
               }>
-                <Route index element={<AdminDashboard />} />
-                <Route path="users" element={<AdminUsers />} />
-                <Route path="users/:id" element={<AdminUserDetail />} />
-                <Route path="users/new" element={<AdminUserNew />} />
-                <Route path="companies" element={<AdminCompanies />} />
-                <Route path="companies/:id" element={<AdminCompanyDetail />} />
-                <Route path="companies/new" element={<AdminCompanyNew />} />
-                <Route path="profile" element={<AdminProfile />} />
-                <Route path="settings" element={<AdminSettings />} />
-                <Route path="support" element={<AdminSupport />} />
-                <Route path="system-messages" element={<AdminSystemMessages />} />
               </Route>
+              <Route path="/admin/users" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['admin']}>
+                    <AdminLayout>
+                      <AdminUsers />
+                    </AdminLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/users/:id" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['admin']}>
+                    <AdminLayout>
+                      <AdminUserDetail />
+                    </AdminLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/users/new" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['admin']}>
+                    <AdminLayout>
+                      <AdminUserNew />
+                    </AdminLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/companies" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['admin']}>
+                    <AdminLayout>
+                      <AdminCompanies />
+                    </AdminLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/companies/:id" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['admin']}>
+                    <AdminLayout>
+                      <AdminCompanyDetail />
+                    </AdminLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/companies/new" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['admin']}>
+                    <AdminLayout>
+                      <AdminCompanyNew />
+                    </AdminLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/profile" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['admin']}>
+                    <AdminLayout>
+                      <AdminProfile />
+                    </AdminLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/settings" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['admin']}>
+                    <AdminLayout>
+                      <AdminSettings />
+                    </AdminLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/support" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['admin']}>
+                    <AdminLayout>
+                      <AdminSupport />
+                    </AdminLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/system-messages" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['admin']}>
+                    <AdminLayout>
+                      <AdminSystemMessages />
+                    </AdminLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
               
               {/* Company Routes */}
               <Route path="/company" element={
                 <ProtectedRoute>
                   <RoleBasedRoute allowedRoles={['company']}>
-                    <CompanyLayout />
+                    <CompanyLayout>
+                      <CompanyDashboard />
+                    </CompanyLayout>
                   </RoleBasedRoute>
                 </ProtectedRoute>
-              }>
-                <Route index element={<CompanyDashboard />} />
-                <Route path="technicians" element={<ManageTechnicians />} />
-                <Route path="appointments" element={<AppointmentManagement />} />
-                <Route path="knowledge" element={<CompanyKnowledgePage />} />
-                <Route path="community" element={<CompanyCommunity />} />
-                <Route path="community/:postId" element={<CompanyCommunityPostDetail />} />
-                <Route path="feature-requests" element={<CompanyFeatureRequests />} />
-                <Route path="feature-requests/:id" element={<CompanyFeatureRequestDetail />} />
-                <Route path="profile" element={<CompanyProfile />} />
-                <Route path="settings" element={<CompanySettings />} />
-                <Route path="billing" element={<CompanyBilling />} />
-              </Route>
+              } />
+              <Route path="/company/technicians" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['company']}>
+                    <CompanyLayout>
+                      <ManageTechnicians />
+                    </CompanyLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+              <Route path="/company/appointments" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['company']}>
+                    <CompanyLayout>
+                      <AppointmentManagement />
+                    </CompanyLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+              <Route path="/company/knowledge" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['company']}>
+                    <CompanyLayout>
+                      <CompanyKnowledgePage />
+                    </CompanyLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+              <Route path="/company/community" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['company']}>
+                    <CompanyLayout>
+                      <CompanyCommunity />
+                    </CompanyLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+              <Route path="/company/community/:postId" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['company']}>
+                    <CompanyLayout>
+                      <CompanyCommunityPostDetail />
+                    </CompanyLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+              <Route path="/company/feature-requests" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['company']}>
+                    <CompanyLayout>
+                      <CompanyFeatureRequests />
+                    </CompanyLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+              <Route path="/company/feature-requests/:id" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['company']}>
+                    <CompanyLayout>
+                      <CompanyFeatureRequestDetail />
+                    </CompanyLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+              <Route path="/company/profile" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['company']}>
+                    <CompanyLayout>
+                      <CompanyProfile />
+                    </CompanyLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+              <Route path="/company/settings" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['company']}>
+                    <CompanyLayout>
+                      <CompanySettings />
+                    </CompanyLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+              <Route path="/company/billing" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['company']}>
+                    <CompanyLayout>
+                      <CompanyBilling />
+                    </CompanyLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
               
               {/* Technician Routes */}
               <Route path="/tech" element={
                 <ProtectedRoute>
                   <RoleBasedRoute allowedRoles={['tech']}>
-                    <TechLayout />
+                    <TechLayout>
+                      <TechDashboard />
+                    </TechLayout>
                   </RoleBasedRoute>
                 </ProtectedRoute>
-              }>
-                <Route index element={<TechDashboard />} />
-                <Route path="profile" element={<TechProfile />} />
-                <Route path="settings" element={<TechSettings />} />
-              </Route>
+              } />
+              <Route path="/tech/profile" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['tech']}>
+                    <TechLayout>
+                      <TechProfile />
+                    </TechLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
+              <Route path="/tech/settings" element={
+                <ProtectedRoute>
+                  <RoleBasedRoute allowedRoles={['tech']}>
+                    <TechLayout>
+                      <TechSettings />
+                    </TechLayout>
+                  </RoleBasedRoute>
+                </ProtectedRoute>
+              } />
 
               {/* Auth Routes */}
               <Route path="/auth/technician-signup" element={<TechnicianSignUp />} />

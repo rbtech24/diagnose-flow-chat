@@ -8,7 +8,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { signIn } = useAuth(); // Changed from login to signIn to match AuthContextType
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,7 +23,7 @@ export default function Login() {
     setError('');
     
     try {
-      await login(email, password);
+      await signIn(email, password); // Changed from login to signIn
       navigate('/admin'); // Will be redirected to appropriate dashboard based on role
     } catch (err: any) {
       setError(err.message || 'Failed to log in');
