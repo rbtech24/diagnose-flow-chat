@@ -1,26 +1,20 @@
 
 import { useState } from "react";
-import { FeatureRequest, FeatureRequestStatus } from "@/types/feature-request";
+import { FeatureRequest, FeatureRequestStatus, FeatureComment } from "@/types/feature-request";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { User, ArrowUp, MessageSquare, Send, Calendar } from "lucide-react";
-import { format } from "date-fns";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { User, ArrowUp, Calendar, Send } from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
 
 interface FeatureRequestDetailProps {
   featureRequest: FeatureRequest;
+  comments: FeatureComment[];
   onAddComment: (id: string, content: string) => void;
-  onVote: (id: string) => void;
   onUpdateStatus?: (id: string, status: FeatureRequestStatus) => void;
   onUpdatePriority?: (id: string, priority: string) => void;
   isAdmin?: boolean;
@@ -28,8 +22,8 @@ interface FeatureRequestDetailProps {
 
 export function FeatureRequestDetail({
   featureRequest,
+  comments,
   onAddComment,
-  onVote,
   onUpdateStatus,
   onUpdatePriority,
   isAdmin = false,
@@ -57,146 +51,114 @@ export function FeatureRequestDetail({
       setComment("");
     }
   };
+  
+  const getInitials = (name?: string) => {
+    if (!name) return "?";
+    return name
+      .split(" ")
+      .map(n => n[0])
+      .join("")
+      .toUpperCase();
+  };
 
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-2">
           <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-start">
             <div>
               <h2 className="text-2xl font-bold">{featureRequest.title}</h2>
-              <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
-                <User className="h-4 w-4" /> 
-                <span>Requested by {featureRequest.createdBy.name}</span>
-                <Calendar className="h-4 w-4 ml-2" />
-                <span>{format(new Date(featureRequest.createdAt), 'MMM d, yyyy')}</span>
+              <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-muted-foreground">
+                <div className="flex items-center">
+                  <Calendar className="h-4 w-4 mr-1" />
+                  {format(new Date(featureRequest.created_at), 'MMM d, yyyy')}
+                </div>
+                <div className="flex items-center">
+                  <User className="h-4 w-4 mr-1" />
+                  {featureRequest.created_by_user?.name || "Unknown User"}
+                </div>
+                <Badge variant="outline" className="font-normal">
+                  {featureRequest.created_by_user?.role || "user"}
+                </Badge>
               </div>
             </div>
-            
-            <div className="flex flex-wrap gap-2">
-              {isAdmin ? (
-                <Select 
-                  defaultValue={featureRequest.status}
-                  onValueChange={(value) => onUpdateStatus && onUpdateStatus(featureRequest.id, value as FeatureRequestStatus)}
-                >
-                  <SelectTrigger className="w-[140px]">
-                    <Badge className={statusColors[featureRequest.status as FeatureRequestStatus]}>
-                      {featureRequest.status.replace('-', ' ')}
-                    </Badge>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
-                    <SelectItem value="in-progress">In Progress</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Badge className={statusColors[featureRequest.status as FeatureRequestStatus]}>
-                  {featureRequest.status.replace('-', ' ')}
-                </Badge>
-              )}
-              
-              {isAdmin ? (
-                <Select 
-                  defaultValue={featureRequest.priority}
-                  onValueChange={(value) => onUpdatePriority && onUpdatePriority(featureRequest.id, value)}
-                >
-                  <SelectTrigger className="w-[140px]">
-                    <Badge className={priorityColors[featureRequest.priority]}>
-                      {featureRequest.priority}
-                    </Badge>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="critical">Critical</SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Badge className={priorityColors[featureRequest.priority]}>
-                  {featureRequest.priority}
-                </Badge>
-              )}
+            <div className="flex flex-wrap gap-2 mt-2 md:mt-0">
+              <Badge className={statusColors[featureRequest.status as FeatureRequestStatus]}>
+                {featureRequest.status.replace('-', ' ')}
+              </Badge>
+              <Badge className={priorityColors[featureRequest.priority as keyof typeof priorityColors]}>
+                {featureRequest.priority}
+              </Badge>
+              <Badge variant="outline" className="flex items-center gap-1">
+                <ArrowUp className="h-3 w-3" />
+                {featureRequest.votes_count || 0} votes
+              </Badge>
             </div>
           </div>
         </CardHeader>
-        
         <CardContent>
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-medium mb-2">Description</h3>
-              <p className="text-gray-700 whitespace-pre-line">{featureRequest.description}</p>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => onVote(featureRequest.id)}
-                className="flex items-center gap-1"
-              >
-                <ArrowUp className="h-4 w-4" />
-                <span>{featureRequest.score} Votes</span>
-              </Button>
-              
-              <div className="flex items-center gap-1 text-sm text-gray-500">
-                <MessageSquare className="h-4 w-4" />
-                <span>{featureRequest.comments.length} Comments</span>
-              </div>
-            </div>
+          <div className="prose max-w-none mt-4">
+            <p className="whitespace-pre-line">{featureRequest.description}</p>
           </div>
         </CardContent>
       </Card>
       
-      <div className="space-y-4">
-        <h3 className="font-semibold text-lg">Comments</h3>
-        
-        {featureRequest.comments.length > 0 ? (
-          <div className="space-y-4">
-            {featureRequest.comments.map((comment) => (
-              <Card key={comment.id}>
-                <CardContent className="pt-4">
-                  <div className="flex items-start gap-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{comment.createdBy.name}</span>
-                        <span className="text-sm text-gray-500">
-                          {format(new Date(comment.createdAt), 'MMM d, yyyy')}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-gray-700">{comment.content}</p>
+      <Card>
+        <CardHeader>
+          <h3 className="font-semibold text-xl">Comments ({comments.length})</h3>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {comments.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>No comments yet. Be the first to comment!</p>
+            </div>
+          ) : (
+            comments.map((comment) => (
+              <div key={comment.id} className="flex gap-4">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={comment.created_by_user?.avatar_url} alt={comment.created_by_user?.name || "User"} />
+                  <AvatarFallback>{getInitials(comment.created_by_user?.name)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <div className="font-medium">
+                      {comment.created_by_user?.name || "Unknown User"}
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                      </span>
                     </div>
+                    <Badge variant="outline" className="font-normal">
+                      {comment.created_by_user?.role || "user"}
+                    </Badge>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                  <div className="text-sm text-gray-700 mt-1">
+                    <p className="whitespace-pre-line">{comment.content}</p>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </CardContent>
+        <CardFooter>
+          <div className="w-full space-y-4">
+            <Textarea 
+              placeholder="Add a comment..." 
+              className="w-full min-h-[100px]"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+            />
+            <div className="flex justify-end">
+              <Button 
+                onClick={handleAddComment}
+                disabled={!comment.trim()}
+              >
+                <Send className="mr-2 h-4 w-4" />
+                Post Comment
+              </Button>
+            </div>
           </div>
-        ) : (
-          <Card>
-            <CardContent className="p-6 text-center text-gray-500">
-              No comments yet
-            </CardContent>
-          </Card>
-        )}
-        
-        <div className="mt-4">
-          <Textarea
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Add a comment..."
-            className="mb-2"
-          />
-          <div className="flex justify-end">
-            <Button onClick={handleAddComment} disabled={!comment.trim()}>
-              <Send className="h-4 w-4 mr-2" />
-              Add Comment
-            </Button>
-          </div>
-        </div>
-      </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

@@ -1,36 +1,36 @@
 
-import { User } from "./user";
+import { Database } from "@/integrations/supabase/types";
 
 export type FeatureRequestStatus = "pending" | "approved" | "rejected" | "in-progress" | "completed";
-
 export type FeatureRequestPriority = "low" | "medium" | "high" | "critical";
 
-export interface FeatureRequestVote {
+export interface User {
   id: string;
-  userId: string;
-  featureRequestId: string;
-  createdAt: Date;
-  user: User;
+  name: string;
+  email: string;
+  role: "admin" | "company" | "tech";
+  avatarUrl?: string;
 }
 
-export interface FeatureRequestComment {
-  id: string;
-  featureRequestId: string;
-  content: string;
-  createdAt: Date;
-  createdBy: User;
-}
+export type FeatureRequest = Database["public"]["Tables"]["feature_requests"]["Row"] & {
+  votes_count: number;
+  user_has_voted?: boolean;
+  comments_count: number;
+  created_by_user?: {
+    name: string;
+    email: string;
+    avatar_url?: string;
+    role: string;
+  };
+};
 
-export interface FeatureRequest {
-  id: string;
-  title: string;
-  description: string;
-  status: FeatureRequestStatus;
-  priority: FeatureRequestPriority;
-  createdAt: Date;
-  updatedAt: Date;
-  createdBy: User;
-  votes: FeatureRequestVote[];
-  score: number;
-  comments: FeatureRequestComment[];
-}
+export type FeatureComment = Database["public"]["Tables"]["feature_comments"]["Row"] & {
+  created_by_user?: {
+    name: string;
+    email: string;
+    avatar_url?: string;
+    role: string;
+  };
+};
+
+export type FeatureVote = Database["public"]["Tables"]["feature_votes"]["Row"];

@@ -23,7 +23,10 @@ export function AdminSidebar() {
   const pathname = location.pathname;
 
   const isActive = (path: string) => {
-    return pathname === path;
+    if (path === "/admin/dashboard") {
+      return pathname === path;
+    }
+    return pathname.startsWith(path);
   };
 
   const navItems = [

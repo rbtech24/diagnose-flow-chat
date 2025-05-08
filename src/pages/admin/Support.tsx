@@ -1,55 +1,128 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SupportTicketComponent, SupportTicket, SupportTicketStatus } from "@/components/support/SupportTicket";
+import { SupportTicketComponent } from "@/components/support/SupportTicket";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, RotateCw } from "lucide-react";
-import { mockTickets, currentUser } from "@/data/mockTickets";
+import { Search, Filter, RotateCw, AlertCircle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+import { SupportTicket, SupportTicketStatus } from "@/types/support";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function AdminSupport() {
-  const [tickets, setTickets] = useState<SupportTicket[]>(mockTickets);
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleUpdateStatus = (ticketId: string, status: SupportTicketStatus) => {
-    setTickets(
-      tickets.map((ticket) => 
-        ticket.id === ticketId 
-          ? { 
-              ...ticket, 
-              status, 
-              updatedAt: new Date() 
-            } 
-          : ticket
-      )
-    );
+  useEffect(() => {
+    fetchTickets();
+  }, []);
+
+  const fetchTickets = async () => {
+    try {
+      setLoading(true);
+      
+      const { data: ticketsData, error: ticketsError } = await supabase
+        .from("support_tickets")
+        .select(`
+          *,
+          creator:created_by(id, name, email, avatar_url),
+          assignee:assigned_to(id, name, email, avatar_url)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (ticketsError) throw ticketsError;
+
+      setTickets(ticketsData || []);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching tickets:", err);
+      setError("Failed to load support tickets");
+      toast({
+        variant: "destructive",
+        title: "Error loading tickets",
+        description: "There was a problem fetching the support tickets."
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleAddMessage = (ticketId: string, content: string) => {
-    setTickets(
-      tickets.map((ticket) => 
+  const handleUpdateStatus = async (ticketId: string, status: SupportTicketStatus) => {
+    try {
+      const { error } = await supabase
+        .from("support_tickets")
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq("id", ticketId);
+
+      if (error) throw error;
+
+      // Update local state
+      setTickets(tickets.map(ticket => 
         ticket.id === ticketId 
-          ? { 
-              ...ticket, 
-              messages: [
-                ...ticket.messages,
-                {
-                  id: `message-${Date.now()}`,
-                  ticketId,
-                  content,
-                  createdAt: new Date(),
-                  sender: currentUser
-                }
-              ],
-              updatedAt: new Date()
-            } 
+          ? { ...ticket, status, updated_at: new Date().toISOString() } 
           : ticket
-      )
-    );
+      ));
+
+      toast({
+        title: "Status updated",
+        description: `Ticket status changed to ${status}`,
+      });
+    } catch (err) {
+      console.error("Error updating ticket status:", err);
+      toast({
+        variant: "destructive",
+        title: "Update failed",
+        description: "Failed to update ticket status."
+      });
+    }
+  };
+
+  const handleAddMessage = async (ticketId: string, content: string) => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error("User not authenticated");
+
+      const { error: messageError } = await supabase
+        .from("ticket_messages")
+        .insert({
+          ticket_id: ticketId,
+          content,
+          sender_id: userData.user.id
+        });
+
+      if (messageError) throw messageError;
+
+      // Update ticket updated_at timestamp
+      const { error: updateError } = await supabase
+        .from("support_tickets")
+        .update({ updated_at: new Date().toISOString() })
+        .eq("id", ticketId);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Message sent",
+        description: "Your message has been added to the ticket."
+      });
+
+      // Refresh tickets to show updated data
+      fetchTickets();
+    } catch (err) {
+      console.error("Error adding message:", err);
+      toast({
+        variant: "destructive",
+        title: "Failed to send message",
+        description: "There was a problem adding your message."
+      });
+    }
   };
 
   const filteredTickets = tickets.filter((ticket) => {
@@ -82,8 +155,13 @@ export default function AdminSupport() {
           <p className="text-gray-500">Manage support tickets from companies and technicians</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon">
-            <RotateCw className="h-4 w-4" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={fetchTickets}
+            disabled={loading}
+          >
+            <RotateCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
       </div>
@@ -115,6 +193,15 @@ export default function AdminSupport() {
         </div>
       </div>
 
+      {error && (
+        <Card className="mb-6 bg-destructive/10">
+          <CardContent className="p-4 flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-destructive" />
+            <span>{error}</span>
+          </CardContent>
+        </Card>
+      )}
+
       <Tabs defaultValue="open" className="space-y-4">
         <TabsList>
           <TabsTrigger value="open">
@@ -132,7 +219,11 @@ export default function AdminSupport() {
         </TabsList>
         
         <TabsContent value="open" className="space-y-4">
-          {openTickets.length > 0 ? (
+          {loading ? (
+            <div className="p-8 text-center border rounded-lg">
+              <p className="text-gray-500">Loading tickets...</p>
+            </div>
+          ) : openTickets.length > 0 ? (
             openTickets.map((ticket) => (
               <div key={ticket.id} onClick={() => viewTicketDetails(ticket.id)} className="cursor-pointer">
                 <SupportTicketComponent
@@ -150,7 +241,11 @@ export default function AdminSupport() {
         </TabsContent>
         
         <TabsContent value="in-progress" className="space-y-4">
-          {inProgressTickets.length > 0 ? (
+          {loading ? (
+            <div className="p-8 text-center border rounded-lg">
+              <p className="text-gray-500">Loading tickets...</p>
+            </div>
+          ) : inProgressTickets.length > 0 ? (
             inProgressTickets.map((ticket) => (
               <div key={ticket.id} onClick={() => viewTicketDetails(ticket.id)} className="cursor-pointer">
                 <SupportTicketComponent
@@ -168,7 +263,11 @@ export default function AdminSupport() {
         </TabsContent>
         
         <TabsContent value="resolved" className="space-y-4">
-          {resolvedTickets.length > 0 ? (
+          {loading ? (
+            <div className="p-8 text-center border rounded-lg">
+              <p className="text-gray-500">Loading tickets...</p>
+            </div>
+          ) : resolvedTickets.length > 0 ? (
             resolvedTickets.map((ticket) => (
               <div key={ticket.id} onClick={() => viewTicketDetails(ticket.id)} className="cursor-pointer">
                 <SupportTicketComponent
@@ -186,7 +285,11 @@ export default function AdminSupport() {
         </TabsContent>
         
         <TabsContent value="closed" className="space-y-4">
-          {closedTickets.length > 0 ? (
+          {loading ? (
+            <div className="p-8 text-center border rounded-lg">
+              <p className="text-gray-500">Loading tickets...</p>
+            </div>
+          ) : closedTickets.length > 0 ? (
             closedTickets.map((ticket) => (
               <div key={ticket.id} onClick={() => viewTicketDetails(ticket.id)} className="cursor-pointer">
                 <SupportTicketComponent

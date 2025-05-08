@@ -2,51 +2,127 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { SupportTicketComponent, SupportTicket, SupportTicketStatus } from "@/components/support/SupportTicket";
-import { mockTickets, currentUser } from "@/data/mockTickets";
-import { ArrowLeft } from "lucide-react";
+import { SupportTicketComponent } from "@/components/support/SupportTicket";
+import { SupportTicket, SupportTicketStatus } from "@/types/support";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function AdminSupportTicketDetail() {
   const { ticketId } = useParams<{ ticketId: string }>();
   const navigate = useNavigate();
   const [ticket, setTicket] = useState<SupportTicket | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Load ticket data from mockTickets
-    const foundTicket = mockTickets.find(t => t.id === ticketId);
-    if (foundTicket) {
-      setTicket(foundTicket);
+    if (ticketId) {
+      fetchTicketDetails();
     }
   }, [ticketId]);
 
-  const handleUpdateStatus = (ticketId: string, status: SupportTicketStatus) => {
-    if (ticket) {
-      setTicket({
-        ...ticket,
-        status,
-        updatedAt: new Date()
+  const fetchTicketDetails = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("support_tickets")
+        .select(`
+          *,
+          creator:created_by(id, name, email, avatar_url),
+          assignee:assigned_to(id, name, email, avatar_url)
+        `)
+        .eq("id", ticketId)
+        .single();
+
+      if (error) throw error;
+      setTicket(data);
+    } catch (err) {
+      console.error("Error fetching ticket details:", err);
+      toast({
+        variant: "destructive",
+        title: "Error loading ticket",
+        description: "There was a problem retrieving the ticket details."
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateStatus = async (ticketId: string, status: SupportTicketStatus) => {
+    try {
+      const { error } = await supabase
+        .from("support_tickets")
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq("id", ticketId);
+
+      if (error) throw error;
+
+      setTicket(prev => prev ? { ...prev, status, updated_at: new Date().toISOString() } : null);
+
+      toast({
+        title: "Status updated",
+        description: `Ticket status changed to ${status}`,
+      });
+    } catch (err) {
+      console.error("Error updating ticket status:", err);
+      toast({
+        variant: "destructive",
+        title: "Update failed",
+        description: "Failed to update ticket status."
       });
     }
   };
 
-  const handleAddMessage = (ticketId: string, content: string) => {
-    if (ticket) {
-      setTicket({
-        ...ticket,
-        messages: [
-          ...ticket.messages,
-          {
-            id: `message-${Date.now()}`,
-            ticketId,
-            content,
-            createdAt: new Date(),
-            sender: currentUser
-          }
-        ],
-        updatedAt: new Date()
+  const handleAddMessage = async (ticketId: string, content: string) => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error("User not authenticated");
+
+      const { error: messageError } = await supabase
+        .from("ticket_messages")
+        .insert({
+          ticket_id: ticketId,
+          content,
+          sender_id: userData.user.id
+        });
+
+      if (messageError) throw messageError;
+
+      // Update ticket updated_at timestamp
+      const { error: updateError } = await supabase
+        .from("support_tickets")
+        .update({ updated_at: new Date().toISOString() })
+        .eq("id", ticketId);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Message sent",
+        description: "Your message has been added to the ticket."
+      });
+
+      // Refresh ticket to get the latest data
+      fetchTicketDetails();
+    } catch (err) {
+      console.error("Error adding message:", err);
+      toast({
+        variant: "destructive",
+        title: "Failed to send message",
+        description: "There was a problem adding your message."
       });
     }
   };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="ml-2">Loading ticket details...</span>
+        </div>
+      </div>
+    );
+  }
 
   if (!ticket) {
     return (
@@ -75,7 +151,7 @@ export default function AdminSupportTicketDetail() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Support
         </Button>
-        <h1 className="text-3xl font-bold">Ticket #{ticketId}</h1>
+        <h1 className="text-3xl font-bold">Ticket #{ticketId?.substring(0, 8)}</h1>
       </div>
 
       <SupportTicketComponent
