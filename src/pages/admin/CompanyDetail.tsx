@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +20,9 @@ interface CompanyAddress {
   zip?: string | null;
 }
 
+// Define proper type for JSON metadata
+type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
+
 // Define types for company and activity data
 interface CompanyData {
   id: string;
@@ -38,7 +42,7 @@ interface ActivityItem {
   created_at: string;
   description: string;
   ip_address: string;
-  metadata: Record<string, any>;
+  metadata: Json;
   user_agent: string;
   user_id: string;
 }
@@ -118,12 +122,17 @@ export default function CompanyDetail() {
 
   // Function to format activity items for display
   const formatActivity = (activity: ActivityItem): FormattedActivity => {
+    // Ensure metadata is a proper object
+    const metadataObj = typeof activity.metadata === 'string' 
+      ? JSON.parse(activity.metadata) 
+      : (activity.metadata || {});
+    
     return {
       id: activity.id,
       title: activity.description || `${activity.activity_type} activity`,
       timestamp: new Date(activity.created_at).toLocaleString(),
       activity_type: activity.activity_type,
-      metadata: activity.metadata || {}
+      metadata: metadataObj
     };
   };
 

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -166,7 +165,7 @@ export default function CompanyDashboard() {
         if (activityError) throw activityError;
         
         // Format activity data
-        const formattedActivity = (activityData || []).map((item: ActivityLogItem) => {
+        const formattedActivity = (activityData || []).map((item: any) => {
           // Safely extract status from metadata if it exists
           let statusValue: string | undefined;
           
