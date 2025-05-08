@@ -5,37 +5,23 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, LifeBuoy } from "lucide-react";
 import { NewTicketForm } from "@/components/support/NewTicketForm";
 import { toast } from "sonner";
-import { createSupportTicket } from "@/services/supportService";
-import { TicketPriority } from "@/types/support";
-import { handleApiError, withErrorHandling } from "@/utils/errorHandler";
 
 export default function HelpCenter() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
 
-  const handleSubmitTicket = async (title: string, description: string, priority: TicketPriority) => {
+  const handleSubmitTicket = (title: string, description: string, priority: any) => {
     setIsSubmitting(true);
     setError(undefined);
     
-    const { data, error: apiError } = await withErrorHandling(
-      async () => {
-        return await createSupportTicket(title, description, priority);
-      },
-      "submitting support ticket"
-    );
-    
-    if (data) {
+    // Simulate API call
+    setTimeout(() => {
+      setIsSubmitting(false);
       // Show success message
       toast.success("Support ticket submitted successfully!", {
         description: "Our team will respond to your inquiry as soon as possible."
       });
-    }
-    
-    if (apiError) {
-      setError(apiError.message || "Failed to submit ticket. Please try again later.");
-    }
-    
-    setIsSubmitting(false);
+    }, 1500);
   };
 
   return (

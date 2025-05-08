@@ -2,7 +2,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Users, Calendar, Mail, Phone, Building2, AlertTriangle, FileText } from "lucide-react";
+import { ArrowLeft, Users, Calendar, Mail, Phone, Building2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -14,8 +14,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { AvatarUpload } from "@/components/shared/AvatarUpload";
-import { useUserActivity } from "@/hooks/useUserActivity";
-import { ActivityItem } from "@/components/activity/ActivityItem";
+
+// Sample activity data for when no real data is available
+const sampleUserActivity = [
+  {
+    title: "Logged in",
+    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+  },
+  {
+    title: "Updated profile",
+    timestamp: new Date(Date.now() - 25 * 60 * 60 * 1000), // Yesterday
+  },
+  {
+    title: "Created support ticket",
+    timestamp: new Date(Date.now() - 72 * 60 * 60 * 1000), // 3 days ago
+  }
+];
 
 export default function UserDetail() {
   const { id } = useParams<{ id: string }>();
@@ -28,9 +42,7 @@ export default function UserDetail() {
   const [userData, setUserData] = useState<any>(null);
   const [companyData, setCompanyData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Use our new hook to fetch real user activity
-  const { activities: userActivity, isLoading: activitiesLoading } = useUserActivity(id);
+  const [userActivity, setUserActivity] = useState(sampleUserActivity);
 
   useEffect(() => {
     const loadData = async () => {
@@ -232,44 +244,6 @@ export default function UserDetail() {
     }
   };
 
-  // Safely format activity timestamp
-  const formatActivityTime = (timestamp: string) => {
-    try {
-      return new Date(timestamp).toLocaleString();
-    } catch (error) {
-      console.error("Invalid timestamp format:", timestamp);
-      return "Unknown date";
-    }
-  };
-
-  // Helper function to get icon for activity type
-  const getActivityIcon = (activity: any) => {
-    const type = activity.activity_type || '';
-    
-    if (type.includes('login')) {
-      return <Users className="h-4 w-4 text-green-600" />;
-    } else if (type.includes('password')) {
-      return <AlertTriangle className="h-4 w-4 text-amber-600" />;
-    } else if (type.includes('update') || type.includes('edit')) {
-      return <FileText className="h-4 w-4 text-blue-600" />;
-    } else {
-      return <FileText className="h-4 w-4 text-gray-600" />;
-    }
-  };
-
-  // Helper function to determine severity based on activity type
-  const getActivitySeverity = (activity: any): 'info' | 'warning' | 'error' => {
-    const type = activity.activity_type || '';
-    
-    if (type.includes('error') || type.includes('fail')) {
-      return 'error';
-    } else if (type.includes('warning') || type.includes('security')) {
-      return 'warning';
-    } else {
-      return 'info';
-    }
-  };
-
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center mb-6">
@@ -351,30 +325,14 @@ export default function UserDetail() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {activitiesLoading ? (
-                <>
-                  <Skeleton className="h-16 w-full" />
-                  <Skeleton className="h-16 w-full" />
-                  <Skeleton className="h-16 w-full" />
-                </>
-              ) : userActivity.length > 0 ? (
-                userActivity.map((activity, index) => (
-                  <ActivityItem
-                    key={activity.id || index}
-                    id={activity.id || `activity-${index}`}
-                    title={activity.title}
-                    description={activity.description || ""}
-                    timestamp={activity.timestamp}
-                    icon={getActivityIcon(activity)}
-                    type={activity.activity_type || "activity"}
-                    severity={getActivitySeverity(activity)}
-                  />
-                ))
-              ) : (
-                <div className="text-center py-4 text-muted-foreground">
-                  No current activity
+              {userActivity.map((activity, index) => (
+                <div key={index} className="p-3 border rounded-md">
+                  <div className="font-medium">{activity.title}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {activity.timestamp.toLocaleString()}
+                  </div>
                 </div>
-              )}
+              ))}
             </div>
           </CardContent>
         </Card>

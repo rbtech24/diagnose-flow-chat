@@ -2763,38 +2763,6 @@ export type Database = {
         }
         Relationships: []
       }
-      support_ticket_messages: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          ticket_id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          ticket_id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          ticket_id?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "support_ticket_messages_ticket_id_fkey"
-            columns: ["ticket_id"]
-            isOneToOne: false
-            referencedRelation: "support_tickets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       support_tickets: {
         Row: {
           assigned_to: string | null
@@ -4575,10 +4543,6 @@ export type Database = {
         Args: { p_company_id: string }
         Returns: boolean
       }
-      can_access_company_data: {
-        Args: { company_id: string }
-        Returns: boolean
-      }
       check_api_quota: {
         Args: { p_company_id: string; p_provider: string }
         Returns: boolean
@@ -4624,10 +4588,6 @@ export type Database = {
       get_api_credentials: {
         Args: { p_company_id: string; p_provider: string }
         Returns: Json
-      }
-      get_company_subscription_tier: {
-        Args: { company_id: string }
-        Returns: string
       }
       get_file_preview: {
         Args: { p_mime_type: string; p_file_size: number }
@@ -4814,10 +4774,6 @@ export type Database = {
           role: string | null
           username: string
         }[]
-      }
-      user_can_access_company: {
-        Args: { company_id: string }
-        Returns: boolean
       }
       validate_registration: {
         Args: {

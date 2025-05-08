@@ -1,379 +1,241 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Link } from "react-router-dom";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { 
-  ChartPie, 
-  Calendar, 
-  Clock, 
-  ArrowUp, 
-  Wrench, 
-  CheckCircle, 
-  LifeBuoy,
-  MessageSquare,
-  FileText,
-  Settings,
-  BarChart3
+  Users, Wrench, Clock, AlertTriangle,
+  PlusCircle, MessagesSquare,
+  Play, Activity, Stethoscope
 } from "lucide-react";
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useWorkflows } from "@/hooks/useWorkflows";
 
 export default function CompanyDashboard() {
-  const navigate = useNavigate();
-  const [ticketCounts, setTicketCounts] = useState({
-    total: 0,
-    open: 0,
-    resolved: 0
-  });
-  const [repairCounts, setRepairCounts] = useState({
-    total: 0,
-    inProgress: 0,
-    completed: 0
-  });
-  const [recentActivity, setRecentActivity] = useState<any[]>([]);
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [isLoadingUser, setIsLoadingUser] = useState(true);
-  const [isLoadingData, setIsLoadingData] = useState(true);
-  const [activeTechnicians, setActiveTechnicians] = useState(0);
-
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        setIsLoadingUser(true);
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-          throw new Error('No user logged in');
-        }
-        
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-          
-        if (error) {
-          throw error;
-        }
-        
-        setUserProfile(profile);
-      } catch (error) {
-        console.error('Error fetching user profile:', error);
-      } finally {
-        setIsLoadingUser(false);
-      }
-    };
-    
-    fetchUserProfile();
-  }, []);
-
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setIsLoadingData(true);
-        
-        // For now using mock data, later will be replaced with actual API calls
-        
-        // Mock ticket counts
-        setTicketCounts({
-          total: 24,
-          open: 8,
-          resolved: 16
-        });
-        
-        // Mock repair counts
-        setRepairCounts({
-          total: 45,
-          inProgress: 12,
-          completed: 33
-        });
-        
-        // Mock active technicians
-        setActiveTechnicians(5);
-        
-        // Mock recent activity
-        const mockActivity = [
-          {
-            id: '1',
-            type: 'ticket',
-            title: 'Support ticket created',
-            description: 'New support ticket #1234: "Facing issue with system startup"',
-            timestamp: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
-            user: {
-              name: "John Doe",
-              avatar_url: "https://i.pravatar.cc/150?u=john"
-            }
-          },
-          {
-            id: '2',
-            type: 'repair',
-            title: 'Repair completed',
-            description: 'Repair #4567 for GE Washer Model XYZ has been completed',
-            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            user: {
-              name: "Jane Smith",
-              avatar_url: "https://i.pravatar.cc/150?u=jane"
-            }
-          },
-          {
-            id: '3',
-            type: 'system',
-            title: 'New technician added',
-            description: 'New technician "Mike Johnson" has been added to your team',
-            timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
-          }
-        ];
-        
-        setRecentActivity(mockActivity);
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-        toast.error('Failed to load dashboard data');
-      } finally {
-        setIsLoadingData(false);
-      }
-    };
-    
-    fetchDashboardData();
-  }, []);
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMinutes = Math.round((now.getTime() - date.getTime()) / (1000 * 60));
-    
-    if (diffMinutes < 60) {
-      return `${diffMinutes} min ago`;
-    } else if (diffMinutes < 24 * 60) {
-      return `${Math.round(diffMinutes / 60)} hours ago`;
-    } else {
-      return date.toLocaleDateString();
-    }
+  // Get current date
+  const today = new Date();
+  const dateOptions = { 
+    weekday: 'long' as const, 
+    year: 'numeric' as const, 
+    month: 'long' as const, 
+    day: 'numeric' as const 
   };
-
+  const formattedDate = today.toLocaleDateString('en-US', dateOptions);
+  
+  // Get workflows for diagnosis
+  const { workflows, isLoading } = useWorkflows();
+  
   return (
-    <div className="container mx-auto p-4">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Company Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back{userProfile && `, ${userProfile.name || 'User'}`}. Here's an overview of your company's activity.
-        </p>
+    <div className="container mx-auto p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">ABC Appliance Repair</h1>
+          <p className="text-gray-500">{formattedDate}</p>
+        </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex justify-between items-center">
-              <span>Support Tickets</span>
-              <LifeBuoy className="h-5 w-5 text-blue-500" />
-            </CardTitle>
-            <CardDescription>Current support requests</CardDescription>
-          </CardHeader>
-          <CardContent className="py-0">
-            <div className="text-3xl font-bold">{ticketCounts.total}</div>
-            <div className="text-sm text-muted-foreground">
-              <span className="text-green-500">{ticketCounts.resolved} resolved</span> • <span className="text-amber-500">{ticketCounts.open} open</span>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button variant="ghost" size="sm" className="w-full" onClick={() => navigate('/company/support')}>
-              View Tickets
-            </Button>
-          </CardFooter>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex justify-between items-center">
-              <span>Repair Jobs</span>
-              <Wrench className="h-5 w-5 text-blue-500" />
-            </CardTitle>
-            <CardDescription>Current repair tickets</CardDescription>
-          </CardHeader>
-          <CardContent className="py-0">
-            <div className="text-3xl font-bold">{repairCounts.total}</div>
-            <div className="text-sm text-muted-foreground">
-              <span className="text-green-500">{repairCounts.completed} completed</span> • <span className="text-amber-500">{repairCounts.inProgress} in progress</span>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button variant="ghost" size="sm" className="w-full" onClick={() => navigate('/company/diagnostics')}>
-              View Repair Jobs
-            </Button>
-          </CardFooter>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex justify-between items-center">
-              <span>Active Technicians</span>
-              <Users className="h-5 w-5 text-blue-500" />
-            </CardTitle>
-            <CardDescription>Currently active team members</CardDescription>
-          </CardHeader>
-          <CardContent className="py-0">
-            <div className="text-3xl font-bold">{activeTechnicians}</div>
-            <div className="text-sm text-muted-foreground">Active in the last 24 hours</div>
-          </CardContent>
-          <CardFooter>
-            <Button variant="ghost" size="sm" className="w-full" onClick={() => navigate('/company/technicians')}>
-              Manage Technicians
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="col-span-1 lg:col-span-2">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-4 mb-8">
+        <Card className="md:col-span-3 border-blue-200 bg-blue-50">
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest events from your team</CardDescription>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Welcome Back</CardTitle>
+                <CardDescription>{formattedDate}</CardDescription>
+              </div>
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+                <Link to="/company/diagnostics" className="flex items-center text-white">
+                  <Play className="mr-2 h-4 w-4" />
+                  Start Diagnosis
+                </Link>
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="all" className="w-full">
-              <TabsList className="mb-4">
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="tickets">Support Tickets</TabsTrigger>
-                <TabsTrigger value="repairs">Repairs</TabsTrigger>
-                <TabsTrigger value="system">System</TabsTrigger>
-              </TabsList>
-              <TabsContent value="all" className="space-y-4">
-                {recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex items-start gap-4 p-4 border rounded-lg">
-                    <div className="mt-1 rounded-full p-2 bg-blue-100">
-                      {activity.type === 'ticket' && <LifeBuoy size={18} className="text-blue-600" />}
-                      {activity.type === 'repair' && <Wrench size={18} className="text-blue-600" />}
-                      {activity.type === 'system' && <Settings size={18} className="text-blue-600" />}
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium">{activity.title}</h4>
-                        <span className="text-xs text-gray-500">{formatTime(activity.timestamp)}</span>
-                      </div>
-                      <p className="text-sm text-gray-600">{activity.description}</p>
-                      {activity.user && (
-                        <div className="flex items-center mt-2 text-sm text-gray-500">
-                          <span className="flex items-center gap-1">
-                            By: {activity.user.name || "Unknown user"}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </TabsContent>
-              <TabsContent value="tickets">
-                {/* Content for tickets tab */}
-                {recentActivity
-                  .filter(activity => activity.type === 'ticket')
-                  .map((activity) => (
-                    <div key={activity.id} className="flex items-start gap-4 p-4 border rounded-lg mb-4">
-                      <div className="mt-1 rounded-full p-2 bg-blue-100">
-                        <LifeBuoy size={18} className="text-blue-600" />
-                      </div>
-                      <div>
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium">{activity.title}</h4>
-                          <span className="text-xs text-gray-500">{formatTime(activity.timestamp)}</span>
-                        </div>
-                        <p className="text-sm text-gray-600">{activity.description}</p>
-                      </div>
-                    </div>
-                  ))}
-              </TabsContent>
-              <TabsContent value="repairs">
-                {/* Content for repairs tab */}
-                {recentActivity
-                  .filter(activity => activity.type === 'repair')
-                  .map((activity) => (
-                    <div key={activity.id} className="flex items-start gap-4 p-4 border rounded-lg mb-4">
-                      <div className="mt-1 rounded-full p-2 bg-blue-100">
-                        <Wrench size={18} className="text-blue-600" />
-                      </div>
-                      <div>
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium">{activity.title}</h4>
-                          <span className="text-xs text-gray-500">{formatTime(activity.timestamp)}</span>
-                        </div>
-                        <p className="text-sm text-gray-600">{activity.description}</p>
-                      </div>
-                    </div>
-                  ))}
-              </TabsContent>
-              <TabsContent value="system">
-                {/* Content for system tab */}
-                {recentActivity
-                  .filter(activity => activity.type === 'system')
-                  .map((activity) => (
-                    <div key={activity.id} className="flex items-start gap-4 p-4 border rounded-lg mb-4">
-                      <div className="mt-1 rounded-full p-2 bg-blue-100">
-                        <Settings size={18} className="text-blue-600" />
-                      </div>
-                      <div>
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium">{activity.title}</h4>
-                          <span className="text-xs text-gray-500">{formatTime(activity.timestamp)}</span>
-                        </div>
-                        <p className="text-sm text-gray-600">{activity.description}</p>
-                      </div>
-                    </div>
-                  ))}
-              </TabsContent>
-            </Tabs>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-blue-600" />
+                <div>
+                  <p className="text-sm font-medium">Avg Response Time</p>
+                  <p className="text-2xl font-bold">1.8 hrs</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Activity className="h-4 w-4 text-green-600" />
+                <div>
+                  <p className="text-sm font-medium">Team Performance</p>
+                  <p className="text-2xl font-bold">94%</p>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Links</CardTitle>
-            <CardDescription>Common tasks and resources</CardDescription>
+        <Card className="border-purple-200 bg-purple-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Diagnostics</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <Button variant="outline" className="justify-start" onClick={() => navigate('/company/support')}>
-              <LifeBuoy className="mr-2 h-4 w-4" />
-              Support Tickets
-            </Button>
-            <Button variant="outline" className="justify-start" onClick={() => navigate('/company/technicians')}>
-              <Users className="mr-2 h-4 w-4" />
-              Manage Technicians
-            </Button>
-            <Button variant="outline" className="justify-start" onClick={() => navigate('/company/feature-requests')}>
-              <FileText className="mr-2 h-4 w-4" />
-              Feature Requests
-            </Button>
-            <Button variant="outline" className="justify-start" onClick={() => navigate('/company/community')}>
-              <MessageSquare className="mr-2 h-4 w-4" />
-              Community
-            </Button>
-            <Button variant="outline" className="justify-start" onClick={() => navigate('/company/subscription')}>
-              <BarChart3 className="mr-2 h-4 w-4" />
-              Subscription
-            </Button>
+          <CardContent>
+            <div className="flex flex-col items-center justify-center h-full py-4">
+              <div className="bg-purple-200 text-purple-600 p-4 rounded-full mb-2">
+                <Stethoscope className="h-6 w-6" />
+              </div>
+              <p className="text-sm text-center mb-1">{isLoading ? "Loading..." : `${workflows.length} available procedures`}</p>
+              <Button variant="outline" size="sm" className="mt-2">
+                <Link to="/company/diagnostics" className="text-black">View Diagnostics</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <Card className="border-cyan-200 bg-cyan-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Active Jobs</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center">
+              <Wrench className="h-4 w-4 text-cyan-600 mr-2" />
+              <span className="text-2xl font-bold">12</span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-green-200 bg-green-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Team Members</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center">
+              <Users className="h-4 w-4 text-green-600 mr-2" />
+              <span className="text-2xl font-bold">8</span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-amber-200 bg-amber-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Response Time</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center">
+              <Clock className="h-4 w-4 text-amber-600 mr-2" />
+              <span className="text-2xl font-bold">1.4 hrs</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="md:col-span-2">
+          <Card className="h-full">
+            <CardHeader className="bg-blue-50 border-b border-blue-100">
+              <CardTitle>Team Members</CardTitle>
+              <CardDescription>Manage your technicians</CardDescription>
+            </CardHeader>
+            <CardContent className="mt-4">
+              <div className="flex justify-between mb-4 p-3 rounded-lg bg-green-50 border border-green-100">
+                <div className="flex items-center">
+                  <div className="relative mr-2">
+                    <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/300?img=1" alt="Technician" />
+                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500"></span>
+                  </div>
+                  <div>
+                    <p className="font-medium">John Smith</p>
+                    <p className="text-xs text-gray-500">Active • 3 jobs</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm">
+                  <Link to="/company/technicians" className="text-black">View</Link>
+                </Button>
+              </div>
+              
+              <div className="flex justify-between mb-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
+                <div className="flex items-center">
+                  <div className="relative mr-2">
+                    <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/300?img=2" alt="Technician" />
+                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500"></span>
+                  </div>
+                  <div>
+                    <p className="font-medium">Sarah Johnson</p>
+                    <p className="text-xs text-gray-500">Active • 2 jobs</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm">
+                  <Link to="/company/technicians" className="text-black">View</Link>
+                </Button>
+              </div>
+              
+              <div className="flex justify-between p-3 rounded-lg bg-gray-50 border border-gray-100">
+                <div className="flex items-center">
+                  <div className="relative mr-2">
+                    <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/300?img=3" alt="Technician" />
+                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-gray-300"></span>
+                  </div>
+                  <div>
+                    <p className="font-medium">Mike Williams</p>
+                    <p className="text-xs text-gray-500">Offline • 0 jobs</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm">
+                  <Link to="/company/technicians" className="text-black">View</Link>
+                </Button>
+              </div>
+              
+              <div className="mt-6">
+                <Button className="w-full">
+                  <Link to="/company/technicians" className="text-white w-full flex justify-center items-center">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Manage Technicians
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <Card>
+          <CardHeader className="bg-purple-50 border-b border-purple-100">
+            <CardTitle>Recent Activity</CardTitle>
+            <CardDescription>Latest updates</CardDescription>
+          </CardHeader>
+          <CardContent className="mt-4">
+            <div className="space-y-4">
+              <div className="flex items-start gap-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
+                <div className="mt-1 rounded-full bg-blue-100 p-1">
+                  <Wrench className="h-3 w-3 text-blue-600" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">New job created</p>
+                  <p className="text-xs text-gray-500">10 minutes ago</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-4 p-3 rounded-lg bg-green-50 border border-green-100">
+                <div className="mt-1 rounded-full bg-green-100 p-1">
+                  <Users className="h-3 w-3 text-green-600" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Tech assigned to job #1234</p>
+                  <p className="text-xs text-gray-500">1 hour ago</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-4 p-3 rounded-lg bg-amber-50 border border-amber-100">
+                <div className="mt-1 rounded-full bg-amber-100 p-1">
+                  <AlertTriangle className="h-3 w-3 text-amber-600" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Job #1230 needs attention</p>
+                  <p className="text-xs text-gray-500">3 hours ago</p>
+                </div>
+              </div>
+              
+              <Button variant="ghost" size="sm" className="w-full mt-4">
+                <Link to="/company/activity" className="text-black w-full">View All Activity</Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
     </div>
   );
-}
-
-function Users({ className = "", ...props }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      {...props}
-    >
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  )
 }

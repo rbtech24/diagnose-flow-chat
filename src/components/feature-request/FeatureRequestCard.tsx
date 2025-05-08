@@ -8,11 +8,9 @@ import { format } from "date-fns";
 
 interface FeatureRequestCardProps {
   request: FeatureRequest;
-  onVote?: () => void;
-  onClick?: () => void;
 }
 
-export function FeatureRequestCard({ request, onVote, onClick }: FeatureRequestCardProps) {
+export function FeatureRequestCard({ request }: FeatureRequestCardProps) {
   const statusColors: Record<FeatureRequestStatus, string> = {
     "pending": "bg-yellow-100 text-yellow-800",
     "submitted": "bg-blue-100 text-blue-800",
@@ -38,7 +36,7 @@ export function FeatureRequestCard({ request, onVote, onClick }: FeatureRequestC
   };
 
   return (
-    <Card className="hover:border-primary/50 transition-all" onClick={onClick}>
+    <Card className="hover:border-primary/50 transition-all">
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-2">
           <h3 className="font-medium text-lg">{request.title}</h3>
@@ -63,12 +61,7 @@ export function FeatureRequestCard({ request, onVote, onClick }: FeatureRequestC
       <CardFooter className="px-4 py-3 border-t flex items-center justify-between text-sm text-muted-foreground">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1">
-            <ThumbsUp className="h-4 w-4" onClick={e => { 
-              if (onVote) {
-                e.stopPropagation();
-                onVote();
-              }
-            }} />
+            <ThumbsUp className="h-4 w-4" />
             <span>{request.votes_count}</span>
           </div>
           <div className="flex items-center gap-1">

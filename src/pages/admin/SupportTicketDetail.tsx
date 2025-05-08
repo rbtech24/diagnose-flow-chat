@@ -3,11 +3,10 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SupportTicket } from "@/components/support/SupportTicket";
-import { SupportTicket as SupportTicketType, SupportTicketStatus, SupportTicketMessage, TicketPriority } from "@/types/support";
+import { SupportTicket as SupportTicketType, SupportTicketStatus, SupportTicketMessage } from "@/types/support";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import { fetchTicketById, fetchTicketMessages, updateTicketStatus, addTicketMessage, assignTicket, updateTicketPriority } from "@/services/supportService";
-import { handleApiError, withErrorHandling } from "@/utils/errorHandler";
+import { useToast } from "@/components/ui/use-toast";
+import { mockSupportTickets } from "@/data/mockSupportTickets";
 
 export default function AdminSupportTicketDetail() {
   const { ticketId } = useParams<{ ticketId: string }>();
@@ -15,7 +14,7 @@ export default function AdminSupportTicketDetail() {
   const [ticket, setTicket] = useState<SupportTicketType | null>(null);
   const [messages, setMessages] = useState<SupportTicketMessage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (ticketId) {
@@ -27,44 +26,51 @@ export default function AdminSupportTicketDetail() {
     try {
       setLoading(true);
       
-      if (!ticketId) {
-        throw new Error("Ticket ID is missing");
+      // Since we don't have a proper database table, use mock data
+      const foundTicket = mockSupportTickets.find(ticket => ticket.id === ticketId);
+      
+      if (!foundTicket) {
+        throw new Error("Ticket not found");
       }
       
-      // Use withErrorHandling to fetch ticket details
-      const { data: ticketData, error: ticketError } = await withErrorHandling(
-        async () => await fetchTicketById(ticketId),
-        "fetching ticket details",
-        false
-      );
+      setTicket(foundTicket);
       
-      if (ticketError) {
-        setError(ticketError.message);
-        return;
-      }
+      // Mock messages
+      const mockMessages: SupportTicketMessage[] = [
+        {
+          id: "msg1",
+          ticket_id: ticketId || "",
+          content: "I'm experiencing an issue with the technician assignment feature. When I try to assign a technician to a repair, the app freezes.",
+          user_id: foundTicket.user_id,
+          created_at: foundTicket.created_at,
+          sender: {
+            name: foundTicket.created_by_user?.name || "User",
+            email: foundTicket.created_by_user?.email || "",
+            avatar_url: foundTicket.created_by_user?.avatar_url,
+            role: foundTicket.created_by_user?.role || "user"
+          }
+        },
+        {
+          id: "msg2",
+          ticket_id: ticketId || "",
+          content: "Thank you for reporting this. Could you please provide more details about when this happens? Does it occur with specific technicians or all of them?",
+          user_id: "admin1",
+          created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+          sender: {
+            name: "Support Team",
+            email: "support@example.com",
+            avatar_url: "",
+            role: "admin"
+          }
+        }
+      ];
       
-      setTicket(ticketData);
-      
-      // Use withErrorHandling to fetch ticket messages
-      const { data: messagesData, error: messagesError } = await withErrorHandling(
-        async () => await fetchTicketMessages(ticketId),
-        "fetching ticket messages",
-        false
-      );
-      
-      if (messagesError) {
-        toast.error("Error loading messages", {
-          description: messagesError.message
-        });
-      } else {
-        setMessages(messagesData || []);
-      }
-      
+      setMessages(mockMessages);
     } catch (err) {
-      const apiError = handleApiError(err, "loading ticket details", false);
-      setError(apiError.message);
-      
-      toast.error("Error loading ticket", {
+      console.error("Error fetching ticket details:", err);
+      toast({
+        variant: "destructive",
+        title: "Error loading ticket",
         description: "There was a problem retrieving the ticket details."
       });
     } finally {
@@ -73,65 +79,52 @@ export default function AdminSupportTicketDetail() {
   };
 
   const handleUpdateStatus = async (ticketId: string, status: SupportTicketStatus) => {
-    const { data, error: apiError } = await withErrorHandling(
-      async () => await updateTicketStatus(ticketId, status),
-      "updating ticket status"
-    );
-    
-    if (data) {
-      // Update local state
+    try {
+      // Update local state since we're using mock data
       setTicket(prev => prev ? { ...prev, status, updated_at: new Date().toISOString() } : null);
 
-      toast.success("Status updated", {
-        description: `Ticket status changed to ${status}`
+      toast({
+        title: "Status updated",
+        description: `Ticket status changed to ${status}`,
+      });
+    } catch (err) {
+      console.error("Error updating ticket status:", err);
+      toast({
+        variant: "destructive",
+        title: "Update failed",
+        description: "Failed to update ticket status."
       });
     }
   };
 
-  const handleUpdatePriority = async (ticketId: string, priority: TicketPriority) => {
-    const { data, error: apiError } = await withErrorHandling(
-      async () => await updateTicketPriority(ticketId, priority),
-      "updating ticket priority"
-    );
-    
-    if (data) {
-      // Update local state
-      setTicket(prev => prev ? { ...prev, priority, updated_at: new Date().toISOString() } : null);
-
-      toast.success("Priority updated", {
-        description: `Ticket priority changed to ${priority}`
-      });
-    }
-  };
-
-  const handleAssignTicket = async (ticketId: string, userId: string) => {
-    const { data, error: apiError } = await withErrorHandling(
-      async () => await assignTicket(ticketId, userId),
-      "assigning ticket"
-    );
-    
-    if (data) {
-      // Update local state
-      setTicket(prev => prev ? { ...prev, assigned_to: userId, updated_at: new Date().toISOString() } : null);
-
-      toast.success("Ticket assigned", {
-        description: `Ticket has been assigned successfully`
-      });
-    }
-  };
-
-  const handleAddMessage = async (ticketId: string, content: string, attachments?: File[]) => {
-    const { data, error: apiError } = await withErrorHandling(
-      async () => await addTicketMessage(ticketId, content, attachments),
-      "adding message"
-    );
-    
-    if (data) {
-      // Refresh all ticket data to get the latest messages with full sender details
-      await fetchTicketDetails();
+  const handleAddMessage = async (ticketId: string, content: string) => {
+    try {
+      // Create a mock message
+      const newMessage: SupportTicketMessage = {
+        id: `msg-${Date.now()}`,
+        ticket_id: ticketId,
+        content,
+        user_id: "admin-user",
+        created_at: new Date().toISOString(),
+        sender: {
+          name: "Admin User",
+          email: "admin@example.com",
+          role: "admin"
+        }
+      };
       
-      toast.success("Message sent", {
+      setMessages(prev => [...prev, newMessage]);
+
+      toast({
+        title: "Message sent",
         description: "Your message has been added to the ticket."
+      });
+    } catch (err) {
+      console.error("Error adding message:", err);
+      toast({
+        variant: "destructive",
+        title: "Failed to send message",
+        description: "There was a problem adding your message."
       });
     }
   };
@@ -147,7 +140,7 @@ export default function AdminSupportTicketDetail() {
     );
   }
 
-  if (error || !ticket) {
+  if (!ticket) {
     return (
       <div className="container mx-auto p-6">
         <div className="flex items-center mb-6">
@@ -158,7 +151,7 @@ export default function AdminSupportTicketDetail() {
           <h1 className="text-3xl font-bold">Ticket Not Found</h1>
         </div>
         <div className="p-8 text-center border rounded-lg">
-          <p className="text-gray-500">{error || "The requested ticket could not be found."}</p>
+          <p className="text-gray-500">The requested ticket could not be found.</p>
           <Button onClick={() => navigate("/admin/support")} className="mt-4">
             Return to Support Dashboard
           </Button>
@@ -182,8 +175,6 @@ export default function AdminSupportTicketDetail() {
         messages={messages}
         onAddMessage={handleAddMessage}
         onUpdateStatus={handleUpdateStatus}
-        onUpdatePriority={handleUpdatePriority}
-        onAssignTicket={handleAssignTicket}
         isDetailView={true}
       />
     </div>

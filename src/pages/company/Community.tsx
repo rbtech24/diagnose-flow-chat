@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { CommunityFilters } from '@/components/community/CommunityFilters';
@@ -7,13 +7,12 @@ import { CommunityPostCard } from '@/components/community/CommunityPostCard';
 import { CommunityStats } from '@/components/community/CommunityStats';
 import { NewPostDialog } from '@/components/community/NewPostDialog';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useCommunity } from '@/hooks/useCommunity';
-import { CommunityPostType } from '@/types/community';
+import { CommunityPost, CommunityPostType } from '@/types/community';
+import { mockPosts } from '@/data/mockCommunity';
 
-export function CompanyCommunity() {
+export default function CompanyCommunity() {
   const navigate = useNavigate();
-  const { posts, isLoading, refreshPosts, createPost } = useCommunity();
+  const [posts, setPosts] = useState<CommunityPost[]>(mockPosts);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedSort, setSelectedSort] = useState('recent');
@@ -40,20 +39,42 @@ export function CompanyCommunity() {
       case 'upvotes':
         return b.upvotes - a.upvotes;
       case 'comments':
-        return (b.comments?.length || 0) - (a.comments?.length || 0);
+        return b.comments.length - a.comments.length;
       default:
         return 0;
     }
   });
 
-  const handleCreatePost = async (post: {
+  const handleCreatePost = (post: {
     title: string;
     content: string;
     type: CommunityPostType;
     tags: string[];
+    attachments: File[];
   }) => {
-    await createPost(post);
-    refreshPosts();
+    const newPost: CommunityPost = {
+      id: `post-${Date.now()}`,
+      title: post.title,
+      content: post.content,
+      type: post.type,
+      authorId: 'company-1',
+      author: {
+        id: 'company-1',
+        name: 'Company User',
+        email: 'company@example.com',
+        role: 'company',
+        avatarUrl: ''
+      },
+      attachments: [], // In a real app, you would upload these files
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      upvotes: 0,
+      views: 0,
+      tags: post.tags,
+      comments: []
+    };
+    
+    setPosts([newPost, ...posts]);
   };
 
   const handlePostClick = (postId: string) => {
@@ -65,16 +86,17 @@ export function CompanyCommunity() {
   const techSheetRequestCount = posts.filter(post => post.type === 'tech-sheet-request').length;
   const wireDiagramRequestCount = posts.filter(post => post.type === 'wire-diagram-request').length;
   
-  // Rough estimate of active members (unique authors)
-  const activeMemberCount = new Set(posts.map(post => post.authorId)).size;
+  // In a real app, you'd calculate this differently
+  const activeMemberCount = new Set(posts.map(post => post.authorId)
+    .concat(posts.flatMap(post => post.comments.map(comment => comment.authorId)))).size;
 
   return (
     <div className="container mx-auto p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Community</h1>
+          <h1 className="text-3xl font-bold">Technician Community</h1>
           <p className="text-muted-foreground mt-1">
-            Share knowledge and get help from the community
+            Share knowledge, request technical documents, and solve problems together
           </p>
         </div>
         <div className="mt-4 md:mt-0">
@@ -98,21 +120,12 @@ export function CompanyCommunity() {
         setSelectedSort={setSelectedSort}
       />
 
-      {isLoading ? (
-        <div className="space-y-4 mt-6">
-          {[...Array(3)].map((_, i) => (
-            <Skeleton key={i} className="h-40 w-full" />
-          ))}
-        </div>
-      ) : sortedPosts.length === 0 ? (
+      {sortedPosts.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-lg text-muted-foreground">No posts found matching your criteria.</p>
-          <Button onClick={() => setSelectedType('all')} variant="outline" className="mt-4">
-            Clear filters
-          </Button>
         </div>
       ) : (
-        <div className="space-y-4 mt-6">
+        <div className="space-y-4">
           {sortedPosts.map(post => (
             <div key={post.id} onClick={() => handlePostClick(post.id)}>
               <CommunityPostCard post={post} basePath="/company/community" />

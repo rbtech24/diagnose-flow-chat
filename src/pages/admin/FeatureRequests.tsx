@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -19,7 +18,6 @@ export default function AdminFeatureRequests() {
   const [featureRequests, setFeatureRequests] = useState<FeatureRequest[]>(mockFeatureRequests);
   const [isNewRequestDialogOpen, setIsNewRequestDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "pending" | "approved" | "completed" | "rejected">("all");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Filter requests based on search query, status, etc.
   const filteredRequests = featureRequests.filter((request) => {
@@ -51,33 +49,19 @@ export default function AdminFeatureRequests() {
     return 0;
   });
   
-  // Updated to match the expected signature
-  const handleSubmit = async () => {
-    // This function no longer receives a parameter
-    // Will be used as a callback after the form submission is complete
-    setIsNewRequestDialogOpen(false);
-  };
-  
-  // This is the actual function that will create a new request
   const handleCreateRequest = (newRequest: Omit<FeatureRequest, "id" | "created_at" | "updated_at" | "votes_count" | "user_has_voted" | "comments_count">) => {
-    setIsSubmitting(true);
+    const createdRequest: FeatureRequest = {
+      ...newRequest,
+      id: `fr-${Date.now()}`,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      votes_count: 0,
+      user_has_voted: false,
+      comments_count: 0,
+    };
     
-    // Simulate API call with setTimeout
-    setTimeout(() => {
-      const createdRequest: FeatureRequest = {
-        ...newRequest,
-        id: `fr-${Date.now()}`,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        votes_count: 0,
-        user_has_voted: false,
-        comments_count: 0,
-      };
-      
-      setFeatureRequests([createdRequest, ...featureRequests]);
-      setIsNewRequestDialogOpen(false);
-      setIsSubmitting(false);
-    }, 1000);
+    setFeatureRequests([createdRequest, ...featureRequests]);
+    setIsNewRequestDialogOpen(false);
   };
 
   // Fix the approvedRequests filter to include both "approved" and "in-progress" statuses
@@ -108,10 +92,7 @@ export default function AdminFeatureRequests() {
                 Submit a new feature request for the platform
               </DialogDescription>
             </DialogHeader>
-            <NewFeatureRequestForm 
-              onSubmit={handleSubmit}
-              onCreateRequest={handleCreateRequest}
-            />
+            <NewFeatureRequestForm onSubmit={handleCreateRequest} />
           </DialogContent>
         </Dialog>
       </div>
