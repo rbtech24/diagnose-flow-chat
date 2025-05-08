@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -122,9 +121,9 @@ export default function CompanyDashboard() {
               .single();
               
             // Get job count for each technician
-            const { count: jobCount } = await supabase
+            const { count } = await supabase
               .from('repairs')
-              .select('id', { count: 'exact', head: true })
+              .select('*', { count: 'exact', head: true })
               .eq('technician_id', tech.id)
               .eq('status', 'in_progress');
               
@@ -132,8 +131,8 @@ export default function CompanyDashboard() {
               id: tech.id,
               name: profileData?.full_name || tech.email.split('@')[0],
               avatar_url: profileData?.avatar_url || undefined,
-              status: tech.status,
-              job_count: jobCount || 0
+              status: tech.status || 'unknown',
+              job_count: count || 0
             };
           })
         );
@@ -156,7 +155,7 @@ export default function CompanyDashboard() {
           type: item.activity_type,
           description: item.description || `${item.activity_type} activity`,
           timestamp: new Date(item.created_at).toLocaleString(),
-          status: item.metadata?.status || undefined
+          status: item.metadata?.status?.toString() || undefined
         }));
         
         setRecentActivity(formattedActivity);
@@ -208,7 +207,7 @@ export default function CompanyDashboard() {
           <div className="h-40 bg-gray-200 animate-pulse rounded"></div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 mb-8">
           <div className="h-24 bg-gray-200 animate-pulse rounded"></div>
           <div className="h-24 bg-gray-200 animate-pulse rounded"></div>
           <div className="h-24 bg-gray-200 animate-pulse rounded"></div>

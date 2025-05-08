@@ -3,12 +3,11 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SupportTicket } from "@/components/support/SupportTicket";
-import { SupportTicket as SupportTicketType, SupportTicketStatus, SupportTicketMessage } from "@/types/support";
+import { SupportTicket as SupportTicketType, SupportTicketStatus, SupportTicketMessage, TicketPriority } from "@/types/support";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { fetchTicketById, fetchTicketMessages, updateTicketStatus, addTicketMessage } from "@/services/supportService";
-import { handleApiError, withErrorHandling } from "@/utils/errorHandler";
 import { toast } from "sonner";
+import { fetchTicketById, fetchTicketMessages, updateTicketStatus, addTicketMessage, assignTicket, updateTicketPriority } from "@/services/supportService";
+import { handleApiError, withErrorHandling } from "@/utils/errorHandler";
 
 export default function AdminSupportTicketDetail() {
   const { ticketId } = useParams<{ ticketId: string }>();
@@ -17,7 +16,6 @@ export default function AdminSupportTicketDetail() {
   const [messages, setMessages] = useState<SupportTicketMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { toast: uiToast } = useToast();
 
   useEffect(() => {
     if (ticketId) {
@@ -90,9 +88,41 @@ export default function AdminSupportTicketDetail() {
     }
   };
 
-  const handleAddMessage = async (ticketId: string, content: string) => {
+  const handleUpdatePriority = async (ticketId: string, priority: TicketPriority) => {
     const { data, error: apiError } = await withErrorHandling(
-      async () => await addTicketMessage(ticketId, content),
+      async () => await updateTicketPriority(ticketId, priority),
+      "updating ticket priority"
+    );
+    
+    if (data) {
+      // Update local state
+      setTicket(prev => prev ? { ...prev, priority, updated_at: new Date().toISOString() } : null);
+
+      toast.success("Priority updated", {
+        description: `Ticket priority changed to ${priority}`
+      });
+    }
+  };
+
+  const handleAssignTicket = async (ticketId: string, userId: string) => {
+    const { data, error: apiError } = await withErrorHandling(
+      async () => await assignTicket(ticketId, userId),
+      "assigning ticket"
+    );
+    
+    if (data) {
+      // Update local state
+      setTicket(prev => prev ? { ...prev, assigned_to: userId, updated_at: new Date().toISOString() } : null);
+
+      toast.success("Ticket assigned", {
+        description: `Ticket has been assigned successfully`
+      });
+    }
+  };
+
+  const handleAddMessage = async (ticketId: string, content: string, attachments?: File[]) => {
+    const { data, error: apiError } = await withErrorHandling(
+      async () => await addTicketMessage(ticketId, content, attachments),
       "adding message"
     );
     
@@ -152,6 +182,8 @@ export default function AdminSupportTicketDetail() {
         messages={messages}
         onAddMessage={handleAddMessage}
         onUpdateStatus={handleUpdateStatus}
+        onUpdatePriority={handleUpdatePriority}
+        onAssignTicket={handleAssignTicket}
         isDetailView={true}
       />
     </div>

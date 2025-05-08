@@ -19,6 +19,14 @@ export interface SupportTicket {
     role: string;
     avatar_url?: string;
   };
+  attachments?: Array<{
+    id: string;
+    filename: string;
+    url: string;
+    content_type: string;
+    size: number;
+    created_at: string;
+  }>;
 }
 
 export interface SupportTicketMessage {
@@ -33,4 +41,27 @@ export interface SupportTicketMessage {
     role?: string;
     avatar_url?: string;
   };
+  attachments?: Array<{
+    id: string;
+    filename: string;
+    url: string;
+    content_type: string;
+    size: number;
+  }>;
+}
+
+export interface TicketAssignment {
+  ticket_id: string;
+  assigned_to: string;
+  assigned_by: string;
+  assigned_at: string;
+}
+
+export interface TicketFilter {
+  status?: SupportTicketStatus[];
+  priority?: TicketPriority[];
+  assigned_to?: string;
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
 }

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,10 +21,12 @@ interface CompanyData {
   trial_status?: string;
   trial_period?: number;
   trial_end_date?: string;
-  address?: string | null;
-  city?: string | null;
-  state?: string | null;
-  zip?: string | null;
+  company_address?: {
+    address?: string | null;
+    city?: string | null;
+    state?: string | null;
+    zip?: string | null;
+  };
 }
 
 interface ActivityItem {
@@ -167,9 +168,20 @@ export default function CompanyDetail() {
     );
   }
 
-  // Format the address for display
-  const formattedAddress = company.address && company.city && company.state && company.zip
-    ? `${company.address}, ${company.city}, ${company.state} ${company.zip}`
+  // Fix for the excessively deep type instantiation error
+  // Near line 90, we need to modify the type handling for company data
+
+  // Replace the type instantiation with this approach:
+  const companyAddress = company?.company_address || {};
+  const address = companyAddress.address || "";
+  const city = companyAddress.city || "";
+  const state = companyAddress.state || "";
+  const zip = companyAddress.zip || "";
+
+  // This avoids the deep recursive type issue while still providing access to address properties
+
+  const formattedAddress = address && city && state && zip
+    ? `${address}, ${city}, ${state} ${zip}`
     : 'No address provided';
 
   return (
