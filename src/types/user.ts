@@ -14,6 +14,11 @@ export interface User {
   isMainAdmin?: boolean;
   apiKeys?: ApiKey[];
   status?: string;
+  company?: {
+    id: string;
+    name: string;
+    subscription_tier?: string;
+  };
 }
 
 export interface ApiKey {

@@ -8,7 +8,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { useState } from "react";
 import { Clock, CornerDownLeft, AlertCircle, CheckCircle2, Ban } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface SupportTicketProps {
@@ -17,6 +16,7 @@ interface SupportTicketProps {
   onUpdateStatus?: (id: string, status: SupportTicketStatus) => void;
   onAddMessage?: (ticketId: string, message: string) => void;
   isAdmin?: boolean;
+  isDetailView?: boolean;
 }
 
 export function SupportTicketComponent({ 
@@ -24,7 +24,8 @@ export function SupportTicketComponent({
   messages, 
   onUpdateStatus,
   onAddMessage,
-  isAdmin = false
+  isAdmin = false,
+  isDetailView = false
 }: SupportTicketProps) {
   const [newMessage, setNewMessage] = useState("");
   const [sendingMessage, setSendingMessage] = useState(false);
@@ -49,27 +50,8 @@ export function SupportTicketComponent({
     try {
       setSendingMessage(true);
       
-      // For demo, we'll update the state directly and try Supabase if available
+      // Call the provided callback to add the message
       onAddMessage(ticket.id, newMessage);
-      
-      // Try to save to Supabase if it's set up
-      try {
-        const { data: userData } = await supabase.auth.getUser();
-        const userId = userData?.user?.id;
-        
-        if (userId) {
-          // Only attempt to insert if user is authenticated
-          await supabase
-            .from('ticket_messages')
-            .insert({
-              ticket_id: ticket.id,
-              content: newMessage.trim(),
-              sender_id: userId
-            });
-        }
-      } catch (err) {
-        console.warn("Could not save to Supabase, but state updated for demo:", err);
-      }
       
       setNewMessage("");
       toast.success("Message sent successfully");
@@ -226,5 +208,3 @@ function CornerDownRight(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
-
-export type { SupportTicket, SupportTicketMessage, SupportTicketStatus, TicketPriority };

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useUserManagementStore } from "@/store/userManagementStore";
+import { toast } from "sonner";
 
 const passwordResetSchema = z.object({
   password: z
@@ -45,7 +46,16 @@ export function AdminPasswordResetForm({ userId, onSuccess, onCancel }: AdminPas
     try {
       const success = await resetUserPassword(userId, values.password);
       if (success) {
+        toast({
+          title: "Password reset successful",
+          description: "The user's password has been reset."
+        });
         onSuccess();
+      } else {
+        form.setError("root", { 
+          type: "manual",
+          message: "Failed to reset password. Please try again."
+        });
       }
     } catch (error) {
       console.error("Error resetting password:", error);

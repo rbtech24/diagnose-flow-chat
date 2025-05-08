@@ -1,6 +1,4 @@
 
-import { Database } from "@/integrations/supabase/types";
-
 export type FeatureRequestStatus = "pending" | "approved" | "rejected" | "in-progress" | "completed";
 export type FeatureRequestPriority = "low" | "medium" | "high" | "critical";
 
@@ -12,26 +10,52 @@ export interface User {
   avatarUrl?: string;
 }
 
-export type FeatureRequest = Database["public"]["Tables"]["feature_requests"]["Row"] & {
+// Updated to match the Supabase database structure
+export interface FeatureRequest {
+  id: string;
+  title: string;
+  description: string;
+  status: FeatureRequestStatus;
+  priority: FeatureRequestPriority;
+  company_id?: string;
+  user_id?: string;
+  created_at: string;
+  updated_at: string;
+  
+  // These are added by client-side counting or joins
   votes_count?: number;
   user_has_voted?: boolean;
   comments_count?: number;
-  priority: FeatureRequestPriority;
+  
+  // This is a relationship field
   created_by_user?: {
     name: string;
     email: string;
     avatar_url?: string;
     role: string;
   };
-};
+}
 
-export type FeatureComment = Database["public"]["Tables"]["feature_comments"]["Row"] & {
+export interface FeatureComment {
+  id: string;
+  feature_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  
+  // This is a relationship field
   created_by_user?: {
     name: string;
     email: string;
     avatar_url?: string;
     role: string;
   };
-};
+}
 
-export type FeatureVote = Database["public"]["Tables"]["feature_votes"]["Row"];
+export interface FeatureVote {
+  id: string;
+  feature_id: string;
+  user_id: string;
+  created_at: string;
+  user?: User;
+}

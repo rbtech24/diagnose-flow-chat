@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Upload, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 
 interface AvatarUploadProps {
@@ -62,13 +61,14 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
     try {
       setIsUploading(true);
       
-      // For demo purposes (no Supabase integration yet), create a local object URL 
-      // In a real app with Supabase storage bucket, we would upload the image
+      // For demo purposes, create a local object URL 
       const objectUrl = URL.createObjectURL(file);
-      setAvatarUrl(objectUrl);
       
       // Call the callback with the URL
       await onAvatarChange(objectUrl);
+      
+      // Update local state
+      setAvatarUrl(objectUrl);
       
       toast({
         title: "Avatar updated",
@@ -92,6 +92,8 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
       
       // Call the callback with empty string to remove the avatar
       await onAvatarChange('');
+      
+      // Update local state
       setAvatarUrl(undefined);
       
       toast({
@@ -112,6 +114,8 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
   
   // Get initials for avatar fallback
   const getInitials = () => {
+    if (!name) return '??';
+    
     return name
       .split(' ')
       .map(part => part[0])
