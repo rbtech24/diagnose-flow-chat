@@ -13,9 +13,10 @@ export interface User {
 }
 
 export type FeatureRequest = Database["public"]["Tables"]["feature_requests"]["Row"] & {
-  votes_count: number;
+  votes_count?: number;
   user_has_voted?: boolean;
-  comments_count: number;
+  comments_count?: number;
+  priority: FeatureRequestPriority;
   created_by_user?: {
     name: string;
     email: string;

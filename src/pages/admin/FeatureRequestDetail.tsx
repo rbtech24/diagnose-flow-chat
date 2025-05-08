@@ -43,7 +43,7 @@ export default function AdminFeatureRequestDetailPage() {
       // Get votes count
       const { count: votesCount, error: votesError } = await supabase
         .from("feature_votes")
-        .select("id", { count: true })
+        .select("id", { count: true, head: true })
         .eq("feature_id", id);
         
       if (votesError) throw votesError;
@@ -74,14 +74,16 @@ export default function AdminFeatureRequestDetailPage() {
           
         userHasVoted = !!userVote;
       }
-      
-      setFeatureRequest({
+
+      // Build the request object with all the data we need
+      const featureRequestWithMetadata = {
         ...requestData,
         votes_count: votesCount || 0,
         comments_count: commentsData?.length || 0,
         user_has_voted: userHasVoted
-      });
+      };
       
+      setFeatureRequest(featureRequestWithMetadata as FeatureRequest);
       setComments(commentsData || []);
     } catch (err) {
       console.error("Error fetching feature request:", err);
@@ -180,7 +182,7 @@ export default function AdminFeatureRequestDetailPage() {
       if (error) throw error;
       
       // Update local state
-      setComments(prev => [...prev, newComment]);
+      setComments(prev => [...prev, newComment as FeatureComment]);
       setFeatureRequest(prev => prev ? {
         ...prev,
         comments_count: (prev.comments_count || 0) + 1,

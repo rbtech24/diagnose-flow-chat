@@ -40,17 +40,19 @@ export default function AdminFeatureRequests() {
 
       if (requestsError) throw requestsError;
       
-      // For each feature request, get the vote count
-      const requestsWithVotes = await Promise.all(
-        (requests || []).map(async (request: FeatureRequest) => {
+      // Process the data we received
+      const requestsWithMetadata = await Promise.all(
+        (requests || []).map(async (request) => {
+          // Get vote count for each feature request
           const { count: voteCount, error: votesError } = await supabase
             .from("feature_votes")
-            .select("id", { count: true })
+            .select("id", { count: true, head: true })
             .eq("feature_id", request.id);
             
+          // Get comments count for each feature request
           const { count: commentsCount, error: commentsError } = await supabase
             .from("feature_comments")
-            .select("id", { count: true })
+            .select("id", { count: true, head: true })
             .eq("feature_id", request.id);
 
           // Get current user's vote status
@@ -77,7 +79,7 @@ export default function AdminFeatureRequests() {
         })
       );
 
-      setFeatureRequests(requestsWithVotes);
+      setFeatureRequests(requestsWithMetadata as FeatureRequest[]);
       setError(null);
     } catch (err) {
       console.error("Error fetching feature requests:", err);
