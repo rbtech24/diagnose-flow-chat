@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -46,10 +45,8 @@ export default function CompanyNew() {
     setIsSubmitting(true);
     
     try {
-      const newCompany = await addCompany({
-        ...data,
-        technicianCount: 0
-      });
+      // Omit technicianCount as it's not part of the expected input type
+      const newCompany = await addCompany(data);
       
       toast({
         title: "Company created",

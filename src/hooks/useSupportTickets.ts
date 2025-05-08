@@ -75,7 +75,7 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
     }
   };
 
-  const addMessage = async (messageData: Partial<SupportTicketMessage>): Promise<SupportTicketMessage> => {
+  const addMessage = async (messageData: { content: string; ticket_id: string }): Promise<SupportTicketMessage> => {
     try {
       return await addTicketMessage(messageData);
     } catch (err) {
