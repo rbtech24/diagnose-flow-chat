@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, CheckCheck, Clock, MapPin, UserRound, Package, Wrench, Shield, AlertTriangle, Users } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, UserRound, Package, Wrench, AlertTriangle, Users } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { handleApiError } from "@/utils/errorHandler";
 import { toast } from "sonner";
@@ -22,11 +22,10 @@ interface CompanyData {
   trial_status?: string;
   trial_period?: number;
   trial_end_date?: string;
-  // Address fields might be null
-  address?: string;
-  city?: string;
-  state?: string;
-  zip?: string;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip?: string | null;
 }
 
 interface ActivityItem {
@@ -69,29 +68,13 @@ export default function CompanyDetail() {
       try {
         const { data: companyData, error: companyError } = await supabase
           .from('companies')
-          .select()
+          .select('*')
           .eq('id', id)
           .single();
 
         if (companyError) throw companyError;
         
-        // Create a properly typed company object
-        const typedCompany: CompanyData = {
-          id: companyData.id,
-          name: companyData.name,
-          subscription_tier: companyData.subscription_tier,
-          created_at: companyData.created_at,
-          updated_at: companyData.updated_at,
-          trial_status: companyData.trial_status,
-          trial_period: companyData.trial_period,
-          trial_end_date: companyData.trial_end_date,
-          address: companyData.address || '',
-          city: companyData.city || '',
-          state: companyData.state || '',
-          zip: companyData.zip || ''
-        };
-        
-        setCompany(typedCompany);
+        setCompany(companyData);
         
         // Fetch active technicians count
         const { count, error: techError } = await supabase
@@ -184,6 +167,11 @@ export default function CompanyDetail() {
     );
   }
 
+  // Format the address for display
+  const formattedAddress = company.address && company.city && company.state && company.zip
+    ? `${company.address}, ${company.city}, ${company.state} ${company.zip}`
+    : 'No address provided';
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center mb-6">
@@ -199,13 +187,13 @@ export default function CompanyDetail() {
           <CardHeader>
             <CardTitle>{company.name}</CardTitle>
             <CardDescription>
-              {company.address ? `${company.address}, ${company.city}, ${company.state} ${company.zip}` : 'No address provided'}
+              {formattedAddress}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span>{company.address ? `${company.address}, ${company.city}, ${company.state} ${company.zip}` : 'No address provided'}</span>
+              <span>{formattedAddress}</span>
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
