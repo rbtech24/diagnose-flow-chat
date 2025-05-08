@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { FeatureRequestDetailAdmin } from "@/components/feature-request/FeatureRequestDetailAdmin";
-import { FeatureComment, FeatureRequestStatus } from "@/types/feature-request";
+import { FeatureComment, FeatureRequestPriority, FeatureRequestStatus } from "@/types/feature-request";
 import { 
   fetchFeatureRequestById, 
   fetchFeatureComments, 
@@ -131,7 +131,7 @@ export default function AdminFeatureRequestDetail() {
     }
   };
   
-  const handleUpdatePriority = async (id: string, priority: string): Promise<void> => {
+  const handleUpdatePriority = async (id: string, priority: FeatureRequestPriority): Promise<void> => {
     try {
       const updatedRequest = await updateFeatureRequest(id, { priority });
       setFeatureRequest({

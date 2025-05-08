@@ -113,7 +113,13 @@ export async function createSupportTicket(ticketData: Partial<SupportTicket>): P
 
   const { data, error } = await supabase
     .from('support_tickets')
-    .insert([ticketData])
+    .insert({
+      title: ticketData.title,
+      description: ticketData.description,
+      priority: ticketData.priority || 'medium',
+      user_id: (await supabase.auth.getUser()).data.user?.id,
+      company_id: ticketData.company_id
+    })
     .select()
     .single();
   
@@ -130,7 +136,7 @@ export async function createSupportTicket(ticketData: Partial<SupportTicket>): P
  * @param messageData Message data to add
  * @returns Created message
  */
-export async function addTicketMessage(messageData: Partial<SupportTicketMessage>): Promise<SupportTicketMessage> {
+export async function addTicketMessage(messageData: { content: string, ticket_id: string }): Promise<SupportTicketMessage> {
   // Make sure required fields are present
   if (!messageData.content || !messageData.ticket_id) {
     throw new Error('Missing required fields for message creation');
@@ -138,7 +144,11 @@ export async function addTicketMessage(messageData: Partial<SupportTicketMessage
 
   const { data, error } = await supabase
     .from('support_ticket_messages')
-    .insert([messageData])
+    .insert({
+      content: messageData.content,
+      ticket_id: messageData.ticket_id,
+      user_id: (await supabase.auth.getUser()).data.user?.id
+    })
     .select()
     .single();
   

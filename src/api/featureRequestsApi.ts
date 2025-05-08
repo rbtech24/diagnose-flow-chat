@@ -19,9 +19,7 @@ export async function fetchFeatureRequests(
       email,
       avatar_url,
       role
-    ),
-    votes:feature_votes(count),
-    comments:feature_comments(count)
+    )
   `);
   
   // Apply filters if provided
@@ -43,23 +41,54 @@ export async function fetchFeatureRequests(
     throw error;
   }
   
-  // Process data to match our expected format
-  const requests = data.map(item => {
-    const votesCount = item.votes?.length || 0;
-    const commentsCount = item.comments?.length || 0;
+  // Process data to add additional fields we need
+  const requests = await Promise.all((data || []).map(async (item) => {
+    // Count votes
+    const { count: votesCount, error: votesError } = await supabase
+      .from('feature_votes')
+      .select('*', { count: 'exact' })
+      .eq('feature_id', item.id);
+      
+    if (votesError) {
+      console.error(`Error counting votes for feature request ${item.id}:`, votesError);
+    }
     
-    // Remove the raw counts we don't need in our final object
-    delete item.votes;
-    delete item.comments;
+    // Count comments
+    const { count: commentsCount, error: commentsError } = await supabase
+      .from('feature_comments')
+      .select('*', { count: 'exact' })
+      .eq('feature_id', item.id);
+      
+    if (commentsError) {
+      console.error(`Error counting comments for feature request ${item.id}:`, commentsError);
+    }
+    
+    // Check if current user has voted
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    let userHasVoted = false;
+    
+    if (userId) {
+      const { data: voteData, error: userVoteError } = await supabase
+        .from('feature_votes')
+        .select('id')
+        .eq('feature_id', item.id)
+        .eq('user_id', userId)
+        .single();
+        
+      userHasVoted = !!voteData;
+      
+      if (userVoteError && userVoteError.code !== 'PGRST116') { // Not found error is expected
+        console.error(`Error checking if user voted for feature request ${item.id}:`, userVoteError);
+      }
+    }
     
     return {
       ...item,
-      votes_count: votesCount,
-      comments_count: commentsCount,
-      // We'll need to calculate this separately
-      user_has_voted: false
-    } as unknown as FeatureRequest;
-  });
+      votes_count: votesCount || 0,
+      comments_count: commentsCount || 0,
+      user_has_voted: userHasVoted
+    } as FeatureRequest;
+  }));
   
   return requests;
 }
@@ -154,14 +183,14 @@ export async function fetchFeatureComments(requestId: string): Promise<FeatureCo
       )
     `)
     .eq('feature_id', requestId)
-    .order('created_at');
+    .order('created_at', { ascending: true });
   
   if (error) {
     console.error(`Error fetching comments for feature request ${requestId}:`, error);
     throw error;
   }
   
-  return data as unknown as FeatureComment[];
+  return data as FeatureComment[];
 }
 
 /**
@@ -177,14 +206,14 @@ export async function createFeatureRequest(requestData: Partial<FeatureRequest>)
 
   const { data, error } = await supabase
     .from('feature_requests')
-    .insert([{
+    .insert({
       title: requestData.title,
       description: requestData.description,
       status: requestData.status || 'pending',
       priority: requestData.priority || 'medium',
       user_id: (await supabase.auth.getUser()).data.user?.id,
       company_id: requestData.company_id
-    }])
+    })
     .select()
     .single();
   
@@ -206,7 +235,7 @@ export async function createFeatureRequest(requestData: Partial<FeatureRequest>)
  * @param commentData Comment data
  * @returns Created comment
  */
-export async function addFeatureComment(commentData: Partial<FeatureComment>): Promise<FeatureComment> {
+export async function addFeatureComment(commentData: { feature_id: string, content: string }): Promise<FeatureComment> {
   // Make sure required fields are present
   if (!commentData.content || !commentData.feature_id) {
     throw new Error('Missing required fields for comment creation');
@@ -214,11 +243,11 @@ export async function addFeatureComment(commentData: Partial<FeatureComment>): P
 
   const { data, error } = await supabase
     .from('feature_comments')
-    .insert([{
+    .insert({
       content: commentData.content,
       feature_id: commentData.feature_id,
       user_id: (await supabase.auth.getUser()).data.user?.id
-    }])
+    })
     .select()
     .single();
   
@@ -262,10 +291,10 @@ export async function voteForFeature(featureId: string): Promise<boolean> {
   // Add vote
   const { error } = await supabase
     .from('feature_votes')
-    .insert([{
+    .insert({
       feature_id: featureId,
       user_id: userId
-    }]);
+    });
   
   if (error) {
     console.error(`Error voting for feature ${featureId}:`, error);

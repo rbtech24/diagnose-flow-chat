@@ -1,18 +1,18 @@
 
 import React, { useState } from "react";
 import { FeatureRequestDetail } from "./FeatureRequestDetail";
-import { FeatureRequest, FeatureComment, FeatureRequestStatus } from "@/types/feature-request";
+import { FeatureRequest, FeatureComment, FeatureRequestStatus, FeatureRequestPriority } from "@/types/feature-request";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface FeatureRequestDetailAdminProps {
   featureRequest: FeatureRequest;
   comments: FeatureComment[];
   onAddComment: (featureId: string, content: string) => Promise<void>;
   onUpdateStatus?: (id: string, status: FeatureRequestStatus) => Promise<void>;
-  onUpdatePriority?: (id: string, priority: string) => Promise<void>;
+  onUpdatePriority?: (id: string, priority: FeatureRequestPriority) => Promise<void>;
   isAdmin?: boolean;
 }
 
@@ -42,7 +42,7 @@ export const FeatureRequestDetailAdmin: React.FC<FeatureRequestDetailAdminProps>
     if (onUpdatePriority) {
       setIsPriorityUpdating(true);
       try {
-        await onUpdatePriority(featureRequest.id, priority);
+        await onUpdatePriority(featureRequest.id, priority as FeatureRequestPriority);
       } finally {
         setIsPriorityUpdating(false);
       }
@@ -78,6 +78,7 @@ export const FeatureRequestDetailAdmin: React.FC<FeatureRequestDetailAdminProps>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="submitted">Submitted</SelectItem>
                       <SelectItem value="approved">Approved</SelectItem>
                       <SelectItem value="in-progress">In Progress</SelectItem>
                       <SelectItem value="completed">Completed</SelectItem>
@@ -113,16 +114,36 @@ export const FeatureRequestDetailAdmin: React.FC<FeatureRequestDetailAdminProps>
             <div className="pt-4 border-t">
               <h3 className="text-sm font-medium mb-2">Actions</h3>
               <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" disabled={featureRequest.status === 'approved'}>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  disabled={featureRequest.status === 'approved'}
+                  onClick={() => handleStatusChange('approved')}
+                >
                   Approve
                 </Button>
-                <Button variant="outline" size="sm" disabled={featureRequest.status === 'in-progress'}>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  disabled={featureRequest.status === 'in-progress'}
+                  onClick={() => handleStatusChange('in-progress')}
+                >
                   Start Development
                 </Button>
-                <Button variant="outline" size="sm" disabled={featureRequest.status === 'completed'}>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  disabled={featureRequest.status === 'completed'}
+                  onClick={() => handleStatusChange('completed')}
+                >
                   Mark as Complete
                 </Button>
-                <Button variant="outline" size="sm" disabled={featureRequest.status === 'rejected'}>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  disabled={featureRequest.status === 'rejected'}
+                  onClick={() => handleStatusChange('rejected')}
+                >
                   Reject
                 </Button>
               </div>
