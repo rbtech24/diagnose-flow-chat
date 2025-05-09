@@ -7,6 +7,9 @@ import { Company } from '@/types/company';
 interface UserManagementState {
   users: User[];
   companies: Company[];
+  currentUser: User | null;
+  isLoadingUsers: boolean;
+  isLoadingCompanies: boolean;
   fetchUsers: () => Promise<void>;
   fetchCompanies: () => Promise<void>;
   fetchUserById: (id: string) => Promise<User | null>;
@@ -23,39 +26,77 @@ interface UserManagementState {
 export const useUserManagementStore = create<UserManagementState>((set, get) => ({
   users: [],
   companies: [],
+  currentUser: null,
+  isLoadingUsers: false,
+  isLoadingCompanies: false,
 
   fetchCompanies: async () => {
     try {
+      set({ isLoadingCompanies: true });
       const { data, error } = await supabase.from('companies').select('*');
       
       if (error) {
         console.error('Error fetching companies:', error);
+        set({ isLoadingCompanies: false });
         return;
       }
       
       const companies = data.map(company => ({
         ...company,
-        status: company.trial_status === 'active' ? 'active' : 'inactive'
+        id: company.id,
+        name: company.name,
+        status: company.trial_status === 'active' ? 'active' : 'inactive',
+        trialEndsAt: company.trial_end_date,
+        subscriptionEndsAt: null,
+        createdAt: company.created_at,
+        updatedAt: company.updated_at
       })) as Company[];
       
-      set({ companies });
+      set({ companies, isLoadingCompanies: false });
     } catch (error) {
       console.error('Error in fetchCompanies:', error);
+      set({ isLoadingCompanies: false });
     }
   },
 
   fetchUsers: async () => {
     try {
+      set({ isLoadingUsers: true });
       const { data, error } = await supabase.from('users').select('*');
       
       if (error) {
         console.error('Error fetching users:', error);
+        set({ isLoadingUsers: false });
         return;
       }
       
-      set({ users: data as User[] });
+      const mappedUsers = data.map(user => {
+        // Convert string dates to Date objects if they exist
+        const trialEndsAt = user.trial_ends_at ? new Date(user.trial_ends_at) : undefined;
+        
+        return {
+          id: user.id,
+          name: user.name || '',
+          email: user.email,
+          role: user.role as 'admin' | 'company' | 'tech',
+          phone: user.phone || '',
+          avatarUrl: user.avatar_url,
+          companyId: user.company_id,
+          status: user.status,
+          trialEndsAt,
+          subscriptionStatus: user.subscription_status as 'trial' | 'active' | 'expired' | 'canceled' | undefined
+        } as User;
+      });
+      
+      set({ 
+        users: mappedUsers, 
+        isLoadingUsers: false,
+        // Set the first user as current user for demo purposes
+        currentUser: mappedUsers.length > 0 ? mappedUsers[0] : null 
+      });
     } catch (error) {
       console.error('Error in fetchUsers:', error);
+      set({ isLoadingUsers: false });
     }
   },
 
@@ -72,7 +113,21 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         return null;
       }
       
-      return data as User;
+      // Convert string dates to Date objects if they exist
+      const trialEndsAt = data.trial_ends_at ? new Date(data.trial_ends_at) : undefined;
+      
+      return {
+        id: data.id,
+        name: data.name || '',
+        email: data.email,
+        role: data.role as 'admin' | 'company' | 'tech',
+        phone: data.phone || '',
+        avatarUrl: data.avatar_url,
+        companyId: data.company_id,
+        status: data.status,
+        trialEndsAt,
+        subscriptionStatus: data.subscription_status as 'trial' | 'active' | 'expired' | 'canceled' | undefined
+      } as User;
     } catch (error) {
       console.error('Error in fetchUserById:', error);
       return null;
@@ -94,7 +149,13 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       
       return {
         ...data,
-        status: data.trial_status === 'active' ? 'active' : 'inactive'
+        id: data.id,
+        name: data.name,
+        status: data.trial_status === 'active' ? 'active' : 'inactive',
+        trialEndsAt: data.trial_end_date,
+        subscriptionEndsAt: null,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
       } as Company;
     } catch (error) {
       console.error('Error in fetchCompanyById:', error);
@@ -105,14 +166,16 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
   addCompany: async (companyData: Omit<Company, 'id'>) => {
     try {
       // Prepare the data for Supabase
+      const supabaseData = {
+        name: companyData.name,
+        subscription_tier: companyData.subscription_tier || 'basic',
+        trial_status: companyData.status === 'trial' ? 'active' : null,
+        trial_period: companyData.trial_period || 30
+      };
+      
       const { data, error } = await supabase
         .from('companies')
-        .insert([{
-          name: companyData.name,
-          subscription_tier: companyData.subscription_tier || 'basic',
-          trial_status: companyData.status === 'trial' ? 'active' : null,
-          trial_period: companyData.trial_period || 30
-        }])
+        .insert(supabaseData)
         .select()
         .single();
       
@@ -123,7 +186,13 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       
       const newCompany = {
         ...data,
-        status: data.trial_status === 'active' ? 'active' : 'inactive'
+        id: data.id,
+        name: data.name,
+        status: data.trial_status === 'active' ? 'active' : 'inactive',
+        trialEndsAt: data.trial_end_date,
+        subscriptionEndsAt: null,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
       } as Company;
       
       set((state) => ({
@@ -204,18 +273,26 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
 
   addUser: async (userData: Omit<User, 'id'>) => {
     try {
+      // Convert Date to string for Supabase
+      const trialEndsAtStr = userData.trialEndsAt ? userData.trialEndsAt.toISOString() : null;
+      
+      // Prepare the data for Supabase
+      const supabaseData = {
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        phone: userData.phone,
+        status: userData.status,
+        company_id: userData.companyId,
+        subscription_status: userData.subscriptionStatus,
+        trial_ends_at: trialEndsAtStr,
+        avatar_url: userData.avatarUrl
+      };
+      
+      // Insert data into Supabase
       const { data, error } = await supabase
         .from('users')
-        .insert({
-          name: userData.name,
-          email: userData.email,
-          role: userData.role,
-          phone: userData.phone,
-          status: userData.status,
-          company_id: userData.companyId,
-          subscription_status: userData.subscriptionStatus,
-          trial_ends_at: userData.trialEndsAt
-        })
+        .insert(supabaseData)
         .select()
         .single();
       
@@ -224,13 +301,19 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         throw error;
       }
       
-      const newUser = {
-        ...data,
+      // Convert Supabase response to User type
+      const newUser: User = {
         id: data.id,
+        name: data.name || '',
+        email: data.email,
+        role: data.role as 'admin' | 'company' | 'tech',
+        phone: data.phone || '',
+        avatarUrl: data.avatar_url,
         companyId: data.company_id,
-        trialEndsAt: data.trial_ends_at,
-        subscriptionStatus: data.subscription_status
-      } as User;
+        status: data.status,
+        trialEndsAt: data.trial_ends_at ? new Date(data.trial_ends_at) : undefined,
+        subscriptionStatus: data.subscription_status as 'trial' | 'active' | 'expired' | 'canceled' | undefined
+      };
       
       set((state) => ({
         users: [...state.users, newUser]
@@ -245,7 +328,13 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
 
   updateUser: async (id: string, userData: Partial<User>) => {
     try {
-      // Prepare the data for Supabase
+      // Convert Date to string for Supabase if it exists
+      let trialEndsAtStr = undefined;
+      if (userData.trialEndsAt !== undefined) {
+        trialEndsAtStr = userData.trialEndsAt ? userData.trialEndsAt.toISOString() : null;
+      }
+      
+      // Prepare data for Supabase, mapping from User type to Supabase columns
       const supabaseData: any = {};
       
       if (userData.name !== undefined) supabaseData.name = userData.name;
@@ -255,7 +344,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       if (userData.status !== undefined) supabaseData.status = userData.status;
       if (userData.companyId !== undefined) supabaseData.company_id = userData.companyId;
       if (userData.subscriptionStatus !== undefined) supabaseData.subscription_status = userData.subscriptionStatus;
-      if (userData.trialEndsAt !== undefined) supabaseData.trial_ends_at = userData.trialEndsAt;
+      if (trialEndsAtStr !== undefined) supabaseData.trial_ends_at = trialEndsAtStr;
       if (userData.avatarUrl !== undefined) supabaseData.avatar_url = userData.avatarUrl;
       
       const { data, error } = await supabase
@@ -270,17 +359,26 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         return null;
       }
       
-      const updatedUser = {
-        ...data,
+      // Convert Supabase response to User type
+      const updatedUser: User = {
+        id: data.id,
+        name: data.name || '',
+        email: data.email,
+        role: data.role as 'admin' | 'company' | 'tech',
+        phone: data.phone || '',
+        avatarUrl: data.avatar_url,
         companyId: data.company_id,
-        trialEndsAt: data.trial_ends_at,
-        subscriptionStatus: data.subscription_status
-      } as User;
+        status: data.status,
+        trialEndsAt: data.trial_ends_at ? new Date(data.trial_ends_at) : undefined,
+        subscriptionStatus: data.subscription_status as 'trial' | 'active' | 'expired' | 'canceled' | undefined
+      };
       
       set((state) => ({
         users: state.users.map(user => 
           user.id === id ? updatedUser : user
-        )
+        ),
+        // Update currentUser if it matches the updated user
+        currentUser: state.currentUser?.id === id ? updatedUser : state.currentUser
       }));
       
       return updatedUser;

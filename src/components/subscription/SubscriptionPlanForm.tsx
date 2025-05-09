@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,7 +63,9 @@ export function SubscriptionPlanForm({
       trialPeriod: parseInt(trialPeriod) || 14,
       isActive,
       createdAt: initialData?.createdAt || new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      price: 0,
+      billingCycle: 'monthly'
     };
     
     onSubmit(plan);
