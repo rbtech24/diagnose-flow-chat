@@ -2,50 +2,45 @@
 export interface SubscriptionPlan {
   id: string;
   name: string;
-  description?: string;
-  price: number; // For backwards compatibility
-  monthlyPrice: number;
-  yearlyPrice: number;
-  billingCycle: 'monthly' | 'yearly'; // For backwards compatibility
+  description: string;
+  price: {
+    monthly: number;
+    yearly: number;
+  };
+  limits: {
+    maxTechnicians: number;
+    maxAdmins: number;
+    dailyDiagnostics: number;
+    storageLimit: number; // in GB
+  };
   features: string[];
-  maxTechnicians: number;
-  maxAdmins: number;
-  dailyDiagnostics: number;
-  storageLimit: number;
   trialPeriod: number;
   isActive: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  billingCycle: 'monthly' | 'yearly';
 }
-
-export type BillingCycle = 'monthly' | 'yearly';
 
 export interface License {
   id: string;
+  userId: string;
   companyId: string;
-  companyName: string;
   planId: string;
-  planName: string;
-  status: 'trial' | 'active' | 'expired' | 'canceled';
-  activeTechnicians: number;
-  startDate: Date;
-  endDate?: Date;
-  trialEndsAt?: Date;
-  lastPayment?: Date;
-  nextPayment?: Date;
+  status: 'active' | 'expired' | 'trial' | 'cancelled';
   createdAt: Date;
-  updatedAt: Date;
+  expiresAt: Date;
+  seats: number;
+  planDetails?: SubscriptionPlan;
 }
 
 export interface Payment {
   id: string;
-  licenseId: string;
-  companyId: string;
   amount: number;
   currency: string;
-  status: string;
-  paymentMethod: string;
-  paymentDate: Date;
-  invoiceUrl?: string;
-  createdAt: Date;
+  status: 'succeeded' | 'pending' | 'failed';
+  date: Date;
+  licenseId: string;
+  method: string;
 }
+
+export type BillingCycle = 'monthly' | 'yearly';

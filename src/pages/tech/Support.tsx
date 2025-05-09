@@ -1,143 +1,146 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { SupportTicket } from "@/types/support";
-import { useNavigate } from "react-router-dom";
-import { fetchSupportTickets } from "@/api/supportTicketsApi";
-import { Loader2 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSupportTickets } from "@/hooks/useSupportTickets";
+import { SupportTicket } from "@/components/support/SupportTicket";
+import { NewTicketForm } from "@/components/support/NewTicketForm";
+import { useUserManagementStore } from "@/store/userManagementStore";
+import { toast } from "sonner";
 
-export default function TechSupport() {
-  const [tickets, setTickets] = useState<SupportTicket[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
-  useEffect(() => {
-    fetchTickets();
-  }, []);
-
-  const fetchTickets = async () => {
-    try {
-      setLoading(true);
-      const data = await fetchSupportTickets();
-      setTickets(data);
-    } catch (error) {
-      console.error("Error fetching tickets:", error);
-      toast({
-        variant: "destructive",
-        title: "Error loading tickets",
-        description: "Failed to load support tickets. Please try again later."
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
+export default function Support() {
+  const [isNewTicketOpen, setIsNewTicketOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("open");
+  
+  // Get the current tech user for the company ID
+  const { users } = useUserManagementStore();
+  const currentUser = users.find(user => user.role === 'tech') || users[0];
+  const companyId = currentUser?.companyId;
+  
+  // Use the support tickets hook with the company ID
+  const { 
+    tickets, 
+    isLoading, 
+    error, 
+    loadTickets, 
+    createTicket, 
+    updateTicket, 
+    addMessage 
+  } = useSupportTickets(activeTab, companyId);
+  
   const filteredTickets = tickets.filter(ticket => 
-    ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    ticket.description.toLowerCase().includes(searchTerm.toLowerCase())
+    ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    ticket.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "open": return "bg-blue-100 text-blue-800";
-      case "in_progress": return "bg-yellow-100 text-yellow-800";
-      case "resolved": return "bg-green-100 text-green-800";
-      case "closed": return "bg-gray-100 text-gray-800";
-      default: return "bg-gray-100 text-gray-800";
+  
+  const handleCreateTicket = async (ticketData: any) => {
+    try {
+      await createTicket({
+        ...ticketData,
+        user_id: currentUser?.id,
+        company_id: companyId
+      });
+      toast.success("Support ticket created successfully");
+      setIsNewTicketOpen(false);
+    } catch (error) {
+      toast.error("Failed to create ticket");
+      console.error(error);
     }
   };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "low": return "bg-gray-100 text-gray-800";
-      case "medium": return "bg-blue-100 text-blue-800";
-      case "high": return "bg-orange-100 text-orange-800";
-      case "critical": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
+  
+  const handleUpdateTicket = async (ticketId: string, updateData: any) => {
+    try {
+      await updateTicket(ticketId, updateData);
+      toast.success("Ticket updated successfully");
+    } catch (error) {
+      toast.error("Failed to update ticket");
+      console.error(error);
     }
   };
-
+  
+  const handleAddMessage = async (ticketId: string, content: string) => {
+    try {
+      await addMessage({
+        content,
+        ticket_id: ticketId
+      });
+      toast.success("Message added successfully");
+    } catch (error) {
+      toast.error("Failed to add message");
+      console.error(error);
+    }
+  };
+  
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    loadTickets(value);
+  };
+  
   return (
     <div className="container mx-auto p-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Support Tickets</h1>
-          <p className="text-muted-foreground">View and manage tech support requests</p>
-        </div>
-        <div>
-          <Button onClick={() => navigate("/tech/support/new")}>Create Ticket</Button>
-        </div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Support</h1>
+        <Button onClick={() => setIsNewTicketOpen(true)}>New Ticket</Button>
       </div>
-
-      <div className="mb-6">
-        <Input
-          placeholder="Search tickets..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-md"
-        />
-      </div>
-
-      {loading ? (
-        <div className="space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="border rounded-lg p-6 animate-pulse">
-              <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-            </div>
-          ))}
-        </div>
-      ) : filteredTickets.length > 0 ? (
-        <div className="space-y-4">
-          {filteredTickets.map((ticket) => (
-            <div 
-              key={ticket.id} 
-              className="border rounded-lg p-6 hover:border-primary/50 transition-colors cursor-pointer"
-              onClick={() => navigate(`/tech/support/${ticket.id}`)}
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    {ticket.created_by_user && (
-                      <Avatar className="h-6 w-6">
-                        <AvatarImage src={ticket.created_by_user.avatar_url} alt={ticket.created_by_user.name} />
-                        <AvatarFallback>{ticket.created_by_user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                    )}
-                    <span className="text-sm text-muted-foreground">
-                      {ticket.created_by_user?.name || "Unknown user"} • {new Date(ticket.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <h3 className="font-medium text-lg">{ticket.title}</h3>
-                </div>
-                <div className="flex gap-2">
-                  <Badge className={getStatusColor(ticket.status)}>
-                    {ticket.status.replace("_", " ")}
-                  </Badge>
-                  <Badge className={getPriorityColor(ticket.priority)}>
-                    {ticket.priority}
-                  </Badge>
-                </div>
+      
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Support Tickets</CardTitle>
+          <CardDescription>
+            View and manage your support requests
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-between items-center mb-4">
+            <Input
+              placeholder="Search tickets..."
+              className="max-w-sm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <Tabs value={activeTab} onValueChange={handleTabChange}>
+              <TabsList>
+                <TabsTrigger value="open">Open</TabsTrigger>
+                <TabsTrigger value="resolved">Resolved</TabsTrigger>
+                <TabsTrigger value="closed">Closed</TabsTrigger>
+                <TabsTrigger value="all">All</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+          
+          <div className="space-y-4">
+            {isLoading ? (
+              <div className="text-center py-8">Loading tickets...</div>
+            ) : error ? (
+              <div className="text-center py-8 text-red-500">
+                {error.message || "Failed to load tickets"}
               </div>
-              <p className="text-muted-foreground line-clamp-2 mb-2">
-                {ticket.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12 border rounded-lg">
-          <h3 className="text-lg font-medium mb-2">No tickets found</h3>
-          <p className="text-muted-foreground mb-4">Try adjusting your search criteria</p>
-          <Button onClick={() => navigate("/tech/support/new")}>Create New Ticket</Button>
-        </div>
+            ) : filteredTickets.length === 0 ? (
+              <div className="text-center py-8">
+                {searchQuery ? "No tickets match your search" : "No tickets found"}
+              </div>
+            ) : (
+              filteredTickets.map(ticket => (
+                <SupportTicket 
+                  key={ticket.id}
+                  ticket={ticket} 
+                  onUpdate={(data) => handleUpdateTicket(ticket.id, data)} 
+                  onAddMessage={(content) => handleAddMessage(ticket.id, content)} 
+                />
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
+      
+      {isNewTicketOpen && (
+        <NewTicketForm 
+          onSubmit={handleCreateTicket} 
+          onCancel={() => setIsNewTicketOpen(false)} 
+        />
       )}
     </div>
   );

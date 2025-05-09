@@ -79,6 +79,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         avatarUrl: user.avatar_url,
         companyId: user.company_id,
         status: user.status,
+        // Convert string dates to Date objects if they exist
         trialEndsAt: user.trial_ends_at ? new Date(user.trial_ends_at) : undefined,
         subscriptionStatus: user.subscription_status as 'trial' | 'active' | 'expired' | 'canceled' | undefined
       })) as User[];
@@ -112,6 +113,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         avatarUrl: data.avatar_url,
         companyId: data.company_id,
         status: data.status,
+        // Convert string dates to Date objects if they exist
         trialEndsAt: data.trial_ends_at ? new Date(data.trial_ends_at) : undefined,
         subscriptionStatus: data.subscription_status as 'trial' | 'active' | 'expired' | 'canceled' | undefined
       } as User;
@@ -153,14 +155,16 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
   addCompany: async (companyData: Omit<Company, 'id'>) => {
     try {
       // Prepare the data for Supabase
+      const supabaseData = {
+        name: companyData.name,
+        subscription_tier: companyData.subscription_tier || 'basic',
+        trial_status: companyData.status === 'trial' ? 'active' : null,
+        trial_period: companyData.trial_period || 30
+      };
+      
       const { data, error } = await supabase
         .from('companies')
-        .insert({
-          name: companyData.name,
-          subscription_tier: companyData.subscription_tier || 'basic',
-          trial_status: companyData.status === 'trial' ? 'active' : null,
-          trial_period: companyData.trial_period || 30
-        })
+        .insert(supabaseData)
         .select()
         .single();
       
@@ -264,6 +268,9 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
 
   addUser: async (userData: Omit<User, 'id'>) => {
     try {
+      // Convert Date object to ISO string for storage
+      const trialEndsAtIso = userData.trialEndsAt ? userData.trialEndsAt.toISOString() : null;
+      
       const supabaseData = {
         name: userData.name,
         email: userData.email,
@@ -272,7 +279,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         status: userData.status,
         company_id: userData.companyId,
         subscription_status: userData.subscriptionStatus,
-        trial_ends_at: userData.trialEndsAt ? userData.trialEndsAt.toISOString() : null
+        trial_ends_at: trialEndsAtIso
       };
       
       const { data, error } = await supabase
@@ -295,6 +302,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         avatarUrl: data.avatar_url,
         companyId: data.company_id,
         status: data.status,
+        // Convert string dates to Date objects if they exist
         trialEndsAt: data.trial_ends_at ? new Date(data.trial_ends_at) : undefined,
         subscriptionStatus: data.subscription_status as 'trial' | 'active' | 'expired' | 'canceled' | undefined
       } as User;
@@ -348,6 +356,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         avatarUrl: data.avatar_url,
         companyId: data.company_id,
         status: data.status,
+        // Convert string dates to Date objects if they exist
         trialEndsAt: data.trial_ends_at ? new Date(data.trial_ends_at) : undefined,
         subscriptionStatus: data.subscription_status as 'trial' | 'active' | 'expired' | 'canceled' | undefined
       } as User;
