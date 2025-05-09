@@ -276,17 +276,21 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       // Convert Date to string for Supabase
       const trialEndsAtStr = userData.trialEndsAt ? userData.trialEndsAt.toISOString() : null;
       
+      // Generate a UUID for the new user (Supabase will use this ID)
+      const newId = crypto.randomUUID();
+      
       // Prepare the data for Supabase
       const supabaseData = {
+        id: newId, // Add the ID field which is required by Supabase
         name: userData.name,
         email: userData.email,
         role: userData.role,
-        phone: userData.phone,
-        status: userData.status,
-        company_id: userData.companyId,
-        subscription_status: userData.subscriptionStatus,
+        phone: userData.phone || null,
+        status: userData.status || 'active',
+        company_id: userData.companyId || null,
+        subscription_status: userData.subscriptionStatus || null,
         trial_ends_at: trialEndsAtStr,
-        avatar_url: userData.avatarUrl
+        avatar_url: userData.avatarUrl || null
       };
       
       // Insert data into Supabase
