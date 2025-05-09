@@ -83,9 +83,9 @@ export function useCompanyTechnicians() {
   const fetchCompanyMetrics = async (companyId: string) => {
     try {
       // Try to get real metrics data from your repairs table
-      const { data: activeRepairsData, error: repairsError } = await supabase
+      const { data, count, error: repairsError } = await supabase
         .from('repairs')
-        .select('id', { count: 'exact' })
+        .select('id', { count: 'exact', head: true })
         .eq('company_id', companyId)
         .in('status', ['assigned', 'in_progress']);
 
@@ -93,10 +93,10 @@ export function useCompanyTechnicians() {
         console.error('Error fetching active repairs:', repairsError);
       } else {
         // Update active jobs if we have real data
-        if (activeRepairsData?.length !== undefined) {
+        if (count !== null) {
           setMetrics(prev => ({
             ...prev,
-            activeJobs: activeRepairsData.length
+            activeJobs: count
           }));
         }
       }
@@ -165,10 +165,10 @@ export function useCompanyTechnicians() {
                 .eq('id', tech.id)
                 .single();
               
-              // Get active jobs count - using the correct approach for counting records
+              // Get active jobs count using the correct approach
               const { data: activeJobsData, count: activeJobsCount, error: countError } = await supabase
                 .from('repairs')
-                .select('id', { count: 'exact' })
+                .select('id', { count: 'exact', head: true })
                 .eq('technician_id', tech.id)
                 .in('status', ['assigned', 'in_progress']);
                 
