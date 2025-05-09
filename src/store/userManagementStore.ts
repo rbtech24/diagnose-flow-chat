@@ -1,572 +1,270 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { User, TechnicianInvite } from '@/types/user';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-
-export interface Company {
-  id: string;
-  name: string;
-  contactName: string;
-  email: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  zipCode?: string;
-  country?: string;
-  planId?: string;
-  planName?: string;
-  status: 'active' | 'inactive' | 'trial' | 'expired';
-  trialEndsAt?: Date;
-  subscriptionEndsAt?: Date;
-  technicianCount: number;
-  createdAt: Date;
-  updatedAt: Date;
-  logoUrl?: string; // Add new field for company logo
-}
+import { Company, User } from '@/types';
+import { logActivity } from '@/api/activityLogsApi';
 
 interface UserManagementState {
-  users: User[];
   companies: Company[];
-  techniciansInvites: TechnicianInvite[];
-  isLoadingUsers: boolean;
+  users: User[];
+  currentUser: User | null;
   isLoadingCompanies: boolean;
-  isLoadingInvites: boolean;
-  
-  // User Actions
-  fetchUsers: () => Promise<void>;
-  fetchUserById: (id: string) => Promise<User | undefined>;
-  addUser: (user: Omit<User, 'id'>) => Promise<User>;
-  updateUser: (id: string, userData: Partial<User>) => Promise<User | undefined>;
-  deleteUser: (id: string) => Promise<boolean>;
-  resetUserPassword: (id: string, newPassword: string) => Promise<boolean>;
-  
-  // Company Actions
+  isLoadingUsers: boolean;
   fetchCompanies: () => Promise<void>;
-  fetchCompanyById: (id: string) => Promise<Company | undefined>;
-  addCompany: (company: Omit<Company, 'id' | 'createdAt' | 'updatedAt' | 'technicianCount'>) => Promise<Company>;
-  updateCompany: (id: string, companyData: Partial<Company>) => Promise<Company | undefined>;
-  deleteCompany: (id: string) => Promise<boolean>;
-  
-  // Technician Invite Actions
-  fetchTechnicianInvites: (companyId?: string) => Promise<void>;
-  addTechnicianInvite: (invite: Omit<TechnicianInvite, 'id' | 'createdAt' | 'expiresAt' | 'status'>) => Promise<TechnicianInvite>;
-  cancelTechnicianInvite: (inviteId: string) => Promise<boolean>;
+  fetchUsers: () => Promise<void>;
+  createCompany: (companyData: Omit<Company, 'id'>) => Promise<Company | null>;
+  updateCompany: (companyId: string, companyData: Partial<Company>) => Promise<Company | null>;
+  deleteCompany: (companyId: string) => Promise<boolean>;
+  createUser: (userData: Omit<User, 'id'>) => Promise<User | null>;
+  updateUser: (userId: string, userData: Partial<User>) => Promise<User | null>;
+  deleteUser: (userId: string, email: string, role: string) => Promise<boolean>;
+  setCurrentUser: (user: User | null) => void;
 }
 
-// In a real app, these would come from a database
-const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+export const useUserManagementStore = create<UserManagementState>((set, get) => ({
+  companies: [],
+  users: [],
+  currentUser: null,
+  isLoadingCompanies: false,
+  isLoadingUsers: false,
+  fetchCompanies: async () => {
+    set({ isLoadingCompanies: true });
+    try {
+      const { data, error } = await supabase
+        .from('companies')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-// Update mock data - Service Wranglers LLC with one technician
-const initialUsers: User[] = [
-  {
-    id: "admin-1",
-    name: "Admin User",
-    email: "admin@repairautopilot.com",
-    role: "admin",
-    phone: "(555) 123-4567",
-    subscriptionStatus: "active",
-    avatarUrl: "https://i.pravatar.cc/150?u=admin1",
-    createdAt: new Date(2022, 5, 15),
-  },
-  {
-    id: "company-1",
-    name: "Sarah Smith",
-    email: "sarah@acmerepairs.com",
-    role: "company",
-    phone: "(555) 987-6543",
-    companyId: "company-acme-1",
-    subscriptionStatus: "active",
-    isMainAdmin: true,
-    avatarUrl: "https://i.pravatar.cc/150?u=sarah",
-    createdAt: new Date(2022, 8, 10),
-  },
-  {
-    id: "tech-1",
-    name: "Mike Johnson",
-    email: "mike@acmerepairs.com",
-    role: "tech",
-    phone: "(555) 456-7890",
-    companyId: "company-acme-1",
-    avatarUrl: "https://i.pravatar.cc/150?u=mike",
-    createdAt: new Date(2023, 1, 22),
-  },
-  // Adding a technician for Service Wranglers
-  {
-    id: "tech-2",
-    name: "Alex Rodriguez",
-    email: "alex@servicewranglers.com",
-    role: "tech",
-    phone: "(555) 789-0123",
-    companyId: "company-service-1",
-    avatarUrl: "https://i.pravatar.cc/150?u=alex",
-    createdAt: new Date(2023, 3, 15),
-    status: "active"
-  },
-  // Company admin for Service Wranglers
-  {
-    id: "company-2",
-    name: "Jessica Taylor",
-    email: "jessica@servicewranglers.com",
-    role: "company",
-    phone: "(555) 321-6547",
-    companyId: "company-service-1",
-    subscriptionStatus: "active",
-    isMainAdmin: true,
-    avatarUrl: "https://i.pravatar.cc/150?u=jessica",
-    createdAt: new Date(2023, 2, 5),
-    status: "active"
-  }
-];
-
-const initialCompanies: Company[] = [
-  {
-    id: "company-acme-1",
-    name: "Acme Repairs",
-    contactName: "Sarah Smith",
-    email: "contact@acmerepairs.com",
-    phone: "(555) 987-6543",
-    address: "123 Main St",
-    city: "Los Angeles",
-    state: "CA",
-    zipCode: "90001",
-    country: "USA",
-    planId: "plan-premium-1",
-    planName: "Premium",
-    status: "active",
-    technicianCount: 1,
-    createdAt: new Date(2023, 0, 15),
-    updatedAt: new Date(2023, 2, 10),
-    logoUrl: "https://example.com/logo-acme.png"
-  },
-  // Add Service Wranglers LLC with 1 technician
-  {
-    id: "company-service-1",
-    name: "Service Wranglers LLC",
-    contactName: "Jessica Taylor",
-    email: "contact@servicewranglers.com",
-    phone: "(555) 321-6547",
-    address: "789 Tech Blvd",
-    city: "Austin",
-    state: "TX",
-    zipCode: "73301",
-    country: "USA",
-    planId: "plan-basic-1",
-    planName: "Basic",
-    status: "active",
-    technicianCount: 1,
-    createdAt: new Date(2023, 2, 5),
-    updatedAt: new Date(2023, 4, 1),
-  },
-  {
-    id: "company-fast-2",
-    name: "Fast Fix Solutions",
-    contactName: "John Davis",
-    email: "contact@fastfix.com",
-    phone: "(555) 123-4567",
-    address: "456 Oak Ave",
-    city: "San Francisco",
-    state: "CA",
-    zipCode: "94103",
-    country: "USA",
-    planId: "plan-basic-1",
-    planName: "Basic",
-    status: "trial",
-    trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    technicianCount: 0,
-    createdAt: new Date(2023, 3, 5),
-    updatedAt: new Date(2023, 3, 5),
-  },
-  {
-    id: "company-expert-3",
-    name: "Expert Appliance Repair",
-    contactName: "Lisa Johnson",
-    email: "contact@expertrepair.com",
-    phone: "(555) 567-8901",
-    address: "789 Pine St",
-    city: "Seattle",
-    state: "WA",
-    zipCode: "98101",
-    country: "USA",
-    planId: "plan-enterprise-1",
-    planName: "Enterprise",
-    status: "active",
-    technicianCount: 0,
-    createdAt: new Date(2023, 1, 20),
-    updatedAt: new Date(2023, 4, 15),
-    logoUrl: "https://example.com/logo-expert.png"
-  }
-];
-
-export const useUserManagementStore = create<UserManagementState>()(
-  persist(
-    (set, get) => ({
-      users: initialUsers,
-      companies: initialCompanies,
-      techniciansInvites: [],
-      isLoadingUsers: false,
-      isLoadingCompanies: false,
-      isLoadingInvites: false,
-      
-      // User Actions
-      fetchUsers: async () => {
-        set({ isLoadingUsers: true });
-        try {
-          // In a real app, this would be an API call to fetch users
-          // For now, we'll just use the mock data
-          // const { data, error } = await supabase.from('users').select('*');
-          // if (error) throw error;
-          // set({ users: data });
-          
-          // We'll simulate a delay to mimic an API call
-          await new Promise(resolve => setTimeout(resolve, 500));
-          // We're already setting the initial users in the store
-        } catch (error) {
-          console.error('Error fetching users:', error);
-          toast.error('Failed to fetch users');
-        } finally {
-          set({ isLoadingUsers: false });
-        }
-      },
-      
-      fetchUserById: async (id: string) => {
-        try {
-          // In a real app, this would be an API call to fetch a user by ID
-          // For now, we'll just find the user in our store
-          // const { data, error } = await supabase.from('users').select('*').eq('id', id).single();
-          // if (error) throw error;
-          // return data;
-          
-          return get().users.find(user => user.id === id);
-        } catch (error) {
-          console.error(`Error fetching user ${id}:`, error);
-          toast.error('Failed to fetch user details');
-          return undefined;
-        }
-      },
-      
-      addUser: async (userData) => {
-        try {
-          // In a real app, this would be an API call to add a user
-          // For now, we'll just add the user to our store
-          // const { data, error } = await supabase.from('users').insert([userData]).select().single();
-          // if (error) throw error;
-          
-          const newUser: User = {
-            ...userData,
-            id: generateId()
-          };
-          
-          set(state => ({
-            users: [...state.users, newUser]
-          }));
-          
-          toast.success('User added successfully');
-          return newUser;
-        } catch (error) {
-          console.error('Error adding user:', error);
-          toast.error('Failed to add user');
-          throw error;
-        }
-      },
-      
-      updateUser: async (id, userData) => {
-        try {
-          // In a real app, this would be an API call to update a user
-          // For now, we'll just update the user in our store
-          // const { data, error } = await supabase.from('users').update(userData).eq('id', id).select().single();
-          // if (error) throw error;
-          
-          let updatedUser: User | undefined;
-          
-          set(state => {
-            const updatedUsers = state.users.map(user => {
-              if (user.id === id) {
-                updatedUser = { ...user, ...userData };
-                return updatedUser;
-              }
-              return user;
-            });
-            
-            return { users: updatedUsers };
-          });
-          
-          if (updatedUser) {
-            toast.success('User updated successfully');
-            return updatedUser;
-          }
-          
-          toast.error('User not found');
-          return undefined;
-        } catch (error) {
-          console.error(`Error updating user ${id}:`, error);
-          toast.error('Failed to update user');
-          return undefined;
-        }
-      },
-      
-      deleteUser: async (id) => {
-        try {
-          // In a real app, this would be an API call to delete a user
-          // For now, we'll just remove the user from our store
-          // const { error } = await supabase.from('users').delete().eq('id', id);
-          // if (error) throw error;
-          
-          set(state => ({
-            users: state.users.filter(user => user.id !== id)
-          }));
-          
-          toast.success('User deleted successfully');
-          return true;
-        } catch (error) {
-          console.error(`Error deleting user ${id}:`, error);
-          toast.error('Failed to delete user');
-          return false;
-        }
-      },
-      
-      resetUserPassword: async (id, newPassword) => {
-        try {
-          // In a real app, this would be an API call to reset a user's password
-          // For now, we'll just simulate success
-          // In production, you'd typically send a reset link or set a temporary password
-          
-          // const { error } = await supabase.auth.admin.updateUserById(id, {
-          //   password: newPassword,
-          // });
-          // if (error) throw error;
-          
-          toast.success('Password reset successfully');
-          return true;
-        } catch (error) {
-          console.error(`Error resetting password for user ${id}:`, error);
-          toast.error('Failed to reset password');
-          return false;
-        }
-      },
-      
-      // Company Actions
-      fetchCompanies: async () => {
-        set({ isLoadingCompanies: true });
-        try {
-          // In a real app, this would be an API call to fetch companies
-          // For now, we'll just use the mock data
-          // const { data, error } = await supabase.from('companies').select('*');
-          // if (error) throw error;
-          // set({ companies: data });
-          
-          // We'll simulate a delay to mimic an API call
-          await new Promise(resolve => setTimeout(resolve, 500));
-          // We're already setting the initial companies in the store
-        } catch (error) {
-          console.error('Error fetching companies:', error);
-          toast.error('Failed to fetch companies');
-        } finally {
-          set({ isLoadingCompanies: false });
-        }
-      },
-      
-      fetchCompanyById: async (id) => {
-        try {
-          // In a real app, this would be an API call to fetch a company by ID
-          // For now, we'll just find the company in our store
-          // const { data, error } = await supabase.from('companies').select('*').eq('id', id).single();
-          // if (error) throw error;
-          // return data;
-          
-          return get().companies.find(company => company.id === id);
-        } catch (error) {
-          console.error(`Error fetching company ${id}:`, error);
-          toast.error('Failed to fetch company details');
-          return undefined;
-        }
-      },
-      
-      addCompany: async (companyData) => {
-        try {
-          // In a real app, this would be an API call to add a company
-          // For now, we'll just add the company to our store
-          // const { data, error } = await supabase.from('companies').insert([companyData]).select().single();
-          // if (error) throw error;
-          
-          const newCompany: Company = {
-            ...companyData,
-            id: generateId(),
-            technicianCount: 0,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-          
-          set(state => ({
-            companies: [...state.companies, newCompany]
-          }));
-          
-          toast.success('Company added successfully');
-          return newCompany;
-        } catch (error) {
-          console.error('Error adding company:', error);
-          toast.error('Failed to add company');
-          throw error;
-        }
-      },
-      
-      updateCompany: async (id, companyData) => {
-        try {
-          // In a real app, this would be an API call to update a company
-          // For now, we'll just update the company in our store
-          // const { data, error } = await supabase.from('companies').update(companyData).eq('id', id).select().single();
-          // if (error) throw error;
-          
-          let updatedCompany: Company | undefined;
-          
-          set(state => {
-            const updatedCompanies = state.companies.map(company => {
-              if (company.id === id) {
-                updatedCompany = { 
-                  ...company, 
-                  ...companyData,
-                  updatedAt: new Date()
-                };
-                return updatedCompany;
-              }
-              return company;
-            });
-            
-            return { companies: updatedCompanies };
-          });
-          
-          if (updatedCompany) {
-            toast.success('Company updated successfully');
-            return updatedCompany;
-          }
-          
-          toast.error('Company not found');
-          return undefined;
-        } catch (error) {
-          console.error(`Error updating company ${id}:`, error);
-          toast.error('Failed to update company');
-          return undefined;
-        }
-      },
-      
-      deleteCompany: async (id) => {
-        try {
-          // In a real app, this would be an API call to delete a company
-          // For now, we'll just remove the company from our store
-          // const { error } = await supabase.from('companies').delete().eq('id', id);
-          // if (error) throw error;
-          
-          set(state => ({
-            companies: state.companies.filter(company => company.id !== id),
-            // Also remove all users associated with this company
-            users: state.users.filter(user => user.companyId !== id)
-          }));
-          
-          toast.success('Company deleted successfully');
-          return true;
-        } catch (error) {
-          console.error(`Error deleting company ${id}:`, error);
-          toast.error('Failed to delete company');
-          return false;
-        }
-      },
-      
-      // Technician Invite Actions
-      fetchTechnicianInvites: async (companyId) => {
-        set({ isLoadingInvites: true });
-        try {
-          // In a real app, this would be an API call to fetch technician invites
-          // For now, we'll just simulate fetching invites
-          
-          // let query = supabase.from('technician_invites').select('*');
-          // if (companyId) {
-          //   query = query.eq('companyId', companyId);
-          // }
-          // const { data, error } = await query;
-          // if (error) throw error;
-          // set({ techniciansInvites: data });
-          
-          // For now, we'll just return the technician invites in the store
-          await new Promise(resolve => setTimeout(resolve, 500));
-        } catch (error) {
-          console.error('Error fetching technician invites:', error);
-          toast.error('Failed to fetch technician invites');
-        } finally {
-          set({ isLoadingInvites: false });
-        }
-      },
-      
-      addTechnicianInvite: async (inviteData) => {
-        try {
-          // In a real app, this would be an API call to add a technician invite
-          // For now, we'll just add the invite to our store
-          // const { data, error } = await supabase.from('technician_invites').insert([inviteData]).select().single();
-          // if (error) throw error;
-          
-          const newInvite: TechnicianInvite = {
-            ...inviteData,
-            id: generateId(),
-            status: 'pending',
-            createdAt: new Date(),
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-          };
-          
-          set(state => ({
-            techniciansInvites: [...state.techniciansInvites, newInvite]
-          }));
-          
-          // Update technician count for the company
-          get().updateCompany(inviteData.companyId, {
-            technicianCount: get().companies.find(c => c.id === inviteData.companyId)?.technicianCount! + 1
-          });
-          
-          toast.success('Technician invitation sent successfully');
-          return newInvite;
-        } catch (error) {
-          console.error('Error adding technician invite:', error);
-          toast.error('Failed to send technician invitation');
-          throw error;
-        }
-      },
-      
-      cancelTechnicianInvite: async (inviteId) => {
-        try {
-          // In a real app, this would be an API call to cancel a technician invite
-          // For now, we'll just remove the invite from our store
-          // const { error } = await supabase.from('technician_invites').delete().eq('id', inviteId);
-          // if (error) throw error;
-          
-          const invite = get().techniciansInvites.find(i => i.id === inviteId);
-          
-          if (invite) {
-            set(state => ({
-              techniciansInvites: state.techniciansInvites.filter(invite => invite.id !== inviteId)
-            }));
-            
-            // Update technician count for the company
-            get().updateCompany(invite.companyId, {
-              technicianCount: Math.max(0, get().companies.find(c => c.id === invite.companyId)?.technicianCount! - 1)
-            });
-          }
-          
-          toast.success('Technician invitation cancelled');
-          return true;
-        } catch (error) {
-          console.error(`Error cancelling technician invite ${inviteId}:`, error);
-          toast.error('Failed to cancel technician invitation');
-          return false;
-        }
-      },
-    }),
-    {
-      name: 'user-management-store',
-      // Only persist the users and companies arrays, not the loading states
-      partialize: (state) => ({
-        users: state.users,
-        companies: state.companies,
-        techniciansInvites: state.techniciansInvites,
-      }),
+      if (error) {
+        console.error("Error fetching companies:", error);
+        throw error;
+      }
+      set({ companies: data || [] });
+    } catch (error) {
+      console.error("Failed to fetch companies:", error);
+    } finally {
+      set({ isLoadingCompanies: false });
     }
-  )
-);
+  },
+  fetchUsers: async () => {
+    set({ isLoadingUsers: true });
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error("Error fetching users:", error);
+        throw error;
+      }
+      set({ users: data || [] });
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+    } finally {
+      set({ isLoadingUsers: false });
+    }
+  },
+  createCompany: async (companyData: Omit<Company, 'id'>) => {
+    try {
+      const { data: response, error } = await supabase
+        .from('companies')
+        .insert([companyData])
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error creating company:", error);
+        throw error;
+      }
+
+      set(state => ({
+        companies: [response, ...state.companies],
+      }));
+
+      try {
+        await logActivity({
+          activity_type: 'company_created',
+          description: `Company ${companyData.name} created`,
+          metadata: { companyId: response.id }
+        });
+      } catch (error) {
+        console.error('Failed to log activity:', error);
+      }
+
+      return response;
+    } catch (error) {
+      console.error("Failed to create company:", error);
+      return null;
+    }
+  },
+  updateCompany: async (companyId: string, companyData: Partial<Company>) => {
+    try {
+      const { data: response, error } = await supabase
+        .from('companies')
+        .update(companyData)
+        .eq('id', companyId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error updating company:", error);
+        throw error;
+      }
+
+      set(state => ({
+        companies: state.companies.map(company =>
+          company.id === companyId ? { ...company, ...response } : company
+        ),
+      }));
+
+      try {
+        await logActivity({
+          activity_type: 'company_updated',
+          description: `Company ${response.name} updated`,
+          metadata: { companyId: response.id }
+        });
+      } catch (error) {
+        console.error('Failed to log activity:', error);
+      }
+
+      return response;
+    } catch (error) {
+      console.error("Failed to update company:", error);
+      return null;
+    }
+  },
+  deleteCompany: async (companyId: string) => {
+    try {
+      const { error } = await supabase
+        .from('companies')
+        .delete()
+        .eq('id', companyId);
+
+      if (error) {
+        console.error("Error deleting company:", error);
+        throw error;
+      }
+
+      set(state => ({
+        companies: state.companies.filter(company => company.id !== companyId),
+      }));
+
+      return true;
+    } catch (error) {
+      console.error("Failed to delete company:", error);
+      return false;
+    }
+  },
+  createUser: async (userData: Omit<User, 'id'>) => {
+    try {
+      const { data: response, error } = await supabase
+        .from('users')
+        .insert([userData])
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error creating user:", error);
+        throw error;
+      }
+
+      set(state => ({
+        users: [response, ...state.users],
+      }));
+
+      try {
+        await logActivity({
+          activity_type: 'user_created',
+          description: `User ${userData.email} created`,
+          metadata: { 
+            userId: response.id,
+            role: userData.role,
+            companyId: userData.companyId 
+          }
+        });
+      } catch (error) {
+        console.error('Failed to log activity:', error);
+      }
+
+      return response;
+    } catch (error) {
+      console.error("Failed to create user:", error);
+      return null;
+    }
+  },
+  updateUser: async (userId: string, userData: Partial<User>) => {
+    try {
+      const { data: response, error } = await supabase
+        .from('users')
+        .update(userData)
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error updating user:", error);
+        throw error;
+      }
+
+      set(state => ({
+        users: state.users.map(user =>
+          user.id === userId ? { ...user, ...response } : user
+        ),
+      }));
+
+      try {
+        await logActivity({
+          activity_type: 'user_updated',
+          description: `User ${response.email} updated`,
+          metadata: { 
+            userId: response.id,
+            role: response.role,
+            companyId: response.companyId 
+          }
+        });
+      } catch (error) {
+        console.error('Failed to log activity:', error);
+      }
+
+      return response;
+    } catch (error) {
+      console.error("Failed to update user:", error);
+      return null;
+    }
+  },
+  deleteUser: async (userId: string, email: string, role: string) => {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', userId);
+
+      if (error) {
+        console.error("Error deleting user:", error);
+        throw error;
+      }
+
+      set(state => ({
+        users: state.users.filter(user => user.id !== userId),
+      }));
+
+      try {
+        await logActivity({
+          activity_type: 'user_deleted',
+          description: `User deleted: ${email}`,
+          metadata: { userId, email, role }
+        });
+      } catch (error) {
+        console.error('Failed to log activity:', error);
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+      return false;
+    }
+  },
+  setCurrentUser: (user: User | null) => {
+    set({ currentUser: user });
+  },
+}));

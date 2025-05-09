@@ -1,59 +1,91 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, Building2, Users, Wrench, FileText, MessageSquare, AlertTriangle } from "lucide-react";
+import { Search, Building2, Users, Wrench, FileText, MessageSquare, AlertTriangle, Clock } from "lucide-react";
 import { useActivityLogs } from "@/hooks/useActivityLogs";
 import { ActivityTimeframe } from "@/api/activityLogsApi";
+import { toast } from "sonner";
 
 export default function ActivityPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTimeframe, setSelectedTimeframe] = useState<ActivityTimeframe>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
-  const { logs: activityLogs, isLoading: loading, error, loadLogs } = useActivityLogs();
+  const [activeTab, setActiveTab] = useState('all');
   
+  const { 
+    logs: activityLogs, 
+    isLoading: loading, 
+    error, 
+    loadLogs 
+  } = useActivityLogs();
+  
+  // Filter logs based on the selected tab
+  const filteredLogs = activityLogs.filter(log => {
+    if (activeTab === 'all') return true;
+    if (activeTab === 'system') return log.activity_type.includes('system');
+    if (activeTab === 'users') return log.activity_type.includes('user');
+    if (activeTab === 'companies') return log.activity_type.includes('company');
+    if (activeTab === 'billing') return log.activity_type.includes('billing');
+    return true;
+  });
+
   // Fetch activity logs from database
   useEffect(() => {
-    loadLogs(selectedTimeframe, selectedType, searchQuery);
+    const fetchLogs = async () => {
+      try {
+        await loadLogs(selectedTimeframe, selectedType, searchQuery);
+      } catch (error) {
+        toast.error('Failed to load activity logs');
+      }
+    };
+    
+    fetchLogs();
   }, [selectedTimeframe, selectedType, searchQuery, loadLogs]);
   
   const getIconForType = (type: string) => {
     switch (type) {
       case 'company':
+      case 'company_created':
+      case 'company_updated':
         return <Building2 className="h-4 w-4 text-blue-600" />;
       case 'user':
       case 'login':
       case 'logout':
+      case 'user_created':
+      case 'user_updated':
       case 'password_reset':
       case 'account_update':
         return <Users className="h-4 w-4 text-green-600" />;
       case 'workflow':
+      case 'workflow_created':
+      case 'workflow_updated':
         return <Wrench className="h-4 w-4 text-purple-600" />;
       case 'support':
+      case 'support_ticket':
         return <MessageSquare className="h-4 w-4 text-amber-600" />;
       case 'system':
       case 'error':
+      case 'system_error':
         return <AlertTriangle className="h-4 w-4 text-red-600" />;
       case 'billing':
+      case 'payment':
         return <FileText className="h-4 w-4 text-indigo-600" />;
+      case 'session':
+      case 'activity':
+        return <Clock className="h-4 w-4 text-gray-600" />;
       default:
         return <FileText className="h-4 w-4 text-gray-600" />;
     }
   };
   
   const getSeverityForType = (type: string): 'info' | 'warning' | 'error' => {
-    switch (type) {
-      case 'system_error':
-      case 'error':
-        return 'error';
-      case 'warning':
-      case 'security':
-        return 'warning';
-      default:
-        return 'info';
-    }
+    if (type.includes('error')) return 'error';
+    if (type.includes('warning') || type.includes('security')) return 'warning';
+    return 'info';
   };
 
   const getSeverityClass = (severity: string) => {
@@ -101,7 +133,7 @@ export default function ActivityPage() {
           />
         </div>
         <div className="flex gap-2">
-          <Select defaultValue="all" onValueChange={(value) => setSelectedTimeframe(value as ActivityTimeframe)}>
+          <Select defaultValue={selectedTimeframe} onValueChange={(value) => setSelectedTimeframe(value as ActivityTimeframe)}>
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Timeframe" />
             </SelectTrigger>
@@ -113,7 +145,7 @@ export default function ActivityPage() {
             </SelectContent>
           </Select>
           
-          <Select defaultValue="all" onValueChange={setSelectedType}>
+          <Select defaultValue={selectedType} onValueChange={setSelectedType}>
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Activity Type" />
             </SelectTrigger>
@@ -130,7 +162,7 @@ export default function ActivityPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="all" className="w-full">
+      <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="all">All Activity</TabsTrigger>
           <TabsTrigger value="system">System</TabsTrigger>
@@ -139,12 +171,13 @@ export default function ActivityPage() {
           <TabsTrigger value="billing">Billing</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="all">
+        <TabsContent value={activeTab}>
           <Card>
             <CardHeader>
               <CardTitle>Activity Log</CardTitle>
               <CardDescription>
-                Recent activity across the platform
+                {activeTab === 'all' ? 'Recent activity across the platform' : 
+                 `Recent ${activeTab} activity`}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -152,9 +185,16 @@ export default function ActivityPage() {
                 <div className="text-center py-10">
                   <p className="text-gray-500">Loading activity logs...</p>
                 </div>
-              ) : activityLogs.length > 0 ? (
+              ) : error ? (
+                <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md">
+                  <div className="flex">
+                    <AlertTriangle className="h-5 w-5 mr-2" />
+                    <p>Error loading activity logs. Please try again.</p>
+                  </div>
+                </div>
+              ) : filteredLogs.length > 0 ? (
                 <div className="space-y-4">
-                  {activityLogs.map(activity => (
+                  {filteredLogs.map(activity => (
                     <div key={activity.id} className="flex items-start gap-4 p-4 rounded-lg border hover:bg-gray-50 transition-colors">
                       <div className={`mt-1 rounded-full p-2 ${
                         getSeverityForType(activity.activity_type) === 'error' 
@@ -171,12 +211,18 @@ export default function ActivityPage() {
                           <span className="text-xs text-gray-500">{formatDate(activity.timestamp)}</span>
                         </div>
                         <p className="text-sm text-gray-600 mt-1">
-                          {activity.user?.name || 'System'} {activity.activity_type === 'system' ? '' : `- ${activity.activity_type}`}
+                          {activity.user?.name || activity.user?.email || 'System'} 
+                          {activity.activity_type === 'system' ? '' : ` - ${activity.activity_type}`}
                         </p>
                         <div className="mt-2">
                           <Badge variant="secondary" className={getSeverityClass(getSeverityForType(activity.activity_type))}>
                             {activity.activity_type}
                           </Badge>
+                          {activity.metadata && Object.keys(activity.metadata).length > 0 && (
+                            <Badge variant="outline" className="ml-2 bg-gray-50">
+                              Details
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -184,49 +230,9 @@ export default function ActivityPage() {
                 </div>
               ) : (
                 <div className="text-center py-10">
-                  <p className="text-gray-500">No activity found matching your search.</p>
+                  <p className="text-gray-500">No activity found matching your criteria.</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="system">
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-center text-gray-500 py-8">
-                Filter to see only system activity logs.
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="users">
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-center text-gray-500 py-8">
-                Filter to see only user activity logs.
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="companies">
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-center text-gray-500 py-8">
-                Filter to see only company activity logs.
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="billing">
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-center text-gray-500 py-8">
-                Filter to see only billing activity logs.
-              </p>
             </CardContent>
           </Card>
         </TabsContent>

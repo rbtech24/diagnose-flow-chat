@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import {
 } from "lucide-react";
 import { useWorkflows } from "@/hooks/useWorkflows";
 import { useUserManagementStore } from "@/store/userManagementStore";
+import { useActivityLogs } from "@/hooks/useActivityLogs";
 import { useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -36,10 +38,18 @@ export default function AdminDashboard() {
     isLoadingUsers 
   } = useUserManagementStore();
 
+  // Get recent activity data
+  const { 
+    logs: activityLogs, 
+    isLoading: isLoadingActivity, 
+    loadLogs
+  } = useActivityLogs();
+
   useEffect(() => {
     fetchCompanies();
     fetchUsers();
-  }, [fetchCompanies, fetchUsers]);
+    loadLogs('today'); // Load today's activity
+  }, [fetchCompanies, fetchUsers, loadLogs]);
 
   // Calculate active companies
   const activeCompanies = companies.filter(c => c.status === 'active').length;
@@ -47,10 +57,27 @@ export default function AdminDashboard() {
   // Calculate active technicians
   const activeTechnicians = users.filter(user => user.role === 'tech').length;
   
-  // Get recent activity from the companies data
+  // Get recent activity from logs
+  const recentActivity = activityLogs.slice(0, 3);
+  
+  // Get recently active companies
   const recentlyActiveCompanies = [...companies]
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
     .slice(0, 3);
+
+  // Format activity timestamp
+  const formatActivityTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  // Get icon for activity type
+  const getActivityIcon = (type: string) => {
+    if (type.includes('company')) return <Building2 className="h-3 w-3 text-blue-600" />;
+    if (type.includes('user')) return <Users className="h-3 w-3 text-green-600" />;
+    if (type.includes('workflow')) return <Wrench className="h-3 w-3 text-amber-600" />;
+    return <Activity className="h-3 w-3 text-purple-600" />;
+  };
 
   return (
     <div className="container mx-auto p-6">
@@ -248,7 +275,25 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {companies.length > 0 && (
+              {isLoadingActivity ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                </div>
+              ) : recentActivity.length > 0 ? (
+                recentActivity.map((activity) => (
+                  <div key={activity.id} className="flex items-start gap-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
+                    <div className="mt-1 rounded-full bg-blue-100 p-1">
+                      {getActivityIcon(activity.activity_type)}
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">{activity.description}</p>
+                      <p className="text-xs text-gray-500">{formatActivityTime(activity.timestamp)}</p>
+                    </div>
+                  </div>
+                ))
+              ) : companies.length > 0 ? (
                 <div className="flex items-start gap-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
                   <div className="mt-1 rounded-full bg-blue-100 p-1">
                     <Building2 className="h-3 w-3 text-blue-600" />
@@ -258,29 +303,9 @@ export default function AdminDashboard() {
                     <p className="text-xs text-gray-500">Just now</p>
                   </div>
                 </div>
-              )}
-              
-              {users.length > 0 && (
-                <div className="flex items-start gap-4 p-3 rounded-lg bg-green-50 border border-green-100">
-                  <div className="mt-1 rounded-full bg-green-100 p-1">
-                    <Users className="h-3 w-3 text-green-600" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">User data loaded</p>
-                    <p className="text-xs text-gray-500">Just now</p>
-                  </div>
-                </div>
-              )}
-              
-              {workflows.length > 0 && (
-                <div className="flex items-start gap-4 p-3 rounded-lg bg-amber-50 border border-amber-100">
-                  <div className="mt-1 rounded-full bg-amber-100 p-1">
-                    <Wrench className="h-3 w-3 text-amber-600" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">Workflow data loaded</p>
-                    <p className="text-xs text-gray-500">Just now</p>
-                  </div>
+              ) : (
+                <div className="text-center p-4">
+                  <p className="text-gray-500">No recent activity</p>
                 </div>
               )}
               

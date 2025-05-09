@@ -9,27 +9,35 @@ import { Link, useNavigate } from "react-router-dom";
 import { useUserManagementStore } from "@/store/userManagementStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useActivityLogger } from "@/hooks/useActivityLogger";
 
 export default function AdminCompanies() {
   const navigate = useNavigate();
   const { companies, users, isLoadingCompanies, fetchCompanies, fetchUsers } = useUserManagementStore();
   const [searchQuery, setSearchQuery] = useState("");
+  const { logEvent } = useActivityLogger();
 
   useEffect(() => {
-    fetchCompanies();
-    fetchUsers();
-  }, [fetchCompanies, fetchUsers]);
+    const loadData = async () => {
+      await Promise.all([fetchCompanies(), fetchUsers()]);
+      logEvent('system', 'Companies page viewed', { count: companies.length });
+    };
+    
+    loadData();
+  }, [fetchCompanies, fetchUsers, logEvent, companies.length]);
 
   // Filter companies based on search query
   const filteredCompanies = companies.filter(company => 
     company.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    company.contactName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    company.contactName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     company.status.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleAddCompany = (e: React.MouseEvent) => {
     // Prevent default to stop form submission or link navigation behavior
     e.preventDefault();
+    // Log the activity
+    logEvent('company', 'Add company initiated');
     // Navigate to the new company page
     navigate("/admin/companies/new");
   };
@@ -63,6 +71,11 @@ export default function AdminCompanies() {
   // Calculate technician count for each company
   const getTechnicianCount = (companyId: string) => {
     return users.filter(user => user.companyId === companyId && user.role === 'tech').length;
+  };
+
+  const handleViewCompany = (companyId: string) => {
+    logEvent('company', `Viewed company details`, { companyId });
+    navigate(`/admin/companies/${companyId}`);
   };
 
   return (
@@ -141,10 +154,8 @@ export default function AdminCompanies() {
                   </div>
                 </div>
 
-                <Button variant="outline" asChild>
-                  <Link to={`/admin/companies/${company.id}`}>
-                    View Details
-                  </Link>
+                <Button variant="outline" onClick={() => handleViewCompany(company.id)}>
+                  View Details
                 </Button>
               </div>
             );
