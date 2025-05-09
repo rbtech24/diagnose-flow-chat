@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { mockTechnicians } from '@/data/mockTechnicians';
@@ -14,10 +13,21 @@ export type Technician = {
   activeJobs?: number;
 };
 
+export type CompanyMetrics = {
+  activeJobs: number;
+  responseTime: string;
+  teamPerformance: number;
+};
+
 export function useCompanyTechnicians() {
   const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+  const [metrics, setMetrics] = useState<CompanyMetrics>({
+    activeJobs: 0,
+    responseTime: '1.8 hrs',
+    teamPerformance: 94
+  });
 
   // Function to delete a technician
   const deleteTechnician = async (technicianId: string) => {
@@ -65,6 +75,36 @@ export function useCompanyTechnicians() {
       console.error('Error deleting technician:', err);
       toast.error("Failed to delete technician");
       return false;
+    }
+  };
+
+  // Function to fetch company metrics
+  const fetchCompanyMetrics = async (companyId: string) => {
+    try {
+      // Try to get real metrics data from your repairs table
+      const { data: activeRepairs, error: repairsError } = await supabase
+        .from('repairs')
+        .select('id')
+        .eq('company_id', companyId)
+        .in('status', ['assigned', 'in_progress'])
+        .count();
+
+      if (repairsError) {
+        console.error('Error fetching active repairs:', repairsError);
+      } else {
+        // Update active jobs if we have real data
+        setMetrics(prev => ({
+          ...prev,
+          activeJobs: activeRepairs || 0
+        }));
+      }
+      
+      // You could fetch more real metrics here such as:
+      // - Average response time from completed repairs
+      // - Team performance based on customer feedback
+      // But for now we'll keep the mock data for these metrics
+    } catch (err) {
+      console.error('Error fetching company metrics:', err);
     }
   };
 
@@ -140,6 +180,9 @@ export function useCompanyTechnicians() {
           );
           
           setTechnicians(technicianData);
+          
+          // Fetch company metrics for this company
+          await fetchCompanyMetrics(userData.company_id);
         } catch (err) {
           console.error('Error fetching technicians from API, using mock data:', err);
           // Fall back to mock data if API calls fail
@@ -157,5 +200,5 @@ export function useCompanyTechnicians() {
     fetchTechnicians();
   }, []);
   
-  return { technicians, isLoading, error, deleteTechnician };
+  return { technicians, isLoading, error, deleteTechnician, metrics };
 }

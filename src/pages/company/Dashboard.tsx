@@ -13,7 +13,6 @@ import { useSystemMessages } from "@/context/SystemMessageContext";
 import { SystemMessage } from "@/components/system/SystemMessage";
 import { useCompanyTechnicians } from "@/hooks/useCompanyTechnicians";
 import { useSupportTickets } from "@/hooks/useSupportTickets";
-import { currentUser } from "@/data/mockTickets";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   AlertDialog,
@@ -42,8 +41,8 @@ export default function CompanyDashboard() {
   // Get workflows for diagnosis
   const { workflows, isLoading: workflowsLoading } = useWorkflows();
   
-  // Get technicians data
-  const { technicians, isLoading: techniciansLoading, deleteTechnician } = useCompanyTechnicians();
+  // Get technicians data and company metrics
+  const { technicians, isLoading: techniciansLoading, deleteTechnician, metrics } = useCompanyTechnicians();
   
   // Get support tickets data
   const { tickets, isLoading: ticketsLoading } = useSupportTickets();
@@ -58,17 +57,6 @@ export default function CompanyDashboard() {
 
   // Calculate active technicians
   const activeTechnicians = technicians?.filter(tech => tech.status === "active") || [];
-
-  // Calculate active jobs
-  const [activeJobs, setActiveJobs] = useState(0);
-  const [responseTime, setResponseTime] = useState("1.8 hrs");
-
-  useEffect(() => {
-    // This would ideally be replaced with a real API call to fetch metrics
-    // For now we'll simulate data
-    setActiveJobs(Math.floor(Math.random() * 10) + 5);
-    setResponseTime(((Math.random() * 2) + 1).toFixed(1) + " hrs");
-  }, []);
 
   // Handle technician deletion with confirmation
   const handleDeleteTechnician = async () => {
@@ -118,14 +106,14 @@ export default function CompanyDashboard() {
                 <Clock className="h-4 w-4 text-blue-600" />
                 <div>
                   <p className="text-sm font-medium">Avg Response Time</p>
-                  <p className="text-2xl font-bold">{responseTime}</p>
+                  <p className="text-2xl font-bold">{metrics.responseTime}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Activity className="h-4 w-4 text-green-600" />
                 <div>
                   <p className="text-sm font-medium">Team Performance</p>
-                  <p className="text-2xl font-bold">94%</p>
+                  <p className="text-2xl font-bold">{metrics.teamPerformance}%</p>
                 </div>
               </div>
             </div>
@@ -162,7 +150,7 @@ export default function CompanyDashboard() {
           <CardContent>
             <div className="flex items-center">
               <Wrench className="h-4 w-4 text-cyan-600 mr-2" />
-              <span className="text-2xl font-bold">{activeJobs}</span>
+              <span className="text-2xl font-bold">{metrics.activeJobs}</span>
             </div>
           </CardContent>
         </Card>
@@ -190,7 +178,7 @@ export default function CompanyDashboard() {
           <CardContent>
             <div className="flex items-center">
               <Clock className="h-4 w-4 text-amber-600 mr-2" />
-              <span className="text-2xl font-bold">{responseTime}</span>
+              <span className="text-2xl font-bold">{metrics.responseTime}</span>
             </div>
           </CardContent>
         </Card>
