@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { mockTechnicians } from '@/data/mockTechnicians';
@@ -82,21 +83,22 @@ export function useCompanyTechnicians() {
   const fetchCompanyMetrics = async (companyId: string) => {
     try {
       // Try to get real metrics data from your repairs table
-      const { data: activeRepairs, error: repairsError } = await supabase
+      const { data: activeRepairsData, error: repairsError } = await supabase
         .from('repairs')
-        .select('id')
+        .select('id', { count: 'exact' })
         .eq('company_id', companyId)
-        .in('status', ['assigned', 'in_progress'])
-        .count();
+        .in('status', ['assigned', 'in_progress']);
 
       if (repairsError) {
         console.error('Error fetching active repairs:', repairsError);
       } else {
         // Update active jobs if we have real data
-        setMetrics(prev => ({
-          ...prev,
-          activeJobs: activeRepairs || 0
-        }));
+        if (activeRepairsData?.length !== undefined) {
+          setMetrics(prev => ({
+            ...prev,
+            activeJobs: activeRepairsData.length
+          }));
+        }
       }
       
       // You could fetch more real metrics here such as:
@@ -163,10 +165,10 @@ export function useCompanyTechnicians() {
                 .eq('id', tech.id)
                 .single();
               
-              // Get active jobs count
-              const { count: activeJobsCount } = await supabase
+              // Get active jobs count - using the correct approach for counting records
+              const { data: activeJobsData, count: activeJobsCount, error: countError } = await supabase
                 .from('repairs')
-                .select('id', { count: 'exact', head: false })
+                .select('id', { count: 'exact' })
                 .eq('technician_id', tech.id)
                 .in('status', ['assigned', 'in_progress']);
                 
