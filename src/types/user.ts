@@ -40,12 +40,3 @@ export interface TechnicianInvite {
   createdAt: Date;
   expiresAt: Date;
 }
-
-export interface SubscriptionPlan {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  billingCycle: 'monthly' | 'yearly';
-  features: string[];
-}

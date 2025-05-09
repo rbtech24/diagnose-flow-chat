@@ -112,7 +112,12 @@ export default function UserDetail() {
     if (!id) return;
     
     try {
-      const success = await deleteUser(id);
+      // Pass email and role if they exist
+      const success = await deleteUser(
+        id, 
+        userData?.email,
+        userData?.role
+      );
       if (success) {
         toast({
           title: "User deleted",
