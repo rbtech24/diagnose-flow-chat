@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { 
   Users, Wrench, Clock, AlertTriangle,
   PlusCircle, MessagesSquare,
-  Play, Activity, Stethoscope
+  Play, Activity, Stethoscope, X
 } from "lucide-react";
 import { useWorkflows } from "@/hooks/useWorkflows";
 import { useEffect, useState } from "react";
@@ -15,6 +15,18 @@ import { useCompanyTechnicians } from "@/hooks/useCompanyTechnicians";
 import { useSupportTickets } from "@/hooks/useSupportTickets";
 import { currentUser } from "@/data/mockTickets";
 import { Skeleton } from "@/components/ui/skeleton";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 export default function CompanyDashboard() {
   // Get current date
@@ -31,7 +43,7 @@ export default function CompanyDashboard() {
   const { workflows, isLoading: workflowsLoading } = useWorkflows();
   
   // Get technicians data
-  const { technicians, isLoading: techniciansLoading } = useCompanyTechnicians();
+  const { technicians, isLoading: techniciansLoading, deleteTechnician } = useCompanyTechnicians();
   
   // Get support tickets data
   const { tickets, isLoading: ticketsLoading } = useSupportTickets();
@@ -40,6 +52,9 @@ export default function CompanyDashboard() {
   const userMessages = useSystemMessages().messages.filter(msg => 
     msg.targetUsers.includes("company")
   );
+
+  // State for the technician to be deleted
+  const [techToDelete, setTechToDelete] = useState<string | null>(null);
 
   // Calculate active technicians
   const activeTechnicians = technicians?.filter(tech => tech.status === "active") || [];
@@ -54,6 +69,14 @@ export default function CompanyDashboard() {
     setActiveJobs(Math.floor(Math.random() * 10) + 5);
     setResponseTime(((Math.random() * 2) + 1).toFixed(1) + " hrs");
   }, []);
+
+  // Handle technician deletion with confirmation
+  const handleDeleteTechnician = async () => {
+    if (techToDelete) {
+      const success = await deleteTechnician(techToDelete);
+      setTechToDelete(null);
+    }
+  };
 
   return (
     <div className="container mx-auto p-6">
@@ -213,9 +236,31 @@ export default function CompanyDashboard() {
                           </p>
                         </div>
                       </div>
-                      <Button variant="outline" size="sm">
-                        <Link to="/company/technicians" className="text-black">View</Link>
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm">
+                          <Link to="/company/technicians" className="text-black">View</Link>
+                        </Button>
+                        
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm" onClick={() => setTechToDelete(tech.id)}>
+                              <X className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Technician</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete this technician? This action is permanent and cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel onClick={() => setTechToDelete(null)}>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleDeleteTechnician} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </div>
                   ))}
                 </>

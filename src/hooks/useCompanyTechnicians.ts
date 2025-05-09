@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { mockTechnicians } from '@/data/mockTechnicians';
+import { toast } from 'sonner';
 
 export type Technician = {
   id: string;
@@ -17,6 +18,55 @@ export function useCompanyTechnicians() {
   const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+
+  // Function to delete a technician
+  const deleteTechnician = async (technicianId: string) => {
+    try {
+      // Get the current user's company ID first to ensure proper authorization
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('No authenticated user found');
+      }
+      
+      // Get user details to find company ID
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', user.id)
+        .single();
+        
+      if (userError) {
+        throw userError;
+      }
+      
+      if (!userData?.company_id) {
+        throw new Error('No company ID found for user');
+      }
+      
+      // Delete the technician
+      const { error: deleteError } = await supabase
+        .from('technicians')
+        .delete()
+        .eq('id', technicianId)
+        .eq('company_id', userData.company_id);
+        
+      if (deleteError) {
+        throw deleteError;
+      }
+      
+      // Update the local state after successful deletion
+      setTechnicians(technicians.filter(tech => tech.id !== technicianId));
+      
+      // Show success message
+      toast.success("Technician deleted successfully");
+      return true;
+    } catch (err) {
+      console.error('Error deleting technician:', err);
+      toast.error("Failed to delete technician");
+      return false;
+    }
+  };
 
   useEffect(() => {
     async function fetchTechnicians() {
@@ -107,5 +157,5 @@ export function useCompanyTechnicians() {
     fetchTechnicians();
   }, []);
   
-  return { technicians, isLoading, error };
+  return { technicians, isLoading, error, deleteTechnician };
 }
