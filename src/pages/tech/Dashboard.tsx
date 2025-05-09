@@ -25,14 +25,14 @@ export default function TechnicianDashboard() {
   };
   const formattedDate = today.toLocaleDateString('en-US', dateOptions);
   
-  // Get user data
+  // Get user data from store
   const { currentUser, users } = useUserManagementStore();
   const user = currentUser || (users.length > 0 ? users[0] : null);
   
   // Initialize activity logger
   const { logEvent } = useActivityLogger();
   
-  // State for upcoming appointments
+  // State for upcoming appointments - this would be replaced with real data in the future
   const [appointments, setAppointments] = useState([
     {
       id: "1",
@@ -60,7 +60,7 @@ export default function TechnicianDashboard() {
     address: ""
   });
 
-  // Performance metrics state
+  // Performance metrics - would be fetched from an API
   const [metrics, setMetrics] = useState({
     activeJobs: 8,
     completedJobs: 24,
@@ -69,14 +69,43 @@ export default function TechnicianDashboard() {
   });
 
   useEffect(() => {
-    // Log dashboard view
+    // Log dashboard view when user data is available
     if (user) {
       logEvent('user', 'Dashboard viewed');
     }
     
-    // In a real application, you would fetch metrics and appointments from an API
-    // fetchTechnicianMetrics();
-    // fetchTechniciansAppointments();
+    // In a real implementation, you would fetch the user's metrics and appointments
+    // Example API call that would replace the mock data:
+    // const fetchTechnicianData = async () => {
+    //   const { data: metricsData } = await supabase
+    //     .from('technician_metrics')
+    //     .select('*')
+    //     .eq('technician_id', user?.id)
+    //     .single();
+    //
+    //   if (metricsData) {
+    //     setMetrics({
+    //       activeJobs: metricsData.active_jobs,
+    //       completedJobs: metricsData.completed_jobs,
+    //       averageResponseTime: metricsData.avg_response_time,
+    //       firstTimeFixRate: metricsData.first_time_fix_rate
+    //     });
+    //   }
+    //
+    //   const { data: appointmentsData } = await supabase
+    //     .from('appointments')
+    //     .select('*')
+    //     .eq('technician_id', user?.id)
+    //     .order('time', { ascending: true });
+    //
+    //   if (appointmentsData) {
+    //     setAppointments(appointmentsData);
+    //   }
+    // };
+    //
+    // if (user) {
+    //   fetchTechnicianData();
+    // }
   }, [user]);
 
   // Handle adding a new appointment
@@ -117,7 +146,7 @@ export default function TechnicianDashboard() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold">Technician Dashboard</h1>
-          <p className="text-gray-500">{user?.name || "Technician"} • {user?.company?.name || "Company"}</p>
+          <p className="text-gray-500">{user?.name || "Technician"}</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="relative w-64">
