@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 
 type MessageType = "warning" | "info" | "maintenance";
 
-interface SystemMessageData {
+export interface SystemMessageData {
   type: MessageType;
   title: string;
   message: string;
@@ -26,7 +26,7 @@ export function SystemMessageProvider({ children }: { children: ReactNode }) {
       type: "maintenance",
       title: "Scheduled Maintenance",
       message: "System maintenance scheduled for tonight from 2AM - 4AM. Some features may be unavailable during this time.",
-      targetUsers: ["company", "tech"]
+      targetUsers: ["company", "tech", "admin"]
     }
   ]);
 
@@ -59,5 +59,6 @@ export function useSystemMessages() {
 
 export function useUserMessages(userType: "company" | "tech" | "admin") {
   const { messages } = useSystemMessages();
+  // Fix: properly filter messages to only show messages for this user type
   return messages.filter(msg => msg.targetUsers.includes(userType));
 }

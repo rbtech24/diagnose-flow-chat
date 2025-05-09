@@ -50,7 +50,7 @@ export function SystemMessage({ type, title, message, visible = true }: SystemMe
   return (
     <Alert className={`mb-6 ${styles.bg} ${styles.border}`}>
       <div className="flex items-start gap-4">
-        <div className={`rounded-full ${styles.bg.replace('bg-', 'bg-')} p-2`}>
+        <div className="rounded-full p-2">
           {styles.icon}
         </div>
         <div>

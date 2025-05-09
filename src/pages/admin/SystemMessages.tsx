@@ -7,8 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useSystemMessages } from "@/context/SystemMessageContext";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
-import { BellRing, Info, AlertTriangle, X, Trash } from "lucide-react";
+import { BellRing, Info, AlertTriangle, Trash } from "lucide-react";
 import { SystemMessage } from "@/components/system/SystemMessage";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
@@ -35,6 +34,7 @@ export default function SystemMessagesPage() {
       return;
     }
     
+    // Convert the targetUsers object to an array of strings
     const targetUsers = Object.entries(newMessage.targetUsers)
       .filter(([_, value]) => value)
       .map(([key]) => key) as ("company" | "tech" | "admin")[];
@@ -44,6 +44,7 @@ export default function SystemMessagesPage() {
       return;
     }
     
+    // Add the new message to the context
     addMessage({
       title: newMessage.title,
       message: newMessage.message,
