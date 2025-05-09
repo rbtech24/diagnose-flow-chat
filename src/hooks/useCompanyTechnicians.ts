@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -25,8 +24,8 @@ export function useCompanyTechnicians() {
   const [error, setError] = useState<Error | null>(null);
   const [metrics, setMetrics] = useState<CompanyMetrics>({
     activeJobs: 0,
-    responseTime: '1.8 hrs',
-    teamPerformance: 94
+    responseTime: '0 hrs',
+    teamPerformance: 0
   });
 
   // Function to delete a technician
@@ -73,7 +72,7 @@ export function useCompanyTechnicians() {
       return true;
     } catch (err) {
       console.error('Error deleting technician:', err);
-      toast.error("Failed to delete technician");
+      toast.error("Failed to delete technician: " + (err instanceof Error ? err.message : 'Unknown error'));
       return false;
     }
   };
@@ -81,8 +80,8 @@ export function useCompanyTechnicians() {
   // Function to fetch company metrics
   const fetchCompanyMetrics = async (companyId: string) => {
     try {
-      // Try to get real metrics data from your repairs table
-      const { data, count, error: repairsError } = await supabase
+      // Get active jobs count
+      const { count: activeJobsCount, error: repairsError } = await supabase
         .from('repairs')
         .select('id', { count: 'exact', head: false })
         .eq('company_id', companyId)
@@ -92,15 +91,13 @@ export function useCompanyTechnicians() {
         console.error('Error fetching active repairs:', repairsError);
       } else {
         // Update active jobs if we have real data
-        if (count !== null) {
-          setMetrics(prev => ({
-            ...prev,
-            activeJobs: count
-          }));
-        }
+        setMetrics(prev => ({
+          ...prev,
+          activeJobs: activeJobsCount || 0
+        }));
       }
       
-      // Now also try to get response time metrics from completed repairs
+      // Get response time metrics from completed repairs
       const { data: recentRepairs, error: timeError } = await supabase
         .from('repairs')
         .select('started_at, completed_at')
@@ -133,10 +130,14 @@ export function useCompanyTechnicians() {
             ...prev,
             responseTime: formattedTime
           }));
+        } else {
+          setMetrics(prev => ({ ...prev, responseTime: 'N/A' }));
         }
+      } else {
+        setMetrics(prev => ({ ...prev, responseTime: 'N/A' }));
       }
 
-      // Fetch team performance from technician metrics or completed repairs
+      // Fetch team performance from completed repairs
       const { data: performanceData, error: performanceError } = await supabase
         .from('technician_performance_metrics')
         .select('efficiency_score')
@@ -150,9 +151,13 @@ export function useCompanyTechnicians() {
           ...prev,
           teamPerformance: Math.round(avgPerformance)
         }));
+      } else {
+        // If no performance data is available, set to 0
+        setMetrics(prev => ({ ...prev, teamPerformance: 0 }));
       }
     } catch (err) {
       console.error('Error fetching company metrics:', err);
+      // Keep existing metrics in case of error
     }
   };
 

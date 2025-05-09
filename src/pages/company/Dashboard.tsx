@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { 
   Users, Wrench, Clock, AlertTriangle,
   PlusCircle, MessagesSquare,
-  Play, Activity, Stethoscope, X
+  Play, Activity, Stethoscope, X, Info
 } from "lucide-react";
 import { useWorkflows } from "@/hooks/useWorkflows";
 import { useEffect, useState } from "react";
@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 
 export default function CompanyDashboard() {
@@ -42,10 +43,16 @@ export default function CompanyDashboard() {
   const { workflows, isLoading: workflowsLoading } = useWorkflows();
   
   // Get technicians data and company metrics
-  const { technicians, isLoading: techniciansLoading, deleteTechnician, metrics } = useCompanyTechnicians();
+  const { 
+    technicians, 
+    isLoading: techniciansLoading, 
+    error: techniciansError,
+    deleteTechnician, 
+    metrics 
+  } = useCompanyTechnicians();
   
   // Get support tickets data
-  const { tickets, isLoading: ticketsLoading } = useSupportTickets();
+  const { tickets, isLoading: ticketsLoading, error: ticketsError } = useSupportTickets();
   
   // Get system messages for this user
   const userMessages = useSystemMessages().messages.filter(msg => 
@@ -70,10 +77,20 @@ export default function CompanyDashboard() {
     <div className="container mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold">ABC Appliance Repair</h1>
+          <h1 className="text-3xl font-bold">Company Dashboard</h1>
           <p className="text-gray-500">{formattedDate}</p>
         </div>
       </div>
+      
+      {techniciansError && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>
+            Failed to load technicians data. Please refresh the page and try again.
+          </AlertDescription>
+        </Alert>
+      )}
       
       {userMessages.map(msg => (
         <SystemMessage 
@@ -106,14 +123,24 @@ export default function CompanyDashboard() {
                 <Clock className="h-4 w-4 text-blue-600" />
                 <div>
                   <p className="text-sm font-medium">Avg Response Time</p>
-                  <p className="text-2xl font-bold">{metrics.responseTime}</p>
+                  {techniciansLoading ? (
+                    <Skeleton className="h-8 w-24" />
+                  ) : (
+                    <p className="text-2xl font-bold">{metrics.responseTime}</p>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Activity className="h-4 w-4 text-green-600" />
                 <div>
                   <p className="text-sm font-medium">Team Performance</p>
-                  <p className="text-2xl font-bold">{metrics.teamPerformance}%</p>
+                  {techniciansLoading ? (
+                    <Skeleton className="h-8 w-24" />
+                  ) : (
+                    <p className="text-2xl font-bold">
+                      {metrics.teamPerformance > 0 ? `${metrics.teamPerformance}%` : 'N/A'}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -131,8 +158,10 @@ export default function CompanyDashboard() {
               </div>
               {workflowsLoading ? (
                 <Skeleton className="h-5 w-32 mb-2" />
-              ) : (
+              ) : workflows && workflows.length > 0 ? (
                 <p className="text-sm text-center mb-1">{workflows.length} available procedures</p>
+              ) : (
+                <p className="text-sm text-center mb-1">No procedures available</p>
               )}
               <Button variant="outline" size="sm" className="mt-2">
                 <Link to="/company/diagnostics" className="text-black">View Diagnostics</Link>
@@ -150,7 +179,11 @@ export default function CompanyDashboard() {
           <CardContent>
             <div className="flex items-center">
               <Wrench className="h-4 w-4 text-cyan-600 mr-2" />
-              <span className="text-2xl font-bold">{metrics.activeJobs}</span>
+              {techniciansLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <span className="text-2xl font-bold">{metrics.activeJobs}</span>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -178,7 +211,11 @@ export default function CompanyDashboard() {
           <CardContent>
             <div className="flex items-center">
               <Clock className="h-4 w-4 text-amber-600 mr-2" />
-              <span className="text-2xl font-bold">{metrics.responseTime}</span>
+              {techniciansLoading ? (
+                <Skeleton className="h-8 w-24" />
+              ) : (
+                <span className="text-2xl font-bold">{metrics.responseTime}</span>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -209,9 +246,13 @@ export default function CompanyDashboard() {
                       <div className="flex items-center">
                         <div className="relative mr-2">
                           <img 
-                            className="h-10 w-10 rounded-full" 
+                            className="h-10 w-10 rounded-full object-cover bg-gray-200"
                             src={tech.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(tech.name || 'User')}&background=random`} 
-                            alt="Technician" 
+                            alt={tech.name || "Technician"}
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(tech.name || 'User')}&background=random`;
+                            }}
                           />
                           <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white ${
                             tech.status === "active" ? "bg-green-500" : "bg-gray-300"
@@ -253,7 +294,11 @@ export default function CompanyDashboard() {
                   ))}
                 </>
               ) : (
-                <p className="text-center text-gray-500 py-6">No technicians available</p>
+                <div className="flex flex-col items-center justify-center py-6 text-gray-500">
+                  <Users className="h-12 w-12 text-gray-400 mb-2" />
+                  <p className="text-center mb-2">No technicians available</p>
+                  <p className="text-center text-sm text-gray-400 mb-4">Add technicians to your team to get started</p>
+                </div>
               )}
               
               <div className="mt-6">
@@ -281,6 +326,16 @@ export default function CompanyDashboard() {
                   <Skeleton className="h-16 w-full" />
                   <Skeleton className="h-16 w-full" />
                 </div>
+              ) : ticketsError ? (
+                <div className="flex items-start gap-4 p-3 rounded-lg bg-red-50 border border-red-100">
+                  <div className="mt-1 rounded-full bg-red-100 p-1">
+                    <AlertTriangle className="h-3 w-3 text-red-600" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">Error loading activity</p>
+                    <p className="text-xs text-gray-500">Please refresh to try again</p>
+                  </div>
+                </div>
               ) : tickets && tickets.length > 0 ? (
                 tickets.slice(0, 3).map((ticket) => (
                   <div key={ticket.id} className="flex items-start gap-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
@@ -296,14 +351,10 @@ export default function CompanyDashboard() {
                   </div>
                 ))
               ) : (
-                <div className="flex items-start gap-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
-                  <div className="mt-1 rounded-full bg-blue-100 p-1">
-                    <AlertTriangle className="h-3 w-3 text-blue-600" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">No recent activity</p>
-                    <p className="text-xs text-gray-500">Create tickets to see activity here</p>
-                  </div>
+                <div className="flex flex-col items-center justify-center py-6 text-gray-500">
+                  <Info className="h-12 w-12 text-gray-400 mb-2" />
+                  <p className="text-center mb-2">No recent activity</p>
+                  <p className="text-center text-sm text-gray-400">Create tickets to see activity here</p>
                 </div>
               )}
               
