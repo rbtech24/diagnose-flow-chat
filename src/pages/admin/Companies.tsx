@@ -13,14 +13,7 @@ import { useActivityLogger } from "@/hooks/useActivityLogger";
 
 export default function AdminCompanies() {
   const navigate = useNavigate();
-  // Access properties safely with defaults
-  const {
-    companies,
-    users,
-    fetchCompanies,
-    fetchUsers,
-    isLoadingCompanies = false
-  } = useUserManagementStore();
+  const { companies, users, isLoadingCompanies, fetchCompanies, fetchUsers } = useUserManagementStore();
   const [searchQuery, setSearchQuery] = useState("");
   const { logEvent } = useActivityLogger();
 

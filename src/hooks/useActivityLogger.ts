@@ -23,12 +23,7 @@ type ActivityType =
   | 'system_message';
 
 export function useActivityLogger() {
-  // Access the store and safely get the currentUser
-  const store = useUserManagementStore();
-  
-  // Since currentUser might not be in the store yet, use the first user as a fallback
-  // This is a workaround until we implement proper authentication
-  const currentUser = store.users.length > 0 ? store.users[0] : null;
+  const { currentUser } = useUserManagementStore();
 
   const logEvent = useCallback(async (
     activityType: ActivityType,

@@ -12,14 +12,13 @@ import {
 } from "@/components/ui/select";
 import { CommunityPostType } from '@/types/community';
 
-export interface CommunityFiltersProps {
+interface CommunityFiltersProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   selectedType: string;
   setSelectedType: (type: string) => void;
   selectedSort: string;
   setSelectedSort: (sort: string) => void;
-  className?: string;
 }
 
 export function CommunityFilters({
@@ -28,11 +27,10 @@ export function CommunityFilters({
   selectedType,
   setSelectedType,
   selectedSort,
-  setSelectedSort,
-  className
+  setSelectedSort
 }: CommunityFiltersProps) {
   return (
-    <div className={`bg-card p-4 rounded-lg shadow-sm mb-6 ${className || ''}`}>
+    <div className="bg-card p-4 rounded-lg shadow-sm mb-6">
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-grow">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />

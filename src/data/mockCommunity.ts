@@ -157,6 +157,3 @@ export const mockPosts: CommunityPost[] = [
     ]
   }
 ];
-
-// Add this export to fix the error
-export const mockCommunityPosts = mockPosts;

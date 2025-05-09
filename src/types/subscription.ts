@@ -2,63 +2,50 @@
 export interface SubscriptionPlan {
   id: string;
   name: string;
-  description: string;
-  price: {
-    monthly: number;
-    yearly: number;
-  };
-  monthlyPrice: number;  // For backward compatibility
-  yearlyPrice: number;   // For backward compatibility
-  limits: {
-    maxTechnicians: number;
-    maxAdmins: number;
-    dailyDiagnostics: number;
-    storageLimit: number; // in GB
-  };
-  maxTechnicians: number;  // For backward compatibility
-  maxAdmins: number;       // For backward compatibility
-  dailyDiagnostics: number; // For backward compatibility
-  storageLimit: number;     // For backward compatibility
+  description?: string;
+  price: number; // For backwards compatibility
+  monthlyPrice: number;
+  yearlyPrice: number;
+  billingCycle: 'monthly' | 'yearly'; // For backwards compatibility
   features: string[];
+  maxTechnicians: number;
+  maxAdmins: number;
+  dailyDiagnostics: number;
+  storageLimit: number;
   trialPeriod: number;
   isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  billingCycle: 'monthly' | 'yearly';
+  createdAt?: Date;
+  updatedAt?: Date;
 }
+
+export type BillingCycle = 'monthly' | 'yearly';
 
 export interface License {
   id: string;
-  userId?: string;
   companyId: string;
-  companyName?: string;
+  companyName: string;
   planId: string;
-  planName?: string;
-  status: 'active' | 'expired' | 'trial' | 'cancelled';
-  createdAt: Date;
-  expiresAt?: Date;
-  seats?: number;
-  planDetails?: SubscriptionPlan;
-  activeTechnicians?: number;
-  startDate?: Date;
+  planName: string;
+  status: 'trial' | 'active' | 'expired' | 'canceled';
+  activeTechnicians: number;
+  startDate: Date;
   endDate?: Date;
   trialEndsAt?: Date;
   lastPayment?: Date;
   nextPayment?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Payment {
   id: string;
+  licenseId: string;
+  companyId: string;
   amount: number;
   currency: string;
-  status: 'succeeded' | 'pending' | 'failed' | 'completed';
-  date: Date;
-  licenseId: string;
-  method: string;
-  companyId?: string;
-  paymentMethod?: string;
-  paymentDate?: Date;
+  status: string;
+  paymentMethod: string;
+  paymentDate: Date;
   invoiceUrl?: string;
+  createdAt: Date;
 }
-
-export type BillingCycle = 'monthly' | 'yearly';

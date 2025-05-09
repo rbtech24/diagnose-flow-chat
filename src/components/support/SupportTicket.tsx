@@ -1,196 +1,219 @@
 
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageSquare, User, Clock } from "lucide-react";
-import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SupportTicket as SupportTicketType, SupportTicketMessage, SupportTicketStatus } from "@/types/support";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-export interface SupportTicket {
-  id: string;
-  title: string;
-  description: string;
-  status: 'open' | 'in_progress' | 'resolved' | 'closed';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  created_at: string;
-  updated_at: string;
-  user?: {
-    id: string;
-    name: string;
-    email: string;
-    avatar_url?: string;
-  };
-  messages?: {
-    id: string;
-    content: string;
-    created_at: string;
-    user_id: string;
-    user?: {
-      name: string;
-      avatar_url?: string;
-    };
-  }[];
-}
+import { format } from "date-fns";
 
 export interface SupportTicketProps {
-  ticket: SupportTicket;
-  onUpdate?: (data: any) => Promise<void>;
-  onAddMessage?: (content: string) => Promise<void>;
+  ticket: SupportTicketType;
+  messages?: SupportTicketMessage[];
+  onAddMessage?: (ticketId: string, content: string) => Promise<void>;
+  onUpdateStatus?: (ticketId: string, status: SupportTicketStatus) => Promise<void>;
+  isDetailView?: boolean;
 }
 
-export function SupportTicket({ ticket, onUpdate, onAddMessage }: SupportTicketProps) {
+export const SupportTicket: React.FC<SupportTicketProps> = ({
+  ticket,
+  messages = [],
+  onAddMessage,
+  onUpdateStatus,
+  isDetailView = false,
+}) => {
   const [newMessage, setNewMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'low': return 'bg-blue-100 text-blue-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'high': return 'bg-orange-100 text-orange-800';
-      case 'urgent': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'open': return 'bg-green-100 text-green-800';
-      case 'in_progress': return 'bg-blue-100 text-blue-800';
-      case 'resolved': return 'bg-purple-100 text-purple-800';
-      case 'closed': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return format(new Date(dateString), "MMM d, yyyy 'at' h:mm a");
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase();
-  };
-
-  const handleSubmitMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSendMessage = async () => {
     if (!newMessage.trim() || !onAddMessage) return;
     
     setIsSubmitting(true);
     try {
-      await onAddMessage(newMessage);
+      await onAddMessage(ticket.id, newMessage);
       setNewMessage("");
+    } catch (error) {
+      console.error("Error sending message:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleStatusChange = async (status: string) => {
+    if (!onUpdateStatus) return;
+    
+    setIsUpdatingStatus(true);
+    try {
+      await onUpdateStatus(ticket.id, status as SupportTicketStatus);
+    } catch (error) {
+      console.error("Error updating status:", error);
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    try {
+      return format(new Date(dateStr), "MMM d, yyyy 'at' h:mm a");
+    } catch (error) {
+      return dateStr;
+    }
+  };
+
+  const getInitials = (name: string) => {
+    if (!name) return "??";
+    return name
+      .split(" ")
+      .map(part => part[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
+  const renderPriorityBadge = (priority: string) => {
+    switch (priority) {
+      case "critical":
+        return <Badge variant="destructive">Critical</Badge>;
+      case "high":
+        return <Badge className="bg-orange-500">High</Badge>;
+      case "medium":
+        return <Badge variant="secondary">Medium</Badge>;
+      case "low":
+        return <Badge variant="outline">Low</Badge>;
+      default:
+        return <Badge variant="outline">{priority}</Badge>;
+    }
+  };
+
+  const renderStatusBadge = (status: string) => {
+    switch (status) {
+      case "open":
+        return <Badge variant="outline">Open</Badge>;
+      case "in_progress":
+        return <Badge className="bg-blue-500">In Progress</Badge>;
+      case "resolved":
+        return <Badge className="bg-green-500">Resolved</Badge>;
+      case "closed":
+        return <Badge variant="secondary">Closed</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
   return (
-    <Card className="mb-4">
-      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-        <div>
-          <CardTitle className="text-xl font-bold">{ticket.title}</CardTitle>
-          <div className="flex items-center space-x-2 mt-1 text-sm text-muted-foreground">
-            <div className="flex items-center">
-              <Clock className="mr-1 h-3.5 w-3.5" />
-              <span>{formatDate(ticket.created_at)}</span>
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-3 justify-between items-center">
+        <div className="flex flex-wrap gap-2 items-center">
+          {renderPriorityBadge(ticket.priority)}
+          {renderStatusBadge(ticket.status)}
+          <span className="text-sm text-muted-foreground">
+            Created {formatDate(ticket.created_at)}
+          </span>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {onUpdateStatus && (
+            <Select
+              value={ticket.status}
+              onValueChange={handleStatusChange}
+              disabled={isUpdatingStatus || ticket.status === "closed"}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Update Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="open">Open</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="resolved">Resolved</SelectItem>
+                <SelectItem value="closed">Closed</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+      </div>
+
+      <Card className="mt-4">
+        <CardHeader>
+          <CardTitle className="text-lg">{ticket.title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {/* Initial ticket description */}
+            <div className="flex gap-4">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={ticket.created_by_user?.avatar_url} alt={ticket.created_by_user?.name || "User"} />
+                <AvatarFallback className="bg-primary/10 text-primary">
+                  {getInitials(ticket.created_by_user?.name || "User")}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="font-medium">{ticket.created_by_user?.name || "User"}</span>
+                    <span className="text-muted-foreground text-sm ml-2">
+                      {formatDate(ticket.created_at)}
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-2 text-sm">
+                  {ticket.description}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div className="flex space-x-2">
-          <Badge className={getPriorityColor(ticket.priority)}>
-            {ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)}
-          </Badge>
-          <Badge className={getStatusColor(ticket.status)}>
-            {ticket.status === 'in_progress' ? 'In Progress' : 
-            ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
-          </Badge>
-        </div>
-      </CardHeader>
-      
-      <CardContent>
-        <div className="mb-4 text-gray-700">
-          {ticket.description}
-        </div>
-        
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center">
-            <User className="h-4 w-4 mr-1 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">
-              {ticket.user?.name || 'Anonymous'}
-            </span>
-          </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            {isExpanded ? 'Hide Messages' : 'Show Messages'}
-          </Button>
-        </div>
-        
-        {isExpanded && (
-          <div className="mt-6 space-y-4">
-            <div className="border-t pt-4">
-              <h4 className="font-medium flex items-center mb-2">
-                <MessageSquare className="mr-2 h-4 w-4" />
-                Messages
-              </h4>
-              
-              <div className="space-y-4">
-                {ticket.messages && ticket.messages.length > 0 ? (
-                  ticket.messages.map((message) => (
-                    <div key={message.id} className="flex space-x-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={message.user?.avatar_url} />
-                        <AvatarFallback>
-                          {message.user?.name ? getInitials(message.user.name) : 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium">{message.user?.name || 'User'}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {formatDate(message.created_at)}
-                          </p>
-                        </div>
-                        <p className="mt-1 text-sm">{message.content}</p>
-                      </div>
+
+            {/* Message thread - only shown in detail view or if messages exist */}
+            {(isDetailView || messages.length > 0) && messages.map((message) => (
+              <div key={message.id} className="flex gap-4">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={message.sender?.avatar_url} alt={message.sender?.name || "User"} />
+                  <AvatarFallback className="bg-primary/10 text-primary">
+                    {getInitials(message.sender?.name || "User")}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-medium">{message.sender?.name || "User"}</span>
+                      <span className="text-muted-foreground text-sm ml-2">
+                        {formatDate(message.created_at)}
+                      </span>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-center text-muted-foreground text-sm py-4">
-                    No messages yet
-                  </p>
-                )}
+                  </div>
+                  <div className="mt-2 text-sm">
+                    {message.content}
+                  </div>
+                </div>
               </div>
-            </div>
-            
-            <form onSubmit={handleSubmitMessage} className="mt-4">
-              <Textarea
-                placeholder="Type your reply here..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                className="min-h-[100px]"
-              />
-              <div className="mt-2 flex justify-end">
-                <Button 
-                  type="submit" 
-                  disabled={!newMessage.trim() || isSubmitting}
-                >
-                  {isSubmitting ? "Sending..." : "Send Reply"}
-                </Button>
+            ))}
+
+            {/* Reply input - only shown if onAddMessage is provided and ticket is not closed */}
+            {onAddMessage && ticket.status !== "closed" && (
+              <div className="pt-4 border-t">
+                <Textarea
+                  placeholder="Type your reply..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  className="mb-2 min-h-[100px]"
+                />
+                <div className="flex justify-end">
+                  <Button 
+                    onClick={handleSendMessage}
+                    disabled={isSubmitting || !newMessage.trim()}
+                  >
+                    {isSubmitting ? "Sending..." : "Send Reply"}
+                  </Button>
+                </div>
               </div>
-            </form>
+            )}
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
-}
+};
+
+// Alias export to match the import name in other files
+export const SupportTicketComponent = SupportTicket;
