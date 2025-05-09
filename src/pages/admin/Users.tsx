@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,11 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default function AdminUsers() {
   const navigate = useNavigate();
-  const { users, isLoadingUsers, fetchUsers } = useUserManagementStore();
+  const {
+    users,
+    fetchUsers,
+    isLoadingUsers = false
+  } = useUserManagementStore();
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {

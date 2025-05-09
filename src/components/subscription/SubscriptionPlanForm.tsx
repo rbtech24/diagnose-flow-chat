@@ -50,12 +50,15 @@ export function SubscriptionPlanForm({
   };
 
   const handleSubmit = () => {
+    const monthlyPriceValue = parseFloat(monthlyPrice) || 0;
     const plan: SubscriptionPlan = {
       id: initialData?.id || `plan-${Date.now()}`,
       name,
       description,
-      monthlyPrice: parseFloat(monthlyPrice) || 0,
+      price: monthlyPriceValue, // For backwards compatibility
+      monthlyPrice: monthlyPriceValue,
       yearlyPrice: parseFloat(yearlyPrice) || 0,
+      billingCycle: 'monthly', // For backwards compatibility
       maxTechnicians: parseInt(maxTechnicians) || 1,
       maxAdmins: parseInt(maxAdmins) || 1,
       dailyDiagnostics: parseInt(dailyDiagnostics) || 0,

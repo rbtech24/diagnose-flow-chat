@@ -23,7 +23,9 @@ type ActivityType =
   | 'system_message';
 
 export function useActivityLogger() {
-  const { currentUser } = useUserManagementStore();
+  // Since currentUser might not exist in the store yet, access it safely
+  const store = useUserManagementStore();
+  const currentUser = (store as any).currentUser;
 
   const logEvent = useCallback(async (
     activityType: ActivityType,
