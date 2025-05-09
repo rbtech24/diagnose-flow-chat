@@ -6,8 +6,10 @@ export const mockSubscriptionPlans: SubscriptionPlan[] = [
     id: "plan-basic",
     name: "Basic",
     description: "Perfect for individual technicians or small repair shops",
+    price: 29.99, // For backwards compatibility
     monthlyPrice: 29.99,
     yearlyPrice: 299.99,
+    billingCycle: "monthly", // For backwards compatibility
     maxTechnicians: 3,
     maxAdmins: 1,
     dailyDiagnostics: 50,
@@ -27,8 +29,10 @@ export const mockSubscriptionPlans: SubscriptionPlan[] = [
     id: "plan-professional",
     name: "Professional",
     description: "Ideal for growing repair businesses with multiple technicians",
+    price: 79.99, // For backwards compatibility
     monthlyPrice: 79.99,
     yearlyPrice: 799.99,
+    billingCycle: "monthly", // For backwards compatibility
     maxTechnicians: 10,
     maxAdmins: 3,
     dailyDiagnostics: 200,
@@ -50,8 +54,10 @@ export const mockSubscriptionPlans: SubscriptionPlan[] = [
     id: "plan-enterprise",
     name: "Enterprise",
     description: "Complete solution for large repair companies and franchises",
+    price: 199.99, // For backwards compatibility
     monthlyPrice: 199.99,
     yearlyPrice: 1999.99,
+    billingCycle: "monthly", // For backwards compatibility
     maxTechnicians: 50,
     maxAdmins: 10,
     dailyDiagnostics: 1000,

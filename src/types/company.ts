@@ -7,6 +7,12 @@ export interface Company {
   phone?: string;
   status: 'active' | 'trial' | 'expired' | 'inactive';
   planName?: string;
+  subscription_tier?: string; // Used in Supabase
+  trial_status?: string; // Used in Supabase
+  trial_period?: number; // Used in Supabase
+  trial_end_date?: string; // Used in Supabase
+  created_at?: string; // Used in Supabase
+  updated_at?: string; // Used in Supabase
   logoUrl?: string;
   address?: string;
   city?: string;
