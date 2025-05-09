@@ -91,7 +91,7 @@ export default function SystemMessagesPage() {
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-8 w-8 text-red-500 hover:text-red-600"
+                        className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
                         onClick={() => handleDeletePrompt(msg)}
                         aria-label="Delete message"
                       >
