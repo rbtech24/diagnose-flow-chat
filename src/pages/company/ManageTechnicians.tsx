@@ -85,12 +85,22 @@ export default function ManageTechnicians() {
               console.warn(`Could not find user details for tech ${tech.id}`, detailsError);
             }
             
+            // Ensure the role is one of the allowed types
+            const typedRole = (tech.role as string).toLowerCase();
+            let role: 'admin' | 'company' | 'tech' = 'tech'; // Default to 'tech'
+            
+            if (typedRole === 'admin') {
+              role = 'admin';
+            } else if (typedRole === 'company') {
+              role = 'company';
+            }
+            
             return {
               id: tech.id,
               name: userDetails?.name || tech.email?.split('@')[0] || 'Unknown',
               email: tech.email,
               phone: tech.phone,
-              role: tech.role,
+              role: role,
               companyId: tech.company_id,
               avatarUrl: userDetails?.avatar_url
             };
@@ -109,16 +119,27 @@ export default function ManageTechnicians() {
           throw inviteError;
         }
         
-        const pendingInvites: TechnicianInvite[] = (inviteData || []).map(invite => ({
-          id: invite.id,
-          email: invite.email,
-          name: invite.name,
-          phone: invite.phone,
-          companyId: invite.company_id,
-          status: invite.status,
-          createdAt: new Date(invite.created_at),
-          expiresAt: new Date(invite.expires_at)
-        }));
+        const pendingInvites: TechnicianInvite[] = (inviteData || []).map(invite => {
+          // Ensure status is one of the allowed types
+          let typedStatus: 'pending' | 'accepted' | 'expired' = 'pending';
+          
+          if (invite.status === 'accepted') {
+            typedStatus = 'accepted';
+          } else if (invite.status === 'expired') {
+            typedStatus = 'expired';
+          }
+          
+          return {
+            id: invite.id,
+            email: invite.email,
+            name: invite.name,
+            phone: invite.phone,
+            companyId: invite.company_id,
+            status: typedStatus,
+            createdAt: new Date(invite.created_at),
+            expiresAt: new Date(invite.expires_at)
+          };
+        });
         
         // Get company subscription info and tech limits
         const { data: companyData, error: companyError } = await supabase
@@ -240,7 +261,7 @@ export default function ManageTechnicians() {
         name: inviteData.name,
         phone: inviteData.phone || undefined,
         companyId: inviteData.company_id,
-        status: inviteData.status,
+        status: 'pending',
         createdAt: new Date(inviteData.created_at),
         expiresAt: new Date(inviteData.expires_at)
       };
