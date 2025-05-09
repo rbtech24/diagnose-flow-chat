@@ -12,12 +12,13 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default function AdminCompanies() {
   const navigate = useNavigate();
-  const { companies, isLoadingCompanies, fetchCompanies } = useUserManagementStore();
+  const { companies, users, isLoadingCompanies, fetchCompanies, fetchUsers } = useUserManagementStore();
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchCompanies();
-  }, [fetchCompanies]);
+    fetchUsers();
+  }, [fetchCompanies, fetchUsers]);
 
   // Filter companies based on search query
   const filteredCompanies = companies.filter(company => 
@@ -59,94 +60,97 @@ export default function AdminCompanies() {
     }
   };
 
+  // Calculate technician count for each company
+  const getTechnicianCount = (companyId: string) => {
+    return users.filter(user => user.companyId === companyId && user.role === 'tech').length;
+  };
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Companies</h1>
-          <p className="text-muted-foreground">Manage all registered companies</p>
-        </div>
-        <div className="flex items-center gap-3">
+        <h1 className="text-3xl font-bold">Companies</h1>
+        <Button className="flex items-center gap-2" onClick={handleAddCompany}>
+          <Plus className="h-4 w-4" /> Add Company
+        </Button>
+      </div>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Search Companies</CardTitle>
+          <CardDescription>Find companies by name, contact, or status</CardDescription>
+        </CardHeader>
+        <CardContent>
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search companies..." 
-              className="pl-8 w-[250px]" 
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search companies..."
+              className="pl-10"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button onClick={handleAddCompany}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Company
-          </Button>
-        </div>
-      </div>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle>Active Companies</CardTitle>
-          <CardDescription>Companies currently using the platform</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoadingCompanies ? (
-            <div className="space-y-4">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Skeleton className="h-10 w-10 rounded-full" />
-                    <div>
-                      <Skeleton className="h-4 w-40" />
-                      <Skeleton className="h-3 w-32 mt-2" />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Skeleton className="h-6 w-16" />
-                    <Skeleton className="h-9 w-24" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : filteredCompanies.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {searchQuery ? "No companies match your search" : "No companies found"}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredCompanies.map((company) => (
-                <div key={company.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={company.logoUrl} alt={company.name} />
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {getCompanyInitials(company.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-medium">{company.name}</h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>{company.technicianCount} technicians</span>
-                        <span>•</span>
-                        <span>{company.planName || "Basic"} plan</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Badge className={getStatusBadgeStyle(company.status)}>
-                      {company.status}
-                    </Badge>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link to={`/admin/companies/${company.id}`}>
-                        View Details
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </CardContent>
       </Card>
+
+      {isLoadingCompanies ? (
+        <div className="space-y-4">
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+        </div>
+      ) : filteredCompanies.length === 0 ? (
+        <div className="text-center py-12">
+          <Building2 className="h-12 w-12 mx-auto text-gray-400" />
+          <h2 className="mt-4 text-lg font-medium">No companies found</h2>
+          <p className="text-muted-foreground">Try adjusting your search terms</p>
+        </div>
+      ) : (
+        <div className="grid gap-6">
+          {filteredCompanies.map(company => {
+            const techCount = getTechnicianCount(company.id);
+            
+            return (
+              <div key={company.id} className="flex flex-col md:flex-row justify-between items-start md:items-center p-6 bg-white rounded-lg border">
+                <div className="flex items-center gap-4 mb-4 md:mb-0">
+                  <Avatar className="h-12 w-12">
+                    {company.logoUrl ? (
+                      <AvatarImage src={company.logoUrl} alt={company.name} />
+                    ) : null}
+                    <AvatarFallback className="bg-primary/10">
+                      {getCompanyInitials(company.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-lg font-semibold">{company.name}</h2>
+                      <Badge className={`${getStatusBadgeStyle(company.status)}`}>
+                        {company.status}
+                      </Badge>
+                    </div>
+                    <div className="flex flex-wrap gap-4 mt-1 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Building2 className="h-4 w-4" />
+                        {techCount} technicians
+                      </div>
+                      {company.planName && (
+                        <div className="flex items-center gap-1">
+                          Plan: {company.planName}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <Button variant="outline" asChild>
+                  <Link to={`/admin/companies/${company.id}`}>
+                    View Details
+                  </Link>
+                </Button>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

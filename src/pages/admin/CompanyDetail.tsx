@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -217,6 +216,9 @@ export default function CompanyDetail() {
   };
 
   const mainAdmin = companyUsers.find(user => user.role === 'company' && user.isMainAdmin);
+  
+  // Calculate the actual technician count based on companyUsers
+  const technicianCount = companyUsers.filter(user => user.role === 'tech').length;
 
   return (
     <div className="container mx-auto p-6">
@@ -326,7 +328,7 @@ export default function CompanyDetail() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold mb-2">{companyData.technicianCount}</div>
+            <div className="text-3xl font-bold mb-2">{technicianCount}</div>
             <p className="text-sm text-muted-foreground">
               {companyUsers.filter(u => u.role === 'tech').length} active technicians
             </p>

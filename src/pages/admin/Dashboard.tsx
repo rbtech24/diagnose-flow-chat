@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -198,27 +197,34 @@ export default function AdminDashboard() {
                 </div>
               ) : recentlyActiveCompanies.length > 0 ? (
                 <>
-                  {recentlyActiveCompanies.map((company) => (
-                    <div key={company.id} className="flex justify-between mb-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
-                      <div className="flex items-center">
-                        <div className="relative mr-2">
-                          <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                            {company.name.charAt(0)}
+                  {recentlyActiveCompanies.map((company) => {
+                    // Calculate technician count for each company directly from users array
+                    const techCount = users.filter(user => 
+                      user.companyId === company.id && user.role === 'tech'
+                    ).length;
+                    
+                    return (
+                      <div key={company.id} className="flex justify-between mb-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
+                        <div className="flex items-center">
+                          <div className="relative mr-2">
+                            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                              {company.name.charAt(0)}
+                            </div>
+                            <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white ${company.status === 'active' ? 'bg-green-500' : 'bg-gray-300'}`}></span>
                           </div>
-                          <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white ${company.status === 'active' ? 'bg-green-500' : 'bg-gray-300'}`}></span>
+                          <div>
+                            <p className="font-medium">{company.name}</p>
+                            <p className="text-xs text-gray-500">
+                              {company.status === 'active' ? 'Active' : company.status} • {techCount} technicians
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">{company.name}</p>
-                          <p className="text-xs text-gray-500">
-                            {company.status === 'active' ? 'Active' : company.status} • {company.technicianCount} technicians
-                          </p>
-                        </div>
+                        <Button variant="outline" size="sm">
+                          <Link to={`/admin/companies/${company.id}`} className="text-black">View</Link>
+                        </Button>
                       </div>
-                      <Button variant="outline" size="sm">
-                        <Link to={`/admin/companies/${company.id}`} className="text-black">View</Link>
-                      </Button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </>
               ) : (
                 <p className="text-center text-gray-500 py-8">No companies available</p>

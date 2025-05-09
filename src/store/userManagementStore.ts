@@ -58,7 +58,7 @@ interface UserManagementState {
 // In a real app, these would come from a database
 const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
-// Initial data (in a real app, this would be loaded from the backend)
+// Update mock data - Service Wranglers LLC with one technician
 const initialUsers: User[] = [
   {
     id: "admin-1",
@@ -91,6 +91,32 @@ const initialUsers: User[] = [
     companyId: "company-acme-1",
     avatarUrl: "https://i.pravatar.cc/150?u=mike",
     createdAt: new Date(2023, 1, 22),
+  },
+  // Adding a technician for Service Wranglers
+  {
+    id: "tech-2",
+    name: "Alex Rodriguez",
+    email: "alex@servicewranglers.com",
+    role: "tech",
+    phone: "(555) 789-0123",
+    companyId: "company-service-1",
+    avatarUrl: "https://i.pravatar.cc/150?u=alex",
+    createdAt: new Date(2023, 3, 15),
+    status: "active"
+  },
+  // Company admin for Service Wranglers
+  {
+    id: "company-2",
+    name: "Jessica Taylor",
+    email: "jessica@servicewranglers.com",
+    role: "company",
+    phone: "(555) 321-6547",
+    companyId: "company-service-1",
+    subscriptionStatus: "active",
+    isMainAdmin: true,
+    avatarUrl: "https://i.pravatar.cc/150?u=jessica",
+    createdAt: new Date(2023, 2, 5),
+    status: "active"
   }
 ];
 
@@ -109,10 +135,29 @@ const initialCompanies: Company[] = [
     planId: "plan-premium-1",
     planName: "Premium",
     status: "active",
-    technicianCount: 5,
+    technicianCount: 1,
     createdAt: new Date(2023, 0, 15),
     updatedAt: new Date(2023, 2, 10),
     logoUrl: "https://example.com/logo-acme.png"
+  },
+  // Add Service Wranglers LLC with 1 technician
+  {
+    id: "company-service-1",
+    name: "Service Wranglers LLC",
+    contactName: "Jessica Taylor",
+    email: "contact@servicewranglers.com",
+    phone: "(555) 321-6547",
+    address: "789 Tech Blvd",
+    city: "Austin",
+    state: "TX",
+    zipCode: "73301",
+    country: "USA",
+    planId: "plan-basic-1",
+    planName: "Basic",
+    status: "active",
+    technicianCount: 1,
+    createdAt: new Date(2023, 2, 5),
+    updatedAt: new Date(2023, 4, 1),
   },
   {
     id: "company-fast-2",
@@ -128,8 +173,8 @@ const initialCompanies: Company[] = [
     planId: "plan-basic-1",
     planName: "Basic",
     status: "trial",
-    trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-    technicianCount: 3,
+    trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    technicianCount: 0,
     createdAt: new Date(2023, 3, 5),
     updatedAt: new Date(2023, 3, 5),
   },
@@ -147,7 +192,7 @@ const initialCompanies: Company[] = [
     planId: "plan-enterprise-1",
     planName: "Enterprise",
     status: "active",
-    technicianCount: 8,
+    technicianCount: 0,
     createdAt: new Date(2023, 1, 20),
     updatedAt: new Date(2023, 4, 15),
     logoUrl: "https://example.com/logo-expert.png"
