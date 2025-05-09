@@ -20,10 +20,16 @@ import {
   SidebarToggle,
   SidebarNavGroup
 } from "@/components/ui/sidebar";
+import { useUserManagementStore } from "@/store/userManagementStore";
 
 export function TechSidebar() {
   const location = useLocation();
+  const { logout } = useUserManagementStore();
   const isActive = (path: string) => location.pathname === path;
+  
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
     <Sidebar defaultExpanded={true}>
@@ -85,7 +91,11 @@ export function TechSidebar() {
             <Settings size={20} className="text-muted-foreground" />
             <span>Settings</span>
           </Link>
-          <Link to="/login" className="flex items-center text-sm gap-1 text-muted-foreground hover:text-foreground transition-colors">
+          <Link 
+            to="/login" 
+            className="flex items-center text-sm gap-1 text-muted-foreground hover:text-foreground transition-colors"
+            onClick={handleLogout}
+          >
             <LogOut size={18} />
             <span>Logout</span>
           </Link>

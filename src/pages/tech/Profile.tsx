@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProfileLayout } from "@/components/profile/ProfileLayout";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { PasswordForm } from "@/components/profile/PasswordForm";
@@ -8,23 +8,41 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Wrench, Building2, History, Award, BarChart } from "lucide-react";
+import { useUserManagementStore } from "@/store/userManagementStore";
 
 export default function TechProfile() {
-  // Mock technician data - would typically come from API/context
+  const { currentUser } = useUserManagementStore();
+  
+  // Use currentUser data from the store, or fallback to mock data if not available
   const [techData, setTechData] = useState({
-    name: "Alex Technician",
-    email: "alex@acmerepair.com",
-    phone: "555-123-7890",
+    name: currentUser?.name || "Alex Technician",
+    email: currentUser?.email || "alex@acmerepair.com",
+    phone: currentUser?.phone || "555-123-7890",
     title: "Senior Repair Technician",
-    role: "Technician",
-    companyName: "Acme Repair Services",
-    companyId: "acme123",
+    role: currentUser?.role || "Technician",
+    companyName: currentUser?.company?.name || "Acme Repair Services",
+    companyId: currentUser?.companyId || "acme123",
     skills: ["Refrigeration", "HVAC", "Dishwashers", "Laundry Machines"],
     completedRepairs: 248,
     rating: 4.8,
     assignedToCompany: true,
     yearsExperience: 7
   });
+
+  // Update tech data when currentUser changes
+  useEffect(() => {
+    if (currentUser) {
+      setTechData(prevData => ({
+        ...prevData,
+        name: currentUser.name || prevData.name,
+        email: currentUser.email || prevData.email,
+        phone: currentUser.phone || prevData.phone,
+        role: currentUser.role || prevData.role,
+        companyName: currentUser.company?.name || prevData.companyName,
+        companyId: currentUser.companyId || prevData.companyId
+      }));
+    }
+  }, [currentUser]);
 
   const handleProfileUpdate = (values: any) => {
     setTechData({

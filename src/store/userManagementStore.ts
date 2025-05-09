@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types';
@@ -21,6 +20,7 @@ interface UserManagementState {
   updateCompany: (id: string, companyData: Partial<Company>) => Promise<Company | null>;
   deleteCompany: (id: string) => Promise<boolean>;
   resetUserPassword: (userId: string, newPassword: string) => Promise<boolean>;
+  logout: () => void;
 }
 
 export const useUserManagementStore = create<UserManagementState>((set, get) => ({
@@ -426,5 +426,11 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       console.error('Error in resetUserPassword:', error);
       return false;
     }
+  },
+  
+  logout: () => {
+    set({ currentUser: null });
+    // Clear any auth state in localStorage if you're using it
+    localStorage.removeItem("currentUser");
   }
 }));

@@ -7,14 +7,23 @@ import { Input } from "@/components/ui/input";
 import { useUserMessages } from "@/context/SystemMessageContext";
 import { SystemMessage } from "@/components/system/SystemMessage";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useUserManagementStore } from "@/store/userManagementStore";
 
 export function TechLayout() {
   const navigate = useNavigate();
   const userMessages = useUserMessages("tech");
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { currentUser, fetchUsers } = useUserManagementStore();
+
+  // Fetch users on component mount if we don't have a current user
+  useEffect(() => {
+    if (!currentUser) {
+      fetchUsers();
+    }
+  }, [currentUser, fetchUsers]);
 
   return (
     <div className="flex h-screen w-full">
@@ -56,7 +65,7 @@ export function TechLayout() {
             onClick={() => navigate("/tech/profile")}
           >
             <span className="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full">
-              <img className="aspect-square h-full w-full" src="https://i.pravatar.cc/300" alt="Profile" />
+              <img className="aspect-square h-full w-full" src={currentUser?.avatarUrl || "https://i.pravatar.cc/300"} alt="Profile" />
             </span>
           </Button>
         </div>
