@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { useUserManagementStore } from "@/store/userManagementStore";
+import { useActivityLogger } from "@/hooks/useActivityLogger";
 
 export default function TechnicianDashboard() {
   // Get current date
@@ -22,6 +24,13 @@ export default function TechnicianDashboard() {
     day: 'numeric' as const 
   };
   const formattedDate = today.toLocaleDateString('en-US', dateOptions);
+  
+  // Get user data
+  const { currentUser, users } = useUserManagementStore();
+  const user = currentUser || (users.length > 0 ? users[0] : null);
+  
+  // Initialize activity logger
+  const { logEvent } = useActivityLogger();
   
   // State for upcoming appointments
   const [appointments, setAppointments] = useState([
@@ -51,6 +60,25 @@ export default function TechnicianDashboard() {
     address: ""
   });
 
+  // Performance metrics state
+  const [metrics, setMetrics] = useState({
+    activeJobs: 8,
+    completedJobs: 24,
+    averageResponseTime: "1.2 hrs",
+    firstTimeFixRate: "94%"
+  });
+
+  useEffect(() => {
+    // Log dashboard view
+    if (user) {
+      logEvent('user', 'Dashboard viewed');
+    }
+    
+    // In a real application, you would fetch metrics and appointments from an API
+    // fetchTechnicianMetrics();
+    // fetchTechniciansAppointments();
+  }, [user]);
+
   // Handle adding a new appointment
   const handleAddAppointment = () => {
     if (!newAppointment.title || !newAppointment.time || !newAppointment.customer) {
@@ -75,6 +103,12 @@ export default function TechnicianDashboard() {
       address: ""
     });
 
+    // Log the activity
+    logEvent('workflow', 'Appointment added', {
+      appointmentTitle: newAppointment.title,
+      appointmentTime: newAppointment.time
+    });
+
     toast.success("Appointment added successfully");
   };
   
@@ -83,7 +117,7 @@ export default function TechnicianDashboard() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold">Technician Dashboard</h1>
-          <p className="text-gray-500">John Doe • ABC Appliance Repair</p>
+          <p className="text-gray-500">{user?.name || "Technician"} • {user?.company?.name || "Company"}</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="relative w-64">
@@ -98,11 +132,13 @@ export default function TechnicianDashboard() {
           <CardHeader>
             <div className="flex justify-between items-center">
               <div>
-                <CardTitle>Welcome Back, John</CardTitle>
+                <CardTitle>Welcome Back, {user?.name?.split(' ')[0] || "Technician"}</CardTitle>
                 <CardDescription>{formattedDate}</CardDescription>
               </div>
               <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-                Start Diagnosis
+                <Link to="/tech/diagnostics" className="text-white">
+                  Start Diagnosis
+                </Link>
               </Button>
             </div>
           </CardHeader>
@@ -112,14 +148,14 @@ export default function TechnicianDashboard() {
                 <Timer className="h-4 w-4 text-blue-500" />
                 <div>
                   <p className="text-sm font-medium">Avg Response Time</p>
-                  <p className="text-2xl font-bold">1.8 hrs</p>
+                  <p className="text-2xl font-bold">{metrics.averageResponseTime}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Percent className="h-4 w-4 text-green-500" />
                 <div>
                   <p className="text-sm font-medium">First-Time Fix Rate</p>
-                  <p className="text-2xl font-bold">94%</p>
+                  <p className="text-2xl font-bold">{metrics.firstTimeFixRate}</p>
                 </div>
               </div>
             </div>
@@ -135,7 +171,7 @@ export default function TechnicianDashboard() {
           <CardContent>
             <div className="flex items-center">
               <Wrench className="h-4 w-4 text-blue-500 mr-2" />
-              <span className="text-2xl font-bold">8</span>
+              <span className="text-2xl font-bold">{metrics.activeJobs}</span>
             </div>
           </CardContent>
         </Card>
@@ -147,7 +183,7 @@ export default function TechnicianDashboard() {
           <CardContent>
             <div className="flex items-center">
               <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-              <span className="text-2xl font-bold">24</span>
+              <span className="text-2xl font-bold">{metrics.completedJobs}</span>
             </div>
           </CardContent>
         </Card>
@@ -159,7 +195,7 @@ export default function TechnicianDashboard() {
           <CardContent>
             <div className="flex items-center">
               <Clock className="h-4 w-4 text-purple-500 mr-2" />
-              <span className="text-2xl font-bold">1.2 hrs</span>
+              <span className="text-2xl font-bold">{metrics.averageResponseTime}</span>
             </div>
           </CardContent>
         </Card>
