@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { supabase } from '@/integrations/supabase/client';
 import { Company, User } from '@/types';
@@ -39,8 +40,10 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         throw error;
       }
       set({ companies: data || [] });
+      return data || [];
     } catch (error) {
       console.error("Failed to fetch companies:", error);
+      return [];
     } finally {
       set({ isLoadingCompanies: false });
     }
@@ -58,13 +61,15 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         throw error;
       }
       set({ users: data || [] });
+      return data || [];
     } catch (error) {
       console.error("Failed to fetch users:", error);
+      return [];
     } finally {
       set({ isLoadingUsers: false });
     }
   },
-  createCompany: async (companyData: Omit<Company, 'id'>) => {
+  createCompany: async (companyData) => {
     try {
       const { data: response, error } = await supabase
         .from('companies')

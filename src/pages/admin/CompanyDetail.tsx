@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -29,7 +30,7 @@ export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { companies, users, fetchCompanyById, fetchUsers, deleteCompany, updateCompany } = useUserManagementStore();
+  const { companies, users, fetchCompanies, fetchUsers, deleteCompany, updateCompany } = useUserManagementStore();
   const [companyData, setCompanyData] = useState<any>(null);
   const [companyUsers, setCompanyUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,7 +42,11 @@ export default function CompanyDetail() {
       setIsLoading(true);
       try {
         await fetchUsers();
-        const company = await fetchCompanyById(id);
+        await fetchCompanies();
+        
+        // Find the company by ID from the fetched companies
+        const company = companies.find(c => c.id === id);
+        
         if (company) {
           setCompanyData(company);
           
@@ -69,7 +74,7 @@ export default function CompanyDetail() {
     };
     
     loadData();
-  }, [id, fetchCompanyById, fetchUsers, users, navigate, toast]);
+  }, [id, fetchCompanies, fetchUsers, users, companies, navigate, toast]);
 
   const handleDeleteCompany = async () => {
     if (!id) return;
@@ -332,11 +337,13 @@ export default function CompanyDetail() {
             <p className="text-sm text-muted-foreground">
               {companyUsers.filter(u => u.role === 'tech').length} active technicians
             </p>
-            <Link to={`/admin/companies/${id}/technicians`}>
-              <Button className="w-full mt-4" variant="outline">
-                View Technicians
-              </Button>
-            </Link>
+            <Button 
+              className="w-full mt-4" 
+              variant="outline"
+              onClick={() => navigate(`/admin/users?companyId=${id}&role=tech`)}
+            >
+              View Technicians
+            </Button>
           </CardContent>
         </Card>
 
@@ -361,11 +368,13 @@ export default function CompanyDetail() {
                 Renews on {format(new Date(companyData.subscriptionEndsAt), "MMM d, yyyy")}
               </div>
             )}
-            <Link to={`/admin/companies/${id}/subscription`}>
-              <Button className="w-full mt-4" variant="outline">
-                Manage Subscription
-              </Button>
-            </Link>
+            <Button 
+              className="w-full mt-4" 
+              variant="outline"
+              onClick={() => navigate(`/admin/subscription-plans?companyId=${id}`)}
+            >
+              Manage Subscription
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -389,11 +398,11 @@ export default function CompanyDetail() {
                       <div className="flex items-center gap-3">
                         <Avatar>
                           <AvatarFallback className="bg-primary/10">
-                            {admin.name.substring(0, 2).toUpperCase()}
+                            {admin.name?.substring(0, 2).toUpperCase() || 'AD'}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <h3 className="font-medium">{admin.name}</h3>
+                          <h3 className="font-medium">{admin.name || 'Admin User'}</h3>
                           <div className="flex items-center gap-2">
                             <p className="text-sm text-muted-foreground">{admin.email}</p>
                             {admin.isMainAdmin && (
@@ -460,11 +469,11 @@ export default function CompanyDetail() {
                     <div className="flex items-center gap-3">
                       <Avatar>
                         <AvatarFallback className="bg-blue-100 text-blue-600">
-                          {tech.name.substring(0, 2).toUpperCase()}
+                          {tech.name?.substring(0, 2).toUpperCase() || 'TC'}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <h3 className="font-medium">{tech.name}</h3>
+                        <h3 className="font-medium">{tech.name || 'Technician'}</h3>
                         <p className="text-sm text-muted-foreground">{tech.email}</p>
                       </div>
                     </div>
