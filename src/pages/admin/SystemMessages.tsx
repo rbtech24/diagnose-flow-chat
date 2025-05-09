@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useSystemMessages } from "@/context/SystemMessageContext";
-import { BellRing, Info, AlertTriangle, Trash, Edit, Plus } from "lucide-react";
+import { BellRing, Info, AlertTriangle, Trash, Edit, Plus, Trash2 } from "lucide-react";
 import { SystemMessage } from "@/components/system/SystemMessage";
 import { toast } from "sonner";
 import { EditSystemMessageDialog } from "@/components/admin/EditSystemMessageDialog";
@@ -95,7 +95,7 @@ export default function SystemMessagesPage() {
                         onClick={() => handleDeletePrompt(msg)}
                         aria-label="Delete message"
                       >
-                        <Trash className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                     
