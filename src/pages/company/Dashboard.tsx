@@ -8,6 +8,13 @@ import {
   Play, Activity, Stethoscope
 } from "lucide-react";
 import { useWorkflows } from "@/hooks/useWorkflows";
+import { useEffect, useState } from "react";
+import { useSystemMessages } from "@/context/SystemMessageContext";
+import { SystemMessage } from "@/components/system/SystemMessage";
+import { useCompanyTechnicians } from "@/hooks/useCompanyTechnicians";
+import { useSupportTickets } from "@/hooks/useSupportTickets";
+import { currentUser } from "@/data/mockTickets";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CompanyDashboard() {
   // Get current date
@@ -21,8 +28,33 @@ export default function CompanyDashboard() {
   const formattedDate = today.toLocaleDateString('en-US', dateOptions);
   
   // Get workflows for diagnosis
-  const { workflows, isLoading } = useWorkflows();
+  const { workflows, isLoading: workflowsLoading } = useWorkflows();
   
+  // Get technicians data
+  const { technicians, isLoading: techniciansLoading } = useCompanyTechnicians();
+  
+  // Get support tickets data
+  const { tickets, isLoading: ticketsLoading } = useSupportTickets();
+  
+  // Get system messages for this user
+  const userMessages = useSystemMessages().messages.filter(msg => 
+    msg.targetUsers.includes("company")
+  );
+
+  // Calculate active technicians
+  const activeTechnicians = technicians?.filter(tech => tech.status === "active") || [];
+
+  // Calculate active jobs
+  const [activeJobs, setActiveJobs] = useState(0);
+  const [responseTime, setResponseTime] = useState("1.8 hrs");
+
+  useEffect(() => {
+    // This would ideally be replaced with a real API call to fetch metrics
+    // For now we'll simulate data
+    setActiveJobs(Math.floor(Math.random() * 10) + 5);
+    setResponseTime(((Math.random() * 2) + 1).toFixed(1) + " hrs");
+  }, []);
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
@@ -31,6 +63,15 @@ export default function CompanyDashboard() {
           <p className="text-gray-500">{formattedDate}</p>
         </div>
       </div>
+      
+      {userMessages.map(msg => (
+        <SystemMessage 
+          key={msg.id} 
+          type={msg.type} 
+          title={msg.title} 
+          message={msg.message} 
+        />
+      ))}
       
       <div className="grid grid-cols-1 gap-6 md:grid-cols-4 mb-8">
         <Card className="md:col-span-3 border-blue-200 bg-blue-50">
@@ -54,7 +95,7 @@ export default function CompanyDashboard() {
                 <Clock className="h-4 w-4 text-blue-600" />
                 <div>
                   <p className="text-sm font-medium">Avg Response Time</p>
-                  <p className="text-2xl font-bold">1.8 hrs</p>
+                  <p className="text-2xl font-bold">{responseTime}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -77,7 +118,11 @@ export default function CompanyDashboard() {
               <div className="bg-purple-200 text-purple-600 p-4 rounded-full mb-2">
                 <Stethoscope className="h-6 w-6" />
               </div>
-              <p className="text-sm text-center mb-1">{isLoading ? "Loading..." : `${workflows.length} available procedures`}</p>
+              {workflowsLoading ? (
+                <Skeleton className="h-5 w-32 mb-2" />
+              ) : (
+                <p className="text-sm text-center mb-1">{workflows.length} available procedures</p>
+              )}
               <Button variant="outline" size="sm" className="mt-2">
                 <Link to="/company/diagnostics" className="text-black">View Diagnostics</Link>
               </Button>
@@ -94,7 +139,7 @@ export default function CompanyDashboard() {
           <CardContent>
             <div className="flex items-center">
               <Wrench className="h-4 w-4 text-cyan-600 mr-2" />
-              <span className="text-2xl font-bold">12</span>
+              <span className="text-2xl font-bold">{activeJobs}</span>
             </div>
           </CardContent>
         </Card>
@@ -106,7 +151,11 @@ export default function CompanyDashboard() {
           <CardContent>
             <div className="flex items-center">
               <Users className="h-4 w-4 text-green-600 mr-2" />
-              <span className="text-2xl font-bold">8</span>
+              {techniciansLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <span className="text-2xl font-bold">{activeTechnicians.length}</span>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -118,7 +167,7 @@ export default function CompanyDashboard() {
           <CardContent>
             <div className="flex items-center">
               <Clock className="h-4 w-4 text-amber-600 mr-2" />
-              <span className="text-2xl font-bold">1.4 hrs</span>
+              <span className="text-2xl font-bold">{responseTime}</span>
             </div>
           </CardContent>
         </Card>
@@ -132,53 +181,47 @@ export default function CompanyDashboard() {
               <CardDescription>Manage your technicians</CardDescription>
             </CardHeader>
             <CardContent className="mt-4">
-              <div className="flex justify-between mb-4 p-3 rounded-lg bg-green-50 border border-green-100">
-                <div className="flex items-center">
-                  <div className="relative mr-2">
-                    <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/300?img=1" alt="Technician" />
-                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500"></span>
-                  </div>
-                  <div>
-                    <p className="font-medium">John Smith</p>
-                    <p className="text-xs text-gray-500">Active • 3 jobs</p>
-                  </div>
+              {techniciansLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
                 </div>
-                <Button variant="outline" size="sm">
-                  <Link to="/company/technicians" className="text-black">View</Link>
-                </Button>
-              </div>
-              
-              <div className="flex justify-between mb-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
-                <div className="flex items-center">
-                  <div className="relative mr-2">
-                    <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/300?img=2" alt="Technician" />
-                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500"></span>
-                  </div>
-                  <div>
-                    <p className="font-medium">Sarah Johnson</p>
-                    <p className="text-xs text-gray-500">Active • 2 jobs</p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm">
-                  <Link to="/company/technicians" className="text-black">View</Link>
-                </Button>
-              </div>
-              
-              <div className="flex justify-between p-3 rounded-lg bg-gray-50 border border-gray-100">
-                <div className="flex items-center">
-                  <div className="relative mr-2">
-                    <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/300?img=3" alt="Technician" />
-                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-gray-300"></span>
-                  </div>
-                  <div>
-                    <p className="font-medium">Mike Williams</p>
-                    <p className="text-xs text-gray-500">Offline • 0 jobs</p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm">
-                  <Link to="/company/technicians" className="text-black">View</Link>
-                </Button>
-              </div>
+              ) : technicians.length > 0 ? (
+                <>
+                  {technicians.slice(0, 3).map((tech, index) => (
+                    <div key={tech.id || index} className={`flex justify-between mb-4 p-3 rounded-lg ${
+                      tech.status === "active" 
+                        ? "bg-green-50 border border-green-100" 
+                        : "bg-gray-50 border border-gray-100"
+                    }`}>
+                      <div className="flex items-center">
+                        <div className="relative mr-2">
+                          <img 
+                            className="h-10 w-10 rounded-full" 
+                            src={tech.avatar_url || `https://i.pravatar.cc/300?img=${index + 1}`} 
+                            alt="Technician" 
+                          />
+                          <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white ${
+                            tech.status === "active" ? "bg-green-500" : "bg-gray-300"
+                          }`}></span>
+                        </div>
+                        <div>
+                          <p className="font-medium">{tech.name}</p>
+                          <p className="text-xs text-gray-500">
+                            {tech.status === "active" ? "Active" : "Offline"} • {tech.activeJobs || 0} jobs
+                          </p>
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm">
+                        <Link to="/company/technicians" className="text-black">View</Link>
+                      </Button>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <p className="text-center text-gray-500 py-6">No technicians available</p>
+              )}
               
               <div className="mt-6">
                 <Button className="w-full">
@@ -199,35 +242,37 @@ export default function CompanyDashboard() {
           </CardHeader>
           <CardContent className="mt-4">
             <div className="space-y-4">
-              <div className="flex items-start gap-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
-                <div className="mt-1 rounded-full bg-blue-100 p-1">
-                  <Wrench className="h-3 w-3 text-blue-600" />
+              {ticketsLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">New job created</p>
-                  <p className="text-xs text-gray-500">10 minutes ago</p>
+              ) : tickets && tickets.length > 0 ? (
+                tickets.slice(0, 3).map((ticket) => (
+                  <div key={ticket.id} className="flex items-start gap-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
+                    <div className="mt-1 rounded-full bg-blue-100 p-1">
+                      <MessagesSquare className="h-3 w-3 text-blue-600" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">{ticket.title}</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(ticket.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="flex items-start gap-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
+                  <div className="mt-1 rounded-full bg-blue-100 p-1">
+                    <AlertTriangle className="h-3 w-3 text-blue-600" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">No recent activity</p>
+                    <p className="text-xs text-gray-500">Create tickets to see activity here</p>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="flex items-start gap-4 p-3 rounded-lg bg-green-50 border border-green-100">
-                <div className="mt-1 rounded-full bg-green-100 p-1">
-                  <Users className="h-3 w-3 text-green-600" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Tech assigned to job #1234</p>
-                  <p className="text-xs text-gray-500">1 hour ago</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-4 p-3 rounded-lg bg-amber-50 border border-amber-100">
-                <div className="mt-1 rounded-full bg-amber-100 p-1">
-                  <AlertTriangle className="h-3 w-3 text-amber-600" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Job #1230 needs attention</p>
-                  <p className="text-xs text-gray-500">3 hours ago</p>
-                </div>
-              </div>
+              )}
               
               <Button variant="ghost" size="sm" className="w-full mt-4">
                 <Link to="/company/activity" className="text-black w-full">View All Activity</Link>
