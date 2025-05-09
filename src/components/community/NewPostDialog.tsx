@@ -13,9 +13,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CommunityPostType } from '@/types/community';
+import { CommunityPostType, CommunityPost } from '@/types/community';
+import { User } from "@/types/user";
 
-interface NewPostDialogProps {
+export interface NewPostDialogProps {
   onSubmit: (post: {
     title: string;
     content: string;
@@ -23,9 +24,11 @@ interface NewPostDialogProps {
     tags: string[];
     attachments: File[];
   }) => void;
+  currentUser?: User;
+  onClose?: () => void;
 }
 
-export function NewPostDialog({ onSubmit }: NewPostDialogProps) {
+export function NewPostDialog({ onSubmit, currentUser, onClose }: NewPostDialogProps) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -45,6 +48,7 @@ export function NewPostDialog({ onSubmit }: NewPostDialogProps) {
     });
     resetForm();
     setOpen(false);
+    if (onClose) onClose();
   };
 
   const handleTagKeyDown = (e: React.KeyboardEvent) => {
@@ -80,8 +84,15 @@ export function NewPostDialog({ onSubmit }: NewPostDialogProps) {
     setAttachments([]);
   };
 
+  const handleDialogChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (!newOpen && onClose) {
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogTrigger asChild>
         <Button className="gap-2">
           <Plus className="h-4 w-4" />
@@ -211,6 +222,7 @@ export function NewPostDialog({ onSubmit }: NewPostDialogProps) {
               onClick={() => {
                 resetForm();
                 setOpen(false);
+                if (onClose) onClose();
               }}
             >
               Cancel

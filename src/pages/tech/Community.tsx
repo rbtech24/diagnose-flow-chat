@@ -10,7 +10,7 @@ import { CommunityFilters } from "@/components/community/CommunityFilters";
 import { CommunityStats } from "@/components/community/CommunityStats";
 import { NewPostDialog } from "@/components/community/NewPostDialog";
 import { useUserManagementStore } from "@/store/userManagementStore";
-import { mockCommunityPosts } from "@/data/mockCommunity";
+import { mockPosts } from "@/data/mockCommunity";
 import { toast } from "sonner";
 
 export default function Community() {
@@ -18,21 +18,23 @@ export default function Community() {
   const [showFilters, setShowFilters] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
   const [showNewPostDialog, setShowNewPostDialog] = useState(false);
+  const [selectedType, setSelectedType] = useState("all");
+  const [selectedSort, setSelectedSort] = useState("recent");
   
   // Get the current user for creating posts
   const { users } = useUserManagementStore();
   const currentUser = users.find(user => user.role === 'tech') || users[0];
   
   // Filter posts based on search query and active tab
-  const filteredPosts = mockCommunityPosts
+  const filteredPosts = mockPosts
     .filter(post => post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                    post.content.toLowerCase().includes(searchQuery.toLowerCase()))
     .filter(post => {
       if (activeTab === "all") return true;
       if (activeTab === "questions") return post.type === "question";
       if (activeTab === "discussions") return post.type === "discussion";
-      if (activeTab === "solved") return post.is_solved;
-      if (activeTab === "my-posts") return post.author_id === currentUser?.id;
+      if (activeTab === "solved") return post.isSolved;
+      if (activeTab === "my-posts") return post.authorId === currentUser?.id;
       return true;
     });
   
@@ -79,7 +81,17 @@ export default function Community() {
                   Filter
                 </Button>
               </div>
-              {showFilters && <CommunityFilters className="mb-4" />}
+              {showFilters && (
+                <CommunityFilters 
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  selectedType={selectedType}
+                  setSelectedType={setSelectedType}
+                  selectedSort={selectedSort}
+                  setSelectedSort={setSelectedSort}
+                  className="mb-4"
+                />
+              )}
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="w-full justify-start">
                   <TabsTrigger value="all">All Posts</TabsTrigger>
@@ -107,6 +119,7 @@ export default function Community() {
                   key={post.id}
                   post={post}
                   onVote={handleVote}
+                  basePath="/tech/community"
                 />
               ))
             )}
@@ -114,7 +127,12 @@ export default function Community() {
         </div>
 
         <div className="space-y-6">
-          <CommunityStats />
+          <CommunityStats 
+            questionCount={25}
+            techSheetRequestCount={14}
+            wireDiagramRequestCount={19}
+            activeMemberCount={42}
+          />
           <Card>
             <CardHeader>
               <CardTitle>Community Guidelines</CardTitle>
@@ -135,9 +153,9 @@ export default function Community() {
       
       {showNewPostDialog && (
         <NewPostDialog
-          onClose={() => setShowNewPostDialog(false)}
           onSubmit={handleCreatePost}
           currentUser={currentUser}
+          onClose={() => setShowNewPostDialog(false)}
         />
       )}
     </div>

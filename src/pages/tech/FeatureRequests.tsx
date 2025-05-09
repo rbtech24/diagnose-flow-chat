@@ -10,6 +10,7 @@ import { NewFeatureRequestForm } from "@/components/feature-request/NewFeatureRe
 import { mockFeatureRequests } from "@/data/mockFeatureRequests";
 import { useUserManagementStore } from "@/store/userManagementStore";
 import { toast } from "sonner";
+import { FeatureRequestStatus } from "@/types/feature-request";
 
 export default function FeatureRequests() {
   const [activeTab, setActiveTab] = useState("all");
@@ -27,7 +28,7 @@ export default function FeatureRequests() {
     (activeTab === "all" || 
      (activeTab === "my-requests" && request.user_id === currentUser?.id) ||
      (activeTab === "submitted" && request.status === "submitted") || 
-     (activeTab === "in-progress" && request.status === "in_progress") || 
+     (activeTab === "in-progress" && (request.status === "in_progress" || request.status === "in-progress")) || 
      (activeTab === "planned" && request.status === "planned") || 
      (activeTab === "completed" && request.status === "completed"))
   );
@@ -94,7 +95,7 @@ export default function FeatureRequests() {
           {filteredRequests.map((request) => (
             <FeatureRequestCard
               key={request.id}
-              feature={request}
+              request={request}
               onVote={() => handleVoteRequest(request.id)}
               currentUserId={currentUser?.id || ''}
             />

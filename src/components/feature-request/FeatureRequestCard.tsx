@@ -6,18 +6,22 @@ import { ThumbsUp, MessageSquare, Calendar } from "lucide-react";
 import { FeatureRequest, FeatureRequestStatus } from "@/types/feature-request";
 import { format } from "date-fns";
 
-interface FeatureRequestCardProps {
+export interface FeatureRequestCardProps {
   request: FeatureRequest;
+  onVote?: () => void;
+  currentUserId?: string;
 }
 
-export function FeatureRequestCard({ request }: FeatureRequestCardProps) {
-  const statusColors: Record<FeatureRequestStatus, string> = {
+export function FeatureRequestCard({ request, onVote, currentUserId }: FeatureRequestCardProps) {
+  const statusColors: Record<string, string> = {
     "pending": "bg-yellow-100 text-yellow-800",
     "submitted": "bg-blue-100 text-blue-800",
     "approved": "bg-green-100 text-green-800",
     "in-progress": "bg-purple-100 text-purple-800",
+    "in_progress": "bg-purple-100 text-purple-800",
     "completed": "bg-blue-100 text-blue-800",
-    "rejected": "bg-red-100 text-red-800"
+    "rejected": "bg-red-100 text-red-800",
+    "planned": "bg-green-100 text-green-800"
   };
   
   const priorityColors = {
@@ -42,8 +46,9 @@ export function FeatureRequestCard({ request }: FeatureRequestCardProps) {
           <h3 className="font-medium text-lg">{request.title}</h3>
           <div className="flex gap-2">
             <Badge variant="outline" className={statusColors[request.status]}>
-              {request.status === "in-progress" ? "In Progress" : 
-                request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+              {request.status === "in_progress" ? "In Progress" : 
+               request.status === "in-progress" ? "In Progress" :
+               request.status.charAt(0).toUpperCase() + request.status.slice(1)}
             </Badge>
             <Badge variant="outline" className={priorityColors[request.priority]}>
               {request.priority.charAt(0).toUpperCase() + request.priority.slice(1)}
@@ -60,10 +65,14 @@ export function FeatureRequestCard({ request }: FeatureRequestCardProps) {
       </CardContent>
       <CardFooter className="px-4 py-3 border-t flex items-center justify-between text-sm text-muted-foreground">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1">
-            <ThumbsUp className="h-4 w-4" />
+          <button
+            className="flex items-center gap-1 hover:text-blue-500 transition-colors"
+            onClick={onVote}
+            disabled={request.user_has_voted}
+          >
+            <ThumbsUp className={`h-4 w-4 ${request.user_has_voted ? 'text-blue-500' : ''}`} />
             <span>{request.votes_count}</span>
-          </div>
+          </button>
           <div className="flex items-center gap-1">
             <MessageSquare className="h-4 w-4" />
             <span>{request.comments_count}</span>

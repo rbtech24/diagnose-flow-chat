@@ -1,19 +1,10 @@
 
-import { useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -21,108 +12,97 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
-const featureRequestSchema = z.object({
-  title: z.string().min(5, { message: "Title must be at least 5 characters" }),
-  description: z.string().min(20, { message: "Description must be at least 20 characters" }),
-  priority: z.enum(["low", "medium", "high", "critical"]),
-});
-
-type FeatureRequestFormValues = z.infer<typeof featureRequestSchema>;
-
-interface NewFeatureRequestFormProps {
-  onSubmit: (values: FeatureRequestFormValues) => void;
-  isSubmitting: boolean;
+export interface NewFeatureRequestFormProps {
+  onSubmit: (requestData: any) => void;
+  currentUserId: string;
+  onClose?: () => void;
 }
 
-export function NewFeatureRequestForm({ onSubmit, isSubmitting }: NewFeatureRequestFormProps) {
-  const form = useForm<FeatureRequestFormValues>({
-    resolver: zodResolver(featureRequestSchema),
-    defaultValues: {
-      title: "",
-      description: "",
-      priority: "medium",
-    },
-  });
+export function NewFeatureRequestForm({ onSubmit, currentUserId, onClose }: NewFeatureRequestFormProps) {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [priority, setPriority] = useState('medium');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    const requestData = {
+      title,
+      description,
+      priority,
+      user_id: currentUserId,
+    };
+    
+    onSubmit(requestData);
+    setIsSubmitting(false);
+    if (onClose) onClose();
+  };
 
   return (
-    <div>
-      <DialogHeader>
-        <DialogTitle>Request a New Feature</DialogTitle>
-        <DialogDescription>
-          Describe the feature you'd like to see added to the platform
-        </DialogDescription>
-      </DialogHeader>
-      
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Title</FormLabel>
-                <FormControl>
-                  <Input placeholder="Feature title" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    placeholder="Describe the feature in detail..." 
-                    className="min-h-[120px]" 
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="priority"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Priority</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select priority" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="critical">Critical</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <div className="flex justify-end">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Submit Feature Request"}
-            </Button>
+    <Dialog open={true} onOpenChange={(open) => {
+      if (!open && onClose) onClose();
+    }}>
+      <DialogContent className="sm:max-w-[550px]">
+        <DialogHeader>
+          <DialogTitle>New Feature Request</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                placeholder="A brief title for your feature request"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                placeholder="Describe the feature you'd like to see in detail..."
+                rows={5}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="priority">Priority</Label>
+              <Select
+                value={priority}
+                onValueChange={setPriority}
+              >
+                <SelectTrigger id="priority">
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="critical">Critical</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+          
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting || !title || !description}>
+              {isSubmitting ? "Submitting..." : "Submit Request"}
+            </Button>
+          </DialogFooter>
         </form>
-      </Form>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

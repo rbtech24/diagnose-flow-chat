@@ -2,18 +2,19 @@
 import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
-import { MessageSquare, Eye, ThumbsUp, CheckCircle, FileText, Workflow } from 'lucide-react';
+import { MessageSquare, Eye, ThumbsUp, CheckCircle, FileText } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CommunityPost } from '@/types/community';
 
-interface CommunityPostCardProps {
+export interface CommunityPostCardProps {
   post: CommunityPost;
-  basePath: string;
+  basePath?: string;
+  onVote?: (postId: string, direction: 'up' | 'down') => void;
 }
 
-export function CommunityPostCard({ post, basePath }: CommunityPostCardProps) {
+export function CommunityPostCard({ post, basePath = "/community", onVote }: CommunityPostCardProps) {
   const typeIcon = () => {
     switch (post.type) {
       case 'question':
@@ -21,7 +22,7 @@ export function CommunityPostCard({ post, basePath }: CommunityPostCardProps) {
       case 'tech-sheet-request':
         return <FileText className="h-4 w-4 text-amber-500" />;
       case 'wire-diagram-request':
-        return <Workflow className="h-4 w-4 text-green-500" />;
+        return <FileText className="h-4 w-4 text-green-500" />;
       default:
         return <MessageSquare className="h-4 w-4 text-gray-500" />;
     }
@@ -46,6 +47,12 @@ export function CommunityPostCard({ post, basePath }: CommunityPostCardProps) {
       .map(n => n[0])
       .join('')
       .toUpperCase();
+  };
+  
+  const handleVote = (direction: 'up' | 'down') => {
+    if (onVote) {
+      onVote(post.id, direction);
+    }
   };
 
   return (
@@ -91,10 +98,14 @@ export function CommunityPostCard({ post, basePath }: CommunityPostCardProps) {
                 <Eye className="h-4 w-4" />
                 {post.views}
               </span>
-              <span className="flex items-center gap-1">
+              <button 
+                className="flex items-center gap-1 hover:text-blue-500 transition-colors"
+                onClick={() => handleVote('up')}
+                aria-label="Upvote"
+              >
                 <ThumbsUp className="h-4 w-4" />
                 {post.upvotes}
-              </span>
+              </button>
               {post.isSolved && (
                 <span className="flex items-center gap-1 text-green-600">
                   <CheckCircle className="h-4 w-4" />

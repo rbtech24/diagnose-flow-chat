@@ -6,14 +6,23 @@ export const mockSubscriptionPlans: SubscriptionPlan[] = [
     id: "plan-basic",
     name: "Basic",
     description: "Perfect for individual technicians or small repair shops",
-    price: 29.99, // For backwards compatibility
-    monthlyPrice: 29.99,
-    yearlyPrice: 299.99,
+    price: {
+      monthly: 29.99,
+      yearly: 299.99
+    },
+    monthlyPrice: 29.99, // For backwards compatibility
+    yearlyPrice: 299.99, // For backwards compatibility
     billingCycle: "monthly", // For backwards compatibility
-    maxTechnicians: 3,
-    maxAdmins: 1,
-    dailyDiagnostics: 50,
-    storageLimit: 5,
+    limits: {
+      maxTechnicians: 3,
+      maxAdmins: 1,
+      dailyDiagnostics: 50,
+      storageLimit: 5,
+    },
+    maxTechnicians: 3, // For backwards compatibility
+    maxAdmins: 1, // For backwards compatibility
+    dailyDiagnostics: 50, // For backwards compatibility
+    storageLimit: 5, // For backwards compatibility
     features: [
       "Diagnostic workflows",
       "Basic reporting",
@@ -29,14 +38,23 @@ export const mockSubscriptionPlans: SubscriptionPlan[] = [
     id: "plan-professional",
     name: "Professional",
     description: "Ideal for growing repair businesses with multiple technicians",
-    price: 79.99, // For backwards compatibility
-    monthlyPrice: 79.99,
-    yearlyPrice: 799.99,
+    price: {
+      monthly: 79.99,
+      yearly: 799.99
+    },
+    monthlyPrice: 79.99, // For backwards compatibility
+    yearlyPrice: 799.99, // For backwards compatibility
     billingCycle: "monthly", // For backwards compatibility
-    maxTechnicians: 10,
-    maxAdmins: 3,
-    dailyDiagnostics: 200,
-    storageLimit: 20,
+    limits: {
+      maxTechnicians: 10,
+      maxAdmins: 3,
+      dailyDiagnostics: 200,
+      storageLimit: 20,
+    },
+    maxTechnicians: 10, // For backwards compatibility
+    maxAdmins: 3, // For backwards compatibility
+    dailyDiagnostics: 200, // For backwards compatibility
+    storageLimit: 20, // For backwards compatibility
     features: [
       "All Basic features",
       "Custom workflows",
@@ -54,14 +72,23 @@ export const mockSubscriptionPlans: SubscriptionPlan[] = [
     id: "plan-enterprise",
     name: "Enterprise",
     description: "Complete solution for large repair companies and franchises",
-    price: 199.99, // For backwards compatibility
-    monthlyPrice: 199.99,
-    yearlyPrice: 1999.99,
+    price: {
+      monthly: 199.99,
+      yearly: 1999.99
+    },
+    monthlyPrice: 199.99, // For backwards compatibility
+    yearlyPrice: 1999.99, // For backwards compatibility
     billingCycle: "monthly", // For backwards compatibility
-    maxTechnicians: 50,
-    maxAdmins: 10,
-    dailyDiagnostics: 1000,
-    storageLimit: 100,
+    limits: {
+      maxTechnicians: 50,
+      maxAdmins: 10,
+      dailyDiagnostics: 1000,
+      storageLimit: 100,
+    },
+    maxTechnicians: 50, // For backwards compatibility
+    maxAdmins: 10, // For backwards compatibility
+    dailyDiagnostics: 1000, // For backwards compatibility
+    storageLimit: 100, // For backwards compatibility
     features: [
       "All Professional features",
       "Unlimited workflows",
@@ -92,7 +119,7 @@ export const mockLicenses: License[] = [
     lastPayment: new Date(2024, 4, 15),
     nextPayment: new Date(2024, 5, 15),
     createdAt: new Date(2024, 2, 15),
-    updatedAt: new Date(2024, 4, 15)
+    expiresAt: new Date(2025, 2, 15)
   },
   {
     id: "license-2",
@@ -105,7 +132,7 @@ export const mockLicenses: License[] = [
     startDate: new Date(),
     trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     createdAt: new Date(),
-    updatedAt: new Date()
+    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
   },
   {
     id: "license-3",
@@ -119,7 +146,7 @@ export const mockLicenses: License[] = [
     endDate: new Date(2024, 3, 10),
     lastPayment: new Date(2024, 2, 10),
     createdAt: new Date(2023, 5, 10),
-    updatedAt: new Date(2024, 3, 11)
+    expiresAt: new Date(2024, 3, 10)
   }
 ];
 
@@ -130,11 +157,12 @@ export const mockPayments: Payment[] = [
     companyId: "company-1",
     amount: 799.99,
     currency: "USD",
-    status: "completed",
+    status: "succeeded",
+    method: "credit_card",
     paymentMethod: "credit_card",
+    date: new Date(2024, 4, 15),
     paymentDate: new Date(2024, 4, 15),
-    invoiceUrl: "https://example.com/invoice/123456",
-    createdAt: new Date(2024, 4, 15)
+    invoiceUrl: "https://example.com/invoice/123456"
   },
   {
     id: "payment-2",
@@ -142,11 +170,12 @@ export const mockPayments: Payment[] = [
     companyId: "company-1",
     amount: 799.99,
     currency: "USD",
-    status: "completed",
+    status: "succeeded",
+    method: "credit_card",
     paymentMethod: "credit_card",
+    date: new Date(2024, 3, 15),
     paymentDate: new Date(2024, 3, 15),
-    invoiceUrl: "https://example.com/invoice/123455",
-    createdAt: new Date(2024, 3, 15)
+    invoiceUrl: "https://example.com/invoice/123455"
   },
   {
     id: "payment-3",
@@ -155,8 +184,9 @@ export const mockPayments: Payment[] = [
     amount: 1999.99,
     currency: "USD",
     status: "failed",
+    method: "credit_card",
     paymentMethod: "credit_card",
-    paymentDate: new Date(2024, 3, 10),
-    createdAt: new Date(2024, 3, 10)
+    date: new Date(2024, 3, 10),
+    paymentDate: new Date(2024, 3, 10)
   }
 ];

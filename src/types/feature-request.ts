@@ -20,7 +20,7 @@ export interface FeatureRequest {
   };
 }
 
-export type FeatureRequestStatus = 'pending' | 'submitted' | 'approved' | 'in-progress' | 'completed' | 'rejected';
+export type FeatureRequestStatus = 'pending' | 'submitted' | 'approved' | 'in-progress' | 'in_progress' | 'completed' | 'rejected' | 'planned';
 export type FeatureRequestPriority = 'low' | 'medium' | 'high' | 'critical';
 
 export interface FeatureComment {
