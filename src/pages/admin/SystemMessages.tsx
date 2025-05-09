@@ -80,30 +80,34 @@ export default function SystemMessagesPage() {
                   <div key={msg.id} className="relative border rounded-lg p-4">
                     <div className="absolute top-2 right-2 flex gap-2">
                       <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8"
+                        variant="outline" 
+                        size="sm"
                         onClick={() => handleEditMessage(msg)}
                         aria-label="Edit message"
+                        className="flex items-center gap-1"
                       >
-                        <Edit className="h-4 w-4" />
+                        <Edit className="h-3.5 w-3.5" />
+                        Edit
                       </Button>
                       <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                        variant="outline" 
+                        size="sm" 
+                        className="flex items-center gap-1 text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
                         onClick={() => handleDeletePrompt(msg)}
                         aria-label="Delete message"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Delete
                       </Button>
                     </div>
                     
-                    <SystemMessage
-                      type={msg.type}
-                      title={msg.title}
-                      message={msg.message}
-                    />
+                    <div className="mt-6">
+                      <SystemMessage
+                        type={msg.type}
+                        title={msg.title}
+                        message={msg.message}
+                      />
+                    </div>
                     
                     <div className="mt-2 flex flex-wrap gap-2">
                       <p className="text-xs text-gray-500">Visible to:</p>
