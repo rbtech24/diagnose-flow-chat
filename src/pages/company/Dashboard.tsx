@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,7 +42,7 @@ export default function CompanyDashboard() {
   const { workflows, isLoading: workflowsLoading } = useWorkflows();
   
   // Get technicians data and company metrics
-  const { technicians, isLoading: techniciansLoading, deleteTechnician, metrics, usingMockData } = useCompanyTechnicians();
+  const { technicians, isLoading: techniciansLoading, deleteTechnician, metrics } = useCompanyTechnicians();
   
   // Get support tickets data
   const { tickets, isLoading: ticketsLoading } = useSupportTickets();
@@ -209,7 +210,7 @@ export default function CompanyDashboard() {
                         <div className="relative mr-2">
                           <img 
                             className="h-10 w-10 rounded-full" 
-                            src={tech.avatar_url || `https://i.pravatar.cc/300?img=${index + 1}`} 
+                            src={tech.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(tech.name || 'User')}&background=random`} 
                             alt="Technician" 
                           />
                           <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white ${
@@ -313,18 +314,6 @@ export default function CompanyDashboard() {
           </CardContent>
         </Card>
       </div>
-      
-      {usingMockData && (
-        <div className="mb-4 p-4 border border-amber-200 bg-amber-50 rounded-lg">
-          <div className="flex items-start gap-2">
-            <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5" />
-            <div>
-              <h3 className="font-medium">Using Demo Data</h3>
-              <p className="text-sm">We're displaying mock data because we couldn't connect to your company's database. Please check your connection or contact support.</p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

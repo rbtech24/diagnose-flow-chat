@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { mockTechnicians } from '@/data/mockTechnicians';
 import { toast } from 'sonner';
 
 export type Technician = {
@@ -29,7 +28,6 @@ export function useCompanyTechnicians() {
     responseTime: '1.8 hrs',
     teamPerformance: 94
   });
-  const [usingMockData, setUsingMockData] = useState<boolean>(false);
 
   // Function to delete a technician
   const deleteTechnician = async (technicianId: string) => {
@@ -86,7 +84,7 @@ export function useCompanyTechnicians() {
       // Try to get real metrics data from your repairs table
       const { data, count, error: repairsError } = await supabase
         .from('repairs')
-        .select('id', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: false })
         .eq('company_id', companyId)
         .in('status', ['assigned', 'in_progress']);
 
@@ -137,6 +135,22 @@ export function useCompanyTechnicians() {
           }));
         }
       }
+
+      // Fetch team performance from technician metrics or completed repairs
+      const { data: performanceData, error: performanceError } = await supabase
+        .from('technician_performance_metrics')
+        .select('efficiency_score')
+        .eq('technician_id', 'company_id')
+        .order('calculated_at', { ascending: false })
+        .limit(10);
+
+      if (!performanceError && performanceData && performanceData.length > 0) {
+        const avgPerformance = performanceData.reduce((sum, item) => sum + (item.efficiency_score || 0), 0) / performanceData.length;
+        setMetrics(prev => ({
+          ...prev,
+          teamPerformance: Math.round(avgPerformance)
+        }));
+      }
     } catch (err) {
       console.error('Error fetching company metrics:', err);
     }
@@ -147,7 +161,6 @@ export function useCompanyTechnicians() {
       try {
         setIsLoading(true);
         setError(null);
-        setUsingMockData(false);
         
         // Get the current user's company ID
         const { data: { user } } = await supabase.auth.getUser();
@@ -188,9 +201,8 @@ export function useCompanyTechnicians() {
         }
         
         if (!techData || techData.length === 0) {
-          console.log('No technicians found, using mock data');
-          setTechnicians(mockTechnicians);
-          setUsingMockData(true);
+          console.log('No technicians found in the database');
+          setTechnicians([]);
         } else {
           // Get user details for each technician to get name and avatar
           const technicianData = await Promise.all(
@@ -209,7 +221,7 @@ export function useCompanyTechnicians() {
               // Get active jobs count using the correct approach
               const { count: activeJobsCount, error: countError } = await supabase
                 .from('repairs')
-                .select('id', { count: 'exact', head: true })
+                .select('id', { count: 'exact', head: false })
                 .eq('technician_id', tech.id)
                 .in('status', ['assigned', 'in_progress']);
                 
@@ -235,13 +247,7 @@ export function useCompanyTechnicians() {
       } catch (err) {
         console.error('Error in useCompanyTechnicians:', err);
         setError(err instanceof Error ? err : new Error('Failed to fetch technicians'));
-        
-        // Only use mock data as absolute fallback
-        if (technicians.length === 0) {
-          console.log('Falling back to mock technicians data');
-          setTechnicians(mockTechnicians);
-          setUsingMockData(true);
-        }
+        setTechnicians([]);
       } finally {
         setIsLoading(false);
       }
@@ -250,5 +256,5 @@ export function useCompanyTechnicians() {
     fetchTechnicians();
   }, []);
   
-  return { technicians, isLoading, error, deleteTechnician, metrics, usingMockData };
+  return { technicians, isLoading, error, deleteTechnician, metrics };
 }
