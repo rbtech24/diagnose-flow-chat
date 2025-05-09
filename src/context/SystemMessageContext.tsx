@@ -20,15 +20,8 @@ interface SystemMessageContextType {
 const SystemMessageContext = createContext<SystemMessageContextType | undefined>(undefined);
 
 export function SystemMessageProvider({ children }: { children: ReactNode }) {
-  const [messages, setMessages] = useState<SystemMessageData[]>([
-    {
-      id: "maintenance-1",
-      type: "maintenance",
-      title: "Scheduled Maintenance",
-      message: "System maintenance scheduled for tonight from 2AM - 4AM. Some features may be unavailable during this time.",
-      targetUsers: ["company", "tech", "admin"]
-    }
-  ]);
+  // Initialize with an empty array instead of a default maintenance message
+  const [messages, setMessages] = useState<SystemMessageData[]>([]);
 
   const addMessage = (message: Omit<SystemMessageData, "id">) => {
     const newMessage = {
@@ -59,6 +52,6 @@ export function useSystemMessages() {
 
 export function useUserMessages(userType: "company" | "tech" | "admin") {
   const { messages } = useSystemMessages();
-  // Fix: properly filter messages to only show messages for this user type
+  // Filter messages to only show messages for this user type
   return messages.filter(msg => msg.targetUsers.includes(userType));
 }
