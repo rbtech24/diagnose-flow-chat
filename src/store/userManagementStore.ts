@@ -20,7 +20,7 @@ interface UserManagementState {
   createCompany: (companyData: Partial<Company>) => Promise<Company>;
   // Add missing functions required by components
   deleteUser: (id: string, email?: string, role?: string) => Promise<boolean>;
-  resetUserPassword: (userId: string): Promise<boolean>;
+  resetUserPassword: (userId: string) => Promise<boolean>;
   deleteCompany: (id: string) => Promise<boolean>;
   logout: () => Promise<void>;
   addUser: (userData: any) => Promise<User>;
@@ -380,7 +380,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
     }
   },
 
-  resetUserPassword: async (userId: string): Promise<boolean> => {
+  resetUserPassword: async (userId: string) => {
     try {
       // In a real implementation, this would send a password reset link
       // For now, we'll just simulate success
@@ -420,7 +420,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
     }
   },
 
-  logout: async (): Promise<void> => {
+  logout: async () => {
     try {
       await supabase.auth.signOut();
       set({ currentUser: null });
