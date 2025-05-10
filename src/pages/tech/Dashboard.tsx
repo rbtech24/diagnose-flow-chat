@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   Users, Wrench, Clock, AlertTriangle, Search,
-  Timer, Percent, PlusCircle, 
+  Timer, Percent, PlusCircle, CheckCircle,
   MessageSquare, FileText, Calendar, Settings
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -46,9 +47,12 @@ interface NewAppointment {
 }
 
 // Define simple interfaces for API responses to prevent deep instantiation
-interface SupabaseResponse<T> {
-  data: T | null;
-  error: any;
+interface CustomerData {
+  id: string;
+  name?: string;
+  first_name?: string;
+  last_name?: string;
+  service_addresses?: Array<{address?: string}>;
 }
 
 interface RepairData {
@@ -63,13 +67,12 @@ interface RepairData {
   priority?: string;
 }
 
-interface CustomerData {
-  id: string;
-  name?: string;
-  first_name?: string;
-  last_name?: string;
-  service_addresses?: Array<{address?: string}>;
-}
+// Fix for deep instantiation errors - create simple type for supabase response
+type SupabaseResponse<T> = {
+  data: T | null;
+  error: any;
+  count?: number;
+};
 
 export default function TechnicianDashboard() {
   // Get current date
@@ -128,28 +131,32 @@ export default function TechnicianDashboard() {
       try {
         logEvent('user', 'Dashboard viewed');
         
-        // Helper function to fetch active repairs - use explicit return type to avoid deep instantiation
+        // Fetch active repairs - use explicit return type to avoid deep instantiation
         const fetchActiveRepairs = async (techId: string): Promise<SupabaseResponse<RepairData[]>> => {
           try {
-            return await supabase
+            const { data, error, count } = await supabase
               .from('repairs')
               .select('*')
               .eq('technician_id', techId)
               .in('status', ['scheduled', 'in_progress']);
+            
+            return { data, error, count };
           } catch (error) {
             console.error('Error fetching active repairs:', error);
             return { data: null, error };
           }
         };
 
-        // Helper function to fetch customer - use explicit return type to avoid deep instantiation
+        // Fetch customer data - use explicit return type to avoid deep instantiation
         const fetchCustomer = async (customerId: string): Promise<SupabaseResponse<CustomerData>> => {
           try {
-            return await supabase
+            const { data, error } = await supabase
               .from('customers')
               .select('*')
               .eq('id', customerId)
               .single();
+            
+            return { data, error };
           } catch (error) {
             console.error('Error fetching customer:', error);
             return { data: null, error };
@@ -198,18 +205,24 @@ export default function TechnicianDashboard() {
         
         // Fetch metrics
         // 1. Active jobs count
-        const { count: activeCount, error: activeError } = await supabase
+        const activeJobsResponse = await supabase
           .from('repairs')
           .select('id', { count: 'exact', head: true })
           .eq('technician_id', currentUser.id)
           .in('status', ['scheduled', 'in_progress']);
+        
+        const activeCount = activeJobsResponse.count;
+        const activeError = activeJobsResponse.error;
           
         // 2. Completed jobs count
-        const { count: completedCount, error: completedError } = await supabase
+        const completedJobsResponse = await supabase
           .from('repairs')
           .select('id', { count: 'exact', head: true })
           .eq('technician_id', currentUser.id)
           .eq('status', 'completed');
+        
+        const completedCount = completedJobsResponse.count;
+        const completedError = completedJobsResponse.error;
         
         // 3. Get technician performance metrics if available
         const { data: perfMetrics, error: perfError } = await supabase
@@ -235,22 +248,28 @@ export default function TechnicianDashboard() {
         }
 
         // Fetch quick links counts
-        const { count: supportCount } = await supabase
+        const supportResponse = await supabase
           .from('support_tickets')
           .select('id', { count: 'exact', head: true })
           .eq('technician_id', currentUser.id)
           .eq('status', 'open');
 
-        const { count: featureCount } = await supabase
+        const supportCount = supportResponse.count;
+
+        const featureResponse = await supabase
           .from('feature_requests')
           .select('id', { count: 'exact', head: true })
           .eq('user_id', currentUser.id);
 
-        const { count: communityCount } = await supabase
+        const featureCount = featureResponse.count;
+
+        const communityResponse = await supabase
           .from('community_posts')
           .select('id', { count: 'exact', head: true })
           .eq('user_id', currentUser.id)
           .is('resolved', false);
+
+        const communityCount = communityResponse.count;
 
         // Update quick links
         setQuickLinks(links => links.map(link => {
