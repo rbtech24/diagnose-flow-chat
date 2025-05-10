@@ -38,21 +38,23 @@ export default function TechFeatureRequests() {
             const user = request.created_by_user;
             
             if (typeof user === 'object') {
-              // Validate the user role is one of the valid values
+              // Safely extract and validate the role
               let userRole: "admin" | "company" | "tech" = 'tech';
               
-              if (typeof user.role === 'string') {
-                if (user.role === 'admin' || user.role === 'company' || user.role === 'tech') {
-                  userRole = user.role as "admin" | "company" | "tech";
+              if (user && typeof user === 'object' && 'role' in user && typeof user.role === 'string') {
+                const roleValue = user.role as string;
+                // Validate the role is one of the allowed values
+                if (roleValue === 'admin' || roleValue === 'company' || roleValue === 'tech') {
+                  userRole = roleValue as "admin" | "company" | "tech";
                 }
               }
               
               createdByUser = {
-                name: 'name' in user ? String(user.name) : 
-                     ('full_name' in user ? String(user.full_name) : 'Unknown User'),
-                email: 'email' in user ? String(user.email) : '',
+                name: user && typeof user === 'object' && 'name' in user ? String(user.name) : 
+                     (user && typeof user === 'object' && 'full_name' in user ? String(user.full_name) : 'Unknown User'),
+                email: user && typeof user === 'object' && 'email' in user ? String(user.email) : '',
                 role: userRole,
-                avatar_url: 'avatar_url' in user ? String(user.avatar_url) : undefined
+                avatar_url: user && typeof user === 'object' && 'avatar_url' in user ? String(user.avatar_url) : undefined
               };
             }
           }
