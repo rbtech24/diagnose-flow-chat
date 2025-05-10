@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/user';
@@ -91,12 +92,12 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       // Transform to match User type
       const user: User = {
         id: data.id,
-        name: data.name || data.email?.split('@')[0] || '', // Use name if available, fallback to email
+        name: data.name || (data.email ? data.email.split('@')[0] : '') || '', // Use name if available, fallback to email
         email: data.email,
         role: (data.role as 'admin' | 'company' | 'tech') || 'tech',
         companyId: data.company_id,
         status: data.status || 'active',
-        avatarUrl: undefined, // Since this field doesn't exist in technicians table
+        avatarUrl: data.avatar_url, // Use avatar_url property
         activeJobs: 0, // Initialize with 0
       };
 
@@ -130,8 +131,8 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         trial_end_date: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
-        status: (data.status as 'active' | 'trial' | 'expired' | 'inactive'), 
-        plan_name: data.plan_name,
+        status: (data.trial_status as 'active' | 'trial' | 'expired' | 'inactive'), 
+        plan_name: data.plan_name || data.subscription_tier,
       };
 
       return company;
@@ -403,7 +404,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
 const transformTechniciansData = (technicians: any[]): User[] => {
   return technicians.map(tech => ({
     id: tech.id,
-    name: tech.name || tech.email?.split('@')[0] || '', // Use name if available, fallback to email
+    name: tech.name || (tech.email ? tech.email.split('@')[0] : '') || '', // Use name if available, fallback to email
     email: tech.email,
     role: tech.role,
     status: tech.status || 'active',

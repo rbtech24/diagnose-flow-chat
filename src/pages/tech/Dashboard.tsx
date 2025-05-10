@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -215,7 +216,7 @@ export default function TechnicianDashboard() {
     fetchData();
   }, [currentUser, fetchUsers, logEvent]);
 
-  // Helper function to fetch active repairs
+  // Helper function to fetch active repairs - use any type to avoid deep type instantiation
   const fetchActiveRepairs = async (techId: string) => {
     try {
       return await supabase
@@ -230,7 +231,7 @@ export default function TechnicianDashboard() {
     }
   };
 
-  // Helper function to fetch customer
+  // Helper function to fetch customer - use any type to avoid deep type instantiation
   const fetchCustomer = async (customerId: string) => {
     try {
       return await supabase
