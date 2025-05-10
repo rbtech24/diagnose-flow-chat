@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,30 +13,69 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FeatureRequest } from "@/types/feature-request";
-import { mockFeatureRequests } from "@/data/mockFeatureRequests";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader2, MessageSquare } from "lucide-react";
 
 export default function TechFeatureRequests() {
   const [featureRequests, setFeatureRequests] = useState<FeatureRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setFeatureRequests(mockFeatureRequests);
-      setLoading(false);
-    }, 500);
-  }, []);
+    const fetchFeatureRequests = async () => {
+      setLoading(true);
+      try {
+        let query = supabase
+          .from("feature_requests")
+          .select("*");
+          
+        if (statusFilter !== "all") {
+          query = query.eq("status", statusFilter);
+        }
+        
+        const { data, error } = await query;
+        
+        if (error) {
+          console.error("Error fetching feature requests:", error);
+          return;
+        }
+        
+        // Transform the data to match our component structure
+        const formattedRequests = data.map(item => ({
+          id: item.id,
+          title: item.title,
+          description: item.description,
+          status: item.status,
+          priority: item.priority || "medium",
+          company_id: item.company_id,
+          user_id: item.user_id,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          votes_count: item.votes_count || 0,
+          user_has_voted: item.user_has_voted || false,
+          comments_count: item.comments_count || 0,
+          created_by_user: item.created_by_user
+        }));
+        
+        setFeatureRequests(formattedRequests);
+      } catch (err) {
+        console.error("Error in fetchFeatureRequests:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchFeatureRequests();
+  }, [statusFilter]);
 
   const filteredRequests = featureRequests.filter((request) => {
     const matchesSearch = 
-      request.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.description.toLowerCase().includes(searchTerm.toLowerCase());
+      (request.title?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (request.description?.toLowerCase().includes(searchTerm.toLowerCase()));
       
-    const matchesStatus = statusFilter === "all" || request.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
+    return matchesSearch;
   });
 
   const getStatusColor = (status: string) => {
@@ -56,7 +96,7 @@ export default function TechFeatureRequests() {
           <h1 className="text-3xl font-bold">Feature Requests</h1>
           <p className="text-muted-foreground">Browse and vote on feature requests</p>
         </div>
-        <Button onClick={() => {}} variant="default">New Feature Request</Button>
+        <Button onClick={() => navigate("/tech/feature-requests/new")} variant="default">New Feature Request</Button>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -97,7 +137,7 @@ export default function TechFeatureRequests() {
             <div 
               key={request.id} 
               className="border rounded-lg p-6 hover:border-primary/50 transition-colors cursor-pointer"
-              onClick={() => window.location.href = `/tech/feature-requests/${request.id}`}
+              onClick={() => navigate(`/tech/feature-requests/${request.id}`)}
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">
@@ -105,7 +145,7 @@ export default function TechFeatureRequests() {
                     {request.created_by_user && (
                       <Avatar className="h-6 w-6">
                         <AvatarImage src={request.created_by_user.avatar_url} alt={request.created_by_user.name} />
-                        <AvatarFallback>{request.created_by_user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                        <AvatarFallback>{request.created_by_user.name?.substring(0, 2).toUpperCase() || "??"}</AvatarFallback>
                       </Avatar>
                     )}
                     <span className="text-sm text-muted-foreground">
@@ -134,14 +174,7 @@ export default function TechFeatureRequests() {
                   <span>{request.votes_count || 0} votes</span>
                 </div>
                 <div className="flex items-center gap-1 text-muted-foreground">
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    className="h-4 w-4" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
+                  <MessageSquare className="h-4 w-4" />
                   <span>{request.comments_count || 0} comments</span>
                 </div>
               </div>

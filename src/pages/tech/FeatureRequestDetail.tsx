@@ -1,11 +1,12 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
 import { FeatureRequest, FeatureComment } from "@/types/feature-request";
-import { mockFeatureRequests } from "@/data/mockFeatureRequests";
-import { currentUser } from "@/data/mockTickets";
-import { ArrowLeft } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function TechFeatureRequestDetailPage() {
   const [featureRequest, setFeatureRequest] = useState<FeatureRequest | null>(null);
@@ -13,56 +14,222 @@ export default function TechFeatureRequestDetailPage() {
   const [loading, setLoading] = useState(true);
   const { id } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      const foundRequest = mockFeatureRequests.find(request => request.id === id);
-      setFeatureRequest(foundRequest || null);
-      setComments([]); // Initialize with empty comments
-      setLoading(false);
-    }, 500);
-  }, [id]);
+    const fetchFeatureRequest = async () => {
+      if (!id) return;
 
-  const handleVote = (requestId: string) => {
+      setLoading(true);
+      try {
+        // Fetch the feature request
+        const { data: requestData, error: requestError } = await supabase
+          .from("feature_requests")
+          .select("*")
+          .eq("id", id)
+          .single();
+
+        if (requestError) {
+          console.error("Error fetching feature request:", requestError);
+          return;
+        }
+
+        // Fetch comments for this feature request
+        const { data: commentsData, error: commentsError } = await supabase
+          .from("feature_comments")
+          .select("*")
+          .eq("feature_id", id)
+          .order("created_at", { ascending: true });
+
+        if (commentsError) {
+          console.error("Error fetching comments:", commentsError);
+        }
+
+        // Transform the data
+        const formattedRequest: FeatureRequest = {
+          id: requestData.id,
+          title: requestData.title,
+          description: requestData.description,
+          status: requestData.status,
+          priority: requestData.priority || "medium",
+          company_id: requestData.company_id,
+          user_id: requestData.user_id,
+          created_at: requestData.created_at,
+          updated_at: requestData.updated_at,
+          votes_count: requestData.votes_count || 0,
+          user_has_voted: requestData.user_has_voted || false,
+          comments_count: requestData.comments_count || 0,
+          created_by_user: requestData.created_by_user
+        };
+
+        const formattedComments: FeatureComment[] = commentsData?.map(comment => ({
+          id: comment.id,
+          feature_id: comment.feature_id,
+          user_id: comment.user_id,
+          content: comment.content,
+          created_at: comment.created_at,
+          created_by_user: comment.created_by_user
+        })) || [];
+
+        setFeatureRequest(formattedRequest);
+        setComments(formattedComments);
+      } catch (err) {
+        console.error("Error in fetchFeatureRequest:", err);
+        toast({
+          title: "Error",
+          description: "Failed to load feature request details",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeatureRequest();
+  }, [id, toast]);
+
+  const handleVote = async (requestId: string) => {
     if (!featureRequest) return;
     
-    // Update vote count in the UI
-    setFeatureRequest({
-      ...featureRequest,
-      votes_count: (featureRequest.votes_count || 0) + 1,
-      user_has_voted: true
-    });
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        toast({
+          title: "Error",
+          description: "You need to be logged in to vote",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Check if user already voted
+      const { data: existingVotes } = await supabase
+        .from("feature_votes")
+        .select("id")
+        .eq("feature_id", requestId)
+        .eq("user_id", userData.user.id)
+        .single();
+
+      if (existingVotes) {
+        toast({
+          description: "You've already voted for this feature",
+        });
+        return;
+      }
+
+      // Add vote
+      const { error } = await supabase
+        .from("feature_votes")
+        .insert({
+          feature_id: requestId,
+          user_id: userData.user.id
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      // Update vote count in UI
+      setFeatureRequest({
+        ...featureRequest,
+        votes_count: (featureRequest.votes_count || 0) + 1,
+        user_has_voted: true
+      });
+
+      toast({
+        description: "Vote added successfully",
+      });
+    } catch (err) {
+      console.error("Error adding vote:", err);
+      toast({
+        title: "Error",
+        description: "Failed to add your vote",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleAddComment = async (requestId: string, content: string): Promise<void> => {
     if (!featureRequest) return;
     
-    const newComment: FeatureComment = {
-      id: `comment-${Date.now()}`,
-      feature_id: requestId,
-      user_id: currentUser.id,
-      content,
-      created_at: new Date().toISOString(),
-      created_by_user: {
-        name: currentUser.name,
-        email: currentUser.email,
-        role: currentUser.role as "admin" | "company" | "tech",
-        avatar_url: currentUser.avatar_url,
-      },
-    };
-    
-    setComments(prevComments => [...prevComments, newComment]);
-    return Promise.resolve();
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        toast({
+          title: "Error",
+          description: "You need to be logged in to comment",
+          variant: "destructive"
+        });
+        return Promise.reject("Not logged in");
+      }
+
+      // Add comment
+      const { data, error } = await supabase
+        .from("feature_comments")
+        .insert({
+          feature_id: requestId,
+          user_id: userData.user.id,
+          content: content
+        })
+        .select("*")
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      // Get user details
+      const { data: userDetails } = await supabase
+        .from("profiles")
+        .select("name, email, avatar_url, role")
+        .eq("id", userData.user.id)
+        .single();
+
+      // Create new comment object
+      const newComment: FeatureComment = {
+        id: data.id,
+        feature_id: data.feature_id,
+        user_id: data.user_id,
+        content: data.content,
+        created_at: data.created_at,
+        created_by_user: userDetails ? {
+          name: userDetails.name,
+          email: userDetails.email,
+          avatar_url: userDetails.avatar_url,
+          role: userDetails.role
+        } : undefined
+      };
+
+      // Add to local state
+      setComments(prevComments => [...prevComments, newComment]);
+      
+      // Update comment count
+      setFeatureRequest({
+        ...featureRequest,
+        comments_count: (featureRequest.comments_count || 0) + 1
+      });
+
+      toast({
+        description: "Comment added successfully",
+      });
+
+      return Promise.resolve();
+    } catch (err) {
+      console.error("Error adding comment:", err);
+      toast({
+        title: "Error",
+        description: "Failed to add your comment",
+        variant: "destructive"
+      });
+      return Promise.reject(err);
+    }
   };
 
   if (loading) {
     return (
       <div className="container mx-auto p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </div>
     );

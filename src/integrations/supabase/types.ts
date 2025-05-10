@@ -426,6 +426,50 @@ export type Database = {
           },
         ]
       }
+      community_comments: {
+        Row: {
+          attachments: Json | null
+          author_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          is_answer: boolean | null
+          post_id: string | null
+          updated_at: string | null
+          upvotes: number | null
+        }
+        Insert: {
+          attachments?: Json | null
+          author_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_answer?: boolean | null
+          post_id?: string | null
+          updated_at?: string | null
+          upvotes?: number | null
+        }
+        Update: {
+          attachments?: Json | null
+          author_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_answer?: boolean | null
+          post_id?: string | null
+          updated_at?: string | null
+          upvotes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       community_post_comments: {
         Row: {
           author_id: string | null
@@ -1351,34 +1395,49 @@ export type Database = {
       }
       feature_requests: {
         Row: {
+          comments_count: number | null
           company_id: string | null
           created_at: string | null
+          created_by_user: Json | null
           description: string
           id: string
+          priority: string | null
           status: string | null
           title: string
           updated_at: string | null
+          user_has_voted: boolean | null
           user_id: string | null
+          votes_count: number | null
         }
         Insert: {
+          comments_count?: number | null
           company_id?: string | null
           created_at?: string | null
+          created_by_user?: Json | null
           description: string
           id?: string
+          priority?: string | null
           status?: string | null
           title: string
           updated_at?: string | null
+          user_has_voted?: boolean | null
           user_id?: string | null
+          votes_count?: number | null
         }
         Update: {
+          comments_count?: number | null
           company_id?: string | null
           created_at?: string | null
+          created_by_user?: Json | null
           description?: string
           id?: string
+          priority?: string | null
           status?: string | null
           title?: string
           updated_at?: string | null
+          user_has_voted?: boolean | null
           user_id?: string | null
+          votes_count?: number | null
         }
         Relationships: [
           {
@@ -4894,7 +4953,11 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      community_post_type:
+        | "question"
+        | "tech-sheet-request"
+        | "wire-diagram-request"
+        | "discussion"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -5009,6 +5072,13 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      community_post_type: [
+        "question",
+        "tech-sheet-request",
+        "wire-diagram-request",
+        "discussion",
+      ],
+    },
   },
 } as const
