@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { FeatureRequest, FeatureRequestStatus, FeatureRequestPriority } from "@/types/feature-request";
 
 export default function TechFeatureRequests() {
-  const [featureRequests, setFeatureRequests] = useState<FeatureRequest[]>([]);
+  const [featureRequests, setFeatureRequests] = useState<any[]>([]); // Use any[] for initial loading 
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -24,22 +23,40 @@ export default function TechFeatureRequests() {
           throw error;
         }
 
-        // Transform the data to match our FeatureRequest type
-        const formattedRequests: FeatureRequest[] = data.map(request => ({
-          id: request.id,
-          title: request.title,
-          description: request.description,
-          status: request.status as FeatureRequestStatus,
-          priority: request.priority as FeatureRequestPriority || "medium",
-          company_id: request.company_id,
-          user_id: request.user_id,
-          created_at: request.created_at,
-          updated_at: request.updated_at,
-          votes_count: request.votes_count || 0,
-          user_has_voted: request.user_has_voted || false,
-          comments_count: request.comments_count || 0,
-          created_by_user: request.created_by_user
-        }));
+        // Transform the data to a safe format
+        const formattedRequests = data.map(request => {
+          // Make sure created_by_user has the right shape
+          const createdByUser = request.created_by_user ? {
+            name: request.created_by_user.name || request.created_by_user.full_name || 'Unknown User',
+            email: request.created_by_user.email || '',
+            role: (request.created_by_user.role === 'admin' || 
+                  request.created_by_user.role === 'tech' || 
+                  request.created_by_user.role === 'company') ? 
+                  request.created_by_user.role : 'tech',
+            avatar_url: request.created_by_user.avatar_url
+          } : {
+            name: 'Unknown User',
+            email: '',
+            role: 'tech',
+            avatar_url: undefined
+          };
+
+          return {
+            id: request.id,
+            title: request.title,
+            description: request.description,
+            status: request.status as FeatureRequestStatus,
+            priority: request.priority as FeatureRequestPriority || "medium",
+            company_id: request.company_id,
+            user_id: request.user_id,
+            created_at: request.created_at,
+            updated_at: request.updated_at,
+            votes_count: request.votes_count || 0,
+            user_has_voted: request.user_has_voted || false,
+            comments_count: request.comments_count || 0,
+            created_by_user: createdByUser
+          };
+        });
 
         setFeatureRequests(formattedRequests);
       } catch (error) {

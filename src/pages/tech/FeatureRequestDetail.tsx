@@ -2,171 +2,96 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
-import { FeatureRequest, FeatureComment, FeatureRequestStatus, FeatureRequestPriority } from "@/types/feature-request";
-import { supabase } from "@/integrations/supabase/client";
+import { FeatureComment } from "@/types/feature-request";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { fetchFeatureRequestById, fetchFeatureComments, voteForFeature, addFeatureComment } from "@/api/featureRequestsApi";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function TechFeatureRequestDetailPage() {
-  const [featureRequest, setFeatureRequest] = useState<FeatureRequest | null>(null);
+  const [featureRequest, setFeatureRequest] = useState<any | null>(null);
   const [comments, setComments] = useState<FeatureComment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchFeatureRequest = async () => {
+    async function loadData() {
       if (!id) return;
-
+      
       setLoading(true);
       try {
-        // Fetch the feature request
-        const { data: requestData, error: requestError } = await supabase
-          .from("feature_requests")
-          .select("*")
-          .eq("id", id)
-          .single();
-
-        if (requestError) {
-          console.error("Error fetching feature request:", requestError);
-          return;
-        }
-
-        // Fetch comments for this feature request
-        const { data: commentsData, error: commentsError } = await supabase
-          .from("feature_comments")
-          .select("*")
-          .eq("feature_id", id)
-          .order("created_at", { ascending: true });
-
-        if (commentsError) {
-          console.error("Error fetching comments:", commentsError);
-        }
-
-        // Transform the data
-        const formattedRequest: FeatureRequest = {
-          id: requestData.id,
-          title: requestData.title,
-          description: requestData.description,
-          status: requestData.status as FeatureRequestStatus,
-          priority: requestData.priority as FeatureRequestPriority || "medium",
-          company_id: requestData.company_id,
-          user_id: requestData.user_id,
-          created_at: requestData.created_at,
-          updated_at: requestData.updated_at,
-          votes_count: requestData.votes_count || 0,
-          user_has_voted: requestData.user_has_voted || false,
-          comments_count: requestData.comments_count || 0,
-          created_by_user: requestData.created_by_user ? requestData.created_by_user : undefined
-        };
-
-        // Process comments and get author info for each
-        const formattedComments: FeatureComment[] = [];
+        const request = await fetchFeatureRequestById(id);
         
-        for (const comment of commentsData || []) {
-          // Try to get user profile info
-          let userProfile;
-          try {
-            const { data: userData } = await supabase
-              .from("profiles")
-              .select("*")
-              .eq("id", comment.user_id)
-              .single();
-            
-            userProfile = userData;
-          } catch (error) {
-            console.error("Error fetching user profile:", error);
+        // Convert created_by_user to expected format if needed
+        if (request.created_by_user && typeof request.created_by_user === 'object') {
+          // Make sure it has the expected fields
+          if (!request.created_by_user.name && request.created_by_user.full_name) {
+            request.created_by_user.name = request.created_by_user.full_name;
           }
           
-          formattedComments.push({
-            id: comment.id,
-            feature_id: comment.feature_id,
-            user_id: comment.user_id,
-            content: comment.content,
-            created_at: comment.created_at,
-            created_by_user: userProfile ? {
-              name: userProfile.full_name || userProfile.name || "Unknown User",
-              email: userProfile.email || "",
-              avatar_url: userProfile.avatar_url,
-              role: userProfile.role || "tech"
-            } : undefined
-          });
+          // Make sure to handle role mapping correctly
+          if (request.created_by_user.role && 
+              !['tech', 'admin', 'company'].includes(request.created_by_user.role)) {
+            request.created_by_user.role = 'tech'; // Default to tech if invalid role
+          }
+        } else {
+          // If created_by_user is not an object, create a default one
+          request.created_by_user = {
+            name: 'Unknown User',
+            email: '',
+            role: 'tech',
+            avatar_url: undefined
+          };
         }
-
-        setFeatureRequest(formattedRequest);
-        setComments(formattedComments);
-      } catch (err) {
-        console.error("Error in fetchFeatureRequest:", err);
+        
+        setFeatureRequest(request);
+        
+        const commentsList = await fetchFeatureComments(id);
+        setComments(commentsList);
+      } catch (error) {
+        console.error("Error loading feature request data:", error);
         toast({
           title: "Error",
-          description: "Failed to load feature request details",
+          description: "Failed to load feature request details.",
           variant: "destructive"
         });
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchFeatureRequest();
+    }
+    
+    loadData();
   }, [id, toast]);
 
   const handleVote = async (requestId: string) => {
     if (!featureRequest) return;
     
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
+      const result = await voteForFeature(requestId);
+      
+      if (result) {
+        setFeatureRequest({
+          ...featureRequest,
+          votes_count: featureRequest.votes_count + 1,
+          user_has_voted: true
+        });
+        
         toast({
-          title: "Error",
-          description: "You need to be logged in to vote",
-          variant: "destructive"
+          description: "Your vote has been recorded",
         });
-        return;
-      }
-
-      // Check if user already voted
-      const { data: existingVotes } = await supabase
-        .from("feature_votes")
-        .select("id")
-        .eq("feature_id", requestId)
-        .eq("user_id", userData.user.id)
-        .single();
-
-      if (existingVotes) {
+      } else {
         toast({
-          description: "You've already voted for this feature",
+          description: "You have already voted for this feature",
         });
-        return;
       }
-
-      // Add vote
-      const { error } = await supabase
-        .from("feature_votes")
-        .insert({
-          feature_id: requestId,
-          user_id: userData.user.id
-        });
-
-      if (error) {
-        throw error;
-      }
-
-      // Update vote count in UI
-      setFeatureRequest({
-        ...featureRequest,
-        votes_count: (featureRequest.votes_count || 0) + 1,
-        user_has_voted: true
-      });
-
-      toast({
-        description: "Vote added successfully",
-      });
-    } catch (err) {
-      console.error("Error adding vote:", err);
+    } catch (error) {
+      console.error("Error voting:", error);
       toast({
         title: "Error",
-        description: "Failed to add your vote",
+        description: "Failed to register your vote.",
         variant: "destructive"
       });
     }
@@ -175,80 +100,51 @@ export default function TechFeatureRequestDetailPage() {
   const handleAddComment = async (requestId: string, content: string): Promise<void> => {
     if (!featureRequest) return;
     
+    setSubmitting(true);
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        toast({
-          title: "Error",
-          description: "You need to be logged in to comment",
-          variant: "destructive"
-        });
-        return Promise.reject("Not logged in");
-      }
-
-      // Add comment
-      const { data, error } = await supabase
-        .from("feature_comments")
-        .insert({
-          feature_id: requestId,
-          user_id: userData.user.id,
-          content: content
-        })
-        .select("*")
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      // Get user details
-      const { data: userProfile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userData.user.id)
-        .single();
-
-      // Create new comment object with user details
-      let newComment: FeatureComment = {
-        id: data.id,
-        feature_id: data.feature_id,
-        user_id: data.user_id,
-        content: data.content,
-        created_at: data.created_at
-      };
+      const newComment = await addFeatureComment({
+        feature_id: requestId,
+        content
+      });
       
-      // Add user profile info if available
-      if (userProfile) {
-        newComment.created_by_user = {
-          name: userProfile.full_name || userProfile.name || "Unknown User",
-          email: userProfile.email || "",
-          avatar_url: userProfile.avatar_url,
-          role: userProfile.role || "tech"
-        };
+      // Ensure proper user info is included with the comment
+      if (newComment && !newComment.user) {
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData?.user?.id) {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", userData.user.id)
+            .single();
+            
+          if (profileData) {
+            newComment.user = {
+              id: userData.user.id,
+              name: profileData.full_name || 'Unknown User',
+              avatar_url: profileData.avatar_url,
+              role: profileData.role || 'tech'
+            };
+          }
+        }
       }
-
-      // Add to local state
+      
       setComments(prevComments => [...prevComments, newComment]);
       
-      // Update comment count
-      setFeatureRequest({
-        ...featureRequest,
-        comments_count: (featureRequest.comments_count || 0) + 1
-      });
-
       toast({
-        description: "Comment added successfully",
+        description: "Your comment has been added",
       });
-
+      
       return Promise.resolve();
-    } catch (err) {
-      console.error("Error adding comment:", err);
+    } catch (error) {
+      console.error("Error adding comment:", error);
       toast({
         title: "Error",
-        description: "Failed to add your comment",
+        description: "Failed to add your comment.",
         variant: "destructive"
       });
-      return Promise.reject(err);
+      throw error;
+    } finally {
+      setSubmitting(false);
     }
   };
 

@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { CommunityPost, CommunityComment, Attachment } from "@/types/community";
+import { CommunityPost, CommunityComment, Attachment, CommunityPostType } from "@/types/community";
 
 // Helper function to format user data
 const formatUserData = (userData: any) => {
@@ -8,11 +8,26 @@ const formatUserData = (userData: any) => {
   
   return {
     id: userData.id || '',
-    name: userData.name || userData.full_name || 'Unknown User',
+    name: userData.full_name || userData.name || 'Unknown User',
     email: userData.email || '',
     role: userData.role || '',
     avatarUrl: userData.avatar_url || undefined
   };
+};
+
+// Function to convert database attachments to Attachment type
+const formatAttachments = (attachmentsData: any): Attachment[] => {
+  if (!attachmentsData || !Array.isArray(attachmentsData)) return [];
+  
+  return attachmentsData.map(attachment => ({
+    id: attachment.id || '',
+    fileName: attachment.fileName || attachment.file_name || '',
+    fileUrl: attachment.fileUrl || attachment.file_url || '',
+    fileType: attachment.fileType || attachment.file_type || '',
+    fileSize: attachment.fileSize || attachment.file_size || 0,
+    uploadedAt: new Date(attachment.uploadedAt || attachment.uploaded_at || Date.now()),
+    uploadedBy: attachment.uploadedBy || attachment.uploaded_by || ''
+  }));
 };
 
 // Fetch all community posts
@@ -57,8 +72,8 @@ export const fetchCommunityPosts = async (): Promise<CommunityPost[]> => {
         content: comment.content,
         authorId: comment.author_id,
         author: formatUserData(commentAuthorData),
-        attachments: comment.attachments ? 
-          (Array.isArray(comment.attachments) ? comment.attachments : []) : [],
+        // Default to empty array if attachments don't exist
+        attachments: formatAttachments(comment.attachments),
         createdAt: new Date(comment.created_at),
         updatedAt: new Date(comment.updated_at),
         upvotes: comment.upvotes || 0,
@@ -73,8 +88,8 @@ export const fetchCommunityPosts = async (): Promise<CommunityPost[]> => {
       type: post.type as CommunityPostType,
       authorId: post.author_id,
       author: formatUserData(authorData),
-      attachments: post.attachments ? 
-        (Array.isArray(post.attachments) ? post.attachments : []) : [],
+      // Default to empty array if attachments don't exist
+      attachments: formatAttachments(post.attachments),
       createdAt: new Date(post.created_at),
       updatedAt: new Date(post.updated_at),
       upvotes: post.upvotes || 0,
@@ -141,8 +156,8 @@ export const fetchCommunityPostById = async (id: string): Promise<CommunityPost>
       content: comment.content,
       authorId: comment.author_id,
       author: formatUserData(commentAuthorData),
-      attachments: comment.attachments ? 
-        (Array.isArray(comment.attachments) ? comment.attachments : []) : [],
+      // Default to empty array if attachments don't exist
+      attachments: formatAttachments(comment.attachments),
       createdAt: new Date(comment.created_at),
       updatedAt: new Date(comment.updated_at),
       upvotes: comment.upvotes || 0,
@@ -157,8 +172,8 @@ export const fetchCommunityPostById = async (id: string): Promise<CommunityPost>
     type: data.type as CommunityPostType,
     authorId: data.author_id,
     author: formatUserData(authorData),
-    attachments: data.attachments ? 
-      (Array.isArray(data.attachments) ? data.attachments : []) : [],
+    // Default to empty array if attachments don't exist
+    attachments: formatAttachments(data.attachments),
     createdAt: new Date(data.created_at),
     updatedAt: new Date(data.updated_at),
     upvotes: data.upvotes || 0,
