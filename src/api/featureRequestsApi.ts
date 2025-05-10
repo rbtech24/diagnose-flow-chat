@@ -1,18 +1,13 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { FeatureRequest, FeatureComment } from '@/types/feature-request';
-import { useUserManagementStore } from '@/store/userManagementStore';
+import { FeatureRequest, FeatureComment, FeatureRequestStatus, FeatureRequestPriority } from '@/types/feature-request';
 
 // Function to fetch all feature requests
 export const fetchFeatureRequests = async (status?: string, companyId?: string): Promise<FeatureRequest[]> => {
   try {
     let query = supabase
       .from('feature_requests')
-      .select(`
-        *,
-        created_by_user:user_id(*)
-      `)
-      .order('created_at', { ascending: false });
+      .select('*');
 
     if (status) {
       query = query.eq('status', status);
@@ -22,11 +17,33 @@ export const fetchFeatureRequests = async (status?: string, companyId?: string):
       query = query.eq('company_id', companyId);
     }
 
-    const { data, error } = await query;
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching feature requests:', error);
       return [];
+    }
+
+    // Get user information separately
+    const userIds = [...new Set(data.map(item => item.user_id).filter(Boolean))];
+    const userMap = new Map();
+    
+    if (userIds.length > 0) {
+      const { data: users, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .in('id', userIds);
+      
+      if (!userError && users) {
+        users.forEach(user => {
+          userMap.set(user.id, {
+            name: user.name || 'Unknown User',
+            email: user.email || '',
+            avatar_url: user.avatar_url,
+            role: (user.role || 'tech') as "admin" | "company" | "tech"
+          });
+        });
+      }
     }
 
     // Transform data to match FeatureRequest type
@@ -43,11 +60,11 @@ export const fetchFeatureRequests = async (status?: string, companyId?: string):
       votes_count: item.votes_count || 0,
       user_has_voted: item.user_has_voted || false,
       comments_count: item.comments_count || 0,
-      created_by_user: item.created_by_user ? {
-        name: item.created_by_user.name || 'Unknown User',
-        email: item.created_by_user.email || '',
-        avatar_url: item.created_by_user.avatar_url,
-        role: (item.created_by_user.role || 'tech') as "admin" | "company" | "tech"
+      created_by_user: item.user_id && userMap.get(item.user_id) ? {
+        name: userMap.get(item.user_id).name,
+        email: userMap.get(item.user_id).email,
+        avatar_url: userMap.get(item.user_id).avatar_url,
+        role: userMap.get(item.user_id).role
       } : undefined
     }));
   } catch (err) {
@@ -61,16 +78,33 @@ export const fetchFeatureRequestById = async (id: string): Promise<FeatureReques
   try {
     const { data, error } = await supabase
       .from('feature_requests')
-      .select(`
-        *,
-        created_by_user:user_id(*)
-      `)
+      .select('*')
       .eq('id', id)
       .single();
 
     if (error) {
       console.error('Error fetching feature request:', error);
       return null;
+    }
+
+    // Get user information
+    let userInfo = undefined;
+    
+    if (data.user_id) {
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', data.user_id)
+        .maybeSingle();
+      
+      if (!userError && userData) {
+        userInfo = {
+          name: userData.name || 'Unknown User',
+          email: userData.email || '',
+          avatar_url: userData.avatar_url,
+          role: (userData.role || 'tech') as "admin" | "company" | "tech"
+        };
+      }
     }
 
     return {
@@ -86,12 +120,7 @@ export const fetchFeatureRequestById = async (id: string): Promise<FeatureReques
       votes_count: data.votes_count || 0,
       user_has_voted: data.user_has_voted || false,
       comments_count: data.comments_count || 0,
-      created_by_user: data.created_by_user ? {
-        name: data.created_by_user.name || 'Unknown User',
-        email: data.created_by_user.email || '',
-        avatar_url: data.created_by_user.avatar_url,
-        role: (data.created_by_user.role || 'tech') as "admin" | "company" | "tech"
-      } : undefined
+      created_by_user: userInfo
     };
   } catch (err) {
     console.error('Error in fetchFeatureRequestById:', err);
@@ -103,11 +132,8 @@ export const fetchFeatureRequestById = async (id: string): Promise<FeatureReques
 export const fetchFeatureComments = async (requestId: string): Promise<FeatureComment[]> => {
   try {
     const { data, error } = await supabase
-      .from('feature_request_comments')
-      .select(`
-        *,
-        created_by_user:user_id(*)
-      `)
+      .from('feature_comments')
+      .select('*')
       .eq('feature_id', requestId)
       .order('created_at', { ascending: true });
 
@@ -116,17 +142,39 @@ export const fetchFeatureComments = async (requestId: string): Promise<FeatureCo
       return [];
     }
 
+    // Get user information
+    const userIds = [...new Set(data.map(item => item.user_id).filter(Boolean))];
+    const userMap = new Map();
+    
+    if (userIds.length > 0) {
+      const { data: users, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .in('id', userIds);
+      
+      if (!userError && users) {
+        users.forEach(user => {
+          userMap.set(user.id, {
+            name: user.name || 'Unknown User',
+            email: user.email || '',
+            avatar_url: user.avatar_url,
+            role: (user.role || 'tech') as "admin" | "company" | "tech"
+          });
+        });
+      }
+    }
+
     return data.map(item => ({
       id: item.id,
       feature_id: item.feature_id,
       user_id: item.user_id,
       content: item.content,
       created_at: item.created_at,
-      created_by_user: item.created_by_user ? {
-        name: item.created_by_user.name || 'Unknown User',
-        email: item.created_by_user.email || '',
-        avatar_url: item.created_by_user.avatar_url,
-        role: (item.created_by_user.role || 'tech') as "admin" | "company" | "tech"
+      created_by_user: item.user_id && userMap.get(item.user_id) ? {
+        name: userMap.get(item.user_id).name,
+        email: userMap.get(item.user_id).email,
+        avatar_url: userMap.get(item.user_id).avatar_url,
+        role: userMap.get(item.user_id).role
       } : undefined
     }));
   } catch (err) {
@@ -185,14 +233,16 @@ export const createFeatureRequest = async (requestData: Partial<FeatureRequest>)
 // Function to update a feature request
 export const updateFeatureRequest = async (requestId: string, updateData: Partial<FeatureRequest>): Promise<FeatureRequest> => {
   try {
+    const updateObj: any = {};
+    
+    if (updateData.title) updateObj.title = updateData.title;
+    if (updateData.description) updateObj.description = updateData.description;
+    if (updateData.status) updateObj.status = updateData.status;
+    if (updateData.priority) updateObj.priority = updateData.priority;
+
     const { data, error } = await supabase
       .from('feature_requests')
-      .update({
-        title: updateData.title,
-        description: updateData.description,
-        status: updateData.status,
-        priority: updateData.priority
-      })
+      .update(updateObj)
       .eq('id', requestId)
       .select()
       .single();
@@ -233,7 +283,7 @@ export const voteForFeature = async (requestId: string): Promise<boolean> => {
 
     // Check if user already voted
     const { data: existingVote, error: checkError } = await supabase
-      .from('feature_request_votes')
+      .from('feature_votes')
       .select('*')
       .eq('feature_id', requestId)
       .eq('user_id', currentUser.user.id)
@@ -251,7 +301,7 @@ export const voteForFeature = async (requestId: string): Promise<boolean> => {
 
     // Create new vote
     const { error: insertError } = await supabase
-      .from('feature_request_votes')
+      .from('feature_votes')
       .insert([{
         feature_id: requestId,
         user_id: currentUser.user.id
@@ -263,11 +313,15 @@ export const voteForFeature = async (requestId: string): Promise<boolean> => {
     }
 
     // Update vote count on the feature request
-    await supabase.rpc('increment', {
-      row_id: requestId,
-      field_name: 'votes_count',
-      table_name: 'feature_requests'
-    });
+    const { error: updateError } = await supabase
+      .from('feature_requests')
+      .update({ votes_count: supabase.rpc('increment', { row_id: requestId, table_name: 'feature_requests', field_name: 'votes_count' }) })
+      .eq('id', requestId);
+
+    if (updateError) {
+      console.error('Error updating vote count:', updateError);
+      return false;
+    }
 
     return true;
   } catch (err) {
@@ -286,16 +340,13 @@ export const addFeatureComment = async (commentData: { feature_id: string; conte
     }
 
     const { data, error } = await supabase
-      .from('feature_request_comments')
+      .from('feature_comments')
       .insert([{
         feature_id: commentData.feature_id,
         user_id: currentUser.user.id,
         content: commentData.content
       }])
-      .select(`
-        *,
-        created_by_user:user_id(*)
-      `)
+      .select()
       .single();
 
     if (error) {
@@ -303,12 +354,32 @@ export const addFeatureComment = async (commentData: { feature_id: string; conte
       throw error;
     }
 
-    // Increment comments count on the feature request
-    await supabase.rpc('increment', {
-      row_id: commentData.feature_id,
-      field_name: 'comments_count',
-      table_name: 'feature_requests'
-    });
+    // Update comments count on the feature request
+    const { error: updateError } = await supabase
+      .from('feature_requests')
+      .update({ comments_count: supabase.rpc('increment', { row_id: commentData.feature_id, table_name: 'feature_requests', field_name: 'comments_count' }) })
+      .eq('id', commentData.feature_id);
+
+    if (updateError) {
+      console.error('Error updating comments count:', updateError);
+    }
+
+    // Get user information
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', currentUser.user.id)
+      .single();
+
+    let userInfo = undefined;
+    if (!userError && userData) {
+      userInfo = {
+        name: userData.name || 'Unknown User',
+        email: userData.email || '',
+        avatar_url: userData.avatar_url,
+        role: (userData.role || 'tech') as "admin" | "company" | "tech"
+      };
+    }
 
     return {
       id: data.id,
@@ -316,12 +387,7 @@ export const addFeatureComment = async (commentData: { feature_id: string; conte
       user_id: data.user_id,
       content: data.content,
       created_at: data.created_at,
-      created_by_user: data.created_by_user ? {
-        name: data.created_by_user.name || 'Unknown User',
-        email: data.created_by_user.email || '',
-        avatar_url: data.created_by_user.avatar_url,
-        role: (data.created_by_user.role || 'tech') as "admin" | "company" | "tech"
-      } : undefined
+      created_by_user: userInfo
     };
   } catch (err) {
     console.error('Error in addFeatureComment:', err);
