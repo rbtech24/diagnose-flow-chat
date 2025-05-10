@@ -279,9 +279,11 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         name: companyData.name,
         trial_status: companyData.status || 'active',
         subscription_tier: companyData.subscription_tier || 'basic',
+        plan_name: companyData.plan_name || companyData.subscription_tier || 'basic',
         trial_end_date: companyData.trial_end_date instanceof Date
           ? companyData.trial_end_date.toISOString()
           : companyData.trial_end_date,
+        status: companyData.status || 'active',
       };
 
       const { data, error } = await supabase
@@ -300,7 +302,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         id: data.id,
         name: data.name || '',
         status: (data.status as 'active' | 'trial' | 'expired' | 'inactive') || 'inactive',
-        plan_name: data.plan_name || '',
+        plan_name: data.plan_name || data.subscription_tier || '',
         subscription_tier: data.subscription_tier || 'basic',
         trial_end_date: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
         trial_status: data.trial_status as 'trial' | 'active' | 'expired' | 'inactive',

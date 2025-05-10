@@ -8,6 +8,6 @@ export type Company = {
   trial_period?: number;
   createdAt: Date;
   updatedAt: Date;
-  status?: 'active' | 'trial' | 'expired' | 'inactive';
-  plan_name?: string;  // Added plan_name property
+  status: 'active' | 'trial' | 'expired' | 'inactive';
+  plan_name?: string;
 }

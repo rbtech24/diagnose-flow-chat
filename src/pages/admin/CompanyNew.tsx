@@ -29,6 +29,7 @@ export default function CompanyNew() {
   const { toast } = useToast();
   const { addCompany } = useUserManagementStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<CompanyFormValues>({
     resolver: zodResolver(formSchema),
@@ -44,19 +45,23 @@ export default function CompanyNew() {
 
   const onSubmit = async (data: CompanyFormValues) => {
     setIsSubmitting(true);
+    setError(null);
     
     try {
       // Convert form data to expected Company input format
       const companyData = {
         name: data.name,
-        contactName: data.contactName,
-        email: data.email,
-        phone: data.phone || undefined,
         status: data.status,
-        planName: data.planName
+        plan_name: data.planName,
+        subscription_tier: data.planName?.toLowerCase() || "basic",
       };
       
       const newCompany = await addCompany(companyData);
+      
+      if (!newCompany) {
+        setError("Failed to create company. Please try again.");
+        return;
+      }
       
       toast({
         title: "Company created",
@@ -66,6 +71,7 @@ export default function CompanyNew() {
       navigate(`/admin/companies/${newCompany.id}`);
     } catch (error) {
       console.error("Error creating company:", error);
+      setError("Failed to create company. Please check the console for details.");
       toast({
         title: "Error",
         description: "Failed to create company.",
@@ -89,6 +95,12 @@ export default function CompanyNew() {
         </Button>
         <h1 className="text-3xl font-bold">New Company</h1>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded mb-6">
+          {error}
+        </div>
+      )}
 
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
