@@ -345,7 +345,16 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
 
   resetUserPassword: async (userId: string) => {
     try {
-      const { data, error } = await supabase.auth.resetPasswordForEmail(userId);
+      // This function should send a reset password email to the user's email
+      // Since we're using Supabase, we need to get the user's email first
+      const user = await get().fetchUserById(userId);
+      
+      if (!user || !user.email) {
+        console.error('User email not found');
+        return false;
+      }
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(user.email);
       
       if (error) {
         console.error('Error resetting password:', error);
@@ -399,8 +408,8 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
   }
 }));
 
-// The actual implementation will need to transform data from the format returned by Supabase
-// to match the expected format in the frontend
+// Helper functions for data transformation
+
 const transformTechniciansData = (technicians: any[]): User[] => {
   return technicians.map(tech => ({
     id: tech.id,
@@ -409,8 +418,8 @@ const transformTechniciansData = (technicians: any[]): User[] => {
     role: tech.role,
     status: tech.status || 'active',
     companyId: tech.company_id,
-    avatarUrl: tech.avatar_url, // Fixed this to match database field
-    activeJobs: 0, // Added this to all users
+    avatarUrl: tech.avatar_url, // Use avatar_url property
+    activeJobs: 0, // Default value for all users
   }));
 };
 
@@ -424,7 +433,7 @@ const transformCompaniesData = (companies: any[]): Company[] => {
     trial_end_date: company.trial_end_date ? new Date(company.trial_end_date) : undefined,
     createdAt: new Date(company.created_at),
     updatedAt: new Date(company.updated_at),
-    status: (company.trial_status as 'active' | 'trial' | 'expired' | 'inactive') || company.subscription_tier, // Use trial_status as status if status doesn't exist
+    status: (company.trial_status as 'active' | 'trial' | 'expired' | 'inactive'), 
     plan_name: company.plan_name || company.subscription_tier, // Use subscription_tier as fallback
   }));
 };

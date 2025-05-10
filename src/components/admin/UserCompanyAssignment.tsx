@@ -97,7 +97,7 @@ export default function UserCompanyAssignment({
             
             <div className="flex flex-col md:flex-row md:items-center gap-2">
               <Select
-                value={selectedCompanyId || ""}
+                value={selectedCompanyId || "unassigned"}
                 onValueChange={setSelectedCompanyId}
                 disabled={isLoading || disabled}
               >
@@ -105,6 +105,7 @@ export default function UserCompanyAssignment({
                   <SelectValue placeholder="Select a company" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="unassigned">Not Assigned</SelectItem>
                   {companies.map((company) => (
                     <SelectItem key={company.id} value={company.id}>
                       {company.name}
@@ -116,7 +117,7 @@ export default function UserCompanyAssignment({
               <div className="flex gap-2">
                 <Button
                   onClick={handleAssignCompany}
-                  disabled={!selectedCompanyId || selectedCompanyId === currentCompanyId || isLoading || disabled}
+                  disabled={!selectedCompanyId || selectedCompanyId === "unassigned" || selectedCompanyId === currentCompanyId || isLoading || disabled}
                   size="sm"
                 >
                   <CheckCircle2 className="h-4 w-4 mr-1" />

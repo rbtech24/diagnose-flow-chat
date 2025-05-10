@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -177,8 +176,8 @@ export default function UserDetail() {
             <CardTitle>User Details</CardTitle>
             <CardDescription>View and manage user information</CardDescription>
           </div>
-          <Badge variant={user.status === 'active' ? 'outline' : 'secondary'}>
-            {user.status}
+          <Badge variant={user?.status === 'active' ? 'outline' : 'secondary'}>
+            {user?.status || 'Unknown'}
           </Badge>
         </CardHeader>
         <CardContent className="pt-4">
