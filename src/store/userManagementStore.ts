@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/user';
 import { Company } from '@/types/company';
+import { Technician } from '@/types/technician';
 
 interface UserManagementState {
   users: User[];
@@ -90,7 +91,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       // Transform to match User type
       const user: User = {
         id: data.id,
-        name: data.email.split('@')[0], // Use email as fallback if no name available
+        name: data.name || data.email?.split('@')[0] || '', // Use name if available, fallback to email
         email: data.email,
         role: (data.role as 'admin' | 'company' | 'tech') || 'tech',
         companyId: data.company_id,
@@ -402,7 +403,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
 const transformTechniciansData = (technicians: any[]): User[] => {
   return technicians.map(tech => ({
     id: tech.id,
-    name: tech.email.split('@')[0], // Use email as fallback if no name available
+    name: tech.name || tech.email?.split('@')[0] || '', // Use name if available, fallback to email
     email: tech.email,
     role: tech.role,
     status: tech.status || 'active',
@@ -422,7 +423,7 @@ const transformCompaniesData = (companies: any[]): Company[] => {
     trial_end_date: company.trial_end_date ? new Date(company.trial_end_date) : undefined,
     createdAt: new Date(company.created_at),
     updatedAt: new Date(company.updated_at),
-    status: company.status as 'active' | 'trial' | 'expired' | 'inactive',
-    plan_name: company.plan_name,
+    status: (company.trial_status as 'active' | 'trial' | 'expired' | 'inactive') || company.subscription_tier, // Use trial_status as status if status doesn't exist
+    plan_name: company.plan_name || company.subscription_tier, // Use subscription_tier as fallback
   }));
 };

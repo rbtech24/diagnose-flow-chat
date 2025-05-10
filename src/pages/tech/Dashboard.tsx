@@ -14,7 +14,7 @@ import { useUserManagementStore } from "@/store/userManagementStore";
 import { useActivityLogger } from "@/hooks/useActivityLogger";
 import { supabase } from "@/integrations/supabase/client";
 
-// Define types for repairs and metrics
+// Define simplified types for repairs and metrics
 interface RepairAppointment {
   id: string;
   time: string;
