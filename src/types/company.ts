@@ -8,6 +8,6 @@ export type Company = {
   trial_period?: number;
   createdAt: Date;
   updatedAt: Date;
-  status?: string;
-  plan_name?: string;  // Adding plan name for compatibility with existing UI
+  status?: 'active' | 'trial' | 'expired' | 'inactive';
+  plan_name?: string;  // Adding plan_name for compatibility with existing UI
 }

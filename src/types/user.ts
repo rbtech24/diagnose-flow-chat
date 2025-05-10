@@ -14,6 +14,7 @@ export interface User {
   isMainAdmin?: boolean;
   apiKeys?: ApiKey[];
   status?: string;
+  activeJobs?: number; // Added this property
   company?: {
     id: string;
     name: string;

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@/types/user";
 import { useUserManagementStore } from "@/store/userManagementStore";
@@ -26,13 +25,12 @@ export async function sendPasswordResetEmail(email: string) {
 /**
  * Admin function to reset a user's password
  * @param userId User ID to reset password for
- * @param newPassword The new password to set
  * @returns Promise with the operation result
  */
-export async function adminResetUserPassword(userId: string, newPassword: string) {
+export async function adminResetUserPassword(userId: string) {
   try {
     const { resetUserPassword } = useUserManagementStore.getState();
-    const success = await resetUserPassword(userId, newPassword);
+    const success = await resetUserPassword(userId);
     
     if (success) {
       console.log(`Password reset successful for user ${userId}`);

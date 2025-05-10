@@ -14,6 +14,37 @@ import { useUserManagementStore } from "@/store/userManagementStore";
 import { useActivityLogger } from "@/hooks/useActivityLogger";
 import { supabase } from "@/integrations/supabase/client";
 
+// Define types for repairs and metrics
+interface RepairAppointment {
+  id: string;
+  time: string;
+  isCurrent: boolean;
+  title: string;
+  customer: string;
+  address: string;
+}
+
+interface TechnicianMetrics {
+  activeJobs: number;
+  completedJobs: number;
+  averageResponseTime: string;
+  firstTimeFixRate: string;
+}
+
+interface QuickLink {
+  title: string;
+  icon: JSX.Element;
+  path: string;
+  count: number;
+}
+
+interface NewAppointment {
+  title: string;
+  time: string;
+  customer: string;
+  address: string;
+}
+
 export default function TechnicianDashboard() {
   // Get current date
   const today = new Date();
@@ -32,9 +63,9 @@ export default function TechnicianDashboard() {
   const { logEvent } = useActivityLogger();
   
   // State for appointments and metrics
-  const [appointments, setAppointments] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<RepairAppointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [metrics, setMetrics] = useState({
+  const [metrics, setMetrics] = useState<TechnicianMetrics>({
     activeJobs: 0,
     completedJobs: 0,
     averageResponseTime: "0 hrs",
@@ -42,7 +73,7 @@ export default function TechnicianDashboard() {
   });
 
   // State for quick links and notifications
-  const [quickLinks, setQuickLinks] = useState([
+  const [quickLinks, setQuickLinks] = useState<QuickLink[]>([
     { title: "Support Tickets", icon: <MessageSquare className="h-4 w-4" />, path: "/tech/support", count: 0 },
     { title: "Feature Requests", icon: <FileText className="h-4 w-4" />, path: "/tech/feature-requests", count: 0 },
     { title: "Community Posts", icon: <MessageSquare className="h-4 w-4" />, path: "/tech/community", count: 0 },
@@ -50,7 +81,7 @@ export default function TechnicianDashboard() {
   ]);
 
   // Form state
-  const [newAppointment, setNewAppointment] = useState({
+  const [newAppointment, setNewAppointment] = useState<NewAppointment>({
     title: "",
     time: "",
     customer: "",
@@ -79,7 +110,7 @@ export default function TechnicianDashboard() {
           toast.error("Failed to load appointments");
         } else {
           // Transform the data to match our component structure
-          const formattedAppointments: any[] = [];
+          const formattedAppointments: RepairAppointment[] = [];
           
           if (appointmentsData) {
             for (const item of appointmentsData) {

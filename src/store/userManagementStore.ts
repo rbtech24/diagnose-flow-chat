@@ -96,7 +96,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         companyId: data.company_id,
         status: data.status || 'active',
         avatarUrl: undefined, // Since this field doesn't exist in technicians table
-        activeJobs: 0,
+        activeJobs: 0, // Initialize with 0
       };
 
       return user;
@@ -124,11 +124,13 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         id: data.id,
         name: data.name,
         subscription_tier: data.subscription_tier || 'basic',
-        trial_status: data.trial_status || 'inactive',
+        trial_status: (data.trial_status as 'trial' | 'active' | 'expired' | 'inactive') || 'inactive',
         trial_period: data.trial_period,
         trial_end_date: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
+        status: (data.status as 'active' | 'trial' | 'expired' | 'inactive'), 
+        plan_name: data.plan_name,
       };
 
       return company;
@@ -180,7 +182,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       const dbData = {
         name: companyData.name,
         status: companyData.status,
-        plan_name: companyData.planName,
+        plan_name: companyData.plan_name,
         trial_end_date: companyData.trial_end_date instanceof Date 
           ? companyData.trial_end_date.toISOString() 
           : companyData.trial_end_date,
@@ -275,7 +277,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       const newCompany = {
         name: companyData.name,
         trial_status: companyData.status || 'active',
-        subscription_tier: companyData.planName || 'basic',
+        subscription_tier: companyData.subscription_tier || 'basic',
         trial_end_date: companyData.trial_end_date instanceof Date
           ? companyData.trial_end_date.toISOString()
           : companyData.trial_end_date,
@@ -297,9 +299,10 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         id: data.id,
         name: data.name || '',
         status: (data.status as 'active' | 'trial' | 'expired' | 'inactive') || 'inactive',
-        planName: data.plan_name || '',
+        plan_name: data.plan_name || '',
+        subscription_tier: data.subscription_tier || 'basic',
         trial_end_date: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
-        trialEndDate: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
+        trial_status: data.trial_status as 'trial' | 'active' | 'expired' | 'inactive',
         createdAt: data.created_at ? new Date(data.created_at) : new Date(),
         updatedAt: data.updated_at ? new Date(data.updated_at) : new Date(),
       };
@@ -396,7 +399,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
 
 // The actual implementation will need to transform data from the format returned by Supabase
 // to match the expected format in the frontend
-const transformTechniciansData = (technicians: any[]): TechUser[] => {
+const transformTechniciansData = (technicians: any[]): User[] => {
   return technicians.map(tech => ({
     id: tech.id,
     name: tech.email.split('@')[0], // Use email as fallback if no name available
@@ -404,8 +407,8 @@ const transformTechniciansData = (technicians: any[]): TechUser[] => {
     role: tech.role,
     status: tech.status || 'active',
     companyId: tech.company_id,
-    avatarUrl: undefined, // Since this field doesn't exist in technicians table
-    activeJobs: 0,
+    avatarUrl: tech.avatar_url, // Fixed this to match database field
+    activeJobs: 0, // Added this to all users
   }));
 };
 
@@ -414,10 +417,12 @@ const transformCompaniesData = (companies: any[]): Company[] => {
     id: company.id,
     name: company.name,
     subscription_tier: company.subscription_tier || 'basic',
-    trial_status: company.trial_status || 'inactive',
+    trial_status: company.trial_status as 'trial' | 'active' | 'expired' | 'inactive' || 'inactive',
     trial_period: company.trial_period,
     trial_end_date: company.trial_end_date ? new Date(company.trial_end_date) : undefined,
     createdAt: new Date(company.created_at),
     updatedAt: new Date(company.updated_at),
+    status: company.status as 'active' | 'trial' | 'expired' | 'inactive',
+    plan_name: company.plan_name,
   }));
 };
