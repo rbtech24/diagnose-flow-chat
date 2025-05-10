@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,13 +25,12 @@ export default function TechnicianDashboard() {
   const formattedDate = today.toLocaleDateString('en-US', dateOptions);
   
   // Get user data from store
-  const { currentUser, users } = useUserManagementStore();
-  const user = currentUser || (users.length > 0 ? users[0] : null);
+  const { currentUser, fetchUsers } = useUserManagementStore();
   
   // Initialize activity logger
   const { logEvent } = useActivityLogger();
   
-  // State for upcoming appointments - this would be replaced with real data in the future
+  // State for upcoming appointments
   const [appointments, setAppointments] = useState([
     {
       id: "1",
@@ -60,7 +58,7 @@ export default function TechnicianDashboard() {
     address: ""
   });
 
-  // Performance metrics - would be fetched from an API
+  // Performance metrics
   const [metrics, setMetrics] = useState({
     activeJobs: 8,
     completedJobs: 24,
@@ -69,44 +67,20 @@ export default function TechnicianDashboard() {
   });
 
   useEffect(() => {
-    // Log dashboard view when user data is available
-    if (user) {
-      logEvent('user', 'Dashboard viewed');
+    // Fetch users if we don't have a current user
+    if (!currentUser) {
+      fetchUsers();
     }
     
-    // In a real implementation, you would fetch the user's metrics and appointments
-    // Example API call that would replace the mock data:
-    // const fetchTechnicianData = async () => {
-    //   const { data: metricsData } = await supabase
-    //     .from('technician_metrics')
-    //     .select('*')
-    //     .eq('technician_id', user?.id)
-    //     .single();
-    //
-    //   if (metricsData) {
-    //     setMetrics({
-    //       activeJobs: metricsData.active_jobs,
-    //       completedJobs: metricsData.completed_jobs,
-    //       averageResponseTime: metricsData.avg_response_time,
-    //       firstTimeFixRate: metricsData.first_time_fix_rate
-    //     });
-    //   }
-    //
-    //   const { data: appointmentsData } = await supabase
-    //     .from('appointments')
-    //     .select('*')
-    //     .eq('technician_id', user?.id)
-    //     .order('time', { ascending: true });
-    //
-    //   if (appointmentsData) {
-    //     setAppointments(appointmentsData);
-    //   }
-    // };
-    //
-    // if (user) {
-    //   fetchTechnicianData();
-    // }
-  }, [user]);
+    // Log dashboard view when user data is available
+    if (currentUser) {
+      logEvent('user', 'Dashboard viewed');
+      
+      // In a real implementation, you would fetch the technician's metrics and appointments
+      // This would be where you'd call your API to get personalized data
+      // For now, we're keeping the mock data for demonstration purposes
+    }
+  }, [currentUser, fetchUsers, logEvent]);
 
   // Handle adding a new appointment
   const handleAddAppointment = () => {
@@ -146,7 +120,7 @@ export default function TechnicianDashboard() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold">Technician Dashboard</h1>
-          <p className="text-gray-500">{user?.name || "Technician"}</p>
+          <p className="text-gray-500">{currentUser?.name || "Technician"}</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="relative w-64">
@@ -161,7 +135,7 @@ export default function TechnicianDashboard() {
           <CardHeader>
             <div className="flex justify-between items-center">
               <div>
-                <CardTitle>Welcome Back, {user?.name?.split(' ')[0] || "Technician"}</CardTitle>
+                <CardTitle>Welcome Back, {currentUser?.name?.split(' ')[0] || "Technician"}</CardTitle>
                 <CardDescription>{formattedDate}</CardDescription>
               </div>
               <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
