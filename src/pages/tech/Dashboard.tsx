@@ -5,8 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { 
   Clock, CheckCircle, AlertTriangle, Search,
-  Timer, Wrench, Percent, MessagesSquare, 
-  ArrowUp, PlusCircle, Database
+  Timer, Wrench, Percent, PlusCircle
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -119,7 +118,7 @@ export default function TechnicianDashboard() {
             activeJobs: activeCount || 0,
             completedJobs: completedCount || 0,
             averageResponseTime: perfMetrics?.average_service_time ? 
-              `${Math.floor(perfMetrics.average_service_time / 3600)}hrs` : 
+              `${Math.floor(Number(perfMetrics.average_service_time) / 3600)}hrs` : 
               "N/A",
             firstTimeFixRate: perfMetrics?.efficiency_score ? 
               `${perfMetrics.efficiency_score}%` : 
@@ -337,42 +336,6 @@ export default function TechnicianDashboard() {
             <div className="flex items-center">
               <AlertTriangle className="h-4 w-4 text-amber-500 mr-2" />
               <span className="text-2xl font-bold">{metrics.activeJobs}</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Add CRM Integration "Coming Soon" Section */}
-      <Card className="mb-8 border-2 border-dashed border-blue-200 bg-blue-50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Database className="h-5 w-5 text-blue-600" />
-            CRM Integration
-          </CardTitle>
-          <CardDescription>Connect with services like HouseCallPro</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-4">
-            <div className="bg-blue-100 text-blue-700 inline-block p-2 rounded-lg text-xs font-semibold mb-3">COMING SOON</div>
-            <p className="text-sm text-gray-600 mb-2">Seamlessly integrate with your favorite CRM platforms</p>
-            <p className="text-xs text-gray-500">We're working hard to bring this feature to you. Check back soon!</p>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <div className="mb-8">
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-4">
-              <div className="rounded-full bg-red-100 p-2">
-                <AlertTriangle className="h-4 w-4 text-red-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-red-900">System Alert</h3>
-                <p className="text-sm text-red-700">
-                  Scheduled maintenance tonight from 2AM - 4AM. Some diagnostic workflows may be unavailable.
-                </p>
-              </div>
             </div>
           </CardContent>
         </Card>
