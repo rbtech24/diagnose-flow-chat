@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -103,7 +102,38 @@ export default function TechnicianDashboard() {
       try {
         logEvent('user', 'Dashboard viewed');
         
-        // Fetch active repairs (appointments)
+        // Fix type errors in these two functions by specifying proper return types
+        
+        // Helper function to fetch active repairs - use explicit return type to avoid deep instantiation
+        const fetchActiveRepairs = async (techId: string): Promise<{ data: any[] | null, error: any }> => {
+          try {
+            return await supabase
+              .from('repairs')
+              .select('id, scheduled_at, status, diagnosis, customer_id')
+              .eq('technician_id', techId)
+              .in('status', ['scheduled', 'in_progress'])
+              .order('scheduled_at', { ascending: true });
+          } catch (error) {
+            console.error('Error fetching active repairs:', error);
+            return { data: null, error };
+          }
+        };
+
+        // Helper function to fetch customer - use explicit return type to avoid deep instantiation
+        const fetchCustomer = async (customerId: string): Promise<{ data: any | null, error: any }> => {
+          try {
+            return await supabase
+              .from('customers')
+              .select('first_name, last_name, service_addresses')
+              .eq('id', customerId)
+              .single();
+          } catch (error) {
+            console.error('Error fetching customer:', error);
+            return { data: null, error };
+          }
+        };
+        
+        // Fetch active repairs
         const { data: appointmentsData, error: appointmentsError } = await fetchActiveRepairs(currentUser.id);
         
         if (appointmentsError) {
@@ -215,35 +245,6 @@ export default function TechnicianDashboard() {
 
     fetchData();
   }, [currentUser, fetchUsers, logEvent]);
-
-  // Helper function to fetch active repairs - use any type to avoid deep type instantiation
-  const fetchActiveRepairs = async (techId: string) => {
-    try {
-      return await supabase
-        .from('repairs')
-        .select('id, scheduled_at, status, diagnosis, customer_id')
-        .eq('technician_id', techId)
-        .in('status', ['scheduled', 'in_progress'])
-        .order('scheduled_at', { ascending: true });
-    } catch (error) {
-      console.error('Error fetching active repairs:', error);
-      return { data: null, error };
-    }
-  };
-
-  // Helper function to fetch customer - use any type to avoid deep type instantiation
-  const fetchCustomer = async (customerId: string) => {
-    try {
-      return await supabase
-        .from('customers')
-        .select('first_name, last_name, service_addresses')
-        .eq('id', customerId)
-        .single();
-    } catch (error) {
-      console.error('Error fetching customer:', error);
-      return { data: null, error };
-    }
-  };
 
   // Handle adding a new appointment
   const handleAddAppointment = async () => {

@@ -9,5 +9,5 @@ export type Company = {
   createdAt: Date;
   updatedAt: Date;
   status?: 'active' | 'trial' | 'expired' | 'inactive';
-  plan_name?: string;  // Adding plan_name for compatibility with existing UI
+  plan_name?: string;  // Added plan_name property
 }

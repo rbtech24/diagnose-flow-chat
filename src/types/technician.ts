@@ -13,8 +13,8 @@ export interface Technician {
   created_at?: string;
   updated_at?: string;
   last_sign_in_at?: string;
-  name?: string;  // Add name property
-  avatar_url?: string;  // Add avatar_url property
+  name?: string;  // Added name property
+  avatar_url?: string;  // Added avatar_url property
 }
 
 export interface TechnicianWithUserInfo extends Technician {
