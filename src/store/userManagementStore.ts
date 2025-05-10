@@ -4,6 +4,37 @@ import { User } from '@/types/user';
 import { Company } from '@/types/company';
 import { Technician } from '@/types/technician';
 
+// Define interfaces for the raw data returned from Supabase
+interface RawTechnician {
+  id: string;
+  email: string;
+  role: string;
+  company_id: string;
+  status: string;
+  phone?: string;
+  avatar_url?: string;
+  name?: string;
+  available_for_hire?: boolean;
+  is_independent?: boolean;
+  hourly_rate?: number;
+  last_sign_in_at?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+interface RawCompany {
+  id: string;
+  name: string;
+  subscription_tier: string;
+  trial_status?: string;
+  trial_period?: number;
+  trial_end_date?: string;
+  created_at: string;
+  updated_at: string;
+  status?: string;
+  plan_name?: string;
+}
+
 interface UserManagementState {
   users: User[];
   companies: Company[];
@@ -45,7 +76,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       }
       
       // Transform data to match User type
-      const users: User[] = transformTechniciansData(data);
+      const users: User[] = transformTechniciansData(data as RawTechnician[]);
       
       set({ users, isLoadingUsers: false });
     } catch (error) {
@@ -66,7 +97,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       }
       
       // Transform data to match Company type
-      const companies: Company[] = transformCompaniesData(data);
+      const companies: Company[] = transformCompaniesData(data as RawCompany[]);
       
       set({ companies, isLoadingCompanies: false });
     } catch (error) {
@@ -87,16 +118,18 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         console.error('Error fetching user:', error);
         return null;
       }
+      
+      const tech = data as RawTechnician;
 
       // Transform to match User type
       const user: User = {
-        id: data.id,
-        name: data.name || (data.email ? data.email.split('@')[0] : '') || '',
-        email: data.email,
-        role: (data.role as 'admin' | 'company' | 'tech') || 'tech',
-        companyId: data.company_id,
-        status: data.status || 'active',
-        avatarUrl: data.avatar_url,
+        id: tech.id,
+        name: tech.name || (tech.email ? tech.email.split('@')[0] : '') || '',
+        email: tech.email,
+        role: (tech.role as 'admin' | 'company' | 'tech') || 'tech',
+        companyId: tech.company_id,
+        status: tech.status || 'active',
+        avatarUrl: tech.avatar_url,
         activeJobs: 0, // Initialize with 0
       };
 
@@ -120,19 +153,21 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         return null;
       }
 
+      const rawCompany = data as RawCompany;
+      
       // Transform to match Company type
       const company: Company = {
-        id: data.id,
-        name: data.name,
-        subscription_tier: data.subscription_tier || 'basic',
-        trial_status: (data.trial_status as 'trial' | 'active' | 'expired' | 'inactive') || 'inactive',
-        trial_period: data.trial_period,
-        trial_end_date: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at),
-        status: (data.status as 'active' | 'trial' | 'expired' | 'inactive') || 
-               (data.trial_status as 'active' | 'trial' | 'expired' | 'inactive') || 'inactive',
-        plan_name: data.plan_name || data.subscription_tier,
+        id: rawCompany.id,
+        name: rawCompany.name,
+        subscription_tier: rawCompany.subscription_tier || 'basic',
+        trial_status: (rawCompany.trial_status as 'trial' | 'active' | 'expired' | 'inactive') || 'inactive',
+        trial_period: rawCompany.trial_period,
+        trial_end_date: rawCompany.trial_end_date ? new Date(rawCompany.trial_end_date) : undefined,
+        createdAt: new Date(rawCompany.created_at),
+        updatedAt: new Date(rawCompany.updated_at),
+        status: (rawCompany.status as 'active' | 'trial' | 'expired' | 'inactive') || 
+               (rawCompany.trial_status as 'active' | 'trial' | 'expired' | 'inactive') || 'inactive',
+        plan_name: rawCompany.plan_name || rawCompany.subscription_tier,
       };
 
       return company;
@@ -245,15 +280,17 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         return null;
       }
 
+      const rawTech = data as RawTechnician;
+      
       // Transform response to User type
       const createdUser: User = {
-        id: data.id,
-        name: data.name || '',
-        email: data.email || '',
-        role: (data.role as 'admin' | 'company' | 'tech') || 'tech',
-        companyId: data.company_id || '',
-        status: data.status || 'inactive',
-        avatarUrl: data.avatar_url || '',
+        id: rawTech.id,
+        name: rawTech.name || '',
+        email: rawTech.email || '',
+        role: (rawTech.role as 'admin' | 'company' | 'tech') || 'tech',
+        companyId: rawTech.company_id || '',
+        status: rawTech.status || 'inactive',
+        avatarUrl: rawTech.avatar_url || '',
         activeJobs: 0 // Default value
       };
 
@@ -299,18 +336,20 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         return null;
       }
 
+      const rawCompany = data as RawCompany;
+      
       // Transform response to Company type
       const createdCompany: Company = {
-        id: data.id,
-        name: data.name || '',
-        status: (data.status as 'active' | 'trial' | 'expired' | 'inactive') || 
-                (data.trial_status as 'active' | 'trial' | 'expired' | 'inactive') || 'inactive',
-        plan_name: data.plan_name || data.subscription_tier || '',
-        subscription_tier: data.subscription_tier || 'basic',
-        trial_end_date: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
-        trial_status: data.trial_status as 'trial' | 'active' | 'expired' | 'inactive',
-        createdAt: data.created_at ? new Date(data.created_at) : new Date(),
-        updatedAt: data.updated_at ? new Date(data.updated_at) : new Date(),
+        id: rawCompany.id,
+        name: rawCompany.name || '',
+        status: (rawCompany.status as 'active' | 'trial' | 'expired' | 'inactive') || 
+                (rawCompany.trial_status as 'active' | 'trial' | 'expired' | 'inactive') || 'inactive',
+        plan_name: rawCompany.plan_name || rawCompany.subscription_tier || '',
+        subscription_tier: rawCompany.subscription_tier || 'basic',
+        trial_end_date: rawCompany.trial_end_date ? new Date(rawCompany.trial_end_date) : undefined,
+        trial_status: rawCompany.trial_status as 'trial' | 'active' | 'expired' | 'inactive',
+        createdAt: rawCompany.created_at ? new Date(rawCompany.created_at) : new Date(),
+        updatedAt: rawCompany.updated_at ? new Date(rawCompany.updated_at) : new Date(),
       };
 
       // Update local state
@@ -414,7 +453,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
 
 // Helper functions for data transformation
 
-const transformTechniciansData = (technicians: any[]): User[] => {
+const transformTechniciansData = (technicians: RawTechnician[]): User[] => {
   return technicians.map(tech => ({
     id: tech.id,
     name: tech.name || (tech.email ? tech.email.split('@')[0] : '') || '',
@@ -423,11 +462,11 @@ const transformTechniciansData = (technicians: any[]): User[] => {
     status: tech.status || 'active',
     companyId: tech.company_id,
     avatarUrl: tech.avatar_url || '',
-    activeJobs: tech.activeJobs || 0,
+    activeJobs: 0,
   }));
 };
 
-const transformCompaniesData = (companies: any[]): Company[] => {
+const transformCompaniesData = (companies: RawCompany[]): Company[] => {
   return companies.map(company => ({
     id: company.id,
     name: company.name,

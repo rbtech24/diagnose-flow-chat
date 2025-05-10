@@ -97,6 +97,7 @@ export function useCompanyTechnicians({
         // Merge technician and user data
         const mergedData: TechnicianWithUserInfo[] = techData.map(tech => {
           const userInfo = userMap.get(tech.id);
+          
           // Create a merged object with both sets of properties
           const technician: TechnicianWithUserInfo = {
             ...tech,

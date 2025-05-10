@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
-  Clock, CheckCircle, AlertTriangle, Search,
-  Timer, Wrench, Percent, PlusCircle, 
+  Users, Wrench, Clock, AlertTriangle, Search,
+  Timer, Percent, PlusCircle, 
   MessageSquare, FileText, Calendar, Settings
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -55,9 +55,12 @@ interface RepairData {
   id: string;
   status: string;
   customer_id: string;
-  description?: string;
+  technician_id?: string;
+  company_id?: string;
   scheduled_at?: string;
-  // Add other repair properties as needed
+  diagnosis?: string;
+  description?: string;
+  priority?: string;
 }
 
 interface CustomerData {
@@ -65,7 +68,7 @@ interface CustomerData {
   name?: string;
   first_name?: string;
   last_name?: string;
-  // Add other customer properties as needed
+  service_addresses?: Array<{address?: string}>;
 }
 
 export default function TechnicianDashboard() {
@@ -173,13 +176,15 @@ export default function TechnicianDashboard() {
                 if (customerResult.data) {
                   const customer = customerResult.data;
                   customerName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim();
-                  customerAddress = customer.service_addresses?.[0]?.address || 'No address provided';
+                  if (customer.service_addresses && customer.service_addresses.length > 0 && customer.service_addresses[0].address) {
+                    customerAddress = customer.service_addresses[0].address;
+                  }
                 }
               }
               
               formattedAppointments.push({
                 id: item.id,
-                time: new Date(item.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                time: item.scheduled_at ? new Date(item.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'No time set',
                 isCurrent: item.status === 'in_progress',
                 title: item.diagnosis || 'Repair Visit',
                 customer: customerName,
