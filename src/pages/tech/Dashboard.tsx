@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { useUserManagementStore } from "@/store/userManagementStore";
 import { useActivityLogger } from "@/hooks/useActivityLogger";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function TechnicianDashboard() {
   // Get current date
@@ -30,25 +32,15 @@ export default function TechnicianDashboard() {
   // Initialize activity logger
   const { logEvent } = useActivityLogger();
   
-  // State for upcoming appointments
-  const [appointments, setAppointments] = useState([
-    {
-      id: "1",
-      time: "10:00 AM",
-      isCurrent: true,
-      title: "Refrigerator Not Cooling",
-      customer: "Sarah Johnson",
-      address: "123 Main St"
-    },
-    {
-      id: "2",
-      time: "1:30 PM",
-      isCurrent: false,
-      title: "Dryer Not Heating",
-      customer: "Mike Williams",
-      address: "456 Oak Dr"
-    }
-  ]);
+  // State for appointments and metrics
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [metrics, setMetrics] = useState({
+    activeJobs: 0,
+    completedJobs: 0,
+    averageResponseTime: "0 hrs",
+    firstTimeFixRate: "0%"
+  });
 
   // Form state
   const [newAppointment, setNewAppointment] = useState({
@@ -58,61 +50,195 @@ export default function TechnicianDashboard() {
     address: ""
   });
 
-  // Performance metrics
-  const [metrics, setMetrics] = useState({
-    activeJobs: 8,
-    completedJobs: 24,
-    averageResponseTime: "1.2 hrs",
-    firstTimeFixRate: "94%"
-  });
-
+  // Fetch appointments and metrics data
   useEffect(() => {
     // Fetch users if we don't have a current user
     if (!currentUser) {
       fetchUsers();
+      return;
     }
     
-    // Log dashboard view when user data is available
-    if (currentUser) {
-      logEvent('user', 'Dashboard viewed');
-      
-      // In a real implementation, you would fetch the technician's metrics and appointments
-      // This would be where you'd call your API to get personalized data
-      // For now, we're keeping the mock data for demonstration purposes
-    }
+    const fetchData = async () => {
+      setIsLoading(true);
+
+      try {
+        logEvent('user', 'Dashboard viewed');
+        
+        // Fetch active repairs (appointments)
+        const { data: appointmentsData, error: appointmentsError } = await supabase
+          .from('repairs')
+          .select('id, scheduled_at, status, diagnosis, customer_id, customers(first_name, last_name, service_addresses)')
+          .eq('technician_id', currentUser.id)
+          .in('status', ['scheduled', 'in_progress'])
+          .order('scheduled_at', { ascending: true });
+        
+        if (appointmentsError) {
+          console.error('Error loading appointments:', appointmentsError);
+          toast.error("Failed to load appointments");
+        } else {
+          // Transform the data to match our component structure
+          const formattedAppointments = appointmentsData.map(item => ({
+            id: item.id,
+            time: new Date(item.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            isCurrent: item.status === 'in_progress',
+            title: item.diagnosis || 'Repair Visit',
+            customer: item.customers ? `${item.customers.first_name} ${item.customers.last_name}` : 'Customer',
+            address: item.customers?.service_addresses?.[0]?.address || 'No address provided'
+          }));
+          
+          setAppointments(formattedAppointments);
+        }
+        
+        // Fetch metrics
+        // 1. Active jobs count
+        const { count: activeCount, error: activeError } = await supabase
+          .from('repairs')
+          .select('id', { count: 'exact', head: true })
+          .eq('technician_id', currentUser.id)
+          .in('status', ['scheduled', 'in_progress']);
+          
+        // 2. Completed jobs count
+        const { count: completedCount, error: completedError } = await supabase
+          .from('repairs')
+          .select('id', { count: 'exact', head: true })
+          .eq('technician_id', currentUser.id)
+          .eq('status', 'completed');
+        
+        // 3. Get technician performance metrics if available
+        const { data: perfMetrics, error: perfError } = await supabase
+          .from('technician_performance_metrics')
+          .select('*')
+          .eq('technician_id', currentUser.id)
+          .single();
+        
+        if (activeError || completedError) {
+          console.error('Error loading metrics:', activeError || completedError);
+        } else {
+          // Update metrics state
+          setMetrics({
+            activeJobs: activeCount || 0,
+            completedJobs: completedCount || 0,
+            averageResponseTime: perfMetrics?.average_service_time ? 
+              `${Math.round(perfMetrics.average_service_time / 3600)} hrs` : 
+              "N/A",
+            firstTimeFixRate: perfMetrics?.efficiency_score ? 
+              `${perfMetrics.efficiency_score}%` : 
+              "N/A"
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        toast.error("Failed to load dashboard data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, [currentUser, fetchUsers, logEvent]);
 
   // Handle adding a new appointment
-  const handleAddAppointment = () => {
+  const handleAddAppointment = async () => {
     if (!newAppointment.title || !newAppointment.time || !newAppointment.customer) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    const appointment = {
-      id: Date.now().toString(),
-      time: newAppointment.time,
-      isCurrent: false,
-      title: newAppointment.title,
-      customer: newAppointment.customer,
-      address: newAppointment.address || "No address provided"
-    };
+    try {
+      // First, create or find customer
+      const { data: customerData, error: customerError } = await supabase
+        .from('customers')
+        .select('id')
+        .ilike('last_name', `%${newAppointment.customer.split(' ').pop() || ''}%`)
+        .limit(1);
+        
+      let customerId = customerData?.[0]?.id;
+      
+      // If customer not found, create one
+      if (!customerId) {
+        const nameParts = newAppointment.customer.split(' ');
+        const firstName = nameParts[0];
+        const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+        
+        const { data: newCustomer, error: newCustomerError } = await supabase
+          .from('customers')
+          .insert({
+            first_name: firstName,
+            last_name: lastName,
+            company_id: currentUser?.companyId,
+            service_addresses: [{ address: newAppointment.address }]
+          })
+          .select('id')
+          .single();
+          
+        if (newCustomerError) {
+          console.error('Error creating customer:', newCustomerError);
+          toast.error("Failed to create customer record");
+          return;
+        }
+        
+        customerId = newCustomer.id;
+      }
+      
+      // Parse time string to get date and time
+      const timeString = newAppointment.time;
+      const scheduledDate = new Date();
+      const [hours, minutes] = timeString.split(':');
+      scheduledDate.setHours(parseInt(hours || '0', 10));
+      scheduledDate.setMinutes(parseInt(minutes || '0', 10));
+      
+      // Create repair/appointment record
+      const { data: repair, error: repairError } = await supabase
+        .from('repairs')
+        .insert({
+          technician_id: currentUser?.id,
+          customer_id: customerId,
+          company_id: currentUser?.companyId,
+          scheduled_at: scheduledDate.toISOString(),
+          status: 'scheduled',
+          diagnosis: newAppointment.title,
+          priority: 'medium',
+        })
+        .select()
+        .single();
+        
+      if (repairError) {
+        console.error('Error creating appointment:', repairError);
+        toast.error("Failed to create appointment");
+        return;
+      }
+      
+      // Add new appointment to state
+      const newAppointmentObj = {
+        id: repair.id,
+        time: new Date(repair.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isCurrent: false,
+        title: repair.diagnosis,
+        customer: newAppointment.customer,
+        address: newAppointment.address || "No address provided"
+      };
 
-    setAppointments([...appointments, appointment]);
-    setNewAppointment({
-      title: "",
-      time: "",
-      customer: "",
-      address: ""
-    });
+      setAppointments([...appointments, newAppointmentObj]);
+      
+      // Clear form
+      setNewAppointment({
+        title: "",
+        time: "",
+        customer: "",
+        address: ""
+      });
 
-    // Log the activity
-    logEvent('workflow', 'Appointment added', {
-      appointmentTitle: newAppointment.title,
-      appointmentTime: newAppointment.time
-    });
+      // Log the activity
+      logEvent('workflow', 'Appointment added', {
+        appointmentTitle: newAppointment.title,
+        appointmentTime: newAppointment.time
+      });
 
-    toast.success("Appointment added successfully");
+      toast.success("Appointment added successfully");
+    } catch (error) {
+      console.error('Error in handleAddAppointment:', error);
+      toast.error("Failed to add appointment");
+    }
   };
   
   return (
@@ -210,7 +336,7 @@ export default function TechnicianDashboard() {
           <CardContent>
             <div className="flex items-center">
               <AlertTriangle className="h-4 w-4 text-amber-500 mr-2" />
-              <span className="text-2xl font-bold">3</span>
+              <span className="text-2xl font-bold">{metrics.activeJobs}</span>
             </div>
           </CardContent>
         </Card>
@@ -285,7 +411,7 @@ export default function TechnicianDashboard() {
                     <label htmlFor="time" className="text-right">Time</label>
                     <Input 
                       id="time" 
-                      placeholder="e.g. 2:30 PM" 
+                      placeholder="e.g. 14:30" 
                       className="col-span-3"
                       value={newAppointment.time}
                       onChange={(e) => setNewAppointment({...newAppointment, time: e.target.value})}
@@ -320,36 +446,40 @@ export default function TechnicianDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {appointments.map(appointment => (
-                <div 
-                  key={appointment.id}
-                  className={`p-4 rounded-lg border ${
-                    appointment.isCurrent ? "bg-green-50 border-green-200" : ""
-                  }`}
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex items-center">
-                        <Clock className={`h-4 w-4 ${
-                          appointment.isCurrent ? "text-green-600" : "text-gray-500"
-                        } mr-2`} />
-                        <p className={`font-medium ${
-                          appointment.isCurrent ? "text-green-800" : ""
-                        }`}>
-                          {appointment.isCurrent ? "Current - " : ""}{appointment.time}
-                        </p>
-                      </div>
-                      <h3 className="text-lg font-bold mt-1">{appointment.title}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{appointment.customer} • {appointment.address}</p>
-                    </div>
-                    <Button size="sm" variant={appointment.isCurrent ? "default" : "outline"}>
-                      View Details
-                    </Button>
-                  </div>
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">Loading appointments...</p>
                 </div>
-              ))}
-
-              {appointments.length === 0 && (
+              ) : appointments.length > 0 ? (
+                appointments.map(appointment => (
+                  <div 
+                    key={appointment.id}
+                    className={`p-4 rounded-lg border ${
+                      appointment.isCurrent ? "bg-green-50 border-green-200" : ""
+                    }`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="flex items-center">
+                          <Clock className={`h-4 w-4 ${
+                            appointment.isCurrent ? "text-green-600" : "text-gray-500"
+                          } mr-2`} />
+                          <p className={`font-medium ${
+                            appointment.isCurrent ? "text-green-800" : ""
+                          }`}>
+                            {appointment.isCurrent ? "Current - " : ""}{appointment.time}
+                          </p>
+                        </div>
+                        <h3 className="text-lg font-bold mt-1">{appointment.title}</h3>
+                        <p className="text-sm text-gray-600 mt-1">{appointment.customer} • {appointment.address}</p>
+                      </div>
+                      <Button size="sm" variant={appointment.isCurrent ? "default" : "outline"}>
+                        View Details
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              ) : (
                 <div className="text-center py-8 text-gray-500">
                   <p>No upcoming appointments</p>
                   <Button size="sm" className="mt-2">
