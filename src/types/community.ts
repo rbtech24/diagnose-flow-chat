@@ -9,13 +9,19 @@ export interface CommunityPost {
   content: string;
   type: CommunityPostType;
   authorId: string;
-  author: User;
+  author?: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    avatarUrl?: string;
+  };
   attachments: Attachment[];
   createdAt: Date;
   updatedAt: Date;
   upvotes: number;
   views: number;
-  isSolved?: boolean;
+  isSolved: boolean;
   tags: string[];
   comments: CommunityComment[];
 }
@@ -25,12 +31,18 @@ export interface CommunityComment {
   postId: string;
   content: string;
   authorId: string;
-  author: User;
+  author?: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    avatarUrl?: string;
+  };
   attachments: Attachment[];
   createdAt: Date;
   updatedAt: Date;
   upvotes: number;
-  isAnswer?: boolean;
+  isAnswer: boolean;
 }
 
 export interface Attachment {

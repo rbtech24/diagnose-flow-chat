@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { NewFeatureRequestForm } from "@/components/feature-request/NewFeatureRequestForm";
+import { FeatureRequestStatus, FeatureRequestPriority } from "@/types/feature-request";
 
 export default function NewFeatureRequest() {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ export default function NewFeatureRequest() {
       // Get user details
       const { data: userDetails } = await supabase
         .from("profiles")
-        .select("name, email, avatar_url, role")
+        .select("*")
         .eq("id", userData.user.id)
         .single();
 
@@ -38,14 +39,14 @@ export default function NewFeatureRequest() {
         .insert({
           title: values.title,
           description: values.description,
-          status: "pending",
-          priority: values.priority || "medium",
+          status: "pending" as FeatureRequestStatus,
+          priority: values.priority as FeatureRequestPriority || "medium",
           user_id: userData.user.id,
           created_by_user: userDetails ? {
-            name: userDetails.name,
-            email: userDetails.email,
+            name: userDetails.full_name || userDetails.name || "Unknown User",
+            email: userDetails.email || "",
             avatar_url: userDetails.avatar_url,
-            role: userDetails.role
+            role: userDetails.role || "tech"
           } : null
         })
         .select();

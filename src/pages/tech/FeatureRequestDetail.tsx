@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
-import { FeatureRequest, FeatureComment } from "@/types/feature-request";
+import { FeatureRequest, FeatureComment, FeatureRequestStatus, FeatureRequestPriority } from "@/types/feature-request";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -50,8 +49,8 @@ export default function TechFeatureRequestDetailPage() {
           id: requestData.id,
           title: requestData.title,
           description: requestData.description,
-          status: requestData.status,
-          priority: requestData.priority || "medium",
+          status: requestData.status as FeatureRequestStatus,
+          priority: requestData.priority as FeatureRequestPriority || "medium",
           company_id: requestData.company_id,
           user_id: requestData.user_id,
           created_at: requestData.created_at,
@@ -59,17 +58,41 @@ export default function TechFeatureRequestDetailPage() {
           votes_count: requestData.votes_count || 0,
           user_has_voted: requestData.user_has_voted || false,
           comments_count: requestData.comments_count || 0,
-          created_by_user: requestData.created_by_user
+          created_by_user: requestData.created_by_user ? requestData.created_by_user : undefined
         };
 
-        const formattedComments: FeatureComment[] = commentsData?.map(comment => ({
-          id: comment.id,
-          feature_id: comment.feature_id,
-          user_id: comment.user_id,
-          content: comment.content,
-          created_at: comment.created_at,
-          created_by_user: comment.created_by_user
-        })) || [];
+        // Process comments and get author info for each
+        const formattedComments: FeatureComment[] = [];
+        
+        for (const comment of commentsData || []) {
+          // Try to get user profile info
+          let userProfile;
+          try {
+            const { data: userData } = await supabase
+              .from("profiles")
+              .select("*")
+              .eq("id", comment.user_id)
+              .single();
+            
+            userProfile = userData;
+          } catch (error) {
+            console.error("Error fetching user profile:", error);
+          }
+          
+          formattedComments.push({
+            id: comment.id,
+            feature_id: comment.feature_id,
+            user_id: comment.user_id,
+            content: comment.content,
+            created_at: comment.created_at,
+            created_by_user: userProfile ? {
+              name: userProfile.full_name || userProfile.name || "Unknown User",
+              email: userProfile.email || "",
+              avatar_url: userProfile.avatar_url,
+              role: userProfile.role || "tech"
+            } : undefined
+          });
+        }
 
         setFeatureRequest(formattedRequest);
         setComments(formattedComments);
@@ -179,26 +202,30 @@ export default function TechFeatureRequestDetailPage() {
       }
 
       // Get user details
-      const { data: userDetails } = await supabase
+      const { data: userProfile } = await supabase
         .from("profiles")
-        .select("name, email, avatar_url, role")
+        .select("*")
         .eq("id", userData.user.id)
         .single();
 
-      // Create new comment object
-      const newComment: FeatureComment = {
+      // Create new comment object with user details
+      let newComment: FeatureComment = {
         id: data.id,
         feature_id: data.feature_id,
         user_id: data.user_id,
         content: data.content,
-        created_at: data.created_at,
-        created_by_user: userDetails ? {
-          name: userDetails.name,
-          email: userDetails.email,
-          avatar_url: userDetails.avatar_url,
-          role: userDetails.role
-        } : undefined
+        created_at: data.created_at
       };
+      
+      // Add user profile info if available
+      if (userProfile) {
+        newComment.created_by_user = {
+          name: userProfile.full_name || userProfile.name || "Unknown User",
+          email: userProfile.email || "",
+          avatar_url: userProfile.avatar_url,
+          role: userProfile.role || "tech"
+        };
+      }
 
       // Add to local state
       setComments(prevComments => [...prevComments, newComment]);

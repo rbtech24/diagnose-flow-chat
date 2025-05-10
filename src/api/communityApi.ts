@@ -1,47 +1,19 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { CommunityPost, CommunityComment, Attachment } from "@/types/community";
 
-export interface CommunityPost {
-  id: string;
-  title: string;
-  content: string;
-  type: string;
-  authorId: string;
-  author?: {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-    avatarUrl?: string;
+// Helper function to format user data
+const formatUserData = (userData: any) => {
+  if (!userData) return undefined;
+  
+  return {
+    id: userData.id || '',
+    name: userData.name || userData.full_name || 'Unknown User',
+    email: userData.email || '',
+    role: userData.role || '',
+    avatarUrl: userData.avatar_url || undefined
   };
-  attachments: any[];
-  createdAt: Date;
-  updatedAt: Date;
-  upvotes: number;
-  views: number;
-  isSolved: boolean;
-  tags: string[];
-  comments: CommunityComment[];
-}
-
-export interface CommunityComment {
-  id: string;
-  postId: string;
-  content: string;
-  authorId: string;
-  author?: {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-    avatarUrl?: string;
-  };
-  attachments: any[];
-  createdAt: Date;
-  updatedAt: Date;
-  upvotes: number;
-  isAnswer: boolean;
-}
+};
 
 // Fetch all community posts
 export const fetchCommunityPosts = async (): Promise<CommunityPost[]> => {
@@ -60,7 +32,7 @@ export const fetchCommunityPosts = async (): Promise<CommunityPost[]> => {
     // Fetch author details
     const { data: authorData } = await supabase
       .from("profiles")
-      .select("name, email, avatar_url, role")
+      .select("*")
       .eq("id", post.author_id)
       .single();
       
@@ -75,7 +47,7 @@ export const fetchCommunityPosts = async (): Promise<CommunityPost[]> => {
       // Fetch comment author
       const { data: commentAuthorData } = await supabase
         .from("profiles")
-        .select("name, email, avatar_url, role")
+        .select("*")
         .eq("id", comment.author_id)
         .single();
         
@@ -84,14 +56,9 @@ export const fetchCommunityPosts = async (): Promise<CommunityPost[]> => {
         postId: comment.post_id,
         content: comment.content,
         authorId: comment.author_id,
-        author: commentAuthorData ? {
-          id: comment.author_id,
-          name: commentAuthorData.name,
-          email: commentAuthorData.email,
-          role: commentAuthorData.role,
-          avatarUrl: commentAuthorData.avatar_url
-        } : undefined,
-        attachments: comment.attachments || [],
+        author: formatUserData(commentAuthorData),
+        attachments: comment.attachments ? 
+          (Array.isArray(comment.attachments) ? comment.attachments : []) : [],
         createdAt: new Date(comment.created_at),
         updatedAt: new Date(comment.updated_at),
         upvotes: comment.upvotes || 0,
@@ -103,16 +70,11 @@ export const fetchCommunityPosts = async (): Promise<CommunityPost[]> => {
       id: post.id,
       title: post.title,
       content: post.content,
-      type: post.type,
+      type: post.type as CommunityPostType,
       authorId: post.author_id,
-      author: authorData ? {
-        id: post.author_id,
-        name: authorData.name,
-        email: authorData.email,
-        role: authorData.role,
-        avatarUrl: authorData.avatar_url
-      } : undefined,
-      attachments: post.attachments || [],
+      author: formatUserData(authorData),
+      attachments: post.attachments ? 
+        (Array.isArray(post.attachments) ? post.attachments : []) : [],
       createdAt: new Date(post.created_at),
       updatedAt: new Date(post.updated_at),
       upvotes: post.upvotes || 0,
@@ -128,11 +90,17 @@ export const fetchCommunityPosts = async (): Promise<CommunityPost[]> => {
 
 // Fetch a single community post
 export const fetchCommunityPostById = async (id: string): Promise<CommunityPost> => {
-  // Increment view count
-  await supabase
-    .from("community_posts")
-    .update({ views: supabase.rpc("increment", { row_id: id, table_name: "community_posts", column_name: "views" }) })
-    .eq("id", id);
+  // First update view count
+  try {
+    await supabase.rpc("increment", { 
+      row_id: id,
+      field_name: "views",
+      table_name: "community_posts" 
+    });
+  } catch (err) {
+    console.error("Error incrementing view count:", err);
+    // Don't throw here, continue with fetching the post
+  }
   
   const { data, error } = await supabase
     .from("community_posts")
@@ -148,7 +116,7 @@ export const fetchCommunityPostById = async (id: string): Promise<CommunityPost>
   // Fetch author details
   const { data: authorData } = await supabase
     .from("profiles")
-    .select("name, email, avatar_url, role")
+    .select("*")
     .eq("id", data.author_id)
     .single();
     
@@ -163,7 +131,7 @@ export const fetchCommunityPostById = async (id: string): Promise<CommunityPost>
     // Fetch comment author
     const { data: commentAuthorData } = await supabase
       .from("profiles")
-      .select("name, email, avatar_url, role")
+      .select("*")
       .eq("id", comment.author_id)
       .single();
       
@@ -172,14 +140,9 @@ export const fetchCommunityPostById = async (id: string): Promise<CommunityPost>
       postId: comment.post_id,
       content: comment.content,
       authorId: comment.author_id,
-      author: commentAuthorData ? {
-        id: comment.author_id,
-        name: commentAuthorData.name,
-        email: commentAuthorData.email,
-        role: commentAuthorData.role,
-        avatarUrl: commentAuthorData.avatar_url
-      } : undefined,
-      attachments: comment.attachments || [],
+      author: formatUserData(commentAuthorData),
+      attachments: comment.attachments ? 
+        (Array.isArray(comment.attachments) ? comment.attachments : []) : [],
       createdAt: new Date(comment.created_at),
       updatedAt: new Date(comment.updated_at),
       upvotes: comment.upvotes || 0,
@@ -191,16 +154,11 @@ export const fetchCommunityPostById = async (id: string): Promise<CommunityPost>
     id: data.id,
     title: data.title,
     content: data.content,
-    type: data.type,
+    type: data.type as CommunityPostType,
     authorId: data.author_id,
-    author: authorData ? {
-      id: data.author_id,
-      name: authorData.name,
-      email: authorData.email,
-      role: authorData.role,
-      avatarUrl: authorData.avatar_url
-    } : undefined,
-    attachments: data.attachments || [],
+    author: formatUserData(authorData),
+    attachments: data.attachments ? 
+      (Array.isArray(data.attachments) ? data.attachments : []) : [],
     createdAt: new Date(data.created_at),
     updatedAt: new Date(data.updated_at),
     upvotes: data.upvotes || 0,
@@ -267,7 +225,7 @@ export const addCommentToPost = async (postId: string, content: string): Promise
   // Fetch author details
   const { data: authorData } = await supabase
     .from("profiles")
-    .select("name, email, avatar_url, role")
+    .select("*")
     .eq("id", userData.user.id)
     .single();
   
@@ -276,14 +234,8 @@ export const addCommentToPost = async (postId: string, content: string): Promise
     postId: data.post_id,
     content: data.content,
     authorId: data.author_id,
-    author: authorData ? {
-      id: data.author_id,
-      name: authorData.name,
-      email: authorData.email,
-      role: authorData.role,
-      avatarUrl: authorData.avatar_url
-    } : undefined,
-    attachments: data.attachments || [],
+    author: formatUserData(authorData),
+    attachments: [],
     createdAt: new Date(data.created_at),
     updatedAt: new Date(data.updated_at),
     upvotes: data.upvotes || 0,
@@ -318,12 +270,13 @@ export const markCommentAsAnswer = async (postId: string, commentId: string): Pr
 
 // Upvote a post
 export const upvotePost = async (postId: string): Promise<void> => {
-  const { error } = await supabase
-    .from("community_posts")
-    .update({ upvotes: supabase.rpc("increment", { row_id: postId, table_name: "community_posts", column_name: "upvotes" }) })
-    .eq("id", postId);
-    
-  if (error) {
+  try {
+    await supabase.rpc("increment", { 
+      row_id: postId,
+      field_name: "upvotes",
+      table_name: "community_posts" 
+    });
+  } catch (error) {
     console.error("Error upvoting post:", error);
     throw error;
   }
@@ -331,12 +284,13 @@ export const upvotePost = async (postId: string): Promise<void> => {
 
 // Upvote a comment
 export const upvoteComment = async (commentId: string): Promise<void> => {
-  const { error } = await supabase
-    .from("community_comments")
-    .update({ upvotes: supabase.rpc("increment", { row_id: commentId, table_name: "community_comments", column_name: "upvotes" }) })
-    .eq("id", commentId);
-    
-  if (error) {
+  try {
+    await supabase.rpc("increment", { 
+      row_id: commentId,
+      field_name: "upvotes",
+      table_name: "community_comments" 
+    });
+  } catch (error) {
     console.error("Error upvoting comment:", error);
     throw error;
   }

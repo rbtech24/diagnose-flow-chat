@@ -31,12 +31,13 @@ import { createCommunityPost } from "@/api/communityApi";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { CommunityPostType } from "@/types/community";
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters").max(100, "Title must not exceed 100 characters"),
   content: z.string().min(20, "Content must be at least 20 characters"),
   type: z.enum(["question", "tech-sheet-request", "wire-diagram-request", "discussion"]),
-  tags: z.string().transform((val) => val.split(",").map(tag => tag.trim()).filter(tag => tag.length > 0))
+  tags: z.string().transform(val => val.split(",").map(tag => tag.trim()).filter(tag => tag.length > 0))
 });
 
 export default function NewCommunityPost() {

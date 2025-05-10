@@ -1,190 +1,115 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { FeatureRequest } from "@/types/feature-request";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, MessageSquare } from "lucide-react";
+import { FeatureRequest, FeatureRequestStatus, FeatureRequestPriority } from "@/types/feature-request";
 
 export default function TechFeatureRequests() {
   const [featureRequests, setFeatureRequests] = useState<FeatureRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchFeatureRequests = async () => {
-      setLoading(true);
       try {
-        let query = supabase
+        const { data, error } = await supabase
           .from("feature_requests")
-          .select("*");
-          
-        if (statusFilter !== "all") {
-          query = query.eq("status", statusFilter);
-        }
-        
-        const { data, error } = await query;
-        
+          .select("*")
+          .order("created_at", { ascending: false });
+
         if (error) {
-          console.error("Error fetching feature requests:", error);
-          return;
+          throw error;
         }
-        
-        // Transform the data to match our component structure
-        const formattedRequests = data.map(item => ({
-          id: item.id,
-          title: item.title,
-          description: item.description,
-          status: item.status,
-          priority: item.priority || "medium",
-          company_id: item.company_id,
-          user_id: item.user_id,
-          created_at: item.created_at,
-          updated_at: item.updated_at,
-          votes_count: item.votes_count || 0,
-          user_has_voted: item.user_has_voted || false,
-          comments_count: item.comments_count || 0,
-          created_by_user: item.created_by_user
+
+        // Transform the data to match our FeatureRequest type
+        const formattedRequests: FeatureRequest[] = data.map(request => ({
+          id: request.id,
+          title: request.title,
+          description: request.description,
+          status: request.status as FeatureRequestStatus,
+          priority: request.priority as FeatureRequestPriority || "medium",
+          company_id: request.company_id,
+          user_id: request.user_id,
+          created_at: request.created_at,
+          updated_at: request.updated_at,
+          votes_count: request.votes_count || 0,
+          user_has_voted: request.user_has_voted || false,
+          comments_count: request.comments_count || 0,
+          created_by_user: request.created_by_user
         }));
-        
+
         setFeatureRequests(formattedRequests);
-      } catch (err) {
-        console.error("Error in fetchFeatureRequests:", err);
+      } catch (error) {
+        console.error("Error fetching feature requests:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load feature requests",
+          variant: "destructive"
+        });
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchFeatureRequests();
-  }, [statusFilter]);
+  }, [toast]);
 
-  const filteredRequests = featureRequests.filter((request) => {
-    const matchesSearch = 
-      (request.title?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (request.description?.toLowerCase().includes(searchTerm.toLowerCase()));
-      
-    return matchesSearch;
-  });
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pending": return "bg-yellow-100 text-yellow-800";
-      case "approved": return "bg-blue-100 text-blue-800";
-      case "in-progress": return "bg-purple-100 text-purple-800";
-      case "completed": return "bg-green-100 text-green-800";
-      case "rejected": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
-  };
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Feature Requests</h1>
-          <p className="text-muted-foreground">Browse and vote on feature requests</p>
-        </div>
-        <Button onClick={() => navigate("/tech/feature-requests/new")} variant="default">New Feature Request</Button>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Feature Requests</h1>
+        <Button as={Link} to="/tech/new-feature-request">
+          Create New Request
+        </Button>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <Input
-          placeholder="Search feature requests..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="sm:max-w-xs"
-        />
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="in-progress">In Progress</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {loading ? (
-        <div className="space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="border rounded-lg p-6 animate-pulse">
-              <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-            </div>
-          ))}
-        </div>
-      ) : filteredRequests.length > 0 ? (
-        <div className="space-y-4">
-          {filteredRequests.map((request) => (
-            <div 
-              key={request.id} 
-              className="border rounded-lg p-6 hover:border-primary/50 transition-colors cursor-pointer"
-              onClick={() => navigate(`/tech/feature-requests/${request.id}`)}
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    {request.created_by_user && (
-                      <Avatar className="h-6 w-6">
-                        <AvatarImage src={request.created_by_user.avatar_url} alt={request.created_by_user.name} />
-                        <AvatarFallback>{request.created_by_user.name?.substring(0, 2).toUpperCase() || "??"}</AvatarFallback>
-                      </Avatar>
-                    )}
-                    <span className="text-sm text-muted-foreground">
-                      {request.created_by_user?.name || "Unknown user"} • {new Date(request.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <h3 className="font-medium text-lg mb-2">{request.title}</h3>
-                  <p className="text-muted-foreground line-clamp-2 mb-3">
-                    {request.description}
-                  </p>
-                </div>
-                <Badge className={getStatusColor(request.status)}>
-                  {request.status.replace("-", " ")}
-                </Badge>
-              </div>
-              <div className="flex items-center gap-4 text-sm">
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    className="h-4 w-4" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                  </svg>
-                  <span>{request.votes_count || 0} votes</span>
-                </div>
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <MessageSquare className="h-4 w-4" />
-                  <span>{request.comments_count || 0} comments</span>
-                </div>
-              </div>
-            </div>
-          ))}
+      {featureRequests.length === 0 ? (
+        <div className="text-center p-10 border rounded-lg">
+          <p className="text-lg text-gray-500">No feature requests found</p>
         </div>
       ) : (
-        <div className="text-center py-12 border rounded-lg">
-          <h3 className="text-lg font-medium mb-2">No feature requests found</h3>
-          <p className="text-muted-foreground mb-4">Try adjusting your search or filter criteria</p>
+        <div className="space-y-4">
+          {featureRequests.map((request) => (
+            <Link
+              to={`/tech/feature-requests/${request.id}`}
+              className="block border rounded-lg p-4 hover:bg-gray-50"
+              key={request.id}
+            >
+              <div className="flex justify-between">
+                <h2 className="font-medium text-lg">{request.title}</h2>
+                <div className="space-x-2">
+                  <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                    {request.status}
+                  </span>
+                  <span className="px-2 py-1 text-xs rounded-full bg-gray-100">
+                    {request.votes_count} votes
+                  </span>
+                </div>
+              </div>
+              <p className="text-gray-600 mt-2 line-clamp-2">{request.description}</p>
+              <div className="flex justify-between items-center mt-4">
+                <span className="text-sm text-gray-500">
+                  {new Date(request.created_at).toLocaleDateString()}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {request.comments_count || 0} comments
+                </span>
+              </div>
+            </Link>
+          ))}
         </div>
       )}
     </div>
