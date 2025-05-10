@@ -30,7 +30,7 @@ export default function TechFeatureRequests() {
           let createdByUser = {
             name: 'Unknown User',
             email: '',
-            role: 'tech' as const,
+            role: 'tech' as "admin" | "company" | "tech",
             avatar_url: undefined
           };
 
@@ -38,13 +38,20 @@ export default function TechFeatureRequests() {
             const user = request.created_by_user;
             
             if (typeof user === 'object') {
+              // Validate the user role is one of the valid values
+              let userRole: "admin" | "company" | "tech" = 'tech';
+              
+              if (typeof user.role === 'string') {
+                if (user.role === 'admin' || user.role === 'company' || user.role === 'tech') {
+                  userRole = user.role as "admin" | "company" | "tech";
+                }
+              }
+              
               createdByUser = {
                 name: 'name' in user ? String(user.name) : 
                      ('full_name' in user ? String(user.full_name) : 'Unknown User'),
                 email: 'email' in user ? String(user.email) : '',
-                role: 'role' in user && 
-                      ['admin', 'tech', 'company'].includes(String(user.role)) ? 
-                      String(user.role) as 'admin' | 'tech' | 'company' : 'tech',
+                role: userRole,
                 avatar_url: 'avatar_url' in user ? String(user.avatar_url) : undefined
               };
             }

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { FeatureRequest, FeatureComment, FeatureRequestStatus, FeatureRequestPriority } from "@/types/feature-request";
 
@@ -85,19 +86,25 @@ export async function fetchFeatureRequests(
     let createdByUser = {
       name: 'Unknown User',
       email: '',
-      role: 'user',
-      avatar_url: null
+      role: 'tech' as "admin" | "company" | "tech",
+      avatar_url: undefined
     };
     
     if (item.created_by_user && typeof item.created_by_user === 'object') {
       // Handle case when created_by_user is an object (successful join)
       if (!('error' in item.created_by_user)) {
         const userData = item.created_by_user as Record<string, any>;
+        const userRole = userData.role as string || 'tech';
+        
+        // Validate role is one of the accepted types
+        const validRole = (userRole === 'admin' || userRole === 'company' || userRole === 'tech') ? 
+          userRole as "admin" | "company" | "tech" : 'tech' as "admin" | "company" | "tech";
+        
         createdByUser = {
           name: userData.name || 'Unknown User',
           email: userData.email || '',
-          role: userData.role || 'user',
-          avatar_url: userData.avatar_url || null
+          role: validRole,
+          avatar_url: userData.avatar_url || undefined
         };
       }
     }

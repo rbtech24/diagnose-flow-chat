@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -30,24 +29,15 @@ export default function TechFeatureRequestDetailPage() {
         if (request.created_by_user && typeof request.created_by_user === 'object') {
           // Make sure it has the expected fields
           request.created_by_user = {
-            name: typeof request.created_by_user === 'object' && 'name' in request.created_by_user 
-              ? request.created_by_user.name as string
-              : (typeof request.created_by_user === 'object' && 'full_name' in request.created_by_user 
-                ? request.created_by_user.full_name as string 
-                : 'Unknown User'),
-            email: typeof request.created_by_user === 'object' && 'email' in request.created_by_user 
-              ? request.created_by_user.email as string 
-              : '',
-            role: typeof request.created_by_user === 'object' && 'role' in request.created_by_user 
-              ? (request.created_by_user.role === 'admin' || 
-                 request.created_by_user.role === 'tech' || 
-                 request.created_by_user.role === 'company') 
-                  ? request.created_by_user.role as 'admin' | 'tech' | 'company'
-                  : 'tech'
-              : 'tech',
-            avatar_url: typeof request.created_by_user === 'object' && 'avatar_url' in request.created_by_user 
-              ? request.created_by_user.avatar_url as string 
-              : undefined
+            name: typeof request.created_by_user.name === 'string' ? request.created_by_user.name : 'Unknown User',
+            email: typeof request.created_by_user.email === 'string' ? request.created_by_user.email : '',
+            role: (typeof request.created_by_user.role === 'string' && 
+                  (request.created_by_user.role === 'admin' || 
+                   request.created_by_user.role === 'company' || 
+                   request.created_by_user.role === 'tech')) 
+                    ? request.created_by_user.role as 'admin' | 'company' | 'tech'
+                    : 'tech',
+            avatar_url: typeof request.created_by_user.avatar_url === 'string' ? request.created_by_user.avatar_url : undefined
           };
         } else {
           // If created_by_user is not an object, create a default one
@@ -130,13 +120,17 @@ export default function TechFeatureRequestDetailPage() {
             .single();
             
           if (profileData) {
+            // Ensure role is one of the valid types
+            let userRole: "admin" | "company" | "tech" = 'tech';
+            if (profileData.role === 'admin' || profileData.role === 'company' || profileData.role === 'tech') {
+              userRole = profileData.role as "admin" | "company" | "tech";
+            }
+            
             const createdByUser = {
               name: profileData.full_name || 'Unknown User',
               email: profileData.phone_number || '',  // Using phone_number as fallback 
               avatar_url: profileData.avatar_url,
-              role: profileData.role && 
-                    ['tech', 'admin', 'company'].includes(profileData.role) ? 
-                    profileData.role as 'tech' | 'admin' | 'company' : 'tech'
+              role: userRole
             };
             
             (newComment as any).created_by_user = createdByUser;
