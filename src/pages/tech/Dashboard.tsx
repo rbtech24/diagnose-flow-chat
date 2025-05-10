@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,18 +51,21 @@ interface SupabaseResponse<T> {
   error: any;
 }
 
-interface CustomerData {
-  first_name?: string;
-  last_name?: string;
-  service_addresses?: Array<{address?: string}>;
-}
-
 interface RepairData {
   id: string;
-  scheduled_at: string;
   status: string;
-  diagnosis?: string;
-  customer_id?: string;
+  customer_id: string;
+  description?: string;
+  scheduled_at?: string;
+  // Add other repair properties as needed
+}
+
+interface CustomerData {
+  id: string;
+  name?: string;
+  first_name?: string;
+  last_name?: string;
+  // Add other customer properties as needed
 }
 
 export default function TechnicianDashboard() {
@@ -128,10 +130,9 @@ export default function TechnicianDashboard() {
           try {
             return await supabase
               .from('repairs')
-              .select('id, scheduled_at, status, diagnosis, customer_id')
+              .select('*')
               .eq('technician_id', techId)
-              .in('status', ['scheduled', 'in_progress'])
-              .order('scheduled_at', { ascending: true });
+              .in('status', ['scheduled', 'in_progress']);
           } catch (error) {
             console.error('Error fetching active repairs:', error);
             return { data: null, error };
@@ -143,7 +144,7 @@ export default function TechnicianDashboard() {
           try {
             return await supabase
               .from('customers')
-              .select('first_name, last_name, service_addresses')
+              .select('*')
               .eq('id', customerId)
               .single();
           } catch (error) {

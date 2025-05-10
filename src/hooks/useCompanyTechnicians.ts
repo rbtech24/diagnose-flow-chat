@@ -105,7 +105,8 @@ export function useCompanyTechnicians({
             // Map properties to expected types
             companyId: tech.company_id || '',
             avatarUrl: userInfo?.avatar_url,
-            activeJobs: 0 // Default value
+            activeJobs: 0, // Default value
+            role: (tech.role as 'admin' | 'company' | 'tech') || 'tech' // Cast to the expected union type
           };
           return technician;
         });

@@ -130,7 +130,8 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         trial_end_date: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
-        status: data.status || data.trial_status as 'active' | 'trial' | 'expired' | 'inactive', 
+        status: (data.status as 'active' | 'trial' | 'expired' | 'inactive') || 
+               (data.trial_status as 'active' | 'trial' | 'expired' | 'inactive') || 'inactive',
         plan_name: data.plan_name || data.subscription_tier,
       };
 
@@ -302,7 +303,8 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       const createdCompany: Company = {
         id: data.id,
         name: data.name || '',
-        status: (data.status as 'active' | 'trial' | 'expired' | 'inactive') || 'inactive',
+        status: (data.status as 'active' | 'trial' | 'expired' | 'inactive') || 
+                (data.trial_status as 'active' | 'trial' | 'expired' | 'inactive') || 'inactive',
         plan_name: data.plan_name || data.subscription_tier || '',
         subscription_tier: data.subscription_tier || 'basic',
         trial_end_date: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
@@ -417,7 +419,7 @@ const transformTechniciansData = (technicians: any[]): User[] => {
     id: tech.id,
     name: tech.name || (tech.email ? tech.email.split('@')[0] : '') || '',
     email: tech.email,
-    role: tech.role,
+    role: tech.role as 'admin' | 'company' | 'tech',
     status: tech.status || 'active',
     companyId: tech.company_id,
     avatarUrl: tech.avatar_url || '',
@@ -435,7 +437,8 @@ const transformCompaniesData = (companies: any[]): Company[] => {
     trial_end_date: company.trial_end_date ? new Date(company.trial_end_date) : undefined,
     createdAt: new Date(company.created_at),
     updatedAt: new Date(company.updated_at),
-    status: company.status || company.trial_status as 'active' | 'trial' | 'expired' | 'inactive',
+    status: company.status as 'active' | 'trial' | 'expired' | 'inactive' || 
+            company.trial_status as 'active' | 'trial' | 'expired' | 'inactive' || 'inactive',
     plan_name: company.plan_name || company.subscription_tier,
   }));
 };
