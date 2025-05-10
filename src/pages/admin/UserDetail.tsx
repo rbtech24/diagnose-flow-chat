@@ -149,17 +149,15 @@ export default function UserDetail() {
     if (!id) return;
     
     try {
-      const updatedUser = await updateUser(id, {
+      await updateUser(id, {
         avatarUrl
       });
       
-      if (updatedUser) {
-        setUserData(updatedUser);
-        toast({
-          title: "Success",
-          description: "Profile picture updated successfully.",
-        });
-      }
+      setUserData({...userData, avatarUrl});
+      toast({
+        title: "Success",
+        description: "Profile picture updated successfully.",
+      });
     } catch (error) {
       console.error('Error updating avatar:', error);
       toast({
@@ -175,28 +173,26 @@ export default function UserDetail() {
     if (!id) return;
     
     try {
-      const updatedUser = await updateUser(id, {
+      await updateUser(id, {
         companyId
       });
       
-      if (updatedUser) {
-        setUserData({...userData, companyId});
-        
-        // Fetch the company data if a new company is assigned
-        if (companyId) {
-          const company = await fetchCompanyById(companyId);
-          setCompanyData(company);
-        } else {
-          setCompanyData(null);
-        }
-        
-        toast({
-          title: companyId ? "Company assigned" : "Company unassigned",
-          description: companyId 
-            ? "User has been successfully assigned to the company." 
-            : "User has been unassigned from the company.",
-        });
+      setUserData({...userData, companyId});
+      
+      // Fetch the company data if a new company is assigned
+      if (companyId) {
+        const company = await fetchCompanyById(companyId);
+        setCompanyData(company);
+      } else {
+        setCompanyData(null);
       }
+      
+      toast({
+        title: companyId ? "Company assigned" : "Company unassigned",
+        description: companyId 
+          ? "User has been successfully assigned to the company." 
+          : "User has been unassigned from the company.",
+      });
     } catch (error) {
       console.error('Error updating company assignment:', error);
       toast({

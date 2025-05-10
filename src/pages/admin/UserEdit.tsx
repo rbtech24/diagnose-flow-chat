@@ -91,13 +91,11 @@ export default function UserEdit() {
     if (!id) return;
     
     try {
-      const updatedUser = await updateUser(id, {
+      await updateUser(id, {
         avatarUrl
       });
       
-      if (updatedUser) {
-        setUserData(updatedUser);
-      }
+      setUserData({...userData, avatarUrl});
     } catch (error) {
       console.error('Error updating avatar:', error);
       throw error;
@@ -108,19 +106,17 @@ export default function UserEdit() {
     if (!id) return;
     
     try {
-      const updatedUser = await updateUser(id, {
+      await updateUser(id, {
         companyId
       });
       
-      if (updatedUser) {
-        setUserData({...userData, companyId});
-        form.setValue("companyId", companyId || undefined);
-        
-        toast({
-          title: "Company updated",
-          description: "User's company assignment has been updated successfully.",
-        });
-      }
+      setUserData({...userData, companyId});
+      form.setValue("companyId", companyId || undefined);
+      
+      toast({
+        title: "Company updated",
+        description: "User's company assignment has been updated successfully.",
+      });
     } catch (error) {
       console.error('Error updating company assignment:', error);
       toast({

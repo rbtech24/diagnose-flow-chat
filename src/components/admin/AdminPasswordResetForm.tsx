@@ -1,64 +1,78 @@
 
 import { useState } from "react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/components/ui/use-toast";
 import { useUserManagementStore } from "@/store/userManagementStore";
-import { toast } from "sonner";
-
-const passwordResetSchema = z.object({
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(72, "Password cannot exceed 72 characters"),
-  confirmPassword: z.string(),
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
-
-type PasswordResetFormValues = z.infer<typeof passwordResetSchema>;
 
 interface AdminPasswordResetFormProps {
   userId: string;
-  onSuccess: () => void;
-  onCancel: () => void;
+  userEmail: string;
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
-export function AdminPasswordResetForm({ userId, onSuccess, onCancel }: AdminPasswordResetFormProps) {
+export function AdminPasswordResetForm({
+  userId,
+  userEmail,
+  onSuccess,
+  onCancel
+}: AdminPasswordResetFormProps) {
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [notifyUser, setNotifyUser] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
   const { resetUserPassword } = useUserManagementStore();
-  
-  const form = useForm<PasswordResetFormValues>({
-    resolver: zodResolver(passwordResetSchema),
-    defaultValues: {
-      password: "",
-      confirmPassword: "",
-    },
-  });
 
-  const handleSubmit = async (values: PasswordResetFormValues) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (password !== confirmPassword) {
+      toast({
+        title: "Passwords don't match",
+        description: "Please make sure both passwords match.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (password.length < 8) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 8 characters long.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
-      const success = await resetUserPassword(userId, values.password);
+      const success = await resetUserPassword(userId);
+      
       if (success) {
-        toast.success("The user's password has been reset.");
-        onSuccess();
+        toast({
+          title: "Password reset",
+          description: notifyUser 
+            ? `Password has been reset and an email has been sent to ${userEmail}.`
+            : "Password has been reset successfully."
+        });
+        if (onSuccess) onSuccess();
       } else {
-        form.setError("root", { 
-          type: "manual",
-          message: "Failed to reset password. Please try again."
+        toast({
+          title: "Error",
+          description: "Failed to reset password. Please try again.",
+          variant: "destructive"
         });
       }
     } catch (error) {
-      console.error("Error resetting password:", error);
-      form.setError("root", { 
-        type: "manual",
-        message: "An error occurred while resetting the password. Please try again."
+      console.error("Password reset error:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
@@ -66,54 +80,64 @@ export function AdminPasswordResetForm({ userId, onSuccess, onCancel }: AdminPas
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>New Password</FormLabel>
-              <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <label htmlFor="password" className="block text-sm font-medium">
+          New Password
+        </label>
+        <Input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Enter new password"
+          required
+          autoComplete="new-password"
         />
-        
-        <FormField
-          control={form.control}
-          name="confirmPassword"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
-              <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+      </div>
+      
+      <div className="space-y-2">
+        <label htmlFor="confirmPassword" className="block text-sm font-medium">
+          Confirm Password
+        </label>
+        <Input
+          id="confirmPassword"
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          placeholder="Confirm password"
+          required
+          autoComplete="new-password"
         />
-        
-        {form.formState.errors.root && (
-          <p className="text-sm font-medium text-destructive">{form.formState.errors.root.message}</p>
-        )}
-        
-        <div className="flex justify-end gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Resetting..." : "Reset Password"}
-          </Button>
-        </div>
-      </form>
-    </Form>
+      </div>
+      
+      <div className="flex items-center space-x-2">
+        <Checkbox 
+          id="notifyUser" 
+          checked={notifyUser} 
+          onCheckedChange={(checked) => setNotifyUser(checked === true)}
+        />
+        <label
+          htmlFor="notifyUser"
+          className="text-sm font-medium leading-none cursor-pointer"
+        >
+          Send email notification to {userEmail}
+        </label>
+      </div>
+      
+      <div className="flex justify-end space-x-2">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={onCancel}
+          disabled={isSubmitting}
+        >
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Resetting..." : "Reset Password"}
+        </Button>
+      </div>
+    </form>
   );
 }

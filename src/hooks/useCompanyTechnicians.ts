@@ -120,8 +120,8 @@ export function useCompanyTechnicians() {
         const responseTimes = recentRepairs
           .filter(repair => repair.started_at && repair.completed_at)
           .map(repair => {
-            const start = new Date(repair.started_at);
-            const end = new Date(repair.completed_at);
+            const start = new Date(repair.started_at as string);
+            const end = new Date(repair.completed_at as string);
             return (end.getTime() - start.getTime()) / (1000 * 60 * 60); // hours
           });
           
@@ -253,7 +253,7 @@ export function useCompanyTechnicians() {
         } else {
           // Get user details for each technician to get name and avatar
           const technicianData = await Promise.all(
-            techData.map(async tech => {
+            techData.map(async (tech) => {
               // Get user info from auth.users
               const { data: profileData, error: profileError } = await supabase
                 .from('profiles')

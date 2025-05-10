@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { FeatureRequest, FeatureComment } from "@/types/feature-request";
+import { FeatureRequest, FeatureComment, FeatureRequestStatus, FeatureRequestPriority } from "@/types/feature-request";
 
 /**
  * Fetch feature requests
@@ -38,8 +38,8 @@ export async function fetchFeatureRequests(
       id: request.id,
       title: request.title,
       description: request.description,
-      status: request.status || 'pending',
-      priority: request.priority || 'medium',
+      status: (request.status || 'pending') as FeatureRequestStatus,
+      priority: (request.priority || 'medium') as FeatureRequestPriority,
       company_id: request.company_id,
       user_id: request.user_id || '',
       created_at: request.created_at,
@@ -99,7 +99,8 @@ export async function fetchFeatureRequestById(requestId: string): Promise<Featur
       if (!userError && userData) {
         createdByUser = {
           name: userData.full_name || 'Unknown User',
-          email: userData.email || '',
+          // The profile table doesn't have an email field
+          email: '',
           role: (userData.role as "admin" | "company" | "tech") || 'tech',
           avatar_url: userData.avatar_url
         };
@@ -111,8 +112,8 @@ export async function fetchFeatureRequestById(requestId: string): Promise<Featur
       id: data.id,
       title: data.title,
       description: data.description,
-      status: data.status || 'pending',
-      priority: data.priority || 'medium',
+      status: (data.status || 'pending') as FeatureRequestStatus,
+      priority: (data.priority || 'medium') as FeatureRequestPriority,
       company_id: data.company_id,
       user_id: data.user_id || '',
       created_at: data.created_at,
@@ -162,14 +163,14 @@ export async function fetchFeatureComments(requestId: string): Promise<FeatureCo
       content: comment.content,
       created_at: comment.created_at,
       created_by_user: comment.created_by_user ? {
-        name: typeof comment.created_by_user === 'object' && comment.created_by_user !== null && 'name' in comment.created_by_user ? 
+        name: comment.created_by_user && typeof comment.created_by_user === 'object' && 'name' in comment.created_by_user ? 
           String(comment.created_by_user.name) : 'Unknown User',
-        email: typeof comment.created_by_user === 'object' && comment.created_by_user !== null && 'email' in comment.created_by_user ? 
+        email: comment.created_by_user && typeof comment.created_by_user === 'object' && 'email' in comment.created_by_user ? 
           String(comment.created_by_user.email) : '',
-        role: typeof comment.created_by_user === 'object' && comment.created_by_user !== null && 'role' in comment.created_by_user && 
+        role: comment.created_by_user && typeof comment.created_by_user === 'object' && 'role' in comment.created_by_user && 
           ['admin', 'company', 'tech'].includes(String(comment.created_by_user.role)) ? 
           String(comment.created_by_user.role) as "admin" | "company" | "tech" : 'tech',
-        avatar_url: typeof comment.created_by_user === 'object' && comment.created_by_user !== null && 'avatar_url' in comment.created_by_user ? 
+        avatar_url: comment.created_by_user && typeof comment.created_by_user === 'object' && 'avatar_url' in comment.created_by_user ? 
           String(comment.created_by_user.avatar_url) : undefined
       } : undefined
     }));
@@ -227,8 +228,8 @@ export async function createFeatureRequest(requestData: Partial<FeatureRequest>)
       id: data.id,
       title: data.title,
       description: data.description,
-      status: data.status || 'submitted',
-      priority: data.priority || 'medium',
+      status: (data.status || 'submitted') as FeatureRequestStatus,
+      priority: (data.priority || 'medium') as FeatureRequestPriority,
       company_id: data.company_id,
       user_id: data.user_id,
       created_at: data.created_at,
@@ -238,7 +239,8 @@ export async function createFeatureRequest(requestData: Partial<FeatureRequest>)
       comments_count: 0,
       created_by_user: profileData ? {
         name: profileData.full_name || 'Unknown User',
-        email: profileData.email || '',
+        // The profile table doesn't have an email field
+        email: '',
         role: (profileData.role as "admin" | "company" | "tech") || 'tech',
         avatar_url: profileData.avatar_url
       } : undefined
@@ -308,7 +310,8 @@ export async function addFeatureComment(commentData: { content: string, feature_
       created_at: data.created_at,
       created_by_user: profileData ? {
         name: profileData.full_name || 'Unknown User',
-        email: profileData.email || '',
+        // The profile table doesn't have an email field
+        email: '',
         role: (profileData.role as "admin" | "company" | "tech") || 'tech',
         avatar_url: profileData.avatar_url
       } : undefined
@@ -347,8 +350,8 @@ export async function updateFeatureRequest(
       id: data.id,
       title: data.title,
       description: data.description,
-      status: data.status || 'pending',
-      priority: data.priority || 'medium',
+      status: (data.status || 'pending') as FeatureRequestStatus,
+      priority: (data.priority || 'medium') as FeatureRequestPriority,
       company_id: data.company_id,
       user_id: data.user_id,
       created_at: data.created_at,
@@ -356,7 +359,14 @@ export async function updateFeatureRequest(
       votes_count: data.votes_count || 0,
       user_has_voted: data.user_has_voted || false,
       comments_count: data.comments_count || 0,
-      created_by_user: data.created_by_user
+      created_by_user: data.created_by_user ? (typeof data.created_by_user === 'object' ? {
+        name: 'name' in data.created_by_user ? String(data.created_by_user.name) : 'Unknown User',
+        email: 'email' in data.created_by_user ? String(data.created_by_user.email) : '',
+        role: 'role' in data.created_by_user && 
+          ['admin', 'company', 'tech'].includes(String(data.created_by_user.role)) ? 
+          String(data.created_by_user.role) as "admin" | "company" | "tech" : 'tech',
+        avatar_url: 'avatar_url' in data.created_by_user ? String(data.created_by_user.avatar_url) : undefined
+      } : undefined) : undefined
     };
     
   } catch (error) {

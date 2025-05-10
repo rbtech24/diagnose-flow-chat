@@ -1,106 +1,115 @@
-
-import { Link, useLocation } from "react-router-dom";
-import { 
-  Home, 
-  LifeBuoy, 
-  Settings, 
-  LogOut, 
-  MessageSquare,
-  FileText,
-  Stethoscope
-} from "lucide-react";
-
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
-  Sidebar,
-  SidebarHeader,
-  SidebarMain,
-  SidebarNav,
-  SidebarNavItem,
-  SidebarFooter,
-  SidebarToggle,
-  SidebarNavGroup
-} from "@/components/ui/sidebar";
+  LayoutDashboard,
+  Settings,
+  Users,
+  HelpCircle,
+  Logout,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  ListChecks,
+  MessageSquare,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useUserManagementStore } from "@/store/userManagementStore";
 
-export function TechSidebar() {
-  const location = useLocation();
-  const { logout } = useUserManagementStore();
-  const isActive = (path: string) => location.pathname === path;
-  
-  const handleLogout = () => {
-    logout();
+interface TechSidebarProps {
+  collapsed: boolean;
+}
+
+export function TechSidebar({ collapsed }: TechSidebarProps) {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const { currentUser, logout } = useUserManagementStore();
+  const [pending, setPending] = useState(false);
+
+  const handleSignOut = async () => {
+    setPending(true);
+    try {
+      await logout();
+      navigate("/sign-in");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    } finally {
+      setPending(false);
+    }
   };
 
   return (
-    <Sidebar defaultExpanded={true}>
-      <SidebarHeader className="flex items-center justify-between py-3">
-        <div className="flex items-center gap-2 px-4">
-          <span className="text-lg font-bold">Technician</span>
-        </div>
-        <SidebarToggle />
-      </SidebarHeader>
-      
-      <SidebarMain>
-        <SidebarNav>
-          <SidebarNavGroup label="DASHBOARD">
-            <SidebarNavItem 
-              icon={<Home className="w-5 h-5" />} 
-              active={isActive("/tech/dashboard") || isActive("/tech")}
-            >
-              <Link to="/tech/dashboard" className="w-full h-full flex items-center">Dashboard</Link>
-            </SidebarNavItem>
-          </SidebarNavGroup>
-          
-          <SidebarNavGroup label="RESOURCES">
-            <SidebarNavItem 
-              icon={<Stethoscope className="w-5 h-5" />} 
-              active={isActive("/tech/diagnostics")}
-            >
-              <Link to="/tech/diagnostics" className="w-full h-full flex items-center">Diagnostics</Link>
-            </SidebarNavItem>
-
-            <SidebarNavItem 
-              icon={<MessageSquare className="w-5 h-5" />} 
-              active={isActive("/tech/community")}
-            >
-              <Link to="/tech/community" className="w-full h-full flex items-center">Community</Link>
-            </SidebarNavItem>
-            
-            <SidebarNavItem 
-              icon={<FileText className="w-5 h-5" />} 
-              active={isActive("/tech/feature-requests")}
-            >
-              <Link to="/tech/feature-requests" className="w-full h-full flex items-center">Feature Requests</Link>
-            </SidebarNavItem>
-          </SidebarNavGroup>
-
-          <SidebarNavGroup label="SUPPORT">
-            <SidebarNavItem 
-              icon={<LifeBuoy className="w-5 h-5" />} 
-              active={isActive("/tech/support")}
-            >
-              <Link to="/tech/support" className="w-full h-full flex items-center">Support</Link>
-            </SidebarNavItem>
-          </SidebarNavGroup>
-        </SidebarNav>
-      </SidebarMain>
-      
-      <SidebarFooter>
-        <div className="flex w-full items-center justify-between p-4">
-          <Link to="/tech/profile" className="flex items-center gap-2 text-sm font-medium">
-            <Settings size={20} className="text-muted-foreground" />
-            <span>Settings</span>
-          </Link>
-          <Link 
-            to="/login" 
-            className="flex items-center text-sm gap-1 text-muted-foreground hover:text-foreground transition-colors"
-            onClick={handleLogout}
-          >
-            <LogOut size={18} />
-            <span>Logout</span>
-          </Link>
-        </div>
-      </SidebarFooter>
-    </Sidebar>
+    <div className={cn(
+      "flex flex-col h-full bg-secondary",
+      collapsed ? "w-[70px]" : "w-60"
+    )}>
+      <div className="border-b border-muted p-3 flex items-center">
+        {collapsed ? (
+          <ChevronRight className="h-8 w-8" />
+        ) : (
+          <>
+            <p className="font-semibold">Menu</p>
+          </>
+        )}
+      </div>
+      <div className="flex flex-col flex-1">
+        <nav className="flex flex-1 flex-col justify-between">
+          <div className="space-y-1">
+            <Button variant="ghost" className="justify-start" onClick={() => navigate("/tech")} >
+              <LayoutDashboard className="h-4 w-4 mr-2" />
+              Dashboard
+            </Button>
+            <Button variant="ghost" className="justify-start" onClick={() => navigate("/tech/feature-requests")}>
+              <ListChecks className="h-4 w-4 mr-2" />
+              Feature Requests
+            </Button>
+            <Button variant="ghost" className="justify-start" onClick={() => navigate("/tech/community")}>
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Community
+            </Button>
+            <Button variant="ghost" className="justify-start" onClick={() => navigate("/tech/support")}>
+              <HelpCircle className="h-4 w-4 mr-2" />
+              Support
+            </Button>
+          </div>
+          <div className="pb-3">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="justify-start">
+                  <Avatar className="h-8 w-8 mr-2">
+                    <AvatarImage src={currentUser?.avatarUrl} />
+                    <AvatarFallback>{currentUser?.name?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <span className="line-clamp-1">
+                    {currentUser?.name}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-80 pt-1" align="start">
+                <div className="px-4 py-2">
+                  <div className="font-medium line-clamp-1">{currentUser?.name}</div>
+                  <div className="text-xs text-muted-foreground line-clamp-1">
+                    {currentUser?.email}
+                  </div>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate("/tech/settings")}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <Logout className="h-4 w-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </nav>
+      </div>
+    </div>
   );
 }

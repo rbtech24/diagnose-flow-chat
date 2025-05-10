@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { CommunityPost, CommunityComment, Attachment, CommunityPostType } from "@/types/community";
 
@@ -25,7 +26,8 @@ const formatUserData = async (userId?: string | null) => {
   return {
     id: userId,
     name: userData.full_name || 'Unknown User',
-    email: userData.email || '',
+    // The profile table doesn't have an email field, so we'll use an empty string
+    email: '',
     role: userData.role as "admin" | "company" | "tech",
     avatarUrl: userData.avatar_url
   };
@@ -65,7 +67,7 @@ export const fetchCommunityPosts = async (): Promise<CommunityPost[]> => {
         content: comment.content,
         authorId: comment.author_id,
         author: commentAuthor,
-        attachments: (comment.attachments || []) as Attachment[],
+        attachments: (comment.attachments || []) as unknown as Attachment[],
         createdAt: new Date(comment.created_at),
         updatedAt: new Date(comment.updated_at),
         upvotes: comment.upvotes || 0,
@@ -139,7 +141,7 @@ export const fetchCommunityPostById = async (id: string): Promise<CommunityPost>
       content: comment.content,
       authorId: comment.author_id,
       author: commentAuthor,
-      attachments: (comment.attachments || []) as Attachment[],
+      attachments: (comment.attachments || []) as unknown as Attachment[],
       createdAt: new Date(comment.created_at),
       updatedAt: new Date(comment.updated_at),
       upvotes: comment.upvotes || 0,
