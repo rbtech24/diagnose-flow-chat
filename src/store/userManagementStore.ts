@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/user';
@@ -45,15 +44,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       }
       
       // Transform data to match User type
-      const users: User[] = data.map(user => ({
-        id: user.id,
-        name: user.name || '',
-        email: user.email || '',
-        role: (user.role as 'admin' | 'company' | 'tech') || 'tech',
-        companyId: user.company_id || '',
-        status: user.status || 'inactive',
-        avatarUrl: user.avatar_url || '',
-      }));
+      const users: User[] = transformTechniciansData(data);
       
       set({ users, isLoadingUsers: false });
     } catch (error) {
@@ -74,16 +65,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       }
       
       // Transform data to match Company type
-      const companies: Company[] = data.map(company => ({
-        id: company.id,
-        name: company.name || '',
-        status: (company.status as 'active' | 'trial' | 'expired' | 'inactive') || 'inactive',
-        planName: company.plan_name || '',
-        trial_end_date: company.trial_end_date ? new Date(company.trial_end_date) : undefined,
-        trialEndDate: company.trial_end_date ? new Date(company.trial_end_date) : undefined,
-        createdAt: company.created_at ? new Date(company.created_at) : new Date(),
-        updatedAt: company.updated_at ? new Date(company.updated_at) : new Date(),
-      }));
+      const companies: Company[] = transformCompaniesData(data);
       
       set({ companies, isLoadingCompanies: false });
     } catch (error) {
@@ -108,12 +90,13 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       // Transform to match User type
       const user: User = {
         id: data.id,
-        name: data.name || '',
-        email: data.email || '',
+        name: data.email.split('@')[0], // Use email as fallback if no name available
+        email: data.email,
         role: (data.role as 'admin' | 'company' | 'tech') || 'tech',
-        companyId: data.company_id || '',
-        status: data.status || 'inactive',
-        avatarUrl: data.avatar_url || '',
+        companyId: data.company_id,
+        status: data.status || 'active',
+        avatarUrl: undefined, // Since this field doesn't exist in technicians table
+        activeJobs: 0,
       };
 
       return user;
@@ -139,13 +122,13 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       // Transform to match Company type
       const company: Company = {
         id: data.id,
-        name: data.name || '',
-        status: (data.status as 'active' | 'trial' | 'expired' | 'inactive') || 'inactive',
-        planName: data.plan_name || '',
+        name: data.name,
+        subscription_tier: data.subscription_tier || 'basic',
+        trial_status: data.trial_status || 'inactive',
+        trial_period: data.trial_period,
         trial_end_date: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
-        trialEndDate: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
-        createdAt: data.created_at ? new Date(data.created_at) : new Date(),
-        updatedAt: data.updated_at ? new Date(data.updated_at) : new Date(),
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at),
       };
 
       return company;
@@ -410,3 +393,31 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
     }
   }
 }));
+
+// The actual implementation will need to transform data from the format returned by Supabase
+// to match the expected format in the frontend
+const transformTechniciansData = (technicians: any[]): TechUser[] => {
+  return technicians.map(tech => ({
+    id: tech.id,
+    name: tech.email.split('@')[0], // Use email as fallback if no name available
+    email: tech.email,
+    role: tech.role,
+    status: tech.status || 'active',
+    companyId: tech.company_id,
+    avatarUrl: undefined, // Since this field doesn't exist in technicians table
+    activeJobs: 0,
+  }));
+};
+
+const transformCompaniesData = (companies: any[]): Company[] => {
+  return companies.map(company => ({
+    id: company.id,
+    name: company.name,
+    subscription_tier: company.subscription_tier || 'basic',
+    trial_status: company.trial_status || 'inactive',
+    trial_period: company.trial_period,
+    trial_end_date: company.trial_end_date ? new Date(company.trial_end_date) : undefined,
+    createdAt: new Date(company.created_at),
+    updatedAt: new Date(company.updated_at),
+  }));
+};

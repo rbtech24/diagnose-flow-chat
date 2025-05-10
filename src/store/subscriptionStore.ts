@@ -1,364 +1,256 @@
 
-import { create } from 'zustand';
-import { supabase } from '@/integrations/supabase/client';
-import { SubscriptionPlan, License, Payment } from '@/types/subscription';
+// Mock implementation for the subscription store
+// Replace with real implementations when connected to Supabase
 
-interface SubscriptionState {
+import { create } from "zustand";
+import { supabase } from "@/integrations/supabase/client";
+
+// Define the subscription plan type
+export type SubscriptionPlan = {
+  id: string;
+  name: string;
+  description?: string;
+  price_monthly: number;
+  price_yearly: number;
+  features: string[];
+  limits: {
+    technicians: number;
+    admins: number;
+    workflows: number;
+    storage_gb: number;
+    api_calls: number;
+    diagnostics_per_day: number;
+  };
+  is_active: boolean;
+  recommended: boolean;
+};
+
+// Define the license type
+export type License = {
+  id: string;
+  company_id: string;
+  plan_id: string;
+  status: 'active' | 'expired' | 'canceled';
+  seats: number;
+  start_date: string;
+  end_date: string;
+  auto_renew: boolean;
+  created_at: string;
+  updated_at: string;
+  payment_method?: any;
+  plan_name?: string;
+};
+
+// Define the payment type
+export type Payment = {
+  id: string;
+  license_id: string;
+  amount: number;
+  currency: string;
+  status: 'succeeded' | 'pending' | 'failed';
+  created_at: string;
+  payment_method: any;
+};
+
+// Define the store state
+interface SubscriptionStore {
   plans: SubscriptionPlan[];
   licenses: License[];
   payments: Payment[];
-  isLoading: boolean;
-  error: Error | null;
-  fetchPlans: () => Promise<void>;
-  fetchLicenses: () => Promise<void>;
-  fetchPayments: (licenseId?: string) => Promise<void>;
-  getActivePlans: () => SubscriptionPlan[];
-  addPlan: (plan: SubscriptionPlan) => Promise<void>;
-  updatePlan: (plan: SubscriptionPlan) => Promise<void>;
-  togglePlanStatus: (planId: string) => Promise<void>;
-  addLicense: (license: License) => Promise<void>;
-  deactivateLicense: (licenseId: string) => Promise<void>;
+  isLoadingPlans: boolean;
+  isLoadingLicenses: boolean;
+  isLoadingPayments: boolean;
+  error: string | null;
+  selectedLicense: License | null;
+  
+  fetchPlans: () => Promise<SubscriptionPlan[]>;
+  fetchLicenses: (companyId: string) => Promise<License[]>;
+  fetchLicenseById: (licenseId: string) => Promise<License | null>;
+  fetchPayments: (licenseId: string) => Promise<Payment[]>;
+  createLicense: (data: Partial<License>) => Promise<License | null>;
+  updateLicense: (licenseId: string, data: Partial<License>) => Promise<License | null>;
+  cancelLicense: (licenseId: string) => Promise<boolean>;
+  setSelectedLicense: (license: License | null) => void;
 }
 
-export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
+// Create the store
+export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   plans: [],
   licenses: [],
   payments: [],
-  isLoading: false,
+  isLoadingPlans: false,
+  isLoadingLicenses: false,
+  isLoadingPayments: false,
   error: null,
-
+  selectedLicense: null,
+  
+  // Fetch subscription plans
   fetchPlans: async () => {
+    set({ isLoadingPlans: true, error: null });
     try {
-      set({ isLoading: true, error: null });
-      
       const { data, error } = await supabase
         .from('subscription_plans')
         .select('*')
-        .eq('is_active', true)
-        .order('price_monthly');
+        .eq('is_active', true);
         
-      if (error) throw error;
-
-      // Transform database response to match SubscriptionPlan type
-      const plans: SubscriptionPlan[] = data.map(plan => ({
-        id: plan.id,
-        name: plan.name,
-        description: plan.description || '',
-        price: plan.price_monthly, // For backward compatibility
-        monthlyPrice: plan.price_monthly,
-        yearlyPrice: plan.price_yearly,
-        billingCycle: 'monthly', // For backward compatibility
-        maxTechnicians: plan.limits && typeof plan.limits === 'object' && 'technicians' in plan.limits ? 
-          (Number(plan.limits.technicians) || 5) : 5,
-        maxAdmins: plan.limits && typeof plan.limits === 'object' && 'admins' in plan.limits ? 
-          (Number(plan.limits.admins) || 1) : 1,
-        dailyDiagnostics: plan.limits && typeof plan.limits === 'object' && 'diagnostics_per_day' in plan.limits ? 
-          (Number(plan.limits.diagnostics_per_day) || 50) : 50,
-        storageLimit: plan.limits && typeof plan.limits === 'object' && 'storage_gb' in plan.limits ? 
-          (Number(plan.limits.storage_gb) || 5) : 5,
-        features: Array.isArray(plan.features) ? 
-          plan.features.map(feature => String(feature)) : [],
-        trialPeriod: plan.trial_period,
-        isActive: plan.is_active,
-        createdAt: new Date(plan.created_at),
-        updatedAt: new Date(plan.updated_at)
-      }));
-
-      set({ plans, isLoading: false });
-    } catch (err) {
-      console.error('Error fetching subscription plans:', err);
-      set({ error: err instanceof Error ? err : new Error('Failed to fetch subscription plans'), isLoading: false });
+      if (error) throw new Error(error.message);
+      
+      const plans = data as SubscriptionPlan[];
+      set({ plans, isLoadingPlans: false });
+      return plans;
+    } catch (error) {
+      console.error('Error fetching plans:', error);
+      set({ error: (error as Error).message, isLoadingPlans: false });
+      return [];
     }
   },
-
-  fetchLicenses: async () => {
+  
+  // Fetch licenses for a company
+  fetchLicenses: async (companyId: string) => {
+    set({ isLoadingLicenses: true, error: null });
     try {
-      set({ isLoading: true, error: null });
-      
-      // Instead of directly using 'licenses' table which might not exist,
-      // we'll query the view or custom function that returns license data
+      // Instead of using rpc, we'll use regular table select
       const { data, error } = await supabase
-        .rpc('get_licenses');
+        .from('licenses')
+        .select('*')
+        .eq('company_id', companyId);
         
-      if (error) throw error;
-
-      // Create proper License objects from the returned data
-      const licenses: License[] = Array.isArray(data) ? data.map(license => ({
-        id: license.id,
-        companyId: license.company_id,
-        companyName: license.company_name || '',
-        planId: license.plan_id,
-        planName: license.plan_name || 'Basic',
-        status: (license.status || 'active') as 'active' | 'trial' | 'expired',
-        activeTechnicians: license.active_technicians || 0,
-        startDate: license.start_date ? new Date(license.start_date) : undefined,
-        endDate: license.end_date ? new Date(license.end_date) : undefined,
-        trialEndsAt: license.trial_ends_at ? new Date(license.trial_ends_at) : undefined,
-        lastPayment: license.last_payment ? new Date(license.last_payment) : undefined,
-        nextPayment: license.next_payment ? new Date(license.next_payment) : undefined,
-        createdAt: new Date(license.created_at || Date.now()),
-        updatedAt: new Date(license.updated_at || Date.now())
-      })) : [];
-
-      set({ licenses, isLoading: false });
-    } catch (err) {
-      console.error('Error fetching licenses:', err);
-      set({ 
-        error: err instanceof Error ? err : new Error('Failed to fetch licenses'), 
-        isLoading: false,
-        // Provide mock data for development
-        licenses: [
-          {
-            id: 'license-1',
-            companyId: 'company-1',
-            companyName: 'Acme Inc',
-            planId: 'plan-1',
-            planName: 'Professional',
-            status: 'active',
-            activeTechnicians: 5,
-            startDate: new Date('2023-01-01'),
-            nextPayment: new Date('2023-12-01'),
-            createdAt: new Date('2023-01-01'),
-            updatedAt: new Date('2023-01-01')
-          }
-        ]
-      });
+      if (error) throw new Error(error.message);
+      
+      const licenses = data as License[];
+      set({ licenses, isLoadingLicenses: false });
+      return licenses;
+    } catch (error) {
+      console.error('Error fetching licenses:', error);
+      set({ error: (error as Error).message, isLoadingLicenses: false });
+      return [];
     }
   },
-
-  fetchPayments: async (licenseId?: string) => {
+  
+  // Fetch a single license by ID
+  fetchLicenseById: async (licenseId: string) => {
     try {
-      set({ isLoading: true, error: null });
-      
-      // Instead of directly using 'payments' table which might not exist,
-      // we'll query a view or custom function
-      let { data, error } = await supabase
-        .rpc('get_license_payments', { license_id: licenseId || null });
+      const { data, error } = await supabase
+        .from('licenses')
+        .select('*')
+        .eq('id', licenseId)
+        .single();
         
-      if (error) {
-        console.error('Error with RPC call:', error);
-        // Fallback - create mock data
-        data = [
-          {
-            id: 'payment-1',
-            license_id: licenseId || 'license-1',
-            company_id: 'company-1',
-            amount: 99.99,
-            currency: 'USD',
-            status: 'completed',
-            payment_method: 'credit_card',
-            payment_date: new Date().toISOString(),
-            invoice_url: 'https://example.com/invoice/123',
-            created_at: new Date().toISOString()
-          }
-        ];
-      }
-
-      const payments: Payment[] = Array.isArray(data) ? data.map(payment => ({
-        id: payment.id,
-        licenseId: payment.license_id,
-        companyId: payment.company_id,
-        amount: payment.amount,
-        currency: payment.currency || 'USD',
-        status: payment.status || 'completed',
-        paymentMethod: payment.payment_method || 'credit_card',
-        paymentDate: new Date(payment.payment_date || Date.now()),
-        invoiceUrl: payment.invoice_url,
-        createdAt: new Date(payment.created_at || Date.now())
-      })) : [];
-
-      set({ payments, isLoading: false });
-    } catch (err) {
-      console.error('Error fetching payments:', err);
-      set({ 
-        error: err instanceof Error ? err : new Error('Failed to fetch payments'), 
-        isLoading: false,
-        payments: [
-          {
-            id: 'payment-1',
-            licenseId: licenseId || 'license-1',
-            companyId: 'company-1',
-            amount: 99.99,
-            currency: 'USD',
-            status: 'completed',
-            paymentMethod: 'credit_card',
-            paymentDate: new Date(),
-            invoiceUrl: 'https://example.com/invoice/123',
-            createdAt: new Date()
-          }
-        ]
-      });
+      if (error) throw new Error(error.message);
+      
+      return data as License;
+    } catch (error) {
+      console.error('Error fetching license:', error);
+      set({ error: (error as Error).message });
+      return null;
     }
   },
-
-  getActivePlans: () => {
-    return get().plans.filter(plan => plan.isActive);
-  },
-
-  // Implementation for methods required by admin pages
-  addPlan: async (plan: SubscriptionPlan) => {
+  
+  // Fetch payments for a license
+  fetchPayments: async (licenseId: string) => {
+    set({ isLoadingPayments: true, error: null });
     try {
-      set({ isLoading: true, error: null });
-      
-      const { error } = await supabase
-        .from('subscription_plans')
-        .insert({
-          name: plan.name,
-          description: plan.description,
-          price_monthly: plan.monthlyPrice,
-          price_yearly: plan.yearlyPrice,
-          features: plan.features,
-          limits: {
-            technicians: plan.maxTechnicians,
-            admins: plan.maxAdmins,
-            diagnostics_per_day: plan.dailyDiagnostics,
-            storage_gb: plan.storageLimit
-          },
-          trial_period: plan.trialPeriod,
-          is_active: plan.isActive
-        });
+      // Instead of using rpc, we'll use regular table select
+      const { data, error } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('license_id', licenseId);
         
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       
-      // Refetch plans
-      get().fetchPlans();
-    } catch (err) {
-      console.error('Error adding subscription plan:', err);
-      set({ error: err instanceof Error ? err : new Error('Failed to add subscription plan'), isLoading: false });
+      const payments = data as Payment[];
+      set({ payments, isLoadingPayments: false });
+      return payments;
+    } catch (error) {
+      console.error('Error fetching payments:', error);
+      set({ error: (error as Error).message, isLoadingPayments: false });
+      return [];
     }
   },
-
-  updatePlan: async (plan: SubscriptionPlan) => {
+  
+  // Create a new license
+  createLicense: async (licenseData: Partial<License>) => {
     try {
-      set({ isLoading: true, error: null });
-      
-      const { error } = await supabase
-        .from('subscription_plans')
-        .update({
-          name: plan.name,
-          description: plan.description,
-          price_monthly: plan.monthlyPrice,
-          price_yearly: plan.yearlyPrice,
-          features: plan.features,
-          limits: {
-            technicians: plan.maxTechnicians,
-            admins: plan.maxAdmins,
-            diagnostics_per_day: plan.dailyDiagnostics,
-            storage_gb: plan.storageLimit
-          },
-          trial_period: plan.trialPeriod,
-          is_active: plan.isActive
-        })
-        .eq('id', plan.id);
+      // Instead of using rpc, we'll use regular table insert
+      const { data, error } = await supabase
+        .from('licenses')
+        .insert([licenseData])
+        .select()
+        .single();
         
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       
-      // Refetch plans
-      get().fetchPlans();
-    } catch (err) {
-      console.error('Error updating subscription plan:', err);
-      set({ error: err instanceof Error ? err : new Error('Failed to update subscription plan'), isLoading: false });
+      const newLicense = data as License;
+      set(state => ({
+        licenses: [...state.licenses, newLicense]
+      }));
+      
+      return newLicense;
+    } catch (error) {
+      console.error('Error creating license:', error);
+      set({ error: (error as Error).message });
+      return null;
     }
   },
-
-  togglePlanStatus: async (planId: string) => {
+  
+  // Update an existing license
+  updateLicense: async (licenseId: string, updateData: Partial<License>) => {
     try {
-      set({ isLoading: true, error: null });
-      
-      // Find plan in current state
-      const plan = get().plans.find(p => p.id === planId);
-      if (!plan) {
-        throw new Error('Plan not found');
-      }
-      
-      const { error } = await supabase
-        .from('subscription_plans')
-        .update({
-          is_active: !plan.isActive
-        })
-        .eq('id', planId);
+      const { data, error } = await supabase
+        .from('licenses')
+        .update(updateData)
+        .eq('id', licenseId)
+        .select()
+        .single();
         
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       
-      // Update local state
-      set({
-        plans: get().plans.map(p => 
-          p.id === planId ? { ...p, isActive: !p.isActive } : p
+      const updatedLicense = data as License;
+      set(state => ({
+        licenses: state.licenses.map(license => 
+          license.id === licenseId ? updatedLicense : license
         ),
-        isLoading: false
-      });
-    } catch (err) {
-      console.error('Error toggling plan status:', err);
-      set({ error: err instanceof Error ? err : new Error('Failed to toggle plan status'), isLoading: false });
+        selectedLicense: state.selectedLicense?.id === licenseId ? 
+          updatedLicense : state.selectedLicense
+      }));
+      
+      return updatedLicense;
+    } catch (error) {
+      console.error('Error updating license:', error);
+      set({ error: (error as Error).message });
+      return null;
     }
   },
-
-  addLicense: async (license: License) => {
+  
+  // Cancel a license
+  cancelLicense: async (licenseId: string) => {
     try {
-      set({ isLoading: true, error: null });
-      
+      // Instead of using rpc, we'll use regular table update
       const { error } = await supabase
-        .rpc('create_license', {
-          p_company_id: license.companyId,
-          p_company_name: license.companyName,
-          p_plan_id: license.planId,
-          p_plan_name: license.planName,
-          p_status: license.status
-        });
+        .from('licenses')
+        .update({ status: 'canceled' })
+        .eq('id', licenseId);
         
-      if (error) throw error;
-      
-      // Refetch licenses
-      get().fetchLicenses();
-      return Promise.resolve();
-    } catch (err) {
-      console.error('Error adding license:', err);
-      set({ error: err instanceof Error ? err : new Error('Failed to add license'), isLoading: false });
-      
-      // Add the license to the local state for development
-      const newLicense = {
-        ...license,
-        id: `temp-${Date.now()}`,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      if (error) throw new Error(error.message);
       
       set(state => ({
-        licenses: [...state.licenses, newLicense],
-        isLoading: false
+        licenses: state.licenses.map(license => 
+          license.id === licenseId ? { ...license, status: 'canceled' } : license
+        ),
+        selectedLicense: state.selectedLicense?.id === licenseId ? 
+          { ...state.selectedLicense, status: 'canceled' } : state.selectedLicense
       }));
+      
+      return true;
+    } catch (error) {
+      console.error('Error deactivating license:', error);
+      set({ error: (error as Error).message });
+      return false;
     }
   },
-
-  deactivateLicense: async (licenseId: string) => {
-    try {
-      set({ isLoading: true, error: null });
-      
-      const { error } = await supabase
-        .rpc('deactivate_license', {
-          license_id: licenseId
-        });
-        
-      if (error) throw error;
-      
-      // Update local state
-      set({
-        licenses: get().licenses.map(l => 
-          l.id === licenseId ? { ...l, status: 'canceled', endDate: new Date() } : l
-        ),
-        isLoading: false
-      });
-    } catch (err) {
-      console.error('Error deactivating license:', err);
-      set({ error: err instanceof Error ? err : new Error('Failed to deactivate license'), isLoading: false });
-      
-      // Update the local state for development
-      set({
-        licenses: get().licenses.map(l => 
-          l.id === licenseId ? { ...l, status: 'canceled', endDate: new Date() } : l
-        ),
-        isLoading: false
-      });
-    }
-  }
+  
+  // Set the selected license
+  setSelectedLicense: (license: License | null) => {
+    set({ selectedLicense: license });
+  },
 }));

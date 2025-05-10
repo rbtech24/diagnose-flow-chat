@@ -313,14 +313,15 @@ export const voteForFeature = async (requestId: string): Promise<boolean> => {
     }
 
     // Update vote count on the feature request
-    const { error: updateError } = await supabase
-      .from('feature_requests')
-      .update({ votes_count: supabase.rpc('increment', { row_id: requestId, table_name: 'feature_requests', field_name: 'votes_count' }) })
-      .eq('id', requestId);
+    // This needs to be fixed - we need to use the RPC function to increment the count
+    const { error: countError } = await supabase.rpc('increment', {
+      row_id: requestId,
+      table_name: 'feature_requests',
+      field_name: 'votes_count'
+    });
 
-    if (updateError) {
-      console.error('Error updating vote count:', updateError);
-      return false;
+    if (countError) {
+      console.error('Error updating vote count:', countError);
     }
 
     return true;
@@ -355,13 +356,14 @@ export const addFeatureComment = async (commentData: { feature_id: string; conte
     }
 
     // Update comments count on the feature request
-    const { error: updateError } = await supabase
-      .from('feature_requests')
-      .update({ comments_count: supabase.rpc('increment', { row_id: commentData.feature_id, table_name: 'feature_requests', field_name: 'comments_count' }) })
-      .eq('id', commentData.feature_id);
+    const { error: countError } = await supabase.rpc('increment', {
+      row_id: commentData.feature_id,
+      table_name: 'feature_requests',
+      field_name: 'comments_count'
+    });
 
-    if (updateError) {
-      console.error('Error updating comments count:', updateError);
+    if (countError) {
+      console.error('Error updating comments count:', countError);
     }
 
     // Get user information

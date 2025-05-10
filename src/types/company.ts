@@ -2,10 +2,10 @@
 export type Company = {
   id: string;
   name: string;
-  status: 'trial' | 'active' | 'expired' | 'inactive';
-  planName: string;
+  subscription_tier: string;
+  trial_status?: 'trial' | 'active' | 'expired' | 'inactive';
   trial_end_date?: Date;
-  trialEndDate?: Date; // For compatibility with older code
+  trial_period?: number;
   createdAt: Date;
   updatedAt: Date;
 }

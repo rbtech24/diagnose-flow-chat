@@ -29,8 +29,8 @@ export default function AdminCompanies() {
   // Filter companies based on search query
   const filteredCompanies = companies.filter(company => 
     company.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    company.contactName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    company.status.toLowerCase().includes(searchQuery.toLowerCase())
+    company.subscription_tier?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    company.trial_status?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleAddCompany = (e: React.MouseEvent) => {
@@ -126,9 +126,6 @@ export default function AdminCompanies() {
               <div key={company.id} className="flex flex-col md:flex-row justify-between items-start md:items-center p-6 bg-white rounded-lg border">
                 <div className="flex items-center gap-4 mb-4 md:mb-0">
                   <Avatar className="h-12 w-12">
-                    {company.logoUrl ? (
-                      <AvatarImage src={company.logoUrl} alt={company.name} />
-                    ) : null}
                     <AvatarFallback className="bg-primary/10">
                       {getCompanyInitials(company.name)}
                     </AvatarFallback>
@@ -136,8 +133,8 @@ export default function AdminCompanies() {
                   <div>
                     <div className="flex items-center gap-2">
                       <h2 className="text-lg font-semibold">{company.name}</h2>
-                      <Badge className={`${getStatusBadgeStyle(company.status)}`}>
-                        {company.status}
+                      <Badge className={`${getStatusBadgeStyle(company.trial_status || 'inactive')}`}>
+                        {company.trial_status || 'inactive'}
                       </Badge>
                     </div>
                     <div className="flex flex-wrap gap-4 mt-1 text-sm text-muted-foreground">
@@ -145,9 +142,9 @@ export default function AdminCompanies() {
                         <Building2 className="h-4 w-4" />
                         {techCount} technicians
                       </div>
-                      {company.planName && (
+                      {company.subscription_tier && (
                         <div className="flex items-center gap-1">
-                          Plan: {company.planName}
+                          Plan: {company.subscription_tier}
                         </div>
                       )}
                     </div>

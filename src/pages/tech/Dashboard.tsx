@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,12 +72,7 @@ export default function TechnicianDashboard() {
         logEvent('user', 'Dashboard viewed');
         
         // Fetch active repairs (appointments)
-        const { data: appointmentsData, error: appointmentsError } = await supabase
-          .from('repairs')
-          .select('id, scheduled_at, status, diagnosis, customer_id, customers(first_name, last_name, service_addresses)')
-          .eq('technician_id', currentUser.id)
-          .in('status', ['scheduled', 'in_progress'])
-          .order('scheduled_at', { ascending: true });
+        const { data: appointmentsData, error: appointmentsError } = await fetchActiveRepairs(currentUser.id);
         
         if (appointmentsError) {
           console.error('Error loading appointments:', appointmentsError);
@@ -90,8 +84,8 @@ export default function TechnicianDashboard() {
             time: new Date(item.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             isCurrent: item.status === 'in_progress',
             title: item.diagnosis || 'Repair Visit',
-            customer: item.customers ? `${item.customers.first_name} ${item.customers.last_name}` : 'Customer',
-            address: item.customers?.service_addresses?.[0]?.address || 'No address provided'
+            customer: item.customer_id ? (await fetchCustomer(item.customer_id)).data : 'Customer',
+            address: item.customer_id ? (await fetchCustomer(item.customer_id)).data?.service_addresses?.[0]?.address || 'No address provided' : 'No address provided'
           })) || [];
           
           setAppointments(formattedAppointments);
@@ -171,6 +165,35 @@ export default function TechnicianDashboard() {
 
     fetchData();
   }, [currentUser, fetchUsers, logEvent]);
+
+  // Helper function to fetch active repairs
+  const fetchActiveRepairs = async (techId: string) => {
+    try {
+      return await supabase
+        .from('repairs')
+        .select('id, scheduled_at, status, diagnosis, customer_id')
+        .eq('technician_id', techId)
+        .in('status', ['scheduled', 'in_progress'])
+        .order('scheduled_at', { ascending: true });
+    } catch (error) {
+      console.error('Error fetching active repairs:', error);
+      return { data: null, error };
+    }
+  };
+
+  // Helper function to fetch customer
+  const fetchCustomer = async (customerId: string) => {
+    try {
+      return await supabase
+        .from('customers')
+        .select('first_name, last_name, service_addresses')
+        .eq('id', customerId)
+        .single();
+    } catch (error) {
+      console.error('Error fetching customer:', error);
+      return { data: null, error };
+    }
+  };
 
   // Handle adding a new appointment
   const handleAddAppointment = async () => {
