@@ -1,6 +1,4 @@
 
-import { User } from "./user";
-
 export type CommunityPostType = 'question' | 'tech-sheet-request' | 'wire-diagram-request' | 'discussion';
 
 export interface CommunityPost {

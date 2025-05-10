@@ -70,6 +70,7 @@ export default function CompanyCommunity() {
       updatedAt: new Date(),
       upvotes: 0,
       views: 0,
+      isSolved: false,
       tags: post.tags,
       comments: []
     };

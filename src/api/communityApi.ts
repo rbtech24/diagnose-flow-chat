@@ -15,7 +15,7 @@ const formatUserData = (userData: any) => {
   };
 };
 
-// Function to convert database attachments to Attachment type
+// Function to create empty attachments array if none exist
 const formatAttachments = (attachmentsData: any): Attachment[] => {
   if (!attachmentsData || !Array.isArray(attachmentsData)) return [];
   
@@ -72,8 +72,7 @@ export const fetchCommunityPosts = async (): Promise<CommunityPost[]> => {
         content: comment.content,
         authorId: comment.author_id,
         author: formatUserData(commentAuthorData),
-        // Default to empty array if attachments don't exist
-        attachments: formatAttachments(comment.attachments),
+        attachments: comment.attachments ? formatAttachments(comment.attachments) : [],
         createdAt: new Date(comment.created_at),
         updatedAt: new Date(comment.updated_at),
         upvotes: comment.upvotes || 0,
@@ -88,8 +87,7 @@ export const fetchCommunityPosts = async (): Promise<CommunityPost[]> => {
       type: post.type as CommunityPostType,
       authorId: post.author_id,
       author: formatUserData(authorData),
-      // Default to empty array if attachments don't exist
-      attachments: formatAttachments(post.attachments),
+      attachments: [],  // Default empty array as the field doesn't exist in the table
       createdAt: new Date(post.created_at),
       updatedAt: new Date(post.updated_at),
       upvotes: post.upvotes || 0,
@@ -156,8 +154,7 @@ export const fetchCommunityPostById = async (id: string): Promise<CommunityPost>
       content: comment.content,
       authorId: comment.author_id,
       author: formatUserData(commentAuthorData),
-      // Default to empty array if attachments don't exist
-      attachments: formatAttachments(comment.attachments),
+      attachments: comment.attachments ? formatAttachments(comment.attachments) : [],
       createdAt: new Date(comment.created_at),
       updatedAt: new Date(comment.updated_at),
       upvotes: comment.upvotes || 0,
@@ -172,8 +169,7 @@ export const fetchCommunityPostById = async (id: string): Promise<CommunityPost>
     type: data.type as CommunityPostType,
     authorId: data.author_id,
     author: formatUserData(authorData),
-    // Default to empty array if attachments don't exist
-    attachments: formatAttachments(data.attachments),
+    attachments: [], // Default empty array as the field doesn't exist in the table
     createdAt: new Date(data.created_at),
     updatedAt: new Date(data.updated_at),
     upvotes: data.upvotes || 0,
@@ -203,7 +199,8 @@ export const createCommunityPost = async (post: {
       content: post.content,
       type: post.type,
       author_id: userData.user.id,
-      tags: post.tags
+      tags: post.tags,
+      is_solved: false
     })
     .select();
     

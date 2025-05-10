@@ -36,7 +36,8 @@ export default function AdminCommunityPostDetail() {
         attachments: [],
         createdAt: new Date(),
         updatedAt: new Date(),
-        upvotes: 0
+        upvotes: 0,
+        isAnswer: false
       };
       
       setPost({

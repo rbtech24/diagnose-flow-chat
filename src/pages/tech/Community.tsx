@@ -34,7 +34,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { fetchCommunityPosts, CommunityPost } from "@/api/communityApi";
+import { fetchCommunityPosts } from "@/api/communityApi";
+import { CommunityPost } from "@/types/community";
 
 export default function TechCommunity() {
   const navigate = useNavigate();

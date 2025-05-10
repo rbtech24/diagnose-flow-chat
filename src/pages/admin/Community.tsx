@@ -57,11 +57,12 @@ export default function AdminCommunity() {
             role: post.author?.role || 'user',
             avatarUrl: post.author?.avatar_url || ''
           },
-          attachments: post.attachments || [],
+          attachments: [],
           createdAt: new Date(post.created_at),
           updatedAt: new Date(post.updated_at),
           upvotes: post.upvotes || 0,
           views: post.views || 0,
+          isSolved: post.is_solved || false,
           tags: post.tags || [],
           comments: post.comments || []
         }));
@@ -93,6 +94,7 @@ export default function AdminCommunity() {
             type: 'question' as CommunityPostType,
             tags: ['refrigerator', 'cooling', 'troubleshooting'],
             author_id: 'admin-1', // Using a placeholder ID
+            is_solved: false
           },
           {
             title: 'Request: Whirlpool WF-350 Washer Tech Sheet',
@@ -100,6 +102,7 @@ export default function AdminCommunity() {
             type: 'tech-sheet-request' as CommunityPostType,
             tags: ['whirlpool', 'washer', 'documentation'],
             author_id: 'admin-1',
+            is_solved: false
           },
           {
             title: 'Wire diagram needed for GE Profile oven',
@@ -107,6 +110,7 @@ export default function AdminCommunity() {
             type: 'wire-diagram-request' as CommunityPostType,
             tags: ['GE', 'oven', 'wiring'],
             author_id: 'admin-1',
+            is_solved: false
           }
         ];
 
@@ -148,13 +152,14 @@ export default function AdminCommunity() {
               role: 'admin',
               avatarUrl: ''
             },
-            attachments: post.attachments || [],
+            attachments: [],
             createdAt: new Date(post.created_at),
             updatedAt: new Date(post.updated_at),
             upvotes: post.upvotes || 0,
             views: post.views || 0,
+            isSolved: post.is_solved || false,
             tags: post.tags || [],
-            comments: post.comments || []
+            comments: []
           }));
 
           setPosts(formattedPosts);
@@ -214,7 +219,7 @@ export default function AdminCommunity() {
           updated_at: new Date().toISOString(),
           upvotes: 0,
           views: 0,
-          comments: []
+          is_solved: false
         })
         .select();
 
@@ -236,11 +241,12 @@ export default function AdminCommunity() {
             role: 'admin',
             avatarUrl: ''
           },
-          attachments: [], // In a real app, you would upload these files
+          attachments: [],
           createdAt: new Date(),
           updatedAt: new Date(),
           upvotes: 0,
           views: 0,
+          isSolved: false,
           tags: post.tags,
           comments: []
         };

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -14,10 +13,9 @@ import {
   addCommentToPost,
   markCommentAsAnswer,
   upvotePost,
-  upvoteComment,
-  CommunityPost,
-  CommunityComment
+  upvoteComment
 } from "@/api/communityApi";
+import { CommunityPost, CommunityComment } from "@/types/community";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function CommunityPostDetail() {

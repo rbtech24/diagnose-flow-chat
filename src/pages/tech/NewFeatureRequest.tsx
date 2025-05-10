@@ -43,8 +43,8 @@ export default function NewFeatureRequest() {
           priority: values.priority as FeatureRequestPriority || "medium",
           user_id: userData.user.id,
           created_by_user: userDetails ? {
-            name: userDetails.full_name || userDetails.name || "Unknown User",
-            email: userDetails.email || "",
+            name: userDetails.full_name || "Unknown User",
+            email: userDetails.phone_number || "", // Fallback as email doesn't exist in profile
             avatar_url: userDetails.avatar_url,
             role: userDetails.role || "tech"
           } : null

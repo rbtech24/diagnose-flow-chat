@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -108,7 +109,7 @@ export default function TechFeatureRequestDetailPage() {
       });
       
       // Ensure proper user info is included with the comment
-      if (newComment && !newComment.user) {
+      if (newComment && !newComment.created_by_user) {
         const { data: userData } = await supabase.auth.getUser();
         if (userData?.user?.id) {
           const { data: profileData } = await supabase
@@ -118,9 +119,9 @@ export default function TechFeatureRequestDetailPage() {
             .single();
             
           if (profileData) {
-            newComment.user = {
-              id: userData.user.id,
+            newComment.created_by_user = {
               name: profileData.full_name || 'Unknown User',
+              email: profileData.email || '',  // Using phone_number as fallback if needed
               avatar_url: profileData.avatar_url,
               role: profileData.role || 'tech'
             };
