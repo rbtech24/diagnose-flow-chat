@@ -8,4 +8,5 @@ export type Company = {
   trial_period?: number;
   createdAt: Date;
   updatedAt: Date;
+  status?: string; // Added missing property
 }

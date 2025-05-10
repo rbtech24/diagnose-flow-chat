@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -78,15 +79,41 @@ export default function TechnicianDashboard() {
           console.error('Error loading appointments:', appointmentsError);
           toast.error("Failed to load appointments");
         } else {
-          // Transform the data to match our component structure
-          const formattedAppointments = appointmentsData?.map(item => ({
-            id: item.id,
-            time: new Date(item.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            isCurrent: item.status === 'in_progress',
-            title: item.diagnosis || 'Repair Visit',
-            customer: item.customer_id ? (await fetchCustomer(item.customer_id)).data : 'Customer',
-            address: item.customer_id ? (await fetchCustomer(item.customer_id)).data?.service_addresses?.[0]?.address || 'No address provided' : 'No address provided'
-          })) || [];
+          // Process each appointment and fetch customer data
+          const formattedAppointments = [];
+          
+          if (appointmentsData && appointmentsData.length > 0) {
+            // First, create basic appointments with placeholder customer data
+            const basicAppointments = appointmentsData.map(item => ({
+              id: item.id,
+              time: new Date(item.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              isCurrent: item.status === 'in_progress',
+              title: item.diagnosis || 'Repair Visit',
+              customer: 'Customer',
+              address: 'No address provided',
+              customer_id: item.customer_id // Keep this temporarily to fetch customer data
+            }));
+            
+            // Now fetch customer data for each appointment
+            for (const appointment of basicAppointments) {
+              if (appointment.customer_id) {
+                const customerResponse = await fetchCustomer(appointment.customer_id);
+                if (customerResponse.data) {
+                  appointment.customer = `${customerResponse.data.first_name || ''} ${customerResponse.data.last_name || ''}`.trim();
+                  
+                  if (customerResponse.data.service_addresses && 
+                      customerResponse.data.service_addresses.length > 0 && 
+                      customerResponse.data.service_addresses[0].address) {
+                    appointment.address = customerResponse.data.service_addresses[0].address;
+                  }
+                }
+              }
+              
+              // Remove the temporary field
+              delete appointment.customer_id;
+              formattedAppointments.push(appointment);
+            }
+          }
           
           setAppointments(formattedAppointments);
         }

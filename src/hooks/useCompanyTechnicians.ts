@@ -1,8 +1,21 @@
 
-// Fix the deep type instantiation issue by modifying the query structure
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { TechnicianWithUserInfo } from '@/types/technician';
+
+interface CompanyMetrics {
+  responseTime: string;
+  teamPerformance: number;
+  activeJobs: number;
+}
+
+interface UseCompanyTechniciansReturn {
+  technicians: TechnicianWithUserInfo[];
+  isLoading: boolean;
+  error: Error | null;
+  deleteTechnician: (id: string) => Promise<boolean>;
+  metrics: CompanyMetrics;
+}
 
 interface UseCompanyTechniciansProps {
   companyId?: string;
@@ -12,10 +25,15 @@ interface UseCompanyTechniciansProps {
 export function useCompanyTechnicians({ 
   companyId, 
   includeAdmins = false 
-}: UseCompanyTechniciansProps) {
+}: UseCompanyTechniciansProps = {}): UseCompanyTechniciansReturn {
   const [technicians, setTechnicians] = useState<TechnicianWithUserInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [metrics, setMetrics] = useState<CompanyMetrics>({
+    responseTime: 'N/A',
+    teamPerformance: 0,
+    activeJobs: 0
+  });
 
   useEffect(() => {
     if (!companyId) {
@@ -51,10 +69,11 @@ export function useCompanyTechnicians({
           return;
         }
 
-        // Step 2: Fetch user data for these technicians
+        // Step 2: Fetch user data for these technicians from profiles or another table
+        // This is a placeholder - replace with actual table that stores user profiles
         const techIds = techData.map(tech => tech.id);
         const { data: userData, error: userError } = await supabase
-          .from('users')
+          .from('users')  // Replace with your actual user profiles table
           .select('id, name, avatar_url')
           .in('id', techIds);
 
@@ -85,6 +104,9 @@ export function useCompanyTechnicians({
         });
 
         setTechnicians(mergedData);
+        
+        // Fetch company metrics
+        await fetchMetrics(companyId);
       } catch (err) {
         console.error('Error in useCompanyTechnicians:', err);
         setError(err instanceof Error ? err : new Error('Unknown error occurred'));
@@ -96,5 +118,76 @@ export function useCompanyTechnicians({
     fetchTechnicians();
   }, [companyId, includeAdmins]);
 
-  return { technicians, isLoading, error };
+  const fetchMetrics = async (companyId: string) => {
+    try {
+      // Get active jobs
+      const { count: activeJobs } = await supabase
+        .from('repairs')
+        .select('*', { count: 'exact', head: true })
+        .eq('company_id', companyId)
+        .in('status', ['scheduled', 'in_progress']);
+
+      // Get technician performance
+      const { data: performanceMetrics } = await supabase
+        .from('technician_performance_metrics')
+        .select('*')
+        .eq('technician_id', companyId);
+
+      // Calculate metrics
+      let avgResponseTime = 'N/A';
+      let teamPerformance = 0;
+
+      if (performanceMetrics && performanceMetrics.length > 0) {
+        // Calculate average response time
+        const totalResponseTime = performanceMetrics.reduce((sum, metric) => {
+          const time = metric.average_service_time ? Number(metric.average_service_time) : 0;
+          return sum + time;
+        }, 0);
+        
+        const avgHours = Math.floor(totalResponseTime / performanceMetrics.length / 3600);
+        avgResponseTime = `${avgHours}hrs`;
+
+        // Calculate team performance
+        const totalPerformance = performanceMetrics.reduce((sum, metric) => {
+          return sum + (metric.efficiency_score || 0);
+        }, 0);
+        
+        teamPerformance = Math.round(totalPerformance / performanceMetrics.length);
+      }
+
+      setMetrics({
+        responseTime: avgResponseTime,
+        teamPerformance,
+        activeJobs: activeJobs || 0
+      });
+    } catch (error) {
+      console.error('Error fetching company metrics:', error);
+    }
+  };
+
+  const deleteTechnician = async (id: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('technicians')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      setTechnicians(technicians.filter(tech => tech.id !== id));
+      toast.success('Technician removed successfully');
+      return true;
+    } catch (err) {
+      console.error('Error deleting technician:', err);
+      toast.error('Failed to delete technician');
+      return false;
+    }
+  };
+
+  return { technicians, isLoading, error, deleteTechnician, metrics };
 }
+
+// Add import for toast
+import { toast } from 'sonner';
