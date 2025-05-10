@@ -119,7 +119,7 @@ export default function TechnicianDashboard() {
             activeJobs: activeCount || 0,
             completedJobs: completedCount || 0,
             averageResponseTime: perfMetrics?.average_service_time ? 
-              `${Math.round(perfMetrics.average_service_time / 3600)} hrs` : 
+              `${Math.floor(perfMetrics.average_service_time / 3600)}hrs` : 
               "N/A",
             firstTimeFixRate: perfMetrics?.efficiency_score ? 
               `${perfMetrics.efficiency_score}%` : 
