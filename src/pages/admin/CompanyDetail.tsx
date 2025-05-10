@@ -242,7 +242,7 @@ export default function CompanyDetail() {
             <Checkbox
               id="active"
               checked={updatedData.status === 'active'}
-              onCheckedChange={handleCheckboxChange}
+              onCheckedChange={(checked) => handleCheckboxChange(checked === true)}
               disabled={!isEditing}
             />
           </div>
