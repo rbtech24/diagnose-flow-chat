@@ -25,16 +25,16 @@ export function SubscriptionPlanCard({
   isCurrentPlan = false,
   isAdmin = false
 }: SubscriptionPlanCardProps) {
-  const price = billingCycle === "monthly" ? plan.monthlyPrice : plan.yearlyPrice;
-  const savings = plan.monthlyPrice * 12 - plan.yearlyPrice;
+  const price = billingCycle === "monthly" ? plan.price_monthly : plan.price_yearly;
+  const savings = plan.price_monthly * 12 - plan.price_yearly;
 
   return (
-    <Card className={`border ${isCurrentPlan ? 'border-blue-400 ring-2 ring-blue-200' : ''} ${!plan.isActive && isAdmin ? 'opacity-70' : ''}`}>
+    <Card className={`border ${isCurrentPlan ? 'border-blue-400 ring-2 ring-blue-200' : ''} ${!plan.is_active && isAdmin ? 'opacity-70' : ''}`}>
       <CardHeader>
         {isAdmin && (
           <div className="flex justify-between items-center mb-2">
             <Switch
-              checked={plan.isActive}
+              checked={plan.is_active}
               onCheckedChange={onToggleStatus}
             />
             <Button variant="ghost" size="icon" onClick={onEdit}>
@@ -67,12 +67,12 @@ export function SubscriptionPlanCard({
           <p className="text-sm font-medium">Includes:</p>
           <div className="space-y-1">
             <div className="flex items-start">
-              <Badge className="mr-2">Up to {plan.maxTechnicians} techs</Badge>
-              <Badge>Up to {plan.maxAdmins} admins</Badge>
+              <Badge className="mr-2">Up to {plan.limits.technicians} techs</Badge>
+              <Badge>Up to {plan.limits.admins} admins</Badge>
             </div>
             <div className="flex items-start">
-              <Badge className="mr-2">{plan.dailyDiagnostics} diagnostics/day</Badge>
-              <Badge>{plan.storageLimit} GB storage</Badge>
+              <Badge className="mr-2">{plan.limits.diagnostics_per_day} diagnostics/day</Badge>
+              <Badge>{plan.limits.storage_gb} GB storage</Badge>
             </div>
           </div>
         </div>
@@ -80,7 +80,7 @@ export function SubscriptionPlanCard({
         <div className="space-y-2">
           <p className="text-sm font-medium">Features:</p>
           <ul className="space-y-1">
-            {plan.features.map((feature, index) => (
+            {Array.isArray(plan.features) && plan.features.map((feature, index) => (
               <li key={index} className="flex items-center text-sm">
                 <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
                 <span>{feature}</span>
@@ -92,7 +92,7 @@ export function SubscriptionPlanCard({
       <CardFooter>
         {isAdmin ? (
           <div className="w-full text-sm text-gray-500">
-            {plan.trialPeriod}-day trial period
+            {plan.trial_period}-day trial period
           </div>
         ) : (
           <Button

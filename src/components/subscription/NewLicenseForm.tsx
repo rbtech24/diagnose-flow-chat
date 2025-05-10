@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { License } from "@/types/subscription";
+import { License, SubscriptionPlan } from "@/types/subscription";
 import { useSubscriptionStore } from "@/store/subscriptionStore";
 
 interface NewLicenseFormProps {
@@ -16,22 +16,23 @@ export function NewLicenseForm({
   onSubmit,
   onCancel
 }: NewLicenseFormProps) {
-  const { getActivePlans } = useSubscriptionStore();
-  const activePlans = getActivePlans();
+  // Use the getActivePlans function from our store
+  const { plans } = useSubscriptionStore();
+  const activePlans = plans.filter(plan => plan.is_active);
   
   const [companyName, setCompanyName] = useState("");
   const [companyId, setCompanyId] = useState("");
   const [planId, setPlanId] = useState("");
   const [activeTechnicians, setActiveTechnicians] = useState("1");
   const [trialPeriod, setTrialPeriod] = useState(
-    planId ? activePlans.find(p => p.id === planId)?.trialPeriod.toString() || "14" : "14"
+    planId ? activePlans.find(p => p.id === planId)?.trial_period?.toString() || "14" : "14"
   );
 
   const handlePlanChange = (value: string) => {
     setPlanId(value);
     const plan = activePlans.find(p => p.id === value);
     if (plan) {
-      setTrialPeriod(plan.trialPeriod.toString());
+      setTrialPeriod(plan.trial_period.toString());
     }
   };
 
@@ -45,10 +46,10 @@ export function NewLicenseForm({
     
     const newLicense: License = {
       id: `license-${Date.now()}`,
-      companyId: companyId || `company-${Date.now()}`,
-      companyName,
-      planId,
-      planName: selectedPlan.name,
+      company_id: companyId || `company-${Date.now()}`,
+      company_name: companyName,
+      plan_id: planId,
+      plan_name: selectedPlan.name,
       status: 'trial',
       activeTechnicians: parseInt(activeTechnicians),
       startDate: new Date(),
@@ -93,7 +94,7 @@ export function NewLicenseForm({
             {activePlans.length > 0 ? (
               activePlans.map(plan => (
                 <SelectItem key={plan.id} value={plan.id}>
-                  {plan.name} (${plan.monthlyPrice}/month)
+                  {plan.name} (${plan.price_monthly}/month)
                 </SelectItem>
               ))
             ) : (

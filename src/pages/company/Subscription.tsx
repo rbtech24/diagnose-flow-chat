@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,26 +7,32 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { SubscriptionPlan, BillingCycle, License } from "@/types/subscription";
+import { BillingCycle, License } from "@/types/subscription";
 import { SubscriptionPlanCard } from "@/components/subscription/SubscriptionPlanCard";
 import { PaymentForm } from "@/components/subscription/PaymentForm";
 import { AlertCircle, Clock, Users, Calendar, CreditCard } from "lucide-react";
 import { useSubscriptionStore } from "@/store/subscriptionStore";
 
 export default function CompanySubscription() {
-  const { getActivePlans, licenses } = useSubscriptionStore();
-  const activePlans = getActivePlans();
+  const { plans, licenses } = useSubscriptionStore();
+  const activePlans = plans.filter(plan => plan.is_active);
   
-  // For demo purposes, use the first license with companyId "company-2"
-  const [currentLicense] = useState<License | undefined>(
-    licenses.find(license => license.companyId === "company-2")
-  );
+  // For demo purposes, use the first license with company_id "company-2"
+  const [currentLicense, setCurrentLicense] = useState<License | undefined>(undefined);
   
-  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+  // Load the license when component mounts
+  useEffect(() => {
+    const companyLicense = licenses.find(license => license.company_id === "company-2");
+    if (companyLicense) {
+      setCurrentLicense(companyLicense);
+    }
+  }, [licenses]);
+
+  const [selectedPlan, setSelectedPlan] = useState(activePlans.length > 0 ? activePlans[0] : null);
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 
-  const handlePlanSelect = (plan: SubscriptionPlan) => {
+  const handlePlanSelect = (plan) => {
     setSelectedPlan(plan);
     setIsPaymentDialogOpen(true);
   };
@@ -93,7 +99,7 @@ export default function CompanySubscription() {
                     plan={plan}
                     onSelect={() => handlePlanSelect(plan)}
                     billingCycle="monthly"
-                    isCurrentPlan={currentLicense?.planId === plan.id}
+                    isCurrentPlan={currentLicense?.plan_id === plan.id}
                   />
                 ))}
               </TabsContent>
@@ -105,7 +111,7 @@ export default function CompanySubscription() {
                     plan={plan}
                     onSelect={() => handlePlanSelect(plan)}
                     billingCycle="yearly"
-                    isCurrentPlan={currentLicense?.planId === plan.id}
+                    isCurrentPlan={currentLicense?.plan_id === plan.id}
                   />
                 ))}
               </TabsContent>
@@ -123,7 +129,7 @@ export default function CompanySubscription() {
               {currentLicense ? (
                 <>
                   <div className="flex justify-between items-center">
-                    <span className="text-lg font-medium">{currentLicense.planName}</span>
+                    <span className="text-lg font-medium">{currentLicense.plan_name}</span>
                     <Badge className={
                       currentLicense.status === 'active' ? 'bg-green-100 text-green-800' :
                       currentLicense.status === 'trial' ? 'bg-blue-100 text-blue-800' : 
@@ -159,7 +165,7 @@ export default function CompanySubscription() {
                 <div className="text-center py-8">
                   <p className="text-gray-500">No active subscription</p>
                   {activePlans.length > 0 && (
-                    <Button className="mt-4" onClick={() => setSelectedPlan(activePlans[0])}>
+                    <Button className="mt-4" onClick={() => selectedPlan && handlePlanSelect(selectedPlan)}>
                       Select a Plan
                     </Button>
                   )}
@@ -168,9 +174,10 @@ export default function CompanySubscription() {
             </CardContent>
             {currentLicense && activePlans.length > 0 && (
               <CardFooter>
-                <Button className="w-full" onClick={() => setSelectedPlan(
-                  activePlans.find(p => p.id === currentLicense.planId) || activePlans[0]
-                )}>
+                <Button className="w-full" onClick={() => {
+                  const currentPlan = activePlans.find(p => p.id === currentLicense.plan_id);
+                  handlePlanSelect(currentPlan || activePlans[0]);
+                }}>
                   {currentLicense.status === 'active' ? 'Change Plan' : 'Subscribe Now'}
                 </Button>
               </CardFooter>

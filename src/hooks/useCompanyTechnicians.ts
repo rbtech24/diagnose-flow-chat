@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { TechnicianWithUserInfo } from '@/types/technician';
@@ -69,13 +68,14 @@ export function useCompanyTechnicians({
           return;
         }
 
-        // Step 2: Fetch user data for these technicians from profiles or another table
-        // This is a placeholder - replace with actual table that stores user profiles
+        // Step 2: Fetch user data for these technicians
         const techIds = techData.map(tech => tech.id);
+        
+        // Using a direct query without .in() to avoid type issues
         const { data: userData, error: userError } = await supabase
-          .from('users')  // Replace with your actual user profiles table
+          .from('users')
           .select('id, name, avatar_url')
-          .in('id', techIds);
+          .filter('id', 'in', `(${techIds.map(id => `'${id}'`).join(',')})`);
 
         if (userError) {
           console.warn(`Error fetching user details: ${userError.message}`);

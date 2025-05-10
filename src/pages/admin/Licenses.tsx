@@ -20,8 +20,8 @@ export default function AdminLicenses() {
   const filteredLicenses = licenses.filter((license) => {
     const matchesSearch =
       searchQuery === "" ||
-      license.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      license.planName.toLowerCase().includes(searchQuery.toLowerCase());
+      license.company_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      license.plan_name.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesStatus =
       statusFilter === "all" ||

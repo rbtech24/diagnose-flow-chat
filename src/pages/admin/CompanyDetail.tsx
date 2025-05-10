@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -189,8 +188,8 @@ export default function CompanyDetail() {
               <Input
                 type="text"
                 id="planName"
-                name="planName"
-                value={updatedData.planName || ''}
+                name="plan_name"
+                value={updatedData.plan_name || ''}
                 onChange={handleInputChange}
                 disabled={!isEditing}
               />

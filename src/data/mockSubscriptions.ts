@@ -6,22 +6,24 @@ export const mockSubscriptionPlans: SubscriptionPlan[] = [
     id: "plan-basic",
     name: "Basic",
     description: "Perfect for individual technicians or small repair shops",
-    price: 29.99, // For backwards compatibility
-    monthlyPrice: 29.99,
-    yearlyPrice: 299.99,
-    billingCycle: "monthly", // For backwards compatibility
-    maxTechnicians: 3,
-    maxAdmins: 1,
-    dailyDiagnostics: 50,
-    storageLimit: 5,
+    price_monthly: 29.99,
+    price_yearly: 299.99,
+    limits: {
+      technicians: 3,
+      admins: 1, 
+      workflows: 10,
+      storage_gb: 5,
+      api_calls: 1000,
+      diagnostics_per_day: 50
+    },
     features: [
       "Diagnostic workflows",
       "Basic reporting",
       "Email support",
       "Mobile access"
     ],
-    trialPeriod: 30,
-    isActive: true,
+    trial_period: 30,
+    is_active: true,
     createdAt: new Date(),
     updatedAt: new Date()
   },
@@ -29,14 +31,16 @@ export const mockSubscriptionPlans: SubscriptionPlan[] = [
     id: "plan-professional",
     name: "Professional",
     description: "Ideal for growing repair businesses with multiple technicians",
-    price: 79.99, // For backwards compatibility
-    monthlyPrice: 79.99,
-    yearlyPrice: 799.99,
-    billingCycle: "monthly", // For backwards compatibility
-    maxTechnicians: 10,
-    maxAdmins: 3,
-    dailyDiagnostics: 200,
-    storageLimit: 20,
+    price_monthly: 79.99,
+    price_yearly: 799.99,
+    limits: {
+      technicians: 10,
+      admins: 3,
+      workflows: 50,
+      storage_gb: 20,
+      api_calls: 5000,
+      diagnostics_per_day: 200
+    },
     features: [
       "All Basic features",
       "Custom workflows",
@@ -45,8 +49,8 @@ export const mockSubscriptionPlans: SubscriptionPlan[] = [
       "Team collaboration tools",
       "Customer management"
     ],
-    trialPeriod: 30,
-    isActive: true,
+    trial_period: 30,
+    is_active: true,
     createdAt: new Date(),
     updatedAt: new Date()
   },
@@ -54,14 +58,16 @@ export const mockSubscriptionPlans: SubscriptionPlan[] = [
     id: "plan-enterprise",
     name: "Enterprise",
     description: "Complete solution for large repair companies and franchises",
-    price: 199.99, // For backwards compatibility
-    monthlyPrice: 199.99,
-    yearlyPrice: 1999.99,
-    billingCycle: "monthly", // For backwards compatibility
-    maxTechnicians: 50,
-    maxAdmins: 10,
-    dailyDiagnostics: 1000,
-    storageLimit: 100,
+    price_monthly: 199.99,
+    price_yearly: 1999.99,
+    limits: {
+      technicians: 50,
+      admins: 10,
+      workflows: 500,
+      storage_gb: 100,
+      api_calls: 50000,
+      diagnostics_per_day: 1000
+    },
     features: [
       "All Professional features",
       "Unlimited workflows",
@@ -71,8 +77,8 @@ export const mockSubscriptionPlans: SubscriptionPlan[] = [
       "Custom reporting",
       "Multi-location management"
     ],
-    trialPeriod: 30,
-    isActive: true,
+    trial_period: 30,
+    is_active: true,
     createdAt: new Date(),
     updatedAt: new Date()
   }
@@ -81,10 +87,10 @@ export const mockSubscriptionPlans: SubscriptionPlan[] = [
 export const mockLicenses: License[] = [
   {
     id: "license-1",
-    companyId: "company-1",
-    companyName: "ABC Appliance Repair",
-    planId: "plan-professional",
-    planName: "Professional",
+    company_id: "company-1",
+    company_name: "ABC Appliance Repair",
+    plan_id: "plan-professional",
+    plan_name: "Professional",
     status: 'active',
     activeTechnicians: 5,
     startDate: new Date(2024, 2, 15),
@@ -96,10 +102,10 @@ export const mockLicenses: License[] = [
   },
   {
     id: "license-2",
-    companyId: "company-2",
-    companyName: "XYZ Repair Co",
-    planId: "plan-basic",
-    planName: "Basic",
+    company_id: "company-2",
+    company_name: "XYZ Repair Co",
+    plan_id: "plan-basic",
+    plan_name: "Basic",
     status: 'trial',
     activeTechnicians: 2,
     startDate: new Date(),
@@ -109,10 +115,10 @@ export const mockLicenses: License[] = [
   },
   {
     id: "license-3",
-    companyId: "company-3",
-    companyName: "123 Repair Services",
-    planId: "plan-enterprise",
-    planName: "Enterprise",
+    company_id: "company-3",
+    company_name: "123 Repair Services",
+    plan_id: "plan-enterprise",
+    plan_name: "Enterprise",
     status: 'expired',
     activeTechnicians: 12,
     startDate: new Date(2023, 5, 10),
@@ -126,8 +132,8 @@ export const mockLicenses: License[] = [
 export const mockPayments: Payment[] = [
   {
     id: "payment-1",
-    licenseId: "license-1",
-    companyId: "company-1",
+    license_id: "license-1",
+    company_id: "company-1",
     amount: 799.99,
     currency: "USD",
     status: "completed",
@@ -138,8 +144,8 @@ export const mockPayments: Payment[] = [
   },
   {
     id: "payment-2",
-    licenseId: "license-1",
-    companyId: "company-1",
+    license_id: "license-1",
+    company_id: "company-1",
     amount: 799.99,
     currency: "USD",
     status: "completed",
@@ -150,8 +156,8 @@ export const mockPayments: Payment[] = [
   },
   {
     id: "payment-3",
-    licenseId: "license-3",
-    companyId: "company-3",
+    license_id: "license-3",
+    company_id: "company-3",
     amount: 1999.99,
     currency: "USD",
     status: "failed",

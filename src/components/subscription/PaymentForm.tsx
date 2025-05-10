@@ -26,7 +26,7 @@ export function PaymentForm({
   const [cvv, setCvv] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const price = billingCycle === "monthly" ? plan.monthlyPrice : plan.yearlyPrice;
+  const price = billingCycle === "monthly" ? plan.price_monthly : plan.price_yearly;
   
   const handleSubmit = () => {
     setIsSubmitting(true);
@@ -87,23 +87,23 @@ export function PaymentForm({
         <div className="space-y-1">
           <div className="flex items-start text-sm">
             <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
-            <span>Up to {plan.maxTechnicians} technicians & {plan.maxAdmins} admins</span>
+            <span>Up to {plan.limits.technicians} technicians & {plan.limits.admins} admins</span>
           </div>
           <div className="flex items-start text-sm">
             <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
-            <span>{plan.dailyDiagnostics} diagnostics per day</span>
+            <span>{plan.limits.diagnostics_per_day} diagnostics per day</span>
           </div>
           <div className="flex items-start text-sm">
             <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
-            <span>{plan.storageLimit} GB storage</span>
+            <span>{plan.limits.storage_gb} GB storage</span>
           </div>
-          {plan.features.slice(0, 3).map((feature, index) => (
+          {Array.isArray(plan.features) && plan.features.slice(0, 3).map((feature, index) => (
             <div key={index} className="flex items-start text-sm">
               <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
               <span>{feature}</span>
             </div>
           ))}
-          {plan.features.length > 3 && (
+          {Array.isArray(plan.features) && plan.features.length > 3 && (
             <div className="text-sm text-blue-600">+{plan.features.length - 3} more features</div>
           )}
         </div>

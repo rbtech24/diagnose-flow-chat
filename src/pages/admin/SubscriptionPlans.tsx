@@ -47,8 +47,8 @@ export default function AdminSubscriptionPlans() {
     const plan = plans.find(p => p.id === planId);
     if (plan) {
       toast({
-        title: !plan.isActive ? "Plan activated" : "Plan deactivated",
-        description: `${plan.name} plan has been ${!plan.isActive ? "activated" : "deactivated"}.`,
+        title: !plan.is_active ? "Plan activated" : "Plan deactivated",
+        description: `${plan.name} plan has been ${!plan.is_active ? "activated" : "deactivated"}.`,
       });
     }
   };

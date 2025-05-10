@@ -22,7 +22,7 @@ export function LicenseCard({ license, onDeactivate }: LicenseCardProps) {
           <div className="bg-gray-50 p-6 md:w-64 flex items-center">
             <Building2 className="h-8 w-8 text-blue-500 mr-3" />
             <div>
-              <h3 className="font-semibold text-lg">{license.companyName}</h3>
+              <h3 className="font-semibold text-lg">{license.company_name}</h3>
               <div className="flex items-center mt-1">
                 <Users className="h-4 w-4 text-gray-500 mr-1" />
                 <span className="text-sm text-gray-600">{license.activeTechnicians} active technicians</span>
@@ -34,7 +34,7 @@ export function LicenseCard({ license, onDeactivate }: LicenseCardProps) {
             <div className="flex flex-col md:flex-row md:items-center justify-between">
               <div>
                 <div className="flex items-center">
-                  <span className="font-medium mr-2">{license.planName} Plan</span>
+                  <span className="font-medium mr-2">{license.plan_name} Plan</span>
                   <Badge className={
                     license.status === 'active' ? 'bg-green-100 text-green-800' :
                     license.status === 'trial' ? 'bg-blue-100 text-blue-800' : 
