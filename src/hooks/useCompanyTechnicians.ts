@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/useToast';
+import { toast } from '@/components/ui/use-toast';
 
 export type Technician = {
   id: string;
