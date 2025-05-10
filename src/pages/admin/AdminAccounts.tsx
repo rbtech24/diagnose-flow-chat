@@ -1,245 +1,312 @@
-
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-import { Plus, Shield, UserPlus } from "lucide-react";
-import { User } from "@/types/user";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { UserPlus, Edit, Trash2, RefreshCw } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useUserManagementStore } from "@/store/userManagementStore";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { AdminPasswordResetForm } from "@/components/admin/AdminPasswordResetForm";
-
-// Form schema for new admin
-const newAdminSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-});
-
-type NewAdminValues = z.infer<typeof newAdminSchema>;
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "@/components/ui/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AdminAccounts() {
-  const [admins, setAdmins] = useState<User[]>([
-    {
-      id: "1",
-      name: "Admin User",
-      email: "admin@repairautopilot.com",
-      role: "admin",
-    },
-    {
-      id: "2",
-      name: "Secondary Admin",
-      email: "admin2@repairautopilot.com",
-      role: "admin",
-    }
-  ]);
-  
-  const [isAddAdminOpen, setIsAddAdminOpen] = useState(false);
-  const [maxAdmins] = useState(3);
-  const [resetPasswordAdminId, setResetPasswordAdminId] = useState<string | null>(null);
-  
-  const form = useForm<NewAdminValues>({
-    resolver: zodResolver(newAdminSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-    }
-  });
-  
-  const handleAddAdmin = (values: NewAdminValues) => {
-    // In a real app, this would call an API to create the user
-    const newAdmin: User = {
-      id: String(admins.length + 1),
-      name: values.name,
-      email: values.email,
-      role: "admin",
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isResetPasswordModalOpen, setIsResetPasswordModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{ id: string; name: string; email?: string } | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const { users, fetchUsers, deleteUser } = useUserManagementStore();
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      await fetchUsers();
+      setIsLoading(false);
     };
-    
-    setAdmins([...admins, newAdmin]);
-    setIsAddAdminOpen(false);
-    form.reset();
-    toast.success("Admin account created successfully");
+
+    fetchData();
+  }, [fetchUsers]);
+
+  const handleOpenDeleteDialog = (user: { id: string; name: string }) => {
+    setSelectedUser(user);
+    setIsDeleteDialogOpen(true);
   };
-  
-  const handleResetPassword = (adminId: string) => {
-    // Open the reset password dialog by setting the adminId
-    setResetPasswordAdminId(adminId);
+
+  const handleCloseDeleteDialog = () => {
+    setSelectedUser(null);
+    setIsDeleteDialogOpen(false);
   };
-  
-  const handlePasswordResetSuccess = () => {
-    // Close the reset password dialog
-    setResetPasswordAdminId(null);
-    toast.success("Admin password has been reset successfully");
+
+  const handleDeleteUser = async () => {
+    if (selectedUser) {
+      const success = await deleteUser(selectedUser.id);
+      if (success) {
+        toast({
+          title: "User Deleted",
+          description: `${selectedUser.name} has been successfully deleted.`,
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to delete user. Please try again.",
+          variant: "destructive",
+        });
+      }
+      handleCloseDeleteDialog();
+    }
   };
-  
-  const handlePasswordResetCancel = () => {
-    // Close the reset password dialog
-    setResetPasswordAdminId(null);
+
+  const handleResetPasswordDialogOpen = (user: { id: string; name: string; email?: string }) => {
+    setSelectedUser(user);
+    setIsResetPasswordModalOpen(true);
   };
-  
-  const handleRemoveAdmin = (adminId: string) => {
-    setAdmins(admins.filter(admin => admin.id !== adminId));
-    toast.success("Admin account removed");
+
+  const handleResetPasswordDialogClose = () => {
+    setSelectedUser(null);
+    setIsResetPasswordModalOpen(false);
   };
-  
+
+  const handleResetPasswordSuccess = () => {
+    toast({
+      title: "Password Reset",
+      description: "Password has been reset successfully.",
+    });
+    handleResetPasswordDialogClose();
+  };
+
+  const filteredUsers = users.filter((user) => {
+    const searchRegex = new RegExp(searchTerm, "i");
+    const matchesSearchTerm = searchRegex.test(user.name) || searchRegex.test(user.email);
+    const matchesRole = roleFilter ? user.role === roleFilter : true;
+    const matchesStatus = statusFilter ? user.status === statusFilter : true;
+
+    return matchesSearchTerm && matchesRole && matchesStatus;
+  });
+
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Admin Accounts</h1>
-        <Dialog open={isAddAdminOpen} onOpenChange={setIsAddAdminOpen}>
-          <DialogTrigger asChild>
-            <Button disabled={admins.length >= maxAdmins}>
-              <UserPlus className="h-4 w-4 mr-2" />
-              Add Admin
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold">Manage Accounts</h1>
+        <Button asChild>
+          <Link to="/admin/accounts/new" className="flex items-center">
+            <UserPlus className="mr-2 h-4 w-4" />
+            Add Account
+          </Link>
+        </Button>
+      </div>
+
+      <div className="flex items-center space-x-4 mb-4">
+        <Input
+          type="text"
+          placeholder="Search accounts..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">All Roles</SelectItem>
+            <SelectItem value="admin">Admin</SelectItem>
+            <SelectItem value="company">Company</SelectItem>
+            <SelectItem value="tech">Tech</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">All Statuses</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Button
+          variant="outline"
+          onClick={() => {
+            setSearchTerm("");
+            setRoleFilter("");
+            setStatusFilter("");
+          }}
+        >
+          Reset Filters
+        </Button>
+      </div>
+
+      <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              // Show skeleton loaders while loading
+              <>
+                {Array(5)
+                  .fill(null)
+                  .map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell>
+                        <Skeleton className="h-4 w-[150px]" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-[200px]" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-[100px]" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-[100px]" />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Skeleton className="h-8 w-[120px]" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </>
+            ) : filteredUsers.length === 0 ? (
+              // Show message when no users are found
+              <TableRow>
+                <TableCell colSpan={5} className="text-center">
+                  No accounts found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              // Show user data when available
+              filteredUsers.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell>{user.name}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.role}</TableCell>
+                  <TableCell>{user.status}</TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => navigate(`/admin/accounts/${user.id}`)}
+                        >
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleResetPasswordDialogOpen({ id: user.id, name: user.name, email: user.email })}
+                        >
+                          Reset Password
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => handleOpenDeleteDialog({ id: user.id, name: user.name })}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={handleCloseDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Account</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedUser?.name}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCloseDeleteDialog}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteUser}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {isResetPasswordModalOpen && selectedUser && (
+        <Dialog open={isResetPasswordModalOpen} onOpenChange={handleResetPasswordDialogClose}>
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Add New Admin Account</DialogTitle>
+              <DialogTitle>Reset Password</DialogTitle>
               <DialogDescription>
-                Create a new administrator account with full system access.
+                Set a new password for {selectedUser.name}
               </DialogDescription>
             </DialogHeader>
-            
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleAddAdmin)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Full Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="John Doe" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="admin@example.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Initial Password</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        The admin will be prompted to change this on first login
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsAddAdminOpen(false)}>Cancel</Button>
-                  <Button type="submit">Create Admin Account</Button>
-                </DialogFooter>
-              </form>
-            </Form>
+            <AdminPasswordResetForm
+              userId={selectedUser.id}
+              userEmail={selectedUser.email || ''}
+              onSuccess={handleResetPasswordSuccess}
+              onCancel={handleResetPasswordDialogClose}
+            />
           </DialogContent>
         </Dialog>
-      </div>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-primary" />
-            System Administrators
-          </CardTitle>
-          <CardDescription>
-            Manage administrator accounts with full system access.
-            Currently using {admins.length} of {maxAdmins} available admin accounts.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {admins.map(admin => (
-              <div key={admin.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h3 className="font-medium">{admin.name}</h3>
-                  <p className="text-sm text-muted-foreground">{admin.email}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge>Administrator</Badge>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleResetPassword(admin.id)}
-                    >
-                      Reset Password
-                    </Button>
-                    {admin.id !== "1" && (
-                      <Button 
-                        variant="destructive" 
-                        size="sm"
-                        onClick={() => handleRemoveAdmin(admin.id)}
-                      >
-                        Remove
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-        <CardFooter className="border-t pt-4">
-          <p className="text-sm text-muted-foreground">
-            Note: The primary admin account cannot be removed. All admins have full system access.
-          </p>
-        </CardFooter>
-      </Card>
-
-      {/* Password Reset Dialog */}
-      <Dialog 
-        open={resetPasswordAdminId !== null} 
-        onOpenChange={(isOpen) => {
-          if (!isOpen) setResetPasswordAdminId(null);
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Reset Admin Password</DialogTitle>
-            <DialogDescription>
-              Enter a new password for this administrator account.
-            </DialogDescription>
-          </DialogHeader>
-          
-          {resetPasswordAdminId && (
-            <AdminPasswordResetForm
-              userId={resetPasswordAdminId}
-              onSuccess={handlePasswordResetSuccess}
-              onCancel={handlePasswordResetCancel}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      )}
     </div>
   );
 }

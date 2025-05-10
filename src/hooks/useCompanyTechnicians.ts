@@ -1,27 +1,26 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 
-export type Technician = {
+interface Technician {
   id: string;
-  name?: string;
+  name: string;
   email?: string;
-  status?: string;
+  status: 'active' | 'offline';
+  role: string;
   avatar_url?: string;
-  role?: string;
-  activeJobs?: number;
-};
+  activeJobs: number;
+}
 
-export type CompanyMetrics = {
+interface CompanyMetrics {
   activeJobs: number;
   responseTime: string;
   teamPerformance: number;
-};
+}
 
 export function useCompanyTechnicians() {
   const [technicians, setTechnicians] = useState<Technician[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [metrics, setMetrics] = useState<CompanyMetrics>({
     activeJobs: 0,
@@ -30,7 +29,7 @@ export function useCompanyTechnicians() {
   });
 
   // Function to delete a technician
-  const deleteTechnician = async (technicianId: string) => {
+  const deleteTechnician = async (technicianId: string): Promise<boolean> => {
     try {
       // Get the current user's company ID first to ensure proper authorization
       const { data: { user } } = await supabase.auth.getUser();
@@ -45,7 +44,7 @@ export function useCompanyTechnicians() {
         .select('company_id')
         .eq('id', user.id)
         .single();
-        
+      
       if (userError) {
         throw userError;
       }
@@ -60,7 +59,7 @@ export function useCompanyTechnicians() {
         .delete()
         .eq('id', technicianId)
         .eq('company_id', userData.company_id);
-        
+      
       if (deleteError) {
         throw deleteError;
       }
@@ -71,9 +70,9 @@ export function useCompanyTechnicians() {
       // Show success message
       toast({
         title: "Success",
-        description: "Technician deleted successfully",
-        variant: "default"
+        description: "Technician deleted successfully"
       });
+      
       return true;
     } catch (err) {
       console.error('Error deleting technician:', err);
@@ -87,7 +86,7 @@ export function useCompanyTechnicians() {
   };
 
   // Function to fetch company metrics
-  const fetchCompanyMetrics = async (companyId: string) => {
+  const fetchCompanyMetrics = async (companyId: string): Promise<void> => {
     try {
       // Get active jobs count
       const { count: activeJobsCount, error: repairsError } = await supabase
@@ -303,5 +302,11 @@ export function useCompanyTechnicians() {
     fetchTechnicians();
   }, []);
   
-  return { technicians, isLoading, error, deleteTechnician, metrics };
+  return {
+    technicians,
+    isLoading,
+    error,
+    deleteTechnician,
+    metrics
+  };
 }

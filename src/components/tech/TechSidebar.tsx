@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -5,7 +6,7 @@ import {
   Settings,
   Users,
   HelpCircle,
-  Logout,
+  LogOut,
   ChevronLeft,
   ChevronRight,
   Plus,
@@ -20,10 +21,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { useUserManagementStore } from "@/store/userManagementStore";
 
 interface TechSidebarProps {
-  collapsed: boolean;
+  collapsed?: boolean;
 }
 
-export function TechSidebar({ collapsed }: TechSidebarProps) {
+export function TechSidebar({ collapsed = false }: TechSidebarProps) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { currentUser, logout } = useUserManagementStore();
@@ -102,7 +103,7 @@ export function TechSidebar({ collapsed }: TechSidebarProps) {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
-                  <Logout className="h-4 w-4 mr-2" />
+                  <LogOut className="h-4 w-4 mr-2" />
                   Sign Out
                 </DropdownMenuItem>
               </DropdownMenuContent>

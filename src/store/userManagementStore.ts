@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/user';
@@ -21,7 +20,7 @@ interface UserManagementState {
   createCompany: (companyData: Partial<Company>) => Promise<Company>;
   // Add missing functions required by components
   deleteUser: (id: string, email?: string, role?: string) => Promise<boolean>;
-  resetUserPassword: (userId: string) => Promise<boolean>;
+  resetUserPassword: (userId: string): Promise<boolean>;
   deleteCompany: (id: string) => Promise<boolean>;
   logout: () => Promise<void>;
   addUser: (userData: any) => Promise<User>;
@@ -381,11 +380,16 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
     }
   },
 
-  resetUserPassword: async (userId: string) => {
+  resetUserPassword: async (userId: string): Promise<boolean> => {
     try {
       // In a real implementation, this would send a password reset link
       // For now, we'll just simulate success
       console.log(`Password reset requested for user ${userId}`);
+      
+      // You might make a real API call to your backend that handles password resets
+      // const { error } = await supabase.auth.admin.resetPassword(userId);
+      // if (error) throw error;
+      
       return true;
     } catch (err) {
       console.error('Error resetting password:', err);
@@ -416,12 +420,13 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
     }
   },
 
-  logout: async () => {
+  logout: async (): Promise<void> => {
     try {
       await supabase.auth.signOut();
       set({ currentUser: null });
     } catch (err) {
       console.error('Error logging out:', err);
+      throw err;
     }
   },
 

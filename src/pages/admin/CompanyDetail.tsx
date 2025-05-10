@@ -1,493 +1,273 @@
-
-import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Building2, Users, CreditCard, Calendar, Mail, Phone, MapPin } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
-import { useUserManagementStore } from "@/store/userManagementStore";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { AvatarUpload } from "@/components/shared/AvatarUpload";
-
-// Define interface for activity data to fix the type error
-interface UserActivityData {
-  id: string;
-  activity_type: string;
-  created_at: string;
-  description: string;
-  metadata: Record<string, any>; // Using Record<string, any> instead of complex nested types
-  ip_address: string;
-  user_agent: string;
-  user_id: string;
-}
+import { useUserManagementStore } from "@/store/userManagementStore";
+import { Company } from '@/types/company';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { XCircle } from "lucide-react";
 
 export default function CompanyDetail() {
-  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { companyId } = useParams<{ companyId: string }>();
+  const { fetchCompanyById, updateCompany, deleteCompany } = useUserManagementStore();
   const { toast } = useToast();
-  const { companies, users, fetchCompanies, fetchUsers, deleteCompany, updateCompany } = useUserManagementStore();
-  const [companyData, setCompanyData] = useState<any>(null);
-  const [companyUsers, setCompanyUsers] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+
+  const [company, setCompany] = useState<Company | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [updatedData, setUpdatedData] = useState<Partial<Company>>({});
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
-    const loadData = async () => {
-      if (!id) return;
-      
-      setIsLoading(true);
-      try {
-        await fetchUsers();
-        await fetchCompanies();
-        
-        // Find the company by ID from the fetched companies
-        const company = companies.find(c => c.id === id);
-        
-        if (company) {
-          setCompanyData(company);
-          
-          // Filter users that belong to this company
-          const relatedUsers = users.filter(user => user.companyId === id);
-          setCompanyUsers(relatedUsers);
-        } else {
-          toast({
-            title: "Company not found",
-            description: "The requested company could not be found.",
-            variant: "destructive",
-          });
-          navigate("/admin/companies");
-        }
-      } catch (error) {
-        console.error("Error loading company data:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load company data.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
+    const loadCompany = async () => {
+      if (companyId) {
+        const fetchedCompany = await fetchCompanyById(companyId);
+        setCompany(fetchedCompany);
+        setUpdatedData(fetchedCompany || {});
       }
     };
-    
-    loadData();
-  }, [id, fetchCompanies, fetchUsers, users, companies, navigate, toast]);
 
-  const handleDeleteCompany = async () => {
-    if (!id) return;
-    
+    loadCompany();
+  }, [companyId, fetchCompanyById]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setUpdatedData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (value: string) => {
+    setUpdatedData(prev => ({ ...prev, status: value }));
+  };
+
+  const handleDateChange = (date: Date | undefined) => {
+    setUpdatedData(prev => ({ ...prev, trialEndDate: date }));
+  };
+
+  const handleCheckboxChange = (checked: boolean) => {
+    setUpdatedData(prev => ({ ...prev, status: checked ? 'active' : 'inactive' }));
+  };
+
+  const enableEditing = () => {
+    setIsEditing(true);
+  };
+
+  const disableEditing = () => {
+    setIsEditing(false);
+    setUpdatedData(company || {});
+  };
+
+  const saveChanges = async () => {
+    if (!company) return;
+
     try {
-      const success = await deleteCompany(id);
-      if (success) {
-        toast({
-          title: "Company deleted",
-          description: "The company has been successfully deleted.",
-        });
-        navigate("/admin/companies");
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to delete company.",
-          variant: "destructive",
-        });
-      }
+      await updateCompany(company.id, updatedData);
+      toast({
+        title: "Success",
+        description: "Company updated successfully",
+      });
+      setCompany({ ...company, ...updatedData });
+      setIsEditing(false);
     } catch (error) {
-      console.error("Error deleting company:", error);
+      console.error("Error updating company", error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
+        description: "Failed to update company",
+        variant: "destructive"
       });
     }
   };
 
-  const handleEditCompany = () => {
-    navigate(`/admin/companies/${id}/edit`);
+  const confirmDeleteCompany = () => {
+    setIsDeleteDialogOpen(true);
   };
-  
-  const handleAvatarChange = async (avatarUrl: string) => {
-    if (!id) return;
-    
+
+  const cancelDeleteCompany = () => {
+    setIsDeleteDialogOpen(false);
+  };
+
+  const performDeleteCompany = async () => {
+    if (!company) return;
+
     try {
-      const updatedCompany = await updateCompany(id, {
-        logoUrl: avatarUrl
+      await deleteCompany(company.id);
+      toast({
+        title: "Success",
+        description: "Company deleted successfully",
       });
-      
-      if (updatedCompany) {
-        setCompanyData(updatedCompany);
-      }
+      navigate("/admin/companies");
     } catch (error) {
-      console.error('Error updating company logo:', error);
-      throw error;
+      console.error("Error deleting company", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete company",
+        variant: "destructive"
+      });
     }
   };
 
-  // Sample activity data - This should be replaced with actual API call
-  const recentActivity: UserActivityData[] = [
-    {
-      id: "activity-1",
-      activity_type: "user_added",
-      created_at: new Date().toISOString(),
-      description: "Technician Added",
-      metadata: { name: "John Doe" }, // Simplified metadata structure
-      ip_address: "192.168.1.1",
-      user_agent: "Mozilla/5.0",
-      user_id: "user-1"
-    },
-    {
-      id: "activity-2",
-      activity_type: "subscription_renewed",
-      created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      description: "Subscription Renewed",
-      metadata: { plan: "Professional" }, // Simplified metadata structure
-      ip_address: "192.168.1.1",
-      user_agent: "Mozilla/5.0",
-      user_id: "user-1"
-    },
-    {
-      id: "activity-3",
-      activity_type: "profile_updated",
-      created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      description: "Profile Updated",
-      metadata: { fields: ["name", "email"] }, // Simplified metadata structure
-      ip_address: "192.168.1.1",
-      user_agent: "Mozilla/5.0",
-      user_id: "user-1"
-    }
-  ];
-  
-  // Format activity for display
-  const formatActivity = (activity: UserActivityData) => {
-    return {
-      title: activity.description,
-      time: activity.created_at
-    };
-  };
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center mb-6">
-          <Button 
-            variant="outline" 
-            onClick={() => navigate("/admin/companies")} 
-            className="mr-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <Skeleton className="h-9 w-40" />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <Skeleton className="h-64" />
-          <Skeleton className="h-40" />
-          <Skeleton className="h-40" />
-        </div>
-      </div>
-    );
+  if (!company) {
+    return <div>Loading...</div>;
   }
-
-  if (!companyData) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-bold mb-2">Company Not Found</h2>
-          <p className="text-muted-foreground mb-4">The company you're looking for doesn't exist or has been deleted.</p>
-          <Button onClick={() => navigate("/admin/companies")}>
-            Back to Companies
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  const getStatusBadgeStyle = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800 hover:bg-green-200';
-      case 'trial':
-        return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
-      case 'expired':
-        return 'bg-red-100 text-red-800 hover:bg-red-200';
-      case 'inactive':
-        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
-      default:
-        return '';
-    }
-  };
-
-  const mainAdmin = companyUsers.find(user => user.role === 'company' && user.isMainAdmin);
-  
-  // Calculate the actual technician count based on companyUsers
-  const technicianCount = companyUsers.filter(user => user.role === 'tech').length;
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex items-center mb-6">
-        <Button 
-          variant="outline" 
-          onClick={() => navigate("/admin/companies")} 
-          className="mr-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
-        <h1 className="text-3xl font-bold">Company Details</h1>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium">
-              {companyData.name}
-              <Badge className={`ml-2 ${getStatusBadgeStyle(companyData.status)}`}>
-                {companyData.status}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center mb-6">
-              <AvatarUpload
-                currentAvatarUrl={companyData.logoUrl}
-                name={companyData.name}
-                onAvatarChange={handleAvatarChange}
-                size="lg"
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1">
-                <span className="text-sm text-muted-foreground">Contact</span>
-                <span className="font-medium">{companyData.contactName}</span>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-sm text-muted-foreground">Email</span>
-                <span className="font-medium">{companyData.email}</span>
-              </div>
-              {companyData.phone && (
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm text-muted-foreground">Phone</span>
-                  <span className="font-medium">{companyData.phone}</span>
-                </div>
-              )}
-              {companyData.city && companyData.state && (
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm text-muted-foreground">Location</span>
-                  <span className="font-medium">{companyData.city}, {companyData.state}</span>
-                </div>
-              )}
-            </div>
-
-            {companyData.address && (
-              <div className="mt-4 pt-4 border-t">
-                <div className="flex items-center gap-2 mb-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">Address</span>
-                </div>
-                <p className="text-sm">
-                  {companyData.address}
-                  {companyData.city && companyData.state && (
-                    <>, {companyData.city}, {companyData.state} {companyData.zipCode}</>
-                  )}
-                  {companyData.country && <>, {companyData.country}</>}
-                </p>
-              </div>
-            )}
-
-            <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t">
-              <Button variant="outline" size="sm" onClick={handleEditCompany}>
-                Edit Company
-              </Button>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="sm">Delete Company</Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action will permanently delete the company and all associated users. This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteCompany}>
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-green-50 border-green-100">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium flex items-center gap-2">
-              <Users className="h-5 w-5 text-green-600" />
-              Technicians
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold mb-2">{technicianCount}</div>
-            <p className="text-sm text-muted-foreground">
-              {companyUsers.filter(u => u.role === 'tech').length} active technicians
-            </p>
-            <Button 
-              className="w-full mt-4" 
-              variant="outline"
-              onClick={() => navigate(`/admin/users?companyId=${id}&role=tech`)}
-            >
-              View Technicians
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-blue-50 border-blue-100">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium flex items-center gap-2">
-              <CreditCard className="h-5 w-5 text-blue-600" />
-              Subscription
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold mb-2">{companyData.planName || "No"} Plan</div>
-            {companyData.status === 'trial' && companyData.trialEndsAt && (
-              <div className="flex items-center gap-2 text-sm text-amber-600 mb-1">
-                <Calendar className="h-4 w-4" />
-                Trial ends on {format(new Date(companyData.trialEndsAt), "MMM d, yyyy")}
-              </div>
-            )}
-            {companyData.status === 'active' && companyData.subscriptionEndsAt && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                <Calendar className="h-4 w-4" />
-                Renews on {format(new Date(companyData.subscriptionEndsAt), "MMM d, yyyy")}
-              </div>
-            )}
-            <Button 
-              className="w-full mt-4" 
-              variant="outline"
-              onClick={() => navigate(`/admin/subscription-plans?companyId=${id}`)}
-            >
-              Manage Subscription
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Company Admins</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {companyUsers.filter(u => u.role === 'company').length === 0 ? (
-              <div className="text-center py-4 text-muted-foreground">
-                No company admins found
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {companyUsers
-                  .filter(u => u.role === 'company')
-                  .map(admin => (
-                    <div key={admin.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarFallback className="bg-primary/10">
-                            {admin.name?.substring(0, 2).toUpperCase() || 'AD'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h3 className="font-medium">{admin.name || 'Admin User'}</h3>
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm text-muted-foreground">{admin.email}</p>
-                            {admin.isMainAdmin && (
-                              <Badge variant="secondary" className="text-xs">Primary</Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to={`/admin/users/${admin.id}`}>
-                          View
-                        </Link>
-                      </Button>
-                    </div>
-                  ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentActivity.map(activity => {
-                const { title, time } = formatActivity(activity);
-                return (
-                  <div key={activity.id} className="p-3 border rounded-md">
-                    <div className="font-medium">{title}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {new Date(time).toLocaleDateString('en-US', {
-                        month: 'short', 
-                        day: 'numeric',
-                        hour: 'numeric',
-                        minute: 'numeric',
-                        hour12: true
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
+    <div className="container mx-auto p-4">
       <Card>
         <CardHeader>
-          <CardTitle>Technicians ({companyUsers.filter(u => u.role === 'tech').length})</CardTitle>
+          <CardTitle>Company Details</CardTitle>
+          <CardDescription>View and manage company information.</CardDescription>
         </CardHeader>
-        <CardContent>
-          {companyUsers.filter(u => u.role === 'tech').length === 0 ? (
-            <div className="text-center py-4 text-muted-foreground">
-              No technicians found for this company
+        <CardContent className="grid gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="name">Name</Label>
+              <Input
+                type="text"
+                id="name"
+                name="name"
+                value={updatedData.name || ''}
+                onChange={handleInputChange}
+                disabled={!isEditing}
+              />
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {companyUsers
-                .filter(u => u.role === 'tech')
-                .map(tech => (
-                  <div key={tech.id} className="p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarFallback className="bg-blue-100 text-blue-600">
-                          {tech.name?.substring(0, 2).toUpperCase() || 'TC'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h3 className="font-medium">{tech.name || 'Technician'}</h3>
-                        <p className="text-sm text-muted-foreground">{tech.email}</p>
-                      </div>
-                    </div>
-                    <div className="mt-3 flex justify-end">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to={`/admin/users/${tech.id}`}>
-                          View Profile
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+            <div>
+              <Label htmlFor="status">Status</Label>
+              {isEditing ? (
+                <Select onValueChange={handleSelectChange} defaultValue={updatedData.status || 'active'}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="trial">Trial</SelectItem>
+                    <SelectItem value="suspended">Suspended</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input type="text" value={updatedData.status || 'active'} disabled />
+              )}
             </div>
-          )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="planName">Plan Name</Label>
+              <Input
+                type="text"
+                id="planName"
+                name="planName"
+                value={updatedData.planName || ''}
+                onChange={handleInputChange}
+                disabled={!isEditing}
+              />
+            </div>
+            <div>
+              <Label htmlFor="trialEndDate">Trial End Date</Label>
+              {isEditing ? (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !updatedData.trialEndDate && "text-muted-foreground"
+                      )}
+                    >
+                      {updatedData.trialEndDate ? (
+                        format(new Date(updatedData.trialEndDate), "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="center" side="bottom">
+                    <Calendar
+                      mode="single"
+                      selected={updatedData.trialEndDate ? new Date(updatedData.trialEndDate) : undefined}
+                      onSelect={handleDateChange}
+                      disabled={(date) =>
+                        date < new Date()
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              ) : (
+                <Input
+                  type="text"
+                  id="trialEndDate"
+                  value={updatedData.trialEndDate ? format(new Date(updatedData.trialEndDate), "PPP") : 'No Trial'}
+                  disabled
+                />
+              )}
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="active">Active</Label>
+            <Checkbox
+              id="active"
+              checked={updatedData.status === 'active'}
+              onCheckedChange={(checked) => {
+                if (checked !== undefined) {
+                  handleCheckboxChange(checked);
+                }
+              }}
+              disabled={!isEditing}
+            />
+          </div>
+
+          <div className="flex justify-end gap-2">
+            {isEditing ? (
+              <>
+                <Button variant="ghost" onClick={disableEditing}>Cancel</Button>
+                <Button onClick={saveChanges}>Save</Button>
+              </>
+            ) : (
+              <>
+                <Button onClick={enableEditing}>Edit</Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive">Delete Company</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the company
+                        and remove all related data.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel onClick={cancelDeleteCompany}>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={performDeleteCompany}>Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

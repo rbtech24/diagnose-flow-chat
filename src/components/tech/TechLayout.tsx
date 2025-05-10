@@ -16,6 +16,7 @@ export function TechLayout() {
   const userMessages = useUserMessages("tech");
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { currentUser, fetchUsers } = useUserManagementStore();
 
   // Fetch users on component mount if we don't have a current user
@@ -31,12 +32,12 @@ export function TechLayout() {
         <>
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetContent side="left" className="p-0 w-64">
-              <TechSidebar />
+              <TechSidebar collapsed={false} />
             </SheetContent>
           </Sheet>
         </>
       ) : (
-        <TechSidebar />
+        <TechSidebar collapsed={sidebarCollapsed} />
       )}
       
       <div className="flex-1 overflow-auto">

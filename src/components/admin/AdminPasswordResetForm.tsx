@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/use-toast";
 import { useUserManagementStore } from "@/store/userManagementStore";
 
 interface AdminPasswordResetFormProps {
@@ -23,7 +23,6 @@ export function AdminPasswordResetForm({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [notifyUser, setNotifyUser] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
   const { resetUserPassword } = useUserManagementStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
