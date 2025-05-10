@@ -1,33 +1,34 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { CommunityPost, CommunityComment, Attachment, CommunityPostType } from "@/types/community";
 
 // Helper function to format user data
-const formatUserData = (userData: any) => {
-  if (!userData) return undefined;
+const formatUserData = async (userId?: string | null) => {
+  if (!userId) return undefined;
+  
+  const { data: userData, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
+    .single();
+    
+  if (error || !userData) {
+    console.warn(`Could not fetch user data for ${userId}:`, error);
+    return {
+      id: userId,
+      name: 'Unknown User',
+      email: '',
+      role: 'tech' as "admin" | "company" | "tech",
+      avatarUrl: undefined
+    };
+  }
   
   return {
-    id: userData.id || '',
-    name: userData.full_name || userData.name || 'Unknown User',
+    id: userId,
+    name: userData.full_name || 'Unknown User',
     email: userData.email || '',
-    role: userData.role || '',
-    avatarUrl: userData.avatar_url || undefined
+    role: userData.role as "admin" | "company" | "tech",
+    avatarUrl: userData.avatar_url
   };
-};
-
-// Function to create empty attachments array if none exist
-const formatAttachments = (attachmentsData: any): Attachment[] => {
-  if (!attachmentsData || !Array.isArray(attachmentsData)) return [];
-  
-  return attachmentsData.map(attachment => ({
-    id: attachment.id || '',
-    fileName: attachment.fileName || attachment.file_name || '',
-    fileUrl: attachment.fileUrl || attachment.file_url || '',
-    fileType: attachment.fileType || attachment.file_type || '',
-    fileSize: attachment.fileSize || attachment.file_size || 0,
-    uploadedAt: new Date(attachment.uploadedAt || attachment.uploaded_at || Date.now()),
-    uploadedBy: attachment.uploadedBy || attachment.uploaded_by || ''
-  }));
 };
 
 // Fetch all community posts
@@ -45,11 +46,7 @@ export const fetchCommunityPosts = async (): Promise<CommunityPost[]> => {
   // Transform the data to match our component structure
   const posts: CommunityPost[] = await Promise.all(data.map(async (post) => {
     // Fetch author details
-    const { data: authorData } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", post.author_id)
-      .single();
+    const author = await formatUserData(post.author_id);
       
     // Fetch comments for this post
     const { data: commentsData } = await supabase
@@ -60,19 +57,15 @@ export const fetchCommunityPosts = async (): Promise<CommunityPost[]> => {
     // Process comments
     const comments: CommunityComment[] = await Promise.all((commentsData || []).map(async (comment) => {
       // Fetch comment author
-      const { data: commentAuthorData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", comment.author_id)
-        .single();
+      const commentAuthor = await formatUserData(comment.author_id);
         
       return {
         id: comment.id,
         postId: comment.post_id,
         content: comment.content,
         authorId: comment.author_id,
-        author: formatUserData(commentAuthorData),
-        attachments: comment.attachments ? formatAttachments(comment.attachments) : [],
+        author: commentAuthor,
+        attachments: (comment.attachments || []) as Attachment[],
         createdAt: new Date(comment.created_at),
         updatedAt: new Date(comment.updated_at),
         upvotes: comment.upvotes || 0,
@@ -86,7 +79,7 @@ export const fetchCommunityPosts = async (): Promise<CommunityPost[]> => {
       content: post.content,
       type: post.type as CommunityPostType,
       authorId: post.author_id,
-      author: formatUserData(authorData),
+      author: author,
       attachments: [],  // Default empty array as the field doesn't exist in the table
       createdAt: new Date(post.created_at),
       updatedAt: new Date(post.updated_at),
@@ -127,11 +120,7 @@ export const fetchCommunityPostById = async (id: string): Promise<CommunityPost>
   }
   
   // Fetch author details
-  const { data: authorData } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", data.author_id)
-    .single();
+  const author = await formatUserData(data.author_id);
     
   // Fetch comments for this post
   const { data: commentsData } = await supabase
@@ -142,19 +131,15 @@ export const fetchCommunityPostById = async (id: string): Promise<CommunityPost>
   // Process comments
   const comments: CommunityComment[] = await Promise.all((commentsData || []).map(async (comment) => {
     // Fetch comment author
-    const { data: commentAuthorData } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", comment.author_id)
-      .single();
+    const commentAuthor = await formatUserData(comment.author_id);
       
     return {
       id: comment.id,
       postId: comment.post_id,
       content: comment.content,
       authorId: comment.author_id,
-      author: formatUserData(commentAuthorData),
-      attachments: comment.attachments ? formatAttachments(comment.attachments) : [],
+      author: commentAuthor,
+      attachments: (comment.attachments || []) as Attachment[],
       createdAt: new Date(comment.created_at),
       updatedAt: new Date(comment.updated_at),
       upvotes: comment.upvotes || 0,
@@ -168,7 +153,7 @@ export const fetchCommunityPostById = async (id: string): Promise<CommunityPost>
     content: data.content,
     type: data.type as CommunityPostType,
     authorId: data.author_id,
-    author: formatUserData(authorData),
+    author: author,
     attachments: [], // Default empty array as the field doesn't exist in the table
     createdAt: new Date(data.created_at),
     updatedAt: new Date(data.updated_at),
@@ -235,18 +220,14 @@ export const addCommentToPost = async (postId: string, content: string): Promise
   }
   
   // Fetch author details
-  const { data: authorData } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", userData.user.id)
-    .single();
+  const author = await formatUserData(userData.user.id);
   
   return {
     id: data.id,
     postId: data.post_id,
     content: data.content,
     authorId: data.author_id,
-    author: formatUserData(authorData),
+    author: author,
     attachments: [],
     createdAt: new Date(data.created_at),
     updatedAt: new Date(data.updated_at),
@@ -255,7 +236,7 @@ export const addCommentToPost = async (postId: string, content: string): Promise
   };
 };
 
-// Mark a comment as an answer
+// Other helper functions for community features
 export const markCommentAsAnswer = async (postId: string, commentId: string): Promise<void> => {
   // Update comment to mark as answer
   const { error: commentError } = await supabase
@@ -280,7 +261,6 @@ export const markCommentAsAnswer = async (postId: string, commentId: string): Pr
   }
 };
 
-// Upvote a post
 export const upvotePost = async (postId: string): Promise<void> => {
   try {
     await supabase.rpc("increment", { 
@@ -294,7 +274,6 @@ export const upvotePost = async (postId: string): Promise<void> => {
   }
 };
 
-// Upvote a comment
 export const upvoteComment = async (commentId: string): Promise<void> => {
   try {
     await supabase.rpc("increment", { 

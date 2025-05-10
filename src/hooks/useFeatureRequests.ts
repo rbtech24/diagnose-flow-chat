@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  fetchFeatureRequests, 
+  fetchFeatureRequests as apiFetchFeatureRequests, 
   fetchFeatureRequestById, 
   fetchFeatureComments,
   createFeatureRequest,
@@ -20,7 +20,7 @@ export function useFeatureRequests(initialStatus?: string, companyId?: string) {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await fetchFeatureRequests(status, companyId);
+      const data = await apiFetchFeatureRequests(status, companyId);
       setRequests(data);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('An error occurred while fetching feature requests'));

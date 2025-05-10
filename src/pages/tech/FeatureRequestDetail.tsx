@@ -1,12 +1,12 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
-import { FeatureComment, FeatureRequest, FeatureRequestPriority, FeatureRequestStatus } from "@/types/feature-request";
+import { FeatureComment, FeatureRequest } from "@/types/feature-request";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { fetchFeatureRequestById, fetchFeatureComments, voteForFeature, addFeatureComment } from "@/api/featureRequestsApi";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 export default function TechFeatureRequestDetailPage() {
   const [featureRequest, setFeatureRequest] = useState<FeatureRequest | null>(null);
@@ -24,35 +24,10 @@ export default function TechFeatureRequestDetailPage() {
       setLoading(true);
       try {
         const request = await fetchFeatureRequestById(id);
-        
-        // Convert created_by_user to expected format if needed
-        if (request.created_by_user && typeof request.created_by_user === 'object') {
-          // Make sure it has the expected fields
-          request.created_by_user = {
-            name: typeof request.created_by_user.name === 'string' ? request.created_by_user.name : 'Unknown User',
-            email: typeof request.created_by_user.email === 'string' ? request.created_by_user.email : '',
-            role: (typeof request.created_by_user.role === 'string' && 
-                  (request.created_by_user.role === 'admin' || 
-                   request.created_by_user.role === 'company' || 
-                   request.created_by_user.role === 'tech')) 
-                    ? request.created_by_user.role as 'admin' | 'company' | 'tech'
-                    : 'tech',
-            avatar_url: typeof request.created_by_user.avatar_url === 'string' ? request.created_by_user.avatar_url : undefined
-          };
-        } else {
-          // If created_by_user is not an object, create a default one
-          request.created_by_user = {
-            name: 'Unknown User',
-            email: '',
-            role: 'tech',
-            avatar_url: undefined
-          };
-        }
-        
-        setFeatureRequest(request as FeatureRequest);
+        setFeatureRequest(request);
         
         const commentsList = await fetchFeatureComments(id);
-        setComments(commentsList as FeatureComment[]);
+        setComments(commentsList);
       } catch (error) {
         console.error("Error loading feature request data:", error);
         toast({
@@ -109,35 +84,8 @@ export default function TechFeatureRequestDetailPage() {
         content
       });
       
-      // Ensure proper user info is included with the comment
       if (newComment) {
-        const { data: userData } = await supabase.auth.getUser();
-        if (userData?.user?.id) {
-          const { data: profileData } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", userData.user.id)
-            .single();
-            
-          if (profileData) {
-            // Ensure role is one of the valid types
-            let userRole: "admin" | "company" | "tech" = 'tech';
-            if (profileData.role === 'admin' || profileData.role === 'company' || profileData.role === 'tech') {
-              userRole = profileData.role as "admin" | "company" | "tech";
-            }
-            
-            const createdByUser = {
-              name: profileData.full_name || 'Unknown User',
-              email: profileData.phone_number || '',  // Using phone_number as fallback 
-              avatar_url: profileData.avatar_url,
-              role: userRole
-            };
-            
-            (newComment as any).created_by_user = createdByUser;
-          }
-        }
-        
-        setComments(prevComments => [...prevComments, newComment as FeatureComment]);
+        setComments(prevComments => [...prevComments, newComment]);
       }
       
       toast({

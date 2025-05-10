@@ -1,6 +1,7 @@
+
 import { create } from 'zustand';
 import { supabase } from '@/integrations/supabase/client';
-import { User } from '@/types';
+import { User } from '@/types/user';
 import { Company } from '@/types/company';
 
 interface UserManagementState {
@@ -13,14 +14,11 @@ interface UserManagementState {
   fetchCompanies: () => Promise<void>;
   fetchUserById: (id: string) => Promise<User | null>;
   fetchCompanyById: (id: string) => Promise<Company | null>;
-  addUser: (userData: Omit<User, 'id'>) => Promise<User>;
-  updateUser: (id: string, userData: Partial<User>) => Promise<User | null>;
-  deleteUser: (id: string, email?: string, role?: string) => Promise<boolean>;
-  addCompany: (companyData: Omit<Company, 'id'>) => Promise<Company>;
-  updateCompany: (id: string, companyData: Partial<Company>) => Promise<Company | null>;
-  deleteCompany: (id: string) => Promise<boolean>;
-  resetUserPassword: (userId: string, newPassword: string) => Promise<boolean>;
-  logout: () => void;
+  getCurrentUser: () => Promise<User | null>;
+  updateUser: (id: string, userData: Partial<User>) => Promise<void>;
+  updateCompany: (id: string, companyData: Partial<Company>) => Promise<void>;
+  createUser: (userData: Partial<User>) => Promise<User>;
+  createCompany: (companyData: Partial<Company>) => Promise<Company>;
 }
 
 export const useUserManagementStore = create<UserManagementState>((set, get) => ({
@@ -30,73 +28,64 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
   isLoadingUsers: false,
   isLoadingCompanies: false,
 
-  fetchCompanies: async () => {
-    try {
-      set({ isLoadingCompanies: true });
-      const { data, error } = await supabase.from('companies').select('*');
-      
-      if (error) {
-        console.error('Error fetching companies:', error);
-        set({ isLoadingCompanies: false });
-        return;
-      }
-      
-      const companies = data.map(company => ({
-        ...company,
-        id: company.id,
-        name: company.name,
-        status: company.trial_status === 'active' ? 'active' : 'inactive',
-        trialEndsAt: company.trial_end_date,
-        subscriptionEndsAt: null,
-        createdAt: company.created_at,
-        updatedAt: company.updated_at
-      })) as Company[];
-      
-      set({ companies, isLoadingCompanies: false });
-    } catch (error) {
-      console.error('Error in fetchCompanies:', error);
-      set({ isLoadingCompanies: false });
-    }
-  },
-
   fetchUsers: async () => {
     try {
       set({ isLoadingUsers: true });
-      const { data, error } = await supabase.from('users').select('*');
+      
+      // Fetch users from the users table
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('created_at', { ascending: false });
       
       if (error) {
-        console.error('Error fetching users:', error);
-        set({ isLoadingUsers: false });
-        return;
+        throw error;
       }
       
-      const mappedUsers = data.map(user => {
-        // Convert string dates to Date objects if they exist
-        const trialEndsAt = user.trial_ends_at ? new Date(user.trial_ends_at) : undefined;
-        
-        return {
-          id: user.id,
-          name: user.name || '',
-          email: user.email,
-          role: user.role as 'admin' | 'company' | 'tech',
-          phone: user.phone || '',
-          avatarUrl: user.avatar_url,
-          companyId: user.company_id,
-          status: user.status,
-          trialEndsAt,
-          subscriptionStatus: user.subscription_status as 'trial' | 'active' | 'expired' | 'canceled' | undefined
-        } as User;
-      });
+      const formattedUsers: User[] = data.map(user => ({
+        id: user.id,
+        name: user.name || '',
+        email: user.email || '',
+        role: user.role || 'tech',
+        companyId: user.company_id || undefined,
+        status: user.status || 'active'
+      }));
       
-      set({ 
-        users: mappedUsers, 
-        isLoadingUsers: false,
-        // Set the first user as current user for demo purposes
-        currentUser: mappedUsers.length > 0 ? mappedUsers[0] : null 
-      });
-    } catch (error) {
-      console.error('Error in fetchUsers:', error);
+      set({ users: formattedUsers, isLoadingUsers: false });
+    } catch (err) {
+      console.error('Error fetching users:', err);
       set({ isLoadingUsers: false });
+    }
+  },
+
+  fetchCompanies: async () => {
+    try {
+      set({ isLoadingCompanies: true });
+      
+      // Fetch companies from the companies table
+      const { data, error } = await supabase
+        .from('companies')
+        .select('*')
+        .order('name');
+      
+      if (error) {
+        throw error;
+      }
+      
+      const formattedCompanies: Company[] = data.map(company => ({
+        id: company.id,
+        name: company.name || '',
+        status: company.trial_status || 'active',
+        planName: company.subscription_tier || 'basic',
+        trialEndDate: company.trial_end_date ? new Date(company.trial_end_date) : undefined,
+        createdAt: new Date(company.created_at),
+        updatedAt: new Date(company.updated_at)
+      }));
+      
+      set({ companies: formattedCompanies, isLoadingCompanies: false });
+    } catch (err) {
+      console.error('Error fetching companies:', err);
+      set({ isLoadingCompanies: false });
     }
   },
 
@@ -106,30 +95,26 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         .from('users')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
       
       if (error) {
-        console.error('Error fetching user:', error);
-        return null;
+        throw error;
       }
       
-      // Convert string dates to Date objects if they exist
-      const trialEndsAt = data.trial_ends_at ? new Date(data.trial_ends_at) : undefined;
+      if (!data) {
+        return null;
+      }
       
       return {
         id: data.id,
         name: data.name || '',
-        email: data.email,
-        role: data.role as 'admin' | 'company' | 'tech',
-        phone: data.phone || '',
-        avatarUrl: data.avatar_url,
-        companyId: data.company_id,
-        status: data.status,
-        trialEndsAt,
-        subscriptionStatus: data.subscription_status as 'trial' | 'active' | 'expired' | 'canceled' | undefined
-      } as User;
-    } catch (error) {
-      console.error('Error in fetchUserById:', error);
+        email: data.email || '',
+        role: data.role || 'tech',
+        companyId: data.company_id || undefined,
+        status: data.status || 'active'
+      };
+    } catch (err) {
+      console.error('Error fetching user:', err);
       return null;
     }
   },
@@ -140,297 +125,228 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         .from('companies')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
       
       if (error) {
-        console.error('Error fetching company:', error);
+        throw error;
+      }
+      
+      if (!data) {
         return null;
       }
       
       return {
-        ...data,
         id: data.id,
-        name: data.name,
-        status: data.trial_status === 'active' ? 'active' : 'inactive',
-        trialEndsAt: data.trial_end_date,
-        subscriptionEndsAt: null,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at
-      } as Company;
-    } catch (error) {
-      console.error('Error in fetchCompanyById:', error);
+        name: data.name || '',
+        status: data.trial_status || 'active',
+        planName: data.subscription_tier || 'basic',
+        trialEndDate: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at)
+      };
+    } catch (err) {
+      console.error('Error fetching company:', err);
       return null;
     }
   },
 
-  addCompany: async (companyData: Omit<Company, 'id'>) => {
-    try {
-      // Prepare the data for Supabase
-      const supabaseData = {
-        name: companyData.name,
-        subscription_tier: companyData.subscription_tier || 'basic',
-        trial_status: companyData.status === 'trial' ? 'active' : null,
-        trial_period: companyData.trial_period || 30
-      };
-      
-      const { data, error } = await supabase
-        .from('companies')
-        .insert(supabaseData)
-        .select()
-        .single();
-      
-      if (error) {
-        console.error('Error adding company:', error);
-        throw error;
-      }
-      
-      const newCompany = {
-        ...data,
-        id: data.id,
-        name: data.name,
-        status: data.trial_status === 'active' ? 'active' : 'inactive',
-        trialEndsAt: data.trial_end_date,
-        subscriptionEndsAt: null,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at
-      } as Company;
-      
-      set((state) => ({
-        companies: [...state.companies, newCompany]
-      }));
-      
-      return newCompany;
-    } catch (error) {
-      console.error('Error in addCompany:', error);
-      throw error;
+  getCurrentUser: async () => {
+    const currentUser = get().currentUser;
+    
+    if (currentUser) {
+      return currentUser;
     }
-  },
-
-  updateCompany: async (id: string, companyData: Partial<Company>) => {
+    
     try {
-      // Prepare the data for Supabase
-      const supabaseData: any = {};
+      const { data: authData } = await supabase.auth.getUser();
       
-      if (companyData.name) supabaseData.name = companyData.name;
-      if (companyData.subscription_tier) supabaseData.subscription_tier = companyData.subscription_tier;
-      if (companyData.status) {
-        supabaseData.trial_status = companyData.status === 'active' || companyData.status === 'trial' ? 'active' : 'inactive';
-      }
-      if (companyData.trial_period) supabaseData.trial_period = companyData.trial_period;
-      
-      const { data, error } = await supabase
-        .from('companies')
-        .update(supabaseData)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) {
-        console.error('Error updating company:', error);
+      if (!authData.user) {
         return null;
       }
       
-      const updatedCompany = {
-        ...data,
-        status: data.trial_status === 'active' ? 'active' : 'inactive'
-      } as Company;
-      
-      set((state) => ({
-        companies: state.companies.map(company => 
-          company.id === id ? updatedCompany : company
-        )
-      }));
-      
-      return updatedCompany;
-    } catch (error) {
-      console.error('Error in updateCompany:', error);
-      return null;
-    }
-  },
-
-  deleteCompany: async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('companies')
-        .delete()
-        .eq('id', id);
-      
-      if (error) {
-        console.error('Error deleting company:', error);
-        return false;
-      }
-      
-      set((state) => ({
-        companies: state.companies.filter(company => company.id !== id)
-      }));
-      
-      return true;
-    } catch (error) {
-      console.error('Error in deleteCompany:', error);
-      return false;
-    }
-  },
-
-  addUser: async (userData: Omit<User, 'id'>) => {
-    try {
-      // Convert Date to string for Supabase
-      const trialEndsAtStr = userData.trialEndsAt ? userData.trialEndsAt.toISOString() : null;
-      
-      // Generate a UUID for the new user (Supabase will use this ID)
-      const newId = crypto.randomUUID();
-      
-      // Prepare the data for Supabase
-      const supabaseData = {
-        id: newId, // Add the ID field which is required by Supabase
-        name: userData.name,
-        email: userData.email,
-        role: userData.role,
-        phone: userData.phone || null,
-        status: userData.status || 'active',
-        company_id: userData.companyId || null,
-        subscription_status: userData.subscriptionStatus || null,
-        trial_ends_at: trialEndsAtStr,
-        avatar_url: userData.avatarUrl || null
-      };
-      
-      // Insert data into Supabase
       const { data, error } = await supabase
         .from('users')
-        .insert(supabaseData)
-        .select()
-        .single();
+        .select('*')
+        .eq('id', authData.user.id)
+        .maybeSingle();
       
-      if (error) {
-        console.error('Error adding user:', error);
-        throw error;
+      if (error || !data) {
+        return null;
       }
       
-      // Convert Supabase response to User type
-      const newUser: User = {
+      const user: User = {
         id: data.id,
         name: data.name || '',
-        email: data.email,
-        role: data.role as 'admin' | 'company' | 'tech',
-        phone: data.phone || '',
-        avatarUrl: data.avatar_url,
-        companyId: data.company_id,
-        status: data.status,
-        trialEndsAt: data.trial_ends_at ? new Date(data.trial_ends_at) : undefined,
-        subscriptionStatus: data.subscription_status as 'trial' | 'active' | 'expired' | 'canceled' | undefined
+        email: data.email || '',
+        role: data.role || 'tech',
+        companyId: data.company_id || undefined,
+        status: data.status || 'active'
       };
       
-      set((state) => ({
-        users: [...state.users, newUser]
-      }));
-      
-      return newUser;
-    } catch (error) {
-      console.error('Error in addUser:', error);
-      throw error;
+      set({ currentUser: user });
+      return user;
+    } catch (err) {
+      console.error('Error getting current user:', err);
+      return null;
     }
   },
 
   updateUser: async (id: string, userData: Partial<User>) => {
     try {
-      // Convert Date to string for Supabase if it exists
-      let trialEndsAtStr = undefined;
-      if (userData.trialEndsAt !== undefined) {
-        trialEndsAtStr = userData.trialEndsAt ? userData.trialEndsAt.toISOString() : null;
+      // Convert User type to database schema
+      const dbUser = {
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        company_id: userData.companyId,
+        status: userData.status,
+      };
+      
+      const { error } = await supabase
+        .from('users')
+        .update(dbUser)
+        .eq('id', id);
+      
+      if (error) {
+        throw error;
       }
       
-      // Prepare data for Supabase, mapping from User type to Supabase columns
-      const supabaseData: any = {};
+      // Update local state
+      set(state => ({
+        users: state.users.map(user => 
+          user.id === id ? { ...user, ...userData } : user
+        ),
+        currentUser: state.currentUser?.id === id 
+          ? { ...state.currentUser, ...userData }
+          : state.currentUser
+      }));
+    } catch (err) {
+      console.error('Error updating user:', err);
+      throw err;
+    }
+  },
+
+  updateCompany: async (id: string, companyData: Partial<Company>) => {
+    try {
+      // Convert Company type to database schema
+      const dbCompany = {
+        name: companyData.name,
+        trial_status: companyData.status,
+        subscription_tier: companyData.planName,
+        trial_end_date: companyData.trialEndDate
+      };
       
-      if (userData.name !== undefined) supabaseData.name = userData.name;
-      if (userData.email !== undefined) supabaseData.email = userData.email;
-      if (userData.phone !== undefined) supabaseData.phone = userData.phone;
-      if (userData.role !== undefined) supabaseData.role = userData.role;
-      if (userData.status !== undefined) supabaseData.status = userData.status;
-      if (userData.companyId !== undefined) supabaseData.company_id = userData.companyId;
-      if (userData.subscriptionStatus !== undefined) supabaseData.subscription_status = userData.subscriptionStatus;
-      if (trialEndsAtStr !== undefined) supabaseData.trial_ends_at = trialEndsAtStr;
-      if (userData.avatarUrl !== undefined) supabaseData.avatar_url = userData.avatarUrl;
+      const { error } = await supabase
+        .from('companies')
+        .update(dbCompany)
+        .eq('id', id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Update local state
+      set(state => ({
+        companies: state.companies.map(company => 
+          company.id === id ? { ...company, ...companyData } : company
+        )
+      }));
+    } catch (err) {
+      console.error('Error updating company:', err);
+      throw err;
+    }
+  },
+
+  createUser: async (userData: Partial<User>) => {
+    try {
+      if (!userData.email || !userData.role) {
+        throw new Error('Email and role are required');
+      }
+      
+      // Convert User type to database schema
+      const dbUser = {
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        company_id: userData.companyId,
+        status: userData.status || 'active',
+      };
       
       const { data, error } = await supabase
         .from('users')
-        .update(supabaseData)
-        .eq('id', id)
+        .insert(dbUser)
         .select()
         .single();
       
       if (error) {
-        console.error('Error updating user:', error);
-        return null;
+        throw error;
       }
       
-      // Convert Supabase response to User type
-      const updatedUser: User = {
+      const newUser: User = {
         id: data.id,
         name: data.name || '',
         email: data.email,
-        role: data.role as 'admin' | 'company' | 'tech',
-        phone: data.phone || '',
-        avatarUrl: data.avatar_url,
+        role: data.role,
         companyId: data.company_id,
-        status: data.status,
-        trialEndsAt: data.trial_ends_at ? new Date(data.trial_ends_at) : undefined,
-        subscriptionStatus: data.subscription_status as 'trial' | 'active' | 'expired' | 'canceled' | undefined
+        status: data.status
       };
       
-      set((state) => ({
-        users: state.users.map(user => 
-          user.id === id ? updatedUser : user
-        ),
-        // Update currentUser if it matches the updated user
-        currentUser: state.currentUser?.id === id ? updatedUser : state.currentUser
+      // Update local state
+      set(state => ({
+        users: [...state.users, newUser]
       }));
       
-      return updatedUser;
-    } catch (error) {
-      console.error('Error in updateUser:', error);
-      return null;
+      return newUser;
+    } catch (err) {
+      console.error('Error creating user:', err);
+      throw err;
     }
   },
 
-  deleteUser: async (id: string, email?: string, role?: string) => {
+  createCompany: async (companyData: Partial<Company>) => {
     try {
-      const { error } = await supabase
-        .from('users')
-        .delete()
-        .eq('id', id);
-      
-      if (error) {
-        console.error('Error deleting user:', error);
-        return false;
+      if (!companyData.name) {
+        throw new Error('Company name is required');
       }
       
-      set((state) => ({
-        users: state.users.filter(user => user.id !== id)
+      // Convert Company type to database schema
+      const dbCompany = {
+        name: companyData.name,
+        trial_status: companyData.status || 'active',
+        subscription_tier: companyData.planName || 'basic',
+        trial_end_date: companyData.trialEndDate,
+        trial_period: 30
+      };
+      
+      const { data, error } = await supabase
+        .from('companies')
+        .insert(dbCompany)
+        .select()
+        .single();
+      
+      if (error) {
+        throw error;
+      }
+      
+      const newCompany: Company = {
+        id: data.id,
+        name: data.name,
+        status: data.trial_status || 'active',
+        planName: data.subscription_tier || 'basic',
+        trialEndDate: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at)
+      };
+      
+      // Update local state
+      set(state => ({
+        companies: [...state.companies, newCompany]
       }));
       
-      return true;
-    } catch (error) {
-      console.error('Error in deleteUser:', error);
-      return false;
+      return newCompany;
+    } catch (err) {
+      console.error('Error creating company:', err);
+      throw err;
     }
-  },
-  
-  resetUserPassword: async (userId: string, newPassword: string) => {
-    try {
-      // In a real app, you would implement this with your auth provider
-      console.log(`Password reset for user ${userId} to ${newPassword}`);
-      
-      // This is just a mock implementation
-      return true;
-    } catch (error) {
-      console.error('Error in resetUserPassword:', error);
-      return false;
-    }
-  },
-  
-  logout: () => {
-    set({ currentUser: null });
-    // Clear any auth state in localStorage if you're using it
-    localStorage.removeItem("currentUser");
   }
 }));

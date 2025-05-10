@@ -6,6 +6,7 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { FeatureRequest, FeatureRequestStatus, FeatureRequestPriority } from "@/types/feature-request";
+import { fetchFeatureRequests } from "@/api/featureRequestsApi";
 
 export default function TechFeatureRequests() {
   const [featureRequests, setFeatureRequests] = useState<FeatureRequest[]>([]);
@@ -13,70 +14,11 @@ export default function TechFeatureRequests() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchFeatureRequests = async () => {
+    const getFeatureRequests = async () => {
       try {
-        const { data, error } = await supabase
-          .from("feature_requests")
-          .select("*")
-          .order("created_at", { ascending: false });
-
-        if (error) {
-          throw error;
-        }
-
-        // Transform the data to a safe format
-        const formattedRequests: FeatureRequest[] = data.map(request => {
-          // Make sure created_by_user has the right shape
-          let createdByUser = {
-            name: 'Unknown User',
-            email: '',
-            role: 'tech' as "admin" | "company" | "tech",
-            avatar_url: undefined
-          };
-
-          if (typeof request.created_by_user === 'object' && request.created_by_user !== null) {
-            const user = request.created_by_user;
-            
-            if (typeof user === 'object') {
-              // Safely extract and validate the role
-              let userRole: "admin" | "company" | "tech" = 'tech';
-              
-              if (user && typeof user === 'object' && 'role' in user && typeof user.role === 'string') {
-                const roleValue = user.role as string;
-                // Validate the role is one of the allowed values
-                if (roleValue === 'admin' || roleValue === 'company' || roleValue === 'tech') {
-                  userRole = roleValue as "admin" | "company" | "tech";
-                }
-              }
-              
-              createdByUser = {
-                name: user && typeof user === 'object' && 'name' in user ? String(user.name) : 
-                     (user && typeof user === 'object' && 'full_name' in user ? String(user.full_name) : 'Unknown User'),
-                email: user && typeof user === 'object' && 'email' in user ? String(user.email) : '',
-                role: userRole,
-                avatar_url: user && typeof user === 'object' && 'avatar_url' in user ? String(user.avatar_url) : undefined
-              };
-            }
-          }
-
-          return {
-            id: request.id,
-            title: request.title,
-            description: request.description,
-            status: (request.status || 'pending') as FeatureRequestStatus,
-            priority: (request.priority || 'medium') as FeatureRequestPriority,
-            company_id: request.company_id,
-            user_id: request.user_id || '',
-            created_at: request.created_at,
-            updated_at: request.updated_at,
-            votes_count: request.votes_count || 0,
-            user_has_voted: request.user_has_voted || false,
-            comments_count: request.comments_count || 0,
-            created_by_user: createdByUser
-          };
-        });
-
-        setFeatureRequests(formattedRequests);
+        setLoading(true);
+        const data = await fetchFeatureRequests();
+        setFeatureRequests(data);
       } catch (error) {
         console.error("Error fetching feature requests:", error);
         toast({
@@ -89,7 +31,7 @@ export default function TechFeatureRequests() {
       }
     };
 
-    fetchFeatureRequests();
+    getFeatureRequests();
   }, [toast]);
 
   if (loading) {

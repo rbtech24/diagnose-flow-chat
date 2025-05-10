@@ -1,10 +1,10 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { FeatureRequest, FeatureComment, FeatureRequestStatus, FeatureRequestPriority } from "@/types/feature-request";
+import { FeatureRequest, FeatureComment } from "@/types/feature-request";
 
 /**
  * Fetch feature requests
- * @param status Filter by request status (optional)
+ * @param status Filter by feature status (optional)
  * @param companyId Filter by company ID (optional)
  * @returns Array of feature requests
  */
@@ -12,464 +12,317 @@ export async function fetchFeatureRequests(
   status?: string, 
   companyId?: string
 ): Promise<FeatureRequest[]> {
-  let query = supabase.from('feature_requests').select(`
-    *,
-    created_by_user:user_id(
-      name,
-      email,
-      avatar_url,
-      role
-    )
-  `);
-  
-  // Apply filters if provided
-  if (status) {
-    query = query.eq('status', status);
-  }
-  
-  if (companyId) {
-    query = query.eq('company_id', companyId);
-  }
-  
-  // Order by created_at timestamp (newest first)
-  query = query.order('created_at', { ascending: false });
-  
-  const { data, error } = await query;
-  
-  if (error) {
+  try {
+    let query = supabase.from('feature_requests').select('*');
+    
+    // Apply filters if provided
+    if (status) {
+      query = query.eq('status', status);
+    }
+    
+    if (companyId) {
+      query = query.eq('company_id', companyId);
+    }
+    
+    // Order by created_at timestamp (newest first)
+    query = query.order('created_at', { ascending: false });
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      throw error;
+    }
+    
+    // Transform to expected type with safe defaults
+    return data.map(request => ({
+      id: request.id,
+      title: request.title,
+      description: request.description,
+      status: request.status || 'pending',
+      priority: request.priority || 'medium',
+      company_id: request.company_id,
+      user_id: request.user_id || '',
+      created_at: request.created_at,
+      updated_at: request.updated_at,
+      votes_count: request.votes_count || 0,
+      user_has_voted: request.user_has_voted || false,
+      comments_count: request.comments_count || 0,
+      created_by_user: request.created_by_user ? {
+        name: typeof request.created_by_user === 'object' && request.created_by_user !== null && 'name' in request.created_by_user ? 
+          String(request.created_by_user.name) : 'Unknown User',
+        email: typeof request.created_by_user === 'object' && request.created_by_user !== null && 'email' in request.created_by_user ? 
+          String(request.created_by_user.email) : '',
+        role: typeof request.created_by_user === 'object' && request.created_by_user !== null && 'role' in request.created_by_user && 
+          ['admin', 'company', 'tech'].includes(String(request.created_by_user.role)) ? 
+          String(request.created_by_user.role) as "admin" | "company" | "tech" : 'tech',
+        avatar_url: typeof request.created_by_user === 'object' && request.created_by_user !== null && 'avatar_url' in request.created_by_user ? 
+          String(request.created_by_user.avatar_url) : undefined
+      } : undefined
+    }));
+    
+  } catch (error) {
     console.error('Error fetching feature requests:', error);
     throw error;
   }
-  
-  // Process data to add additional fields we need
-  const requests = await Promise.all((data || []).map(async (item: any) => {
-    // Count votes
-    const { count: votesCount, error: votesError } = await supabase
-      .from('feature_votes')
-      .select('*', { count: 'exact' })
-      .eq('feature_id', item.id);
-      
-    if (votesError) {
-      console.error(`Error counting votes for feature request ${item.id}:`, votesError);
-    }
-    
-    // Count comments
-    const { count: commentsCount, error: commentsError } = await supabase
-      .from('feature_comments')
-      .select('*', { count: 'exact' })
-      .eq('feature_id', item.id);
-      
-    if (commentsError) {
-      console.error(`Error counting comments for feature request ${item.id}:`, commentsError);
-    }
-    
-    // Check if current user has voted
-    const userId = (await supabase.auth.getUser()).data.user?.id;
-    let userHasVoted = false;
-    
-    if (userId) {
-      const { data: voteData, error: userVoteError } = await supabase
-        .from('feature_votes')
-        .select('id')
-        .eq('feature_id', item.id)
-        .eq('user_id', userId)
-        .single();
-        
-      userHasVoted = !!voteData;
-      
-      if (userVoteError && userVoteError.code !== 'PGRST116') { // Not found error is expected
-        console.error(`Error checking if user voted for feature request ${item.id}:`, userVoteError);
-      }
-    }
-    
-    // Ensure we have a valid created_by_user object
-    let createdByUser = {
-      name: 'Unknown User',
-      email: '',
-      role: 'tech' as "admin" | "company" | "tech",
-      avatar_url: undefined
-    };
-    
-    if (item.created_by_user && typeof item.created_by_user === 'object') {
-      // Handle case when created_by_user is an object (successful join)
-      if (!('error' in item.created_by_user)) {
-        const userData = item.created_by_user as Record<string, any>;
-        const userRole = userData.role as string || 'tech';
-        
-        // Validate role is one of the accepted types
-        const validRole = (userRole === 'admin' || userRole === 'company' || userRole === 'tech') ? 
-          userRole as "admin" | "company" | "tech" : 'tech' as "admin" | "company" | "tech";
-        
-        createdByUser = {
-          name: userData.name || 'Unknown User',
-          email: userData.email || '',
-          role: validRole,
-          avatar_url: userData.avatar_url || undefined
-        };
-      }
-    }
-    
-    // Create a properly typed FeatureRequest object
-    const featureRequest: FeatureRequest = {
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      status: (item.status || 'pending') as FeatureRequestStatus,
-      priority: ((item as any).priority || 'medium') as FeatureRequestPriority, // Cast to any to handle missing property
-      company_id: item.company_id,
-      user_id: item.user_id,
-      created_at: item.created_at,
-      updated_at: item.updated_at,
-      votes_count: votesCount || 0,
-      comments_count: commentsCount || 0,
-      user_has_voted: userHasVoted,
-      created_by_user: createdByUser
-    };
-    
-    return featureRequest;
-  }));
-  
-  return requests;
 }
 
 /**
  * Fetch a single feature request by ID
- * @param requestId Feature request ID
+ * @param requestId Request ID
  * @returns Feature request object
  */
 export async function fetchFeatureRequestById(requestId: string): Promise<FeatureRequest> {
-  const { data, error } = await supabase
-    .from('feature_requests')
-    .select(`
-      *,
-      created_by_user:user_id(
-        name,
-        email,
-        avatar_url,
-        role
-      )
-    `)
-    .eq('id', requestId)
-    .single();
-  
-  if (error) {
-    console.error(`Error fetching feature request ${requestId}:`, error);
-    throw error;
-  }
-  
-  // Get votes count
-  const { count: votesCount, error: votesError } = await supabase
-    .from('feature_votes')
-    .select('*', { count: 'exact' })
-    .eq('feature_id', requestId);
+  try {
+    const { data, error } = await supabase
+      .from('feature_requests')
+      .select('*')
+      .eq('id', requestId)
+      .maybeSingle();
     
-  if (votesError) {
-    console.error(`Error counting votes for feature request ${requestId}:`, votesError);
-  }
-  
-  // Get comments count
-  const { count: commentsCount, error: commentsError } = await supabase
-    .from('feature_comments')
-    .select('*', { count: 'exact' })
-    .eq('feature_id', requestId);
+    if (error) {
+      throw error;
+    }
     
-  if (commentsError) {
-    console.error(`Error counting comments for feature request ${requestId}:`, commentsError);
-  }
-  
-  // Check if current user has voted
-  const userId = (await supabase.auth.getUser()).data.user?.id;
-  let userHasVoted = false;
-  
-  if (userId) {
-    const { data: voteData, error: userVoteError } = await supabase
-      .from('feature_votes')
-      .select('id')
-      .eq('feature_id', requestId)
-      .eq('user_id', userId)
-      .single();
+    if (!data) {
+      throw new Error(`Feature request with ID ${requestId} not found`);
+    }
+    
+    // Fetch user data for the created_by_user field
+    let createdByUser;
+    if (data.user_id) {
+      const { data: userData, error: userError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user_id)
+        .maybeSingle();
       
-    userHasVoted = !!voteData;
-    
-    if (userVoteError && userVoteError.code !== 'PGRST116') { // Not found error is expected
-      console.error(`Error checking if user voted for feature request ${requestId}:`, userVoteError);
-    }
-  }
-  
-  // Ensure we have a valid created_by_user object
-  let createdByUser = {
-    name: 'Unknown User',
-    email: '',
-    role: 'user' as "admin" | "company" | "tech",
-    avatar_url: null
-  };
-  
-  if (data.created_by_user && typeof data.created_by_user === 'object') {
-    // Handle case when created_by_user is an object (successful join)
-    if (!('error' in data.created_by_user!)) {
-      const userData = data.created_by_user as Record<string, any>;
-      createdByUser = {
-        name: userData.name || 'Unknown User',
-        email: userData.email || '',
-        role: (userData.role || 'user') as "admin" | "company" | "tech",
-        avatar_url: userData.avatar_url || null
-      };
-    }
-  }
-  
-  // Create a properly typed FeatureRequest object
-  const featureRequest: FeatureRequest = {
-    id: data.id,
-    title: data.title,
-    description: data.description,
-    status: (data.status || 'pending') as FeatureRequestStatus,
-    priority: ((data as any).priority || 'medium') as FeatureRequestPriority, // Cast to any to handle missing property
-    company_id: data.company_id,
-    user_id: data.user_id,
-    created_at: data.created_at,
-    updated_at: data.updated_at,
-    votes_count: votesCount || 0,
-    comments_count: commentsCount || 0,
-    user_has_voted: userHasVoted,
-    created_by_user: createdByUser
-  };
-  
-  return featureRequest;
-}
-
-/**
- * Fetch comments for a specific feature request
- * @param requestId Feature request ID
- * @returns Array of feature comments
- */
-export async function fetchFeatureComments(requestId: string): Promise<FeatureComment[]> {
-  // Use the proper feature_comments table now that it exists
-  const { data, error } = await supabase
-    .from('feature_comments')
-    .select(`
-      *,
-      created_by_user:user_id(
-        name, 
-        email,
-        avatar_url,
-        role
-      )
-    `)
-    .eq('feature_id', requestId)
-    .order('created_at', { ascending: true });
-    
-  if (error) {
-    console.error(`Error fetching comments for feature request ${requestId}:`, error);
-    throw error;
-  }
-  
-  // Process and type the comments
-  const comments = (data || []).map((comment: any) => {
-    // Ensure we have a valid created_by_user object
-    let createdByUser = {
-      name: 'Unknown User',
-      email: '',
-      role: 'user' as "admin" | "company" | "tech",
-      avatar_url: null
-    };
-    
-    if (comment.created_by_user && typeof comment.created_by_user === 'object') {
-      // Handle case when created_by_user is an object (successful join)
-      if (!('error' in comment.created_by_user)) {
-        const userData = comment.created_by_user as Record<string, any>;
+      if (!userError && userData) {
         createdByUser = {
-          name: userData.name || 'Unknown User',
+          name: userData.full_name || 'Unknown User',
           email: userData.email || '',
-          role: (userData.role || 'user') as "admin" | "company" | "tech",
-          avatar_url: userData.avatar_url || null
+          role: (userData.role as "admin" | "company" | "tech") || 'tech',
+          avatar_url: userData.avatar_url
         };
       }
     }
     
+    // Format the response with proper typing
     return {
+      id: data.id,
+      title: data.title,
+      description: data.description,
+      status: data.status || 'pending',
+      priority: data.priority || 'medium',
+      company_id: data.company_id,
+      user_id: data.user_id || '',
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+      votes_count: data.votes_count || 0,
+      user_has_voted: data.user_has_voted || false,
+      comments_count: data.comments_count || 0,
+      created_by_user: createdByUser
+    };
+    
+  } catch (error) {
+    console.error(`Error fetching feature request ${requestId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Fetch comments for a specific feature request
+ * @param requestId Request ID
+ * @returns Array of feature comments
+ */
+export async function fetchFeatureComments(requestId: string): Promise<FeatureComment[]> {
+  try {
+    const { data, error } = await supabase
+      .from('feature_comments')
+      .select(`
+        *,
+        created_by_user:user_id(
+          name,
+          email,
+          avatar_url,
+          role
+        )
+      `)
+      .eq('feature_id', requestId)
+      .order('created_at');
+    
+    if (error) {
+      throw error;
+    }
+    
+    // Format the response with proper typing
+    return data.map(comment => ({
       id: comment.id,
       feature_id: comment.feature_id,
       user_id: comment.user_id,
       content: comment.content,
       created_at: comment.created_at,
-      created_by_user: createdByUser
-    } as FeatureComment;
-  });
-  
-  return comments;
+      created_by_user: comment.created_by_user ? {
+        name: typeof comment.created_by_user === 'object' && comment.created_by_user !== null && 'name' in comment.created_by_user ? 
+          String(comment.created_by_user.name) : 'Unknown User',
+        email: typeof comment.created_by_user === 'object' && comment.created_by_user !== null && 'email' in comment.created_by_user ? 
+          String(comment.created_by_user.email) : '',
+        role: typeof comment.created_by_user === 'object' && comment.created_by_user !== null && 'role' in comment.created_by_user && 
+          ['admin', 'company', 'tech'].includes(String(comment.created_by_user.role)) ? 
+          String(comment.created_by_user.role) as "admin" | "company" | "tech" : 'tech',
+        avatar_url: typeof comment.created_by_user === 'object' && comment.created_by_user !== null && 'avatar_url' in comment.created_by_user ? 
+          String(comment.created_by_user.avatar_url) : undefined
+      } : undefined
+    }));
+    
+  } catch (error) {
+    console.error(`Error fetching comments for feature request ${requestId}:`, error);
+    throw error;
+  }
 }
 
 /**
  * Create a new feature request
- * @param requestData Feature request data
+ * @param requestData Request data to create
  * @returns Created feature request
  */
 export async function createFeatureRequest(requestData: Partial<FeatureRequest>): Promise<FeatureRequest> {
-  // Make sure required fields are present
-  if (!requestData.title || !requestData.description) {
-    throw new Error('Missing required fields for feature request creation');
-  }
-
-  const { data, error } = await supabase
-    .from('feature_requests')
-    .insert({
-      title: requestData.title,
-      description: requestData.description,
-      status: requestData.status || 'pending',
-      priority: requestData.priority || 'medium',
-      user_id: (await supabase.auth.getUser()).data.user?.id,
-      company_id: requestData.company_id
-    })
-    .select()
-    .single();
+  try {
+    // Get current user info
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      throw new Error('You need to be logged in to create a feature request');
+    }
   
-  if (error) {
+    // Make sure required fields are present
+    if (!requestData.title || !requestData.description) {
+      throw new Error('Missing required fields for feature request creation');
+    }
+
+    const { data, error } = await supabase
+      .from('feature_requests')
+      .insert({
+        title: requestData.title,
+        description: requestData.description,
+        status: requestData.status || 'submitted',
+        priority: requestData.priority || 'medium',
+        company_id: requestData.company_id,
+        user_id: userData.user.id
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      throw error;
+    }
+    
+    // Get user profile for created_by_user
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userData.user.id)
+      .single();
+      
+    // Format the response with proper typing
+    return {
+      id: data.id,
+      title: data.title,
+      description: data.description,
+      status: data.status || 'submitted',
+      priority: data.priority || 'medium',
+      company_id: data.company_id,
+      user_id: data.user_id,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+      votes_count: 0,
+      user_has_voted: false,
+      comments_count: 0,
+      created_by_user: profileData ? {
+        name: profileData.full_name || 'Unknown User',
+        email: profileData.email || '',
+        role: (profileData.role as "admin" | "company" | "tech") || 'tech',
+        avatar_url: profileData.avatar_url
+      } : undefined
+    };
+    
+  } catch (error) {
     console.error('Error creating feature request:', error);
     throw error;
   }
-  
-  // Create a properly typed FeatureRequest object
-  const featureRequest: FeatureRequest = {
-    id: data.id,
-    title: data.title,
-    description: data.description,
-    status: (data.status || 'pending') as FeatureRequestStatus,
-    priority: ((data as any).priority || 'medium') as FeatureRequestPriority, // Cast to any to handle missing property
-    company_id: data.company_id,
-    user_id: data.user_id,
-    created_at: data.created_at,
-    updated_at: data.updated_at,
-    votes_count: 0,
-    comments_count: 0,
-    user_has_voted: false,
-    created_by_user: { 
-      name: 'Current User',
-      email: '',
-      role: 'user' as "admin" | "company" | "tech",
-      avatar_url: null
-    }
-  };
-  
-  return featureRequest;
 }
 
 /**
  * Add a comment to a feature request
- * @param commentData Comment data
+ * @param commentData Comment data to add
  * @returns Created comment
  */
-export async function addFeatureComment(commentData: { feature_id: string, content: string }): Promise<FeatureComment> {
-  const userId = (await supabase.auth.getUser()).data.user?.id;
-  
-  if (!userId) {
-    throw new Error('You must be logged in to comment');
-  }
-  
-  const { data, error } = await supabase
-    .from('feature_comments')
-    .insert({
-      feature_id: commentData.feature_id,
-      user_id: userId,
-      content: commentData.content
-    })
-    .select(`
-      *,
-      created_by_user:user_id(
-        name, 
-        email, 
-        avatar_url,
-        role
-      )
-    `)
-    .single();
-  
-  if (error) {
-    console.error('Error adding comment:', error);
-    throw error;
-  }
-  
-  // Ensure we have a valid created_by_user object
-  let createdByUser = {
-    name: 'Current User',
-    email: 'user@example.com',
-    role: 'user' as "admin" | "company" | "tech",
-    avatar_url: null
-  };
-  
-  if (data.created_by_user && typeof data.created_by_user === 'object') {
-    // Handle case when created_by_user is an object (successful join)
-    if (!('error' in data.created_by_user!)) {
-      const userData = data.created_by_user as Record<string, any>;
-      createdByUser = {
-        name: userData.name || 'Current User',
-        email: userData.email || 'user@example.com',
-        role: (userData.role || 'user') as "admin" | "company" | "tech",
-        avatar_url: userData.avatar_url || null
-      };
+export async function addFeatureComment(commentData: { content: string, feature_id: string }): Promise<FeatureComment> {
+  try {
+    // Get current user info
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      throw new Error('You need to be logged in to comment on a feature request');
     }
-  }
   
-  // Create a properly typed FeatureComment object
-  const comment: FeatureComment = {
-    id: data.id,
-    feature_id: data.feature_id,
-    user_id: data.user_id,
-    content: data.content,
-    created_at: data.created_at,
-    created_by_user: createdByUser
-  };
-  
-  return comment;
-}
+    // Make sure required fields are present
+    if (!commentData.content || !commentData.feature_id) {
+      throw new Error('Missing required fields for comment creation');
+    }
 
-/**
- * Vote for a feature request
- * @param featureId Feature request ID
- * @returns True if vote was added, false if already voted
- */
-export async function voteForFeature(featureId: string): Promise<boolean> {
-  const userId = (await supabase.auth.getUser()).data.user?.id;
-  
-  if (!userId) {
-    throw new Error('You must be logged in to vote');
-  }
-  
-  // Check if user already voted
-  const { data: existingVote, error: checkError } = await supabase
-    .from('feature_votes')
-    .select('id')
-    .eq('feature_id', featureId)
-    .eq('user_id', userId)
-    .single();
+    const { data, error } = await supabase
+      .from('feature_comments')
+      .insert({
+        content: commentData.content,
+        feature_id: commentData.feature_id,
+        user_id: userData.user.id
+      })
+      .select()
+      .single();
     
-  if (existingVote) {
-    return false; // User already voted
-  }
-  
-  if (checkError && checkError.code !== 'PGRST116') { // Not found error is expected
-    console.error(`Error checking vote for feature ${featureId}:`, checkError);
-    throw checkError;
-  }
-  
-  // Add vote
-  const { error } = await supabase
-    .from('feature_votes')
-    .insert({
-      feature_id: featureId,
-      user_id: userId
-    });
-  
-  if (error) {
-    console.error(`Error voting for feature ${featureId}:`, error);
+    if (error) {
+      throw error;
+    }
+    
+    // Increment comment count on the feature request
+    await supabase.rpc('increment', {
+      row_id: commentData.feature_id,
+      field_name: 'comments_count',
+      table_name: 'feature_requests'
+    }).then(
+      result => {},
+      err => console.error('Error incrementing comment count:', err)
+    );
+    
+    // Get user profile for created_by_user
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userData.user.id)
+      .single();
+    
+    // Format the response with proper typing
+    return {
+      id: data.id,
+      feature_id: data.feature_id,
+      user_id: data.user_id,
+      content: data.content,
+      created_at: data.created_at,
+      created_by_user: profileData ? {
+        name: profileData.full_name || 'Unknown User',
+        email: profileData.email || '',
+        role: (profileData.role as "admin" | "company" | "tech") || 'tech',
+        avatar_url: profileData.avatar_url
+      } : undefined
+    };
+    
+  } catch (error) {
+    console.error('Error adding feature comment:', error);
     throw error;
   }
-  
-  return true;
 }
 
 /**
  * Update a feature request
- * @param requestId Feature request ID
+ * @param requestId Request ID to update
  * @param updateData Data to update
  * @returns Updated feature request
  */
@@ -477,63 +330,94 @@ export async function updateFeatureRequest(
   requestId: string, 
   updateData: Partial<FeatureRequest>
 ): Promise<FeatureRequest> {
-  const { data, error } = await supabase
-    .from('feature_requests')
-    .update(updateData)
-    .eq('id', requestId)
-    .select(`
-      *,
-      created_by_user:user_id(
-        name,
-        email,
-        avatar_url,
-        role
-      )
-    `)
-    .single();
-  
-  if (error) {
+  try {
+    const { data, error } = await supabase
+      .from('feature_requests')
+      .update(updateData)
+      .eq('id', requestId)
+      .select()
+      .single();
+    
+    if (error) {
+      throw error;
+    }
+    
+    // Format the response with proper typing
+    return {
+      id: data.id,
+      title: data.title,
+      description: data.description,
+      status: data.status || 'pending',
+      priority: data.priority || 'medium',
+      company_id: data.company_id,
+      user_id: data.user_id,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+      votes_count: data.votes_count || 0,
+      user_has_voted: data.user_has_voted || false,
+      comments_count: data.comments_count || 0,
+      created_by_user: data.created_by_user
+    };
+    
+  } catch (error) {
     console.error(`Error updating feature request ${requestId}:`, error);
     throw error;
   }
-  
-  // Ensure we have a valid created_by_user object
-  let createdByUser = {
-    name: 'Unknown User',
-    email: '',
-    role: 'user' as "admin" | "company" | "tech",
-    avatar_url: null
-  };
-  
-  if (data.created_by_user && typeof data.created_by_user === 'object') {
-    // Handle case when created_by_user is an object (successful join)
-    if (!('error' in data.created_by_user!)) {
-      const userData = data.created_by_user as Record<string, any>;
-      createdByUser = {
-        name: userData.name || 'Unknown User',
-        email: userData.email || '',
-        role: (userData.role || 'user') as "admin" | "company" | "tech",
-        avatar_url: userData.avatar_url || null
-      };
+}
+
+/**
+ * Vote for a feature request
+ * @param requestId Request ID to vote for
+ * @returns Boolean indicating if vote was successful
+ */
+export async function voteForFeature(requestId: string): Promise<boolean> {
+  try {
+    // Get current user info
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      throw new Error('You need to be logged in to vote for a feature request');
     }
+    
+    // Check if user has already voted
+    const { data: existingVote, error: checkError } = await supabase
+      .from('feature_votes')
+      .select('*')
+      .eq('feature_id', requestId)
+      .eq('user_id', userData.user.id)
+      .maybeSingle();
+    
+    if (checkError) {
+      throw checkError;
+    }
+    
+    // If user has already voted, return false
+    if (existingVote) {
+      return false;
+    }
+    
+    // Create a new vote
+    const { error: voteError } = await supabase
+      .from('feature_votes')
+      .insert({
+        feature_id: requestId,
+        user_id: userData.user.id
+      });
+    
+    if (voteError) {
+      throw voteError;
+    }
+    
+    // Increment votes count on the feature request
+    await supabase.rpc('increment', {
+      row_id: requestId,
+      field_name: 'votes_count',
+      table_name: 'feature_requests'
+    });
+    
+    return true;
+    
+  } catch (error) {
+    console.error(`Error voting for feature request ${requestId}:`, error);
+    throw error;
   }
-  
-  // Create a properly typed FeatureRequest object
-  const featureRequest: FeatureRequest = {
-    id: data.id,
-    title: data.title,
-    description: data.description,
-    status: (data.status || 'pending') as FeatureRequestStatus,
-    priority: ((data as any).priority || 'medium') as FeatureRequestPriority, // Cast to any to handle missing property
-    company_id: data.company_id,
-    user_id: data.user_id,
-    created_at: data.created_at,
-    updated_at: data.updated_at,
-    votes_count: 0, // We don't have this info from the update query
-    comments_count: 0, // We don't have this info from the update query
-    user_has_voted: false, // We don't have this info from the update query
-    created_by_user: createdByUser
-  };
-  
-  return featureRequest;
 }
