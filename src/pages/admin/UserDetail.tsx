@@ -134,6 +134,12 @@ export default function UserDetail() {
           description: "User deleted successfully"
         });
         navigate("/admin/users");
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to delete user",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error("Error deleting user:", error);
@@ -171,7 +177,7 @@ export default function UserDetail() {
             <CardTitle>User Details</CardTitle>
             <CardDescription>View and manage user information</CardDescription>
           </div>
-          <Badge variant={user.status === 'active' ? 'success' : 'default'}>
+          <Badge variant={user.status === 'active' ? 'outline' : 'secondary'}>
             {user.status}
           </Badge>
         </CardHeader>

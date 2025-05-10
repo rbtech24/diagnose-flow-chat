@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/user';
@@ -9,22 +10,19 @@ interface UserManagementState {
   currentUser: User | null;
   isLoadingUsers: boolean;
   isLoadingCompanies: boolean;
+  isLoadingCurrentUser: boolean;
   fetchUsers: () => Promise<void>;
-  fetchCompanies: () => Promise<void>;
   fetchUserById: (id: string) => Promise<User | null>;
-  fetchCompanyById: (id: string) => Promise<Company | null>;
-  getCurrentUser: () => Promise<User | null>;
-  updateUser: (id: string, userData: Partial<User>) => Promise<void>;
-  updateCompany: (id: string, companyData: Partial<Company>) => Promise<void>;
-  createUser: (userData: Partial<User>) => Promise<User>;
-  createCompany: (companyData: Partial<Company>) => Promise<Company>;
-  // Add missing functions required by components
+  updateUser: (id: string, userData: Partial<User>) => Promise<boolean>;
+  addUser: (userData: Partial<User>) => Promise<User | null>;
   deleteUser: (id: string, email?: string, role?: string) => Promise<boolean>;
   resetUserPassword: (userId: string) => Promise<boolean>;
+  fetchCompanies: () => Promise<void>;
+  fetchCompanyById: (id: string) => Promise<Company | null>;
+  updateCompany: (id: string, companyData: Partial<Company>) => Promise<boolean>;
+  addCompany: (companyData: Partial<Company>) => Promise<Company | null>;
   deleteCompany: (id: string) => Promise<boolean>;
   logout: () => Promise<void>;
-  addUser: (userData: any) => Promise<User>;
-  addCompany: (companyData: any) => Promise<Company>;
 }
 
 export const useUserManagementStore = create<UserManagementState>((set, get) => ({
@@ -33,64 +31,63 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
   currentUser: null,
   isLoadingUsers: false,
   isLoadingCompanies: false,
+  isLoadingCurrentUser: false,
 
   fetchUsers: async () => {
+    set({ isLoadingUsers: true });
     try {
-      set({ isLoadingUsers: true });
-      
-      // Fetch users from the users table
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Fetch users from the API
+      const { data, error } = await supabase.from('technicians').select('*');
       
       if (error) {
-        throw error;
+        console.error('Error fetching users:', error);
+        return;
       }
       
-      const formattedUsers: User[] = data.map(user => ({
+      // Transform data to match User type
+      const users: User[] = data.map(user => ({
         id: user.id,
         name: user.name || '',
         email: user.email || '',
-        role: user.role || 'tech',
-        companyId: user.company_id || undefined,
-        status: user.status || 'active'
+        role: (user.role as 'admin' | 'company' | 'tech') || 'tech',
+        companyId: user.company_id || '',
+        status: user.status || 'inactive',
+        avatarUrl: user.avatar_url || '',
       }));
       
-      set({ users: formattedUsers, isLoadingUsers: false });
-    } catch (err) {
-      console.error('Error fetching users:', err);
+      set({ users, isLoadingUsers: false });
+    } catch (error) {
+      console.error('Error in fetchUsers:', error);
       set({ isLoadingUsers: false });
     }
   },
 
   fetchCompanies: async () => {
+    set({ isLoadingCompanies: true });
     try {
-      set({ isLoadingCompanies: true });
-      
-      // Fetch companies from the companies table
-      const { data, error } = await supabase
-        .from('companies')
-        .select('*')
-        .order('name');
+      // Fetch companies from the API
+      const { data, error } = await supabase.from('companies').select('*');
       
       if (error) {
-        throw error;
+        console.error('Error fetching companies:', error);
+        return;
       }
       
-      const formattedCompanies: Company[] = data.map(company => ({
+      // Transform data to match Company type
+      const companies: Company[] = data.map(company => ({
         id: company.id,
         name: company.name || '',
-        status: company.trial_status || 'active',
-        planName: company.subscription_tier || 'basic',
+        status: (company.status as 'active' | 'trial' | 'expired' | 'inactive') || 'inactive',
+        planName: company.plan_name || '',
+        trial_end_date: company.trial_end_date ? new Date(company.trial_end_date) : undefined,
         trialEndDate: company.trial_end_date ? new Date(company.trial_end_date) : undefined,
-        createdAt: new Date(company.created_at),
-        updatedAt: new Date(company.updated_at)
+        createdAt: company.created_at ? new Date(company.created_at) : new Date(),
+        updatedAt: company.updated_at ? new Date(company.updated_at) : new Date(),
       }));
       
-      set({ companies: formattedCompanies, isLoadingCompanies: false });
-    } catch (err) {
-      console.error('Error fetching companies:', err);
+      set({ companies, isLoadingCompanies: false });
+    } catch (error) {
+      console.error('Error in fetchCompanies:', error);
       set({ isLoadingCompanies: false });
     }
   },
@@ -98,29 +95,30 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
   fetchUserById: async (id: string) => {
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('technicians')
         .select('*')
         .eq('id', id)
-        .maybeSingle();
-      
+        .single();
+
       if (error) {
-        throw error;
-      }
-      
-      if (!data) {
+        console.error('Error fetching user:', error);
         return null;
       }
-      
-      return {
+
+      // Transform to match User type
+      const user: User = {
         id: data.id,
         name: data.name || '',
         email: data.email || '',
-        role: data.role || 'tech',
-        companyId: data.company_id || undefined,
-        status: data.status || 'active'
+        role: (data.role as 'admin' | 'company' | 'tech') || 'tech',
+        companyId: data.company_id || '',
+        status: data.status || 'inactive',
+        avatarUrl: data.avatar_url || '',
       };
-    } catch (err) {
-      console.error('Error fetching user:', err);
+
+      return user;
+    } catch (error) {
+      console.error('Error in fetchUserById:', error);
       return null;
     }
   },
@@ -131,268 +129,244 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         .from('companies')
         .select('*')
         .eq('id', id)
-        .maybeSingle();
-      
-      if (error) {
-        throw error;
-      }
-      
-      if (!data) {
-        return null;
-      }
-      
-      return {
-        id: data.id,
-        name: data.name || '',
-        status: data.trial_status || 'active',
-        planName: data.subscription_tier || 'basic',
-        trialEndDate: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at)
-      };
-    } catch (err) {
-      console.error('Error fetching company:', err);
-      return null;
-    }
-  },
+        .single();
 
-  getCurrentUser: async () => {
-    const currentUser = get().currentUser;
-    
-    if (currentUser) {
-      return currentUser;
-    }
-    
-    try {
-      const { data: authData } = await supabase.auth.getUser();
-      
-      if (!authData.user) {
+      if (error) {
+        console.error('Error fetching company:', error);
         return null;
       }
-      
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', authData.user.id)
-        .maybeSingle();
-      
-      if (error || !data) {
-        return null;
-      }
-      
-      const user: User = {
+
+      // Transform to match Company type
+      const company: Company = {
         id: data.id,
         name: data.name || '',
-        email: data.email || '',
-        role: data.role || 'tech',
-        companyId: data.company_id || undefined,
-        status: data.status || 'active'
+        status: (data.status as 'active' | 'trial' | 'expired' | 'inactive') || 'inactive',
+        planName: data.plan_name || '',
+        trial_end_date: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
+        trialEndDate: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
+        createdAt: data.created_at ? new Date(data.created_at) : new Date(),
+        updatedAt: data.updated_at ? new Date(data.updated_at) : new Date(),
       };
-      
-      set({ currentUser: user });
-      return user;
-    } catch (err) {
-      console.error('Error getting current user:', err);
+
+      return company;
+    } catch (error) {
+      console.error('Error in fetchCompanyById:', error);
       return null;
     }
   },
 
   updateUser: async (id: string, userData: Partial<User>) => {
     try {
-      // Convert User type to database schema
-      const dbUser = {
+      // Transform User type to match database schema
+      const dbData = {
         name: userData.name,
         email: userData.email,
         role: userData.role,
         company_id: userData.companyId,
         status: userData.status,
+        avatar_url: userData.avatarUrl,
       };
-      
+
       const { error } = await supabase
-        .from('users')
-        .update(dbUser)
+        .from('technicians')
+        .update(dbData)
         .eq('id', id);
-      
+
       if (error) {
-        throw error;
+        console.error('Error updating user:', error);
+        return false;
       }
-      
+
       // Update local state
-      set(state => ({
-        users: state.users.map(user => 
-          user.id === id ? { ...user, ...userData } : user
-        ),
-        currentUser: state.currentUser?.id === id 
-          ? { ...state.currentUser, ...userData }
-          : state.currentUser
-      }));
-    } catch (err) {
-      console.error('Error updating user:', err);
-      throw err;
+      const users = get().users;
+      const updatedUsers = users.map(user => 
+        user.id === id ? { ...user, ...userData } : user
+      );
+      set({ users: updatedUsers });
+
+      return true;
+    } catch (error) {
+      console.error('Error in updateUser:', error);
+      return false;
     }
   },
 
   updateCompany: async (id: string, companyData: Partial<Company>) => {
     try {
-      // Convert Company type to database schema
-      const dbCompany = {
+      // Transform Company type to match database schema
+      const dbData = {
         name: companyData.name,
-        trial_status: companyData.status,
-        subscription_tier: companyData.planName,
-        trial_end_date: companyData.trialEndDate
+        status: companyData.status,
+        plan_name: companyData.planName,
+        trial_end_date: companyData.trial_end_date instanceof Date 
+          ? companyData.trial_end_date.toISOString() 
+          : companyData.trial_end_date,
       };
-      
+
       const { error } = await supabase
         .from('companies')
-        .update(dbCompany)
+        .update(dbData)
         .eq('id', id);
-      
+
       if (error) {
-        throw error;
+        console.error('Error updating company:', error);
+        return false;
       }
-      
+
       // Update local state
-      set(state => ({
-        companies: state.companies.map(company => 
-          company.id === id ? { ...company, ...companyData } : company
-        )
-      }));
-    } catch (err) {
-      console.error('Error updating company:', err);
-      throw err;
+      const companies = get().companies;
+      const updatedCompanies = companies.map(company => 
+        company.id === id ? { ...company, ...companyData } : company
+      );
+      set({ companies: updatedCompanies });
+
+      return true;
+    } catch (error) {
+      console.error('Error in updateCompany:', error);
+      return false;
     }
   },
 
-  createUser: async (userData: Partial<User>) => {
+  addUser: async (userData: Partial<User>) => {
     try {
-      if (!userData.email || !userData.role) {
-        throw new Error('Email and role are required');
+      // Check for required fields
+      if (!userData.email || !userData.name || !userData.role) {
+        console.error('Missing required fields for user creation');
+        return null;
       }
-      
-      // Convert User type to database schema
-      const dbUser = {
+
+      // Transform User type to match database schema
+      const newUser = {
         name: userData.name,
         email: userData.email,
         role: userData.role,
         company_id: userData.companyId,
         status: userData.status || 'active',
       };
-      
+
+      // Generate UUID for new user
+      const uuid = crypto.randomUUID();
+
       const { data, error } = await supabase
-        .from('users')
-        .insert(dbUser)
+        .from('technicians')
+        .insert([{ ...newUser, id: uuid }])
         .select()
         .single();
-      
+
       if (error) {
-        throw error;
+        console.error('Error creating user:', error);
+        return null;
       }
-      
-      const newUser: User = {
+
+      // Transform response to User type
+      const createdUser: User = {
         id: data.id,
         name: data.name || '',
-        email: data.email,
-        role: data.role,
-        companyId: data.company_id,
-        status: data.status
+        email: data.email || '',
+        role: (data.role as 'admin' | 'company' | 'tech') || 'tech',
+        companyId: data.company_id || '',
+        status: data.status || 'inactive',
+        avatarUrl: data.avatar_url || '',
       };
-      
+
       // Update local state
-      set(state => ({
-        users: [...state.users, newUser]
-      }));
-      
-      return newUser;
-    } catch (err) {
-      console.error('Error creating user:', err);
-      throw err;
+      const users = get().users;
+      set({ users: [...users, createdUser] });
+
+      return createdUser;
+    } catch (error) {
+      console.error('Error in addUser:', error);
+      return null;
     }
   },
 
-  createCompany: async (companyData: Partial<Company>) => {
+  addCompany: async (companyData: Partial<Company>) => {
     try {
+      // Check for required fields
       if (!companyData.name) {
-        throw new Error('Company name is required');
+        console.error('Missing required fields for company creation');
+        return null;
       }
-      
-      // Convert Company type to database schema
-      const dbCompany = {
+
+      // Transform Company type to match database schema
+      const newCompany = {
         name: companyData.name,
         trial_status: companyData.status || 'active',
         subscription_tier: companyData.planName || 'basic',
-        trial_end_date: companyData.trialEndDate,
-        trial_period: 30
+        trial_end_date: companyData.trial_end_date instanceof Date
+          ? companyData.trial_end_date.toISOString()
+          : companyData.trial_end_date,
       };
-      
+
       const { data, error } = await supabase
         .from('companies')
-        .insert(dbCompany)
+        .insert([newCompany])
         .select()
         .single();
-      
+
       if (error) {
-        throw error;
+        console.error('Error creating company:', error);
+        return null;
       }
-      
-      const newCompany: Company = {
+
+      // Transform response to Company type
+      const createdCompany: Company = {
         id: data.id,
-        name: data.name,
-        status: data.trial_status || 'active',
-        planName: data.subscription_tier || 'basic',
+        name: data.name || '',
+        status: (data.status as 'active' | 'trial' | 'expired' | 'inactive') || 'inactive',
+        planName: data.plan_name || '',
+        trial_end_date: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
         trialEndDate: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at)
+        createdAt: data.created_at ? new Date(data.created_at) : new Date(),
+        updatedAt: data.updated_at ? new Date(data.updated_at) : new Date(),
       };
-      
+
       // Update local state
-      set(state => ({
-        companies: [...state.companies, newCompany]
-      }));
-      
-      return newCompany;
-    } catch (err) {
-      console.error('Error creating company:', err);
-      throw err;
+      const companies = get().companies;
+      set({ companies: [...companies, createdCompany] });
+
+      return createdCompany;
+    } catch (error) {
+      console.error('Error in addCompany:', error);
+      return null;
     }
   },
 
-  // Implement missing functions used by components
   deleteUser: async (id: string, email?: string, role?: string) => {
     try {
       const { error } = await supabase
-        .from('users')
+        .from('technicians')
         .delete()
         .eq('id', id);
-      
+
       if (error) {
-        throw error;
+        console.error('Error deleting user:', error);
+        return false;
       }
-      
+
       // Update local state
-      set(state => ({
-        users: state.users.filter(user => user.id !== id)
-      }));
-      
+      const users = get().users.filter(user => user.id !== id);
+      set({ users });
+
       return true;
-    } catch (err) {
-      console.error('Error deleting user:', err);
+    } catch (error) {
+      console.error('Error in deleteUser:', error);
       return false;
     }
   },
 
   resetUserPassword: async (userId: string) => {
     try {
-      // In a real implementation, this would send a password reset link
-      // For now, we'll just simulate success
-      console.log(`Password reset requested for user ${userId}`);
+      const { data, error } = await supabase.auth.resetPasswordForEmail(userId);
       
-      // You might make a real API call to your backend that handles password resets
-      // const { error } = await supabase.auth.admin.resetPassword(userId);
-      // if (error) throw error;
-      
+      if (error) {
+        console.error('Error resetting password:', error);
+        return false;
+      }
+
       return true;
-    } catch (err) {
-      console.error('Error resetting password:', err);
+    } catch (error) {
+      console.error('Error in resetUserPassword:', error);
       return false;
     }
   },
@@ -403,40 +377,36 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         .from('companies')
         .delete()
         .eq('id', id);
-      
+
       if (error) {
-        throw error;
+        console.error('Error deleting company:', error);
+        return false;
       }
-      
+
       // Update local state
-      set(state => ({
-        companies: state.companies.filter(company => company.id !== id)
-      }));
-      
+      const companies = get().companies.filter(company => company.id !== id);
+      set({ companies });
+
       return true;
-    } catch (err) {
-      console.error('Error deleting company:', err);
+    } catch (error) {
+      console.error('Error in deleteCompany:', error);
       return false;
     }
   },
 
   logout: async () => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Error logging out:', error);
+        return;
+      }
+
+      // Clear current user
       set({ currentUser: null });
-    } catch (err) {
-      console.error('Error logging out:', err);
-      throw err;
+    } catch (error) {
+      console.error('Error in logout:', error);
     }
-  },
-
-  addUser: async (userData: any) => {
-    // This is just a pass-through to createUser
-    return await get().createUser(userData);
-  },
-
-  addCompany: async (companyData: any) => {
-    // This is just a pass-through to createCompany
-    return await get().createCompany(companyData);
   }
 }));

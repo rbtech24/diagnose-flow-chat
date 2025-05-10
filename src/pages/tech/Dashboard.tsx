@@ -1,10 +1,12 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   Clock, CheckCircle, AlertTriangle, Search,
-  Timer, Wrench, Percent, PlusCircle
+  Timer, Wrench, Percent, PlusCircle, 
+  MessageSquare, FileText, Calendar, Settings
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -39,6 +41,14 @@ export default function TechnicianDashboard() {
     averageResponseTime: "0 hrs",
     firstTimeFixRate: "0%"
   });
+
+  // State for quick links and notifications
+  const [quickLinks, setQuickLinks] = useState([
+    { title: "Support Tickets", icon: <MessageSquare className="h-4 w-4" />, path: "/tech/support", count: 0 },
+    { title: "Feature Requests", icon: <FileText className="h-4 w-4" />, path: "/tech/feature-requests", count: 0 },
+    { title: "Community Posts", icon: <MessageSquare className="h-4 w-4" />, path: "/tech/community", count: 0 },
+    { title: "Calendar", icon: <Calendar className="h-4 w-4" />, path: "/tech/calendar", count: 0 },
+  ]);
 
   // Form state
   const [newAppointment, setNewAppointment] = useState({
@@ -75,14 +85,14 @@ export default function TechnicianDashboard() {
           toast.error("Failed to load appointments");
         } else {
           // Transform the data to match our component structure
-          const formattedAppointments = appointmentsData.map(item => ({
+          const formattedAppointments = appointmentsData?.map(item => ({
             id: item.id,
             time: new Date(item.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             isCurrent: item.status === 'in_progress',
             title: item.diagnosis || 'Repair Visit',
             customer: item.customers ? `${item.customers.first_name} ${item.customers.last_name}` : 'Customer',
             address: item.customers?.service_addresses?.[0]?.address || 'No address provided'
-          }));
+          })) || [];
           
           setAppointments(formattedAppointments);
         }
@@ -124,6 +134,33 @@ export default function TechnicianDashboard() {
               "N/A"
           });
         }
+
+        // Fetch quick links counts
+        const { count: supportCount } = await supabase
+          .from('support_tickets')
+          .select('id', { count: 'exact', head: true })
+          .eq('technician_id', currentUser.id)
+          .eq('status', 'open');
+
+        const { count: featureCount } = await supabase
+          .from('feature_requests')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', currentUser.id);
+
+        const { count: communityCount } = await supabase
+          .from('community_posts')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', currentUser.id)
+          .is('resolved', false);
+
+        // Update quick links
+        setQuickLinks(links => links.map(link => {
+          if (link.title === "Support Tickets") return {...link, count: supportCount || 0};
+          if (link.title === "Feature Requests") return {...link, count: featureCount || 0};
+          if (link.title === "Community Posts") return {...link, count: communityCount || 0};
+          return link;
+        }));
+
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
         toast.error("Failed to load dashboard data");
@@ -290,6 +327,30 @@ export default function TechnicianDashboard() {
         </Card>
       </div>
       
+      {/* Quick Links Section */}
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold mb-4">Quick Links</h2>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {quickLinks.map((link, index) => (
+            <Card key={index} className="hover:bg-gray-50 transition-colors">
+              <Link to={link.path} className="block p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    {link.icon}
+                    <span className="ml-2 font-medium">{link.title}</span>
+                  </div>
+                  {link.count > 0 && (
+                    <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-blue-600 rounded-full">
+                      {link.count}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            </Card>
+          ))}
+        </div>
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <Card>
           <CardHeader className="pb-2">
@@ -453,6 +514,87 @@ export default function TechnicianDashboard() {
             </div>
           </CardContent>
         </Card>
+      </div>
+      
+      {/* Additional Resources Section */}
+      <div className="mt-8">
+        <h2 className="text-lg font-semibold mb-4">Resources</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Support Resources</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <Link to="/tech/support" className="text-blue-600 hover:underline flex items-center">
+                    <MessageSquare className="h-3 w-3 mr-2" /> Contact Support
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/tech/community" className="text-blue-600 hover:underline flex items-center">
+                    <MessageSquare className="h-3 w-3 mr-2" /> Community Forums
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/help-center" className="text-blue-600 hover:underline flex items-center">
+                    <FileText className="h-3 w-3 mr-2" /> Knowledge Base
+                  </Link>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Training Materials</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <Link to="/tech/training" className="text-blue-600 hover:underline flex items-center">
+                    <FileText className="h-3 w-3 mr-2" /> Repair Guides
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/tech/videos" className="text-blue-600 hover:underline flex items-center">
+                    <FileText className="h-3 w-3 mr-2" /> Training Videos
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/tech/certifications" className="text-blue-600 hover:underline flex items-center">
+                    <FileText className="h-3 w-3 mr-2" /> Certification Programs
+                  </Link>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Account Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <Link to="/tech/profile" className="text-blue-600 hover:underline flex items-center">
+                    <Settings className="h-3 w-3 mr-2" /> Profile Settings
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/tech/notifications" className="text-blue-600 hover:underline flex items-center">
+                    <Settings className="h-3 w-3 mr-2" /> Notification Preferences
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/tech/support" className="text-blue-600 hover:underline flex items-center">
+                    <MessageSquare className="h-3 w-3 mr-2" /> Request Help
+                  </Link>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
