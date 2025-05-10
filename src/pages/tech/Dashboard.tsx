@@ -123,7 +123,7 @@ export default function TechnicianDashboard() {
         logEvent('user', 'Dashboard viewed');
         
         // Helper function to fetch active repairs - use explicit return type to avoid deep instantiation
-        const fetchActiveRepairs = async (techId: string): Promise<SupabaseResponse<RepairData[]>> => {
+        const fetchActiveRepairs = async (techId: string): Promise<{data: RepairData[] | null, error: any}> => {
           try {
             return await supabase
               .from('repairs')
@@ -138,7 +138,7 @@ export default function TechnicianDashboard() {
         };
 
         // Helper function to fetch customer - use explicit return type to avoid deep instantiation
-        const fetchCustomer = async (customerId: string): Promise<SupabaseResponse<CustomerData>> => {
+        const fetchCustomer = async (customerId: string): Promise<{data: CustomerData | null, error: any}> => {
           try {
             return await supabase
               .from('customers')
