@@ -49,6 +49,10 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   fetchPlans: async () => {
     set({ isLoadingPlans: true, error: null });
     try {
+      // Since there is no subscription_plans table yet in Supabase, we'll use mock data
+      // If you create the table later, you can uncomment the database code
+      
+      /*
       const { data, error } = await supabase
         .from('subscription_plans')
         .select('*')
@@ -78,6 +82,10 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
         createdAt: new Date(plan.created_at),
         updatedAt: new Date(plan.updated_at)
       })) as SubscriptionPlan[];
+      */
+      
+      // Use mock plans instead
+      const plans = mockSubscriptionPlans;
       
       set({ plans, isLoadingPlans: false });
       return plans;
@@ -92,7 +100,10 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   fetchLicenses: async (companyId: string) => {
     set({ isLoadingLicenses: true, error: null });
     try {
-      // Instead of using rpc, we'll use regular table select
+      // Since there is no licenses table yet in Supabase, we'll use mock data
+      // If you create the table later, you can uncomment the database code
+      
+      /*
       const { data, error } = await supabase
         .from('licenses')
         .select('*')
@@ -117,6 +128,10 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
         createdAt: new Date(license.created_at),
         updatedAt: new Date(license.updated_at)
       })) as License[];
+      */
+      
+      // Use mock licenses filtered by company ID
+      const licenses = mockLicenses.filter(license => license.company_id === companyId);
       
       set({ licenses, isLoadingLicenses: false });
       return licenses;
@@ -130,6 +145,10 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   // Fetch a single license by ID
   fetchLicenseById: async (licenseId: string) => {
     try {
+      // Since there is no licenses table yet in Supabase, we'll use mock data
+      // If you create the table later, you can uncomment the database code
+      
+      /*
       const { data, error } = await supabase
         .from('licenses')
         .select('*')
@@ -155,6 +174,10 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at)
       } as License;
+      */
+      
+      // Find the license in mock data
+      const license = mockLicenses.find(license => license.id === licenseId) || null;
       
       return license;
     } catch (error) {
@@ -168,7 +191,10 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   fetchPayments: async (licenseId: string) => {
     set({ isLoadingPayments: true, error: null });
     try {
-      // Instead of using rpc, we'll use regular table select
+      // Since there is no license_payments table yet in Supabase, we'll use mock data
+      // If you create the table later, you can uncomment the database code
+      
+      /*
       const { data, error } = await supabase
         .from('license_payments')
         .select('*')
@@ -189,6 +215,10 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
         invoiceUrl: payment.invoice_url,
         createdAt: new Date(payment.created_at)
       })) as Payment[];
+      */
+      
+      // Use mock payments filtered by license ID
+      const payments = mockPayments.filter(payment => payment.license_id === licenseId);
       
       set({ payments, isLoadingPayments: false });
       return payments;
@@ -325,6 +355,3 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
     return get().cancelLicense(licenseId);
   }
 }));
-
-// Exporting the plan and license types for use elsewhere
-export type { SubscriptionPlan, License, Payment };

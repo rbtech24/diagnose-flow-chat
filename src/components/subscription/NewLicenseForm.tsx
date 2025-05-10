@@ -17,8 +17,8 @@ export function NewLicenseForm({
   onCancel
 }: NewLicenseFormProps) {
   // Use the getActivePlans function from our store
-  const { plans } = useSubscriptionStore();
-  const activePlans = plans.filter(plan => plan.is_active);
+  const { plans, getActivePlans } = useSubscriptionStore();
+  const activePlans = getActivePlans();
   
   const [companyName, setCompanyName] = useState("");
   const [companyId, setCompanyId] = useState("");

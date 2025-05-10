@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,12 +22,12 @@ export function SubscriptionPlanForm({
 }: SubscriptionPlanFormProps) {
   const [name, setName] = useState(initialData?.name || "");
   const [description, setDescription] = useState(initialData?.description || "");
-  const [monthlyPrice, setMonthlyPrice] = useState(initialData?.monthlyPrice.toString() || "0");
-  const [yearlyPrice, setYearlyPrice] = useState(initialData?.yearlyPrice.toString() || "0");
-  const [maxTechnicians, setMaxTechnicians] = useState(initialData?.maxTechnicians.toString() || "5");
-  const [maxAdmins, setMaxAdmins] = useState(initialData?.maxAdmins.toString() || "1");
-  const [dailyDiagnostics, setDailyDiagnostics] = useState(initialData?.dailyDiagnostics.toString() || "20");
-  const [storageLimit, setStorageLimit] = useState(initialData?.storageLimit.toString() || "10");
+  const [monthlyPrice, setMonthlyPrice] = useState(initialData?.price_monthly.toString() || "0");
+  const [yearlyPrice, setYearlyPrice] = useState(initialData?.price_yearly.toString() || "0");
+  const [maxTechnicians, setMaxTechnicians] = useState(initialData?.limits?.technicians?.toString() || "5");
+  const [maxAdmins, setMaxAdmins] = useState(initialData?.limits?.admins?.toString() || "1");
+  const [dailyDiagnostics, setDailyDiagnostics] = useState(initialData?.limits?.diagnostics_per_day?.toString() || "20");
+  const [storageLimit, setStorageLimit] = useState(initialData?.limits?.storage_gb?.toString() || "10");
   const [features, setFeatures] = useState<string[]>(initialData?.features || [
     "Basic AI diagnostics",
     "Mobile app access",
@@ -34,8 +35,8 @@ export function SubscriptionPlanForm({
     "Email support"
   ]);
   const [newFeature, setNewFeature] = useState("");
-  const [trialPeriod, setTrialPeriod] = useState(initialData?.trialPeriod.toString() || "14");
-  const [isActive, setIsActive] = useState(initialData?.isActive !== false);
+  const [trialPeriod, setTrialPeriod] = useState(initialData?.trial_period.toString() || "14");
+  const [isActive, setIsActive] = useState(initialData?.is_active !== false);
 
   const handleAddFeature = () => {
     if (newFeature.trim()) {
@@ -53,19 +54,21 @@ export function SubscriptionPlanForm({
       id: initialData?.id || `plan-${Date.now()}`,
       name,
       description,
-      monthlyPrice: parseFloat(monthlyPrice) || 0,
-      yearlyPrice: parseFloat(yearlyPrice) || 0,
-      maxTechnicians: parseInt(maxTechnicians) || 1,
-      maxAdmins: parseInt(maxAdmins) || 1,
-      dailyDiagnostics: parseInt(dailyDiagnostics) || 0,
-      storageLimit: parseInt(storageLimit) || 0,
+      price_monthly: parseFloat(monthlyPrice) || 0,
+      price_yearly: parseFloat(yearlyPrice) || 0,
+      limits: {
+        technicians: parseInt(maxTechnicians) || 1,
+        admins: parseInt(maxAdmins) || 1,
+        workflows: 10,
+        storage_gb: parseInt(storageLimit) || 0,
+        api_calls: 1000,
+        diagnostics_per_day: parseInt(dailyDiagnostics) || 0
+      },
       features,
-      trialPeriod: parseInt(trialPeriod) || 14,
-      isActive,
+      trial_period: parseInt(trialPeriod) || 14,
+      is_active: isActive,
       createdAt: initialData?.createdAt || new Date(),
-      updatedAt: new Date(),
-      price: 0,
-      billingCycle: 'monthly'
+      updatedAt: new Date()
     };
     
     onSubmit(plan);
