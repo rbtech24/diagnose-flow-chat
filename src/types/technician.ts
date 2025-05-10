@@ -9,3 +9,7 @@ export type Technician = {
   avatarUrl?: string;
   activeJobs: number;
 };
+
+export interface TechnicianWithUserInfo extends Technician {
+  avatar_url?: string; // This is used in the useCompanyTechnicians hook
+}
