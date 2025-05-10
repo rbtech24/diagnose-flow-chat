@@ -99,7 +99,6 @@ export async function fetchFeatureRequestById(requestId: string): Promise<Featur
       if (!userError && userData) {
         createdByUser = {
           name: userData.full_name || 'Unknown User',
-          // The profile table doesn't have an email field
           email: '',
           role: (userData.role as "admin" | "company" | "tech") || 'tech',
           avatar_url: userData.avatar_url
@@ -155,7 +154,7 @@ export async function fetchFeatureComments(requestId: string): Promise<FeatureCo
       throw error;
     }
     
-    // Format the response with proper typing
+    // Format the response with proper typing, handling null checks
     return data.map(comment => ({
       id: comment.id,
       feature_id: comment.feature_id,
@@ -163,16 +162,21 @@ export async function fetchFeatureComments(requestId: string): Promise<FeatureCo
       content: comment.content,
       created_at: comment.created_at,
       created_by_user: comment.created_by_user ? {
-        name: comment.created_by_user && typeof comment.created_by_user === 'object' && 'name' in comment.created_by_user ? 
-          String(comment.created_by_user.name) : 'Unknown User',
-        email: comment.created_by_user && typeof comment.created_by_user === 'object' && 'email' in comment.created_by_user ? 
-          String(comment.created_by_user.email) : '',
-        role: comment.created_by_user && typeof comment.created_by_user === 'object' && 'role' in comment.created_by_user && 
-          ['admin', 'company', 'tech'].includes(String(comment.created_by_user.role)) ? 
-          String(comment.created_by_user.role) as "admin" | "company" | "tech" : 'tech',
-        avatar_url: comment.created_by_user && typeof comment.created_by_user === 'object' && 'avatar_url' in comment.created_by_user ? 
-          String(comment.created_by_user.avatar_url) : undefined
-      } : undefined
+        name: comment.created_by_user && typeof comment.created_by_user === 'object' && comment.created_by_user !== null && 'name' in comment.created_by_user ? 
+          String(comment.created_by_user.name || 'Unknown User') : 'Unknown User',
+        email: comment.created_by_user && typeof comment.created_by_user === 'object' && comment.created_by_user !== null && 'email' in comment.created_by_user ? 
+          String(comment.created_by_user.email || '') : '',
+        role: comment.created_by_user && typeof comment.created_by_user === 'object' && comment.created_by_user !== null && 'role' in comment.created_by_user && 
+          ['admin', 'company', 'tech'].includes(String(comment.created_by_user.role || 'tech')) ? 
+          String(comment.created_by_user.role || 'tech') as "admin" | "company" | "tech" : 'tech',
+        avatar_url: comment.created_by_user && typeof comment.created_by_user === 'object' && comment.created_by_user !== null && 'avatar_url' in comment.created_by_user ? 
+          String(comment.created_by_user.avatar_url || undefined) : undefined
+      } : {
+        name: 'Unknown User',
+        email: '',
+        role: 'tech' as "admin" | "company" | "tech",
+        avatar_url: undefined
+      }
     }));
     
   } catch (error) {
@@ -239,7 +243,6 @@ export async function createFeatureRequest(requestData: Partial<FeatureRequest>)
       comments_count: 0,
       created_by_user: profileData ? {
         name: profileData.full_name || 'Unknown User',
-        // The profile table doesn't have an email field
         email: '',
         role: (profileData.role as "admin" | "company" | "tech") || 'tech',
         avatar_url: profileData.avatar_url
@@ -310,11 +313,15 @@ export async function addFeatureComment(commentData: { content: string, feature_
       created_at: data.created_at,
       created_by_user: profileData ? {
         name: profileData.full_name || 'Unknown User',
-        // The profile table doesn't have an email field
         email: '',
         role: (profileData.role as "admin" | "company" | "tech") || 'tech',
         avatar_url: profileData.avatar_url
-      } : undefined
+      } : {
+        name: 'Unknown User',
+        email: '',
+        role: 'tech' as "admin" | "company" | "tech",
+        avatar_url: undefined
+      }
     };
     
   } catch (error) {
@@ -359,14 +366,15 @@ export async function updateFeatureRequest(
       votes_count: data.votes_count || 0,
       user_has_voted: data.user_has_voted || false,
       comments_count: data.comments_count || 0,
-      created_by_user: data.created_by_user ? (typeof data.created_by_user === 'object' ? {
-        name: 'name' in data.created_by_user ? String(data.created_by_user.name) : 'Unknown User',
-        email: 'email' in data.created_by_user ? String(data.created_by_user.email) : '',
-        role: 'role' in data.created_by_user && 
-          ['admin', 'company', 'tech'].includes(String(data.created_by_user.role)) ? 
-          String(data.created_by_user.role) as "admin" | "company" | "tech" : 'tech',
-        avatar_url: 'avatar_url' in data.created_by_user ? String(data.created_by_user.avatar_url) : undefined
-      } : undefined) : undefined
+      created_by_user: data.created_by_user ? 
+        (typeof data.created_by_user === 'object' && data.created_by_user !== null ? {
+          name: 'name' in data.created_by_user ? String(data.created_by_user.name) : 'Unknown User',
+          email: 'email' in data.created_by_user ? String(data.created_by_user.email) : '',
+          role: 'role' in data.created_by_user && 
+            ['admin', 'company', 'tech'].includes(String(data.created_by_user.role)) ? 
+            String(data.created_by_user.role) as "admin" | "company" | "tech" : 'tech',
+          avatar_url: 'avatar_url' in data.created_by_user ? String(data.created_by_user.avatar_url) : undefined
+        } : undefined) : undefined
     };
     
   } catch (error) {

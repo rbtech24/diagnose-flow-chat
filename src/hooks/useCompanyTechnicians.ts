@@ -1,16 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
-
-interface Technician {
-  id: string;
-  name: string;
-  email?: string;
-  status: 'active' | 'offline';
-  role: string;
-  avatar_url?: string;
-  activeJobs: number;
-}
+import { Technician } from '@/types/technician';
 
 interface CompanyMetrics {
   activeJobs: number;
@@ -279,8 +270,9 @@ export function useCompanyTechnicians() {
                 ...tech,
                 name: profileData?.full_name || tech.email?.split('@')[0] || 'Unknown',
                 avatar_url: profileData?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(profileData?.full_name || tech.email || 'User')}`,
-                activeJobs: activeJobsCount || 0
-              };
+                activeJobs: activeJobsCount || 0,
+                status: (tech.status === 'active' || tech.status === 'offline') ? tech.status : 'offline'
+              } as Technician;
             })
           );
           

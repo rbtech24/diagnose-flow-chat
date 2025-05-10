@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -57,15 +58,21 @@ export default function CompanyDetail() {
   };
 
   const handleSelectChange = (value: string) => {
-    setUpdatedData(prev => ({ ...prev, status: value }));
+    // Ensure value is one of the allowed status types
+    const statusValue = ['active', 'inactive', 'trial', 'suspended'].includes(value) ? 
+      value as 'active' | 'inactive' | 'trial' | 'suspended' : 
+      'active';
+    
+    setUpdatedData(prev => ({ ...prev, status: statusValue }));
   };
 
   const handleDateChange = (date: Date | undefined) => {
-    setUpdatedData(prev => ({ ...prev, trialEndDate: date }));
+    setUpdatedData(prev => ({ ...prev, trial_end_date: date }));
   };
 
   const handleCheckboxChange = (checked: boolean) => {
-    setUpdatedData(prev => ({ ...prev, status: checked ? 'active' : 'inactive' }));
+    const statusValue = checked ? 'active' as const : 'inactive' as const;
+    setUpdatedData(prev => ({ ...prev, status: statusValue }));
   };
 
   const enableEditing = () => {
@@ -81,13 +88,16 @@ export default function CompanyDetail() {
     if (!company) return;
 
     try {
-      await updateCompany(company.id, updatedData);
-      toast({
-        title: "Success",
-        description: "Company updated successfully",
-      });
-      setCompany({ ...company, ...updatedData });
-      setIsEditing(false);
+      const result = await updateCompany(company.id, updatedData);
+      
+      if (result) {
+        toast({
+          title: "Success",
+          description: "Company updated successfully",
+        });
+        setCompany({ ...company, ...updatedData });
+        setIsEditing(false);
+      }
     } catch (error) {
       console.error("Error updating company", error);
       toast({
@@ -110,12 +120,15 @@ export default function CompanyDetail() {
     if (!company) return;
 
     try {
-      await deleteCompany(company.id);
-      toast({
-        title: "Success",
-        description: "Company deleted successfully",
-      });
-      navigate("/admin/companies");
+      const result = await deleteCompany(company.id);
+      
+      if (result) {
+        toast({
+          title: "Success",
+          description: "Company deleted successfully",
+        });
+        navigate("/admin/companies");
+      }
     } catch (error) {
       console.error("Error deleting company", error);
       toast({
@@ -183,7 +196,7 @@ export default function CompanyDetail() {
               />
             </div>
             <div>
-              <Label htmlFor="trialEndDate">Trial End Date</Label>
+              <Label htmlFor="trial_end_date">Trial End Date</Label>
               {isEditing ? (
                 <Popover>
                   <PopoverTrigger asChild>
@@ -191,11 +204,11 @@ export default function CompanyDetail() {
                       variant={"outline"}
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !updatedData.trialEndDate && "text-muted-foreground"
+                        !updatedData.trial_end_date && "text-muted-foreground"
                       )}
                     >
-                      {updatedData.trialEndDate ? (
-                        format(new Date(updatedData.trialEndDate), "PPP")
+                      {updatedData.trial_end_date ? (
+                        format(new Date(updatedData.trial_end_date), "PPP")
                       ) : (
                         <span>Pick a date</span>
                       )}
@@ -204,7 +217,7 @@ export default function CompanyDetail() {
                   <PopoverContent className="w-auto p-0" align="center" side="bottom">
                     <Calendar
                       mode="single"
-                      selected={updatedData.trialEndDate ? new Date(updatedData.trialEndDate) : undefined}
+                      selected={updatedData.trial_end_date ? new Date(updatedData.trial_end_date) : undefined}
                       onSelect={handleDateChange}
                       disabled={(date) =>
                         date < new Date()
@@ -216,8 +229,8 @@ export default function CompanyDetail() {
               ) : (
                 <Input
                   type="text"
-                  id="trialEndDate"
-                  value={updatedData.trialEndDate ? format(new Date(updatedData.trialEndDate), "PPP") : 'No Trial'}
+                  id="trial_end_date"
+                  value={updatedData.trial_end_date ? format(new Date(updatedData.trial_end_date), "PPP") : 'No Trial'}
                   disabled
                 />
               )}
@@ -229,11 +242,7 @@ export default function CompanyDetail() {
             <Checkbox
               id="active"
               checked={updatedData.status === 'active'}
-              onCheckedChange={(checked) => {
-                if (checked !== undefined) {
-                  handleCheckboxChange(checked);
-                }
-              }}
+              onCheckedChange={handleCheckboxChange}
               disabled={!isEditing}
             />
           </div>
