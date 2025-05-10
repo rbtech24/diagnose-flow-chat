@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { NewFeatureRequestForm } from "@/components/feature-request/NewFeatureRequestForm";
-import { FeatureRequestStatus, FeatureRequestPriority } from "@/types/feature-request";
+import { FeatureRequestStatus, FeatureRequestPriority } from "@/types/community";
 
 export default function NewFeatureRequest() {
   const navigate = useNavigate();
@@ -46,7 +46,9 @@ export default function NewFeatureRequest() {
             name: userDetails.full_name || "Unknown User",
             email: userDetails.phone_number || "", // Fallback as email doesn't exist in profile
             avatar_url: userDetails.avatar_url,
-            role: userDetails.role || "tech"
+            role: userDetails.role && 
+                ['tech', 'admin', 'company'].includes(userDetails.role) ? 
+                userDetails.role as 'tech' | 'admin' | 'company' : 'tech'
           } : null
         })
         .select();

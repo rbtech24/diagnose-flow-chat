@@ -3,14 +3,14 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
-import { FeatureComment } from "@/types/feature-request";
+import { FeatureComment, FeatureRequest, FeatureRequestPriority, FeatureRequestStatus } from "@/types/community";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { fetchFeatureRequestById, fetchFeatureComments, voteForFeature, addFeatureComment } from "@/api/featureRequestsApi";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function TechFeatureRequestDetailPage() {
-  const [featureRequest, setFeatureRequest] = useState<any | null>(null);
+  const [featureRequest, setFeatureRequest] = useState<FeatureRequest | null>(null);
   const [comments, setComments] = useState<FeatureComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -29,15 +29,26 @@ export default function TechFeatureRequestDetailPage() {
         // Convert created_by_user to expected format if needed
         if (request.created_by_user && typeof request.created_by_user === 'object') {
           // Make sure it has the expected fields
-          if (!request.created_by_user.name && request.created_by_user.full_name) {
-            request.created_by_user.name = request.created_by_user.full_name;
-          }
-          
-          // Make sure to handle role mapping correctly
-          if (request.created_by_user.role && 
-              !['tech', 'admin', 'company'].includes(request.created_by_user.role)) {
-            request.created_by_user.role = 'tech'; // Default to tech if invalid role
-          }
+          request.created_by_user = {
+            name: typeof request.created_by_user === 'object' && 'name' in request.created_by_user 
+              ? request.created_by_user.name 
+              : (typeof request.created_by_user === 'object' && 'full_name' in request.created_by_user 
+                ? request.created_by_user.full_name as string 
+                : 'Unknown User'),
+            email: typeof request.created_by_user === 'object' && 'email' in request.created_by_user 
+              ? request.created_by_user.email as string 
+              : '',
+            role: typeof request.created_by_user === 'object' && 'role' in request.created_by_user 
+              ? (request.created_by_user.role === 'admin' || 
+                 request.created_by_user.role === 'tech' || 
+                 request.created_by_user.role === 'company') 
+                  ? request.created_by_user.role as 'admin' | 'tech' | 'company'
+                  : 'tech'
+              : 'tech',
+            avatar_url: typeof request.created_by_user === 'object' && 'avatar_url' in request.created_by_user 
+              ? request.created_by_user.avatar_url as string 
+              : undefined
+          };
         } else {
           // If created_by_user is not an object, create a default one
           request.created_by_user = {
@@ -99,7 +110,7 @@ export default function TechFeatureRequestDetailPage() {
   };
 
   const handleAddComment = async (requestId: string, content: string): Promise<void> => {
-    if (!featureRequest) return;
+    if (!featureRequest) return Promise.resolve();
     
     setSubmitting(true);
     try {
@@ -109,7 +120,7 @@ export default function TechFeatureRequestDetailPage() {
       });
       
       // Ensure proper user info is included with the comment
-      if (newComment && !newComment.created_by_user) {
+      if (newComment) {
         const { data: userData } = await supabase.auth.getUser();
         if (userData?.user?.id) {
           const { data: profileData } = await supabase
@@ -121,15 +132,17 @@ export default function TechFeatureRequestDetailPage() {
           if (profileData) {
             newComment.created_by_user = {
               name: profileData.full_name || 'Unknown User',
-              email: profileData.email || '',  // Using phone_number as fallback if needed
+              email: profileData.phone_number || '',  // Using phone_number as fallback 
               avatar_url: profileData.avatar_url,
-              role: profileData.role || 'tech'
+              role: profileData.role && 
+                    ['tech', 'admin', 'company'].includes(profileData.role) ? 
+                    profileData.role as 'tech' | 'admin' | 'company' : 'tech'
             };
           }
         }
+        
+        setComments(prevComments => [...prevComments, newComment]);
       }
-      
-      setComments(prevComments => [...prevComments, newComment]);
       
       toast({
         description: "Your comment has been added",

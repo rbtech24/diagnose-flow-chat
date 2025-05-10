@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { FeatureRequest, FeatureRequestStatus, FeatureRequestPriority } from "@/types/feature-request";
+import { FeatureRequest, FeatureRequestStatus, FeatureRequestPriority } from "@/types/community";
 
 export default function TechFeatureRequests() {
   const [featureRequests, setFeatureRequests] = useState<FeatureRequest[]>([]);
@@ -27,29 +27,40 @@ export default function TechFeatureRequests() {
         // Transform the data to a safe format
         const formattedRequests: FeatureRequest[] = data.map(request => {
           // Make sure created_by_user has the right shape
-          const createdByUser = typeof request.created_by_user === 'object' ? {
-            name: request.created_by_user?.name || 
-                 request.created_by_user?.full_name || 
-                 'Unknown User',
-            email: request.created_by_user?.email || '',
-            role: (request.created_by_user?.role === 'admin' || 
-                  request.created_by_user?.role === 'tech' || 
-                  request.created_by_user?.role === 'company') ? 
-                  request.created_by_user?.role : 'tech',
-            avatar_url: request.created_by_user?.avatar_url
-          } : {
+          let createdByUser = {
             name: 'Unknown User',
             email: '',
-            role: 'tech',
+            role: 'tech' as const,
             avatar_url: undefined
           };
+
+          if (typeof request.created_by_user === 'object' && request.created_by_user !== null) {
+            const user = request.created_by_user;
+            
+            createdByUser = {
+              name: typeof user === 'object' && 'name' in user ? 
+                String(user.name) : 
+                (typeof user === 'object' && 'full_name' in user ? 
+                  String(user.full_name) : 'Unknown User'),
+                  
+              email: typeof user === 'object' && 'email' in user ? 
+                String(user.email) : '',
+                
+              role: typeof user === 'object' && 'role' in user &&
+                    ['admin', 'tech', 'company'].includes(String(user.role)) ? 
+                    String(user.role) as 'admin' | 'tech' | 'company' : 'tech',
+                    
+              avatar_url: typeof user === 'object' && 'avatar_url' in user ? 
+                String(user.avatar_url) : undefined
+            };
+          }
 
           return {
             id: request.id,
             title: request.title,
             description: request.description,
-            status: request.status as FeatureRequestStatus,
-            priority: request.priority as FeatureRequestPriority || "medium",
+            status: (request.status || 'pending') as FeatureRequestStatus,
+            priority: (request.priority || 'medium') as FeatureRequestPriority,
             company_id: request.company_id,
             user_id: request.user_id,
             created_at: request.created_at,
