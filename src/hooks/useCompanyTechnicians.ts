@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { TechnicianWithUserInfo } from '@/types/technician';
@@ -94,13 +95,19 @@ export function useCompanyTechnicians({
         }
 
         // Merge technician and user data
-        const mergedData = techData.map(tech => {
+        const mergedData: TechnicianWithUserInfo[] = techData.map(tech => {
           const userInfo = userMap.get(tech.id);
-          return {
+          // Create a merged object with both sets of properties
+          const technician: TechnicianWithUserInfo = {
             ...tech,
             name: userInfo?.name || tech.email?.split('@')[0] || 'Unknown',
-            avatar_url: userInfo?.avatar_url
-          } as TechnicianWithUserInfo;
+            avatar_url: userInfo?.avatar_url,
+            // Map properties to expected types
+            companyId: tech.company_id || '',
+            avatarUrl: userInfo?.avatar_url,
+            activeJobs: 0 // Default value
+          };
+          return technician;
         });
 
         setTechnicians(mergedData);

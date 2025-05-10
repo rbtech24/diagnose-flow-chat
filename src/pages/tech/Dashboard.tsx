@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -123,7 +124,7 @@ export default function TechnicianDashboard() {
         logEvent('user', 'Dashboard viewed');
         
         // Helper function to fetch active repairs - use explicit return type to avoid deep instantiation
-        const fetchActiveRepairs = async (techId: string): Promise<{data: RepairData[] | null, error: any}> => {
+        const fetchActiveRepairs = async (techId: string): Promise<SupabaseResponse<RepairData[]>> => {
           try {
             return await supabase
               .from('repairs')
@@ -138,7 +139,7 @@ export default function TechnicianDashboard() {
         };
 
         // Helper function to fetch customer - use explicit return type to avoid deep instantiation
-        const fetchCustomer = async (customerId: string): Promise<{data: CustomerData | null, error: any}> => {
+        const fetchCustomer = async (customerId: string): Promise<SupabaseResponse<CustomerData>> => {
           try {
             return await supabase
               .from('customers')

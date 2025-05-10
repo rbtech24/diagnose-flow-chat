@@ -130,7 +130,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         trial_end_date: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
-        status: data.trial_status as 'active' | 'trial' | 'expired' | 'inactive', 
+        status: data.status || data.trial_status as 'active' | 'trial' | 'expired' | 'inactive', 
         plan_name: data.plan_name || data.subscription_tier,
       };
 
@@ -253,6 +253,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         companyId: data.company_id || '',
         status: data.status || 'inactive',
         avatarUrl: data.avatar_url || '',
+        activeJobs: 0 // Default value
       };
 
       // Update local state
@@ -277,13 +278,13 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       // Transform Company type to match database schema
       const newCompany = {
         name: companyData.name,
+        status: companyData.status || 'active',
         trial_status: companyData.status || 'active',
         subscription_tier: companyData.subscription_tier || 'basic',
         plan_name: companyData.plan_name || companyData.subscription_tier || 'basic',
         trial_end_date: companyData.trial_end_date instanceof Date
           ? companyData.trial_end_date.toISOString()
           : companyData.trial_end_date,
-        status: companyData.status || 'active',
       };
 
       const { data, error } = await supabase

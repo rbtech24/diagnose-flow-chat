@@ -10,6 +10,22 @@ export type Technician = {
   activeJobs: number;
 };
 
-export interface TechnicianWithUserInfo extends Technician {
-  avatar_url?: string; // This is used in the useCompanyTechnicians hook
+export interface TechnicianWithUserInfo {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'company' | 'tech';
+  company_id: string;
+  companyId: string; // Mapping property
+  status: string;
+  avatar_url?: string;
+  avatarUrl?: string; // Mapping property
+  activeJobs: number;
+  phone?: string;
+  is_independent?: boolean;
+  hourly_rate?: number;
+  available_for_hire?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  last_sign_in_at?: string;
 }
