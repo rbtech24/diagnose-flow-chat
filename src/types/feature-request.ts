@@ -16,7 +16,7 @@ export interface FeatureRequest {
     name: string;
     email: string;
     avatar_url?: string;
-    role: string;
+    role: "admin" | "company" | "tech";
   };
 }
 

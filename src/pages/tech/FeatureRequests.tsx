@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { FeatureRequest, FeatureRequestStatus, FeatureRequestPriority } from "@/types/community";
+import { FeatureRequest, FeatureRequestStatus, FeatureRequestPriority } from "@/types/feature-request";
 
 export default function TechFeatureRequests() {
   const [featureRequests, setFeatureRequests] = useState<FeatureRequest[]>([]);
@@ -37,22 +37,17 @@ export default function TechFeatureRequests() {
           if (typeof request.created_by_user === 'object' && request.created_by_user !== null) {
             const user = request.created_by_user;
             
-            createdByUser = {
-              name: typeof user === 'object' && 'name' in user ? 
-                String(user.name) : 
-                (typeof user === 'object' && 'full_name' in user ? 
-                  String(user.full_name) : 'Unknown User'),
-                  
-              email: typeof user === 'object' && 'email' in user ? 
-                String(user.email) : '',
-                
-              role: typeof user === 'object' && 'role' in user &&
-                    ['admin', 'tech', 'company'].includes(String(user.role)) ? 
-                    String(user.role) as 'admin' | 'tech' | 'company' : 'tech',
-                    
-              avatar_url: typeof user === 'object' && 'avatar_url' in user ? 
-                String(user.avatar_url) : undefined
-            };
+            if (typeof user === 'object') {
+              createdByUser = {
+                name: 'name' in user ? String(user.name) : 
+                     ('full_name' in user ? String(user.full_name) : 'Unknown User'),
+                email: 'email' in user ? String(user.email) : '',
+                role: 'role' in user && 
+                      ['admin', 'tech', 'company'].includes(String(user.role)) ? 
+                      String(user.role) as 'admin' | 'tech' | 'company' : 'tech',
+                avatar_url: 'avatar_url' in user ? String(user.avatar_url) : undefined
+              };
+            }
           }
 
           return {
@@ -62,7 +57,7 @@ export default function TechFeatureRequests() {
             status: (request.status || 'pending') as FeatureRequestStatus,
             priority: (request.priority || 'medium') as FeatureRequestPriority,
             company_id: request.company_id,
-            user_id: request.user_id,
+            user_id: request.user_id || '',
             created_at: request.created_at,
             updated_at: request.updated_at,
             votes_count: request.votes_count || 0,

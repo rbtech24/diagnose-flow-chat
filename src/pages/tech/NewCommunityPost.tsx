@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -75,7 +76,7 @@ export default function NewCommunityPost() {
           attachments: attachments,
           author: userDetails ? {
             name: userDetails.full_name || "Unknown User",
-            email: userDetails.email || "",
+            email: userDetails.phone_number || "",  // Using phone_number as fallback since email field may not exist
             avatar_url: userDetails.avatar_url,
             role: userDetails.role || "tech"
           } : null

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FeatureRequestDetail } from "@/components/feature-request/FeatureRequestDetail";
-import { FeatureComment, FeatureRequest, FeatureRequestPriority, FeatureRequestStatus } from "@/types/community";
+import { FeatureComment, FeatureRequest, FeatureRequestPriority, FeatureRequestStatus } from "@/types/feature-request";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { fetchFeatureRequestById, fetchFeatureComments, voteForFeature, addFeatureComment } from "@/api/featureRequestsApi";
 import { useToast } from "@/components/ui/use-toast";
@@ -31,7 +31,7 @@ export default function TechFeatureRequestDetailPage() {
           // Make sure it has the expected fields
           request.created_by_user = {
             name: typeof request.created_by_user === 'object' && 'name' in request.created_by_user 
-              ? request.created_by_user.name 
+              ? request.created_by_user.name as string
               : (typeof request.created_by_user === 'object' && 'full_name' in request.created_by_user 
                 ? request.created_by_user.full_name as string 
                 : 'Unknown User'),
@@ -59,10 +59,10 @@ export default function TechFeatureRequestDetailPage() {
           };
         }
         
-        setFeatureRequest(request);
+        setFeatureRequest(request as FeatureRequest);
         
         const commentsList = await fetchFeatureComments(id);
-        setComments(commentsList);
+        setComments(commentsList as FeatureComment[]);
       } catch (error) {
         console.error("Error loading feature request data:", error);
         toast({
@@ -130,7 +130,7 @@ export default function TechFeatureRequestDetailPage() {
             .single();
             
           if (profileData) {
-            newComment.created_by_user = {
+            const createdByUser = {
               name: profileData.full_name || 'Unknown User',
               email: profileData.phone_number || '',  // Using phone_number as fallback 
               avatar_url: profileData.avatar_url,
@@ -138,10 +138,12 @@ export default function TechFeatureRequestDetailPage() {
                     ['tech', 'admin', 'company'].includes(profileData.role) ? 
                     profileData.role as 'tech' | 'admin' | 'company' : 'tech'
             };
+            
+            (newComment as any).created_by_user = createdByUser;
           }
         }
         
-        setComments(prevComments => [...prevComments, newComment]);
+        setComments(prevComments => [...prevComments, newComment as FeatureComment]);
       }
       
       toast({
