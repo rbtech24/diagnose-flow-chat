@@ -19,6 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useUserManagementStore } from "@/store/userManagementStore";
+import { useToast } from "@/components/ui/use-toast";
 
 interface TechSidebarProps {
   collapsed?: boolean;
@@ -29,14 +30,24 @@ export function TechSidebar({ collapsed = false }: TechSidebarProps) {
   const { pathname } = useLocation();
   const { currentUser, logout } = useUserManagementStore();
   const [pending, setPending] = useState(false);
+  const { toast } = useToast();
 
   const handleSignOut = async () => {
     setPending(true);
     try {
       await logout();
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account",
+      });
       navigate("/sign-in");
     } catch (error) {
       console.error("Error signing out:", error);
+      toast({
+        title: "Error signing out",
+        description: "An error occurred while signing out",
+        variant: "destructive",
+      });
     } finally {
       setPending(false);
     }
@@ -102,9 +113,9 @@ export function TechSidebar({ collapsed = false }: TechSidebarProps) {
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
+                <DropdownMenuItem onClick={handleSignOut} disabled={pending}>
                   <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
+                  {pending ? "Signing out..." : "Sign Out"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

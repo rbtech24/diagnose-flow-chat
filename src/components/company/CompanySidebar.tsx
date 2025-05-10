@@ -1,5 +1,5 @@
 
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   Home, 
   Users, 
@@ -22,10 +22,38 @@ import {
   SidebarToggle,
   SidebarNavGroup
 } from "@/components/ui/sidebar";
+import { useUserManagementStore } from "@/store/userManagementStore";
+import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react";
 
 export function CompanySidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useUserManagementStore();
+  const { toast } = useToast();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const isActive = (path: string) => location.pathname === path;
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account"
+      });
+      navigate("/sign-in");
+    } catch (error) {
+      console.error("Error logging out:", error);
+      toast({
+        title: "Error signing out",
+        description: "An error occurred while signing out",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <Sidebar defaultExpanded={true}>
@@ -103,10 +131,14 @@ export function CompanySidebar() {
             <Settings size={20} className="text-muted-foreground" />
             <span>Settings</span>
           </Link>
-          <Link to="/login" className="flex items-center text-sm gap-1 text-muted-foreground hover:text-foreground transition-colors">
+          <button
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="flex items-center text-sm gap-1 text-muted-foreground hover:text-foreground transition-colors"
+          >
             <LogOut size={18} />
-            <span>Logout</span>
-          </Link>
+            <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>
+          </button>
         </div>
       </SidebarFooter>
     </Sidebar>

@@ -1,5 +1,5 @@
 
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
@@ -15,12 +15,20 @@ import {
   Plug,
   Shield,
   Key,
-  Clock
+  Clock,
+  LogOut
 } from "lucide-react";
+import { useUserManagementStore } from "@/store/userManagementStore";
+import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react";
 
 export function AdminSidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const pathname = location.pathname;
+  const { logout } = useUserManagementStore();
+  const { toast } = useToast();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const isActive = (path: string) => {
     if (path === "/admin/dashboard") {
@@ -47,6 +55,27 @@ export function AdminSidebar() {
     { path: "/admin/profile", label: "Profile", icon: <Settings className="h-5 w-5" /> },
   ];
 
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account"
+      });
+      navigate("/sign-in");
+    } catch (error) {
+      console.error("Error logging out:", error);
+      toast({
+        title: "Error signing out",
+        description: "An error occurred while signing out",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
   return (
     <div className="w-64 bg-sidebar border-r border-sidebar-border h-screen flex-shrink-0">
       <div className="h-16 flex items-center px-6 border-b border-sidebar-border">
@@ -55,7 +84,7 @@ export function AdminSidebar() {
           <span className="font-semibold text-sidebar-foreground">Admin Panel</span>
         </Link>
       </div>
-      <ScrollArea className="h-[calc(100vh-4rem)]">
+      <ScrollArea className="h-[calc(100vh-8rem)]">
         <div className="p-4">
           <nav className="space-y-1">
             {navItems.map((item) => (
@@ -74,6 +103,17 @@ export function AdminSidebar() {
           </nav>
         </div>
       </ScrollArea>
+      <div className="h-16 border-t border-sidebar-border p-4">
+        <Button 
+          variant="sidebar" 
+          className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+        >
+          <LogOut className="h-5 w-5 mr-3" />
+          <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>
+        </Button>
+      </div>
     </div>
   );
 }
