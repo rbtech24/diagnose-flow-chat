@@ -6,6 +6,7 @@ export interface SupportTicket {
   status: 'open' | 'in_progress' | 'resolved' | 'closed';
   priority: 'low' | 'medium' | 'high' | 'critical';
   user_id: string;
+  created_by_user_id: string;
   assigned_to?: string;
   company_id?: string;
   created_at: string;

@@ -91,12 +91,12 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
       // Transform to match User type
       const user: User = {
         id: data.id,
-        name: data.name || (data.email ? data.email.split('@')[0] : '') || '', // Use name if available, fallback to email
+        name: data.name || (data.email ? data.email.split('@')[0] : '') || '',
         email: data.email,
         role: (data.role as 'admin' | 'company' | 'tech') || 'tech',
         companyId: data.company_id,
         status: data.status || 'active',
-        avatarUrl: data.avatar_url, // Use avatar_url property
+        avatarUrl: data.avatar_url,
         activeJobs: 0, // Initialize with 0
       };
 
@@ -130,7 +130,7 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
         trial_end_date: data.trial_end_date ? new Date(data.trial_end_date) : undefined,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
-        status: (data.trial_status as 'active' | 'trial' | 'expired' | 'inactive'), 
+        status: data.trial_status as 'active' | 'trial' | 'expired' | 'inactive', 
         plan_name: data.plan_name || data.subscription_tier,
       };
 
@@ -412,13 +412,13 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
 const transformTechniciansData = (technicians: any[]): User[] => {
   return technicians.map(tech => ({
     id: tech.id,
-    name: tech.name || (tech.email ? tech.email.split('@')[0] : '') || '', // Use name if available, fallback to email
+    name: tech.name || (tech.email ? tech.email.split('@')[0] : '') || '',
     email: tech.email,
     role: tech.role,
     status: tech.status || 'active',
     companyId: tech.company_id,
-    avatarUrl: tech.avatar_url, // Use avatar_url property
-    activeJobs: 0, // Default value for all users
+    avatarUrl: tech.avatar_url || '',
+    activeJobs: tech.activeJobs || 0,
   }));
 };
 
@@ -432,7 +432,7 @@ const transformCompaniesData = (companies: any[]): Company[] => {
     trial_end_date: company.trial_end_date ? new Date(company.trial_end_date) : undefined,
     createdAt: new Date(company.created_at),
     updatedAt: new Date(company.updated_at),
-    status: (company.trial_status as 'active' | 'trial' | 'expired' | 'inactive'), 
-    plan_name: company.plan_name || company.subscription_tier, // Use subscription_tier as fallback
+    status: company.status || company.trial_status as 'active' | 'trial' | 'expired' | 'inactive',
+    plan_name: company.plan_name || company.subscription_tier,
   }));
 };

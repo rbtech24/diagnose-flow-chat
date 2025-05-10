@@ -14,7 +14,7 @@ export async function fetchSupportTickets(
 ): Promise<SupportTicket[]> {
   let query = supabase.from('support_tickets').select(`
     *,
-    created_by_user:user_id(
+    created_by_user:created_by_user_id(
       name,
       email,
       avatar_url,
@@ -54,7 +54,7 @@ export async function fetchSupportTicketById(ticketId: string): Promise<SupportT
     .from('support_tickets')
     .select(`
       *,
-      created_by_user:user_id(
+      created_by_user:created_by_user_id(
         name,
         email,
         avatar_url,
@@ -111,13 +111,22 @@ export async function createSupportTicket(ticketData: Partial<SupportTicket>): P
     throw new Error('Missing required fields for ticket creation');
   }
 
+  // Get the current user's ID
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id;
+
+  if (!userId) {
+    throw new Error('No authenticated user found');
+  }
+
   const { data, error } = await supabase
     .from('support_tickets')
     .insert({
       title: ticketData.title,
       description: ticketData.description,
       priority: ticketData.priority || 'medium',
-      user_id: (await supabase.auth.getUser()).data.user?.id,
+      user_id: userId, 
+      created_by_user_id: userId, // Use this field for the relationship
       company_id: ticketData.company_id
     })
     .select()
@@ -142,12 +151,20 @@ export async function addTicketMessage(messageData: { content: string, ticket_id
     throw new Error('Missing required fields for message creation');
   }
 
+  // Get the current user
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id;
+
+  if (!userId) {
+    throw new Error('No authenticated user found');
+  }
+
   const { data, error } = await supabase
     .from('support_ticket_messages')
     .insert({
       content: messageData.content,
       ticket_id: messageData.ticket_id,
-      user_id: (await supabase.auth.getUser()).data.user?.id
+      user_id: userId
     })
     .select()
     .single();

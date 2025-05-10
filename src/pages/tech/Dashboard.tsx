@@ -45,6 +45,26 @@ interface NewAppointment {
   address: string;
 }
 
+// Define simple interfaces for API responses to prevent deep instantiation
+interface SupabaseResponse<T> {
+  data: T | null;
+  error: any;
+}
+
+interface CustomerData {
+  first_name?: string;
+  last_name?: string;
+  service_addresses?: Array<{address?: string}>;
+}
+
+interface RepairData {
+  id: string;
+  scheduled_at: string;
+  status: string;
+  diagnosis?: string;
+  customer_id?: string;
+}
+
 export default function TechnicianDashboard() {
   // Get current date
   const today = new Date();
@@ -102,10 +122,8 @@ export default function TechnicianDashboard() {
       try {
         logEvent('user', 'Dashboard viewed');
         
-        // Fix type errors in these two functions by specifying proper return types
-        
         // Helper function to fetch active repairs - use explicit return type to avoid deep instantiation
-        const fetchActiveRepairs = async (techId: string): Promise<{ data: any[] | null, error: any }> => {
+        const fetchActiveRepairs = async (techId: string): Promise<SupabaseResponse<RepairData[]>> => {
           try {
             return await supabase
               .from('repairs')
@@ -120,7 +138,7 @@ export default function TechnicianDashboard() {
         };
 
         // Helper function to fetch customer - use explicit return type to avoid deep instantiation
-        const fetchCustomer = async (customerId: string): Promise<{ data: any | null, error: any }> => {
+        const fetchCustomer = async (customerId: string): Promise<SupabaseResponse<CustomerData>> => {
           try {
             return await supabase
               .from('customers')
