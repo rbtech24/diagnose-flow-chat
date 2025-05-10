@@ -9,34 +9,24 @@ import { useNavigate } from "react-router-dom";
 import { fetchSupportTickets } from "@/api/supportTicketsApi";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { CreateTicketButton } from "@/components/support/CreateTicketButton";
+import { useSupportTickets } from "@/hooks/useSupportTickets";
 
 export default function TechSupport() {
-  const [tickets, setTickets] = useState<SupportTicket[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { tickets, isLoading, error, loadTickets } = useSupportTickets();
 
   useEffect(() => {
-    fetchTickets();
-  }, []);
-
-  const fetchTickets = async () => {
-    try {
-      setLoading(true);
-      const data = await fetchSupportTickets();
-      setTickets(data);
-    } catch (error) {
-      console.error("Error fetching tickets:", error);
+    if (error) {
       toast({
         variant: "destructive",
         title: "Error loading tickets",
         description: "Failed to load support tickets. Please try again later."
       });
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [error, toast]);
 
   const filteredTickets = tickets.filter(ticket => 
     ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -71,7 +61,7 @@ export default function TechSupport() {
           <p className="text-muted-foreground">View and manage tech support requests</p>
         </div>
         <div>
-          <Button onClick={() => navigate("/tech/support/new")}>Create Ticket</Button>
+          <CreateTicketButton />
         </div>
       </div>
 
@@ -84,7 +74,7 @@ export default function TechSupport() {
         />
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="border rounded-lg p-6 animate-pulse">
@@ -136,7 +126,7 @@ export default function TechSupport() {
         <div className="text-center py-12 border rounded-lg">
           <h3 className="text-lg font-medium mb-2">No tickets found</h3>
           <p className="text-muted-foreground mb-4">Try adjusting your search criteria</p>
-          <Button onClick={() => navigate("/tech/support/new")}>Create New Ticket</Button>
+          <CreateTicketButton buttonText="Create New Ticket" />
         </div>
       )}
     </div>

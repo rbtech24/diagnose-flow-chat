@@ -1,26 +1,21 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { SupportTicket } from "@/types/support";
 import { useNavigate } from "react-router-dom";
-import { mockSupportTickets } from "@/data/mockSupportTickets";
+import { Loader2 } from "lucide-react";
+import { CreateTicketButton } from "@/components/support/CreateTicketButton";
+import { useSupportTickets } from "@/hooks/useSupportTickets";
 
 export default function CompanySupport() {
-  const [tickets, setTickets] = useState<SupportTicket[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // Simulating API call with mock data
-    setTimeout(() => {
-      setTickets(mockSupportTickets);
-      setLoading(false);
-    }, 800);
-  }, []);
+  
+  // Use the hook with company filtering
+  const { tickets, isLoading, error } = useSupportTickets(undefined, 'company');
 
   const filteredTickets = tickets.filter(ticket => 
     ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -55,7 +50,7 @@ export default function CompanySupport() {
           <p className="text-muted-foreground">View and manage company support requests</p>
         </div>
         <div>
-          <Button onClick={() => navigate("/company/support/new")}>Create Ticket</Button>
+          <CreateTicketButton />
         </div>
       </div>
 
@@ -68,7 +63,7 @@ export default function CompanySupport() {
         />
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="border rounded-lg p-6 animate-pulse">
@@ -120,7 +115,7 @@ export default function CompanySupport() {
         <div className="text-center py-12 border rounded-lg">
           <h3 className="text-lg font-medium mb-2">No tickets found</h3>
           <p className="text-muted-foreground mb-4">Try adjusting your search criteria</p>
-          <Button onClick={() => navigate("/company/support/new")}>Create New Ticket</Button>
+          <CreateTicketButton buttonText="Create New Ticket" />
         </div>
       )}
     </div>
