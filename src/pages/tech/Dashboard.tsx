@@ -74,6 +74,12 @@ type SupabaseResponse<T> = {
   count?: number | null;
 };
 
+// Create a simple return type for count queries
+interface CountResult {
+  count: number | null;
+  error: any;
+}
+
 export default function TechnicianDashboard() {
   // Get current date
   const today = new Date();
@@ -229,41 +235,86 @@ export default function TechnicianDashboard() {
           setAppointments(formattedAppointments);
         }
         
-        // Fetch metrics
+        // Fetch metrics with explicit return types
         // 1. Active jobs count
-        const activeJobsResponse = await supabase
-          .from('repairs')
-          .select('id', { count: 'exact', head: true })
-          .eq('technician_id', currentUser.id)
-          .in('status', ['scheduled', 'in_progress']);
+        const fetchActiveCount = async (): Promise<CountResult> => {
+          try {
+            const result = await supabase
+              .from('repairs')
+              .select('id', { count: 'exact', head: true })
+              .eq('technician_id', currentUser.id)
+              .in('status', ['scheduled', 'in_progress']);
+            
+            return {
+              count: result.count,
+              error: result.error
+            };
+          } catch (error) {
+            console.error('Error fetching active count:', error);
+            return { count: null, error };
+          }
+        };
         
-        const activeCount = activeJobsResponse.count;
-        const activeError = activeJobsResponse.error;
-          
         // 2. Completed jobs count
-        const completedJobsResponse = await supabase
-          .from('repairs')
-          .select('id', { count: 'exact', head: true })
-          .eq('technician_id', currentUser.id)
-          .eq('status', 'completed');
+        const fetchCompletedCount = async (): Promise<CountResult> => {
+          try {
+            const result = await supabase
+              .from('repairs')
+              .select('id', { count: 'exact', head: true })
+              .eq('technician_id', currentUser.id)
+              .eq('status', 'completed');
+            
+            return {
+              count: result.count,
+              error: result.error
+            };
+          } catch (error) {
+            console.error('Error fetching completed count:', error);
+            return { count: null, error };
+          }
+        };
         
-        const completedCount = completedJobsResponse.count;
-        const completedError = completedJobsResponse.error;
+        // 3. Get technician performance metrics
+        const fetchPerformanceMetrics = async (): Promise<SupabaseResponse<any>> => {
+          try {
+            const result = await supabase
+              .from('technician_performance_metrics')
+              .select('*')
+              .eq('technician_id', currentUser.id)
+              .single();
+            
+            return {
+              data: result.data,
+              error: result.error,
+              count: null
+            };
+          } catch (error) {
+            console.error('Error fetching performance metrics:', error);
+            return { data: null, error, count: null };
+          }
+        };
         
-        // 3. Get technician performance metrics if available
-        const { data: perfMetrics, error: perfError } = await supabase
-          .from('technician_performance_metrics')
-          .select('*')
-          .eq('technician_id', currentUser.id)
-          .single();
+        // Execute all metric queries
+        const [activeCountResult, completedCountResult, perfMetricsResult] = await Promise.all([
+          fetchActiveCount(),
+          fetchCompletedCount(),
+          fetchPerformanceMetrics()
+        ]);
         
-        if (activeError || completedError) {
-          console.error('Error loading metrics:', activeError || completedError);
+        const activeCount = activeCountResult.count || 0;
+        const activeError = activeCountResult.error;
+        const completedCount = completedCountResult.count || 0;
+        const completedError = completedCountResult.error;
+        const perfMetrics = perfMetricsResult.data;
+        const perfError = perfMetricsResult.error;
+        
+        if (activeError || completedError || perfError) {
+          console.error('Error loading metrics:', activeError || completedError || perfError);
         } else {
           // Update metrics state
           setMetrics({
-            activeJobs: activeCount || 0,
-            completedJobs: completedCount || 0,
+            activeJobs: activeCount,
+            completedJobs: completedCount,
             averageResponseTime: perfMetrics?.average_service_time ? 
               `${Math.floor(Number(perfMetrics.average_service_time) / 3600)}hrs` : 
               "N/A",
@@ -273,35 +324,73 @@ export default function TechnicianDashboard() {
           });
         }
 
-        // Fetch quick links counts
-        const supportResponse = await supabase
-          .from('support_tickets')
-          .select('id', { count: 'exact', head: true })
-          .eq('technician_id', currentUser.id)
-          .eq('status', 'open');
+        // Fetch quick links counts with explicit return types
+        const fetchSupportCount = async (): Promise<CountResult> => {
+          try {
+            const result = await supabase
+              .from('support_tickets')
+              .select('id', { count: 'exact', head: true })
+              .eq('technician_id', currentUser.id)
+              .eq('status', 'open');
+            
+            return {
+              count: result.count,
+              error: result.error
+            };
+          } catch (error) {
+            return { count: null, error };
+          }
+        };
 
-        const supportCount = supportResponse.count;
+        const fetchFeatureCount = async (): Promise<CountResult> => {
+          try {
+            const result = await supabase
+              .from('feature_requests')
+              .select('id', { count: 'exact', head: true })
+              .eq('user_id', currentUser.id);
+            
+            return {
+              count: result.count,
+              error: result.error
+            };
+          } catch (error) {
+            return { count: null, error };
+          }
+        };
 
-        const featureResponse = await supabase
-          .from('feature_requests')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', currentUser.id);
+        const fetchCommunityCount = async (): Promise<CountResult> => {
+          try {
+            const result = await supabase
+              .from('community_posts')
+              .select('id', { count: 'exact', head: true })
+              .eq('user_id', currentUser.id)
+              .is('resolved', false);
+            
+            return {
+              count: result.count,
+              error: result.error
+            };
+          } catch (error) {
+            return { count: null, error };
+          }
+        };
 
-        const featureCount = featureResponse.count;
+        // Execute all count queries
+        const [supportCountResult, featureCountResult, communityCountResult] = await Promise.all([
+          fetchSupportCount(),
+          fetchFeatureCount(),
+          fetchCommunityCount()
+        ]);
 
-        const communityResponse = await supabase
-          .from('community_posts')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', currentUser.id)
-          .is('resolved', false);
-
-        const communityCount = communityResponse.count;
+        const supportCount = supportCountResult.count || 0;
+        const featureCount = featureCountResult.count || 0;
+        const communityCount = communityCountResult.count || 0;
 
         // Update quick links
         setQuickLinks(links => links.map(link => {
-          if (link.title === "Support Tickets") return {...link, count: supportCount || 0};
-          if (link.title === "Feature Requests") return {...link, count: featureCount || 0};
-          if (link.title === "Community Posts") return {...link, count: communityCount || 0};
+          if (link.title === "Support Tickets") return {...link, count: supportCount};
+          if (link.title === "Feature Requests") return {...link, count: featureCount};
+          if (link.title === "Community Posts") return {...link, count: communityCount};
           return link;
         }));
 
