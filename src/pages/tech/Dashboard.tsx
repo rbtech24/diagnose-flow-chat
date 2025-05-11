@@ -80,6 +80,22 @@ interface CountResult {
   error: any;
 }
 
+// Create simple interfaces for the count query results to avoid deep instantiation
+interface SupportCountResult {
+  count: number | null;
+  error: any;
+}
+
+interface FeatureCountResult {
+  count: number | null;
+  error: any;
+}
+
+interface CommunityCountResult {
+  count: number | null;
+  error: any;
+}
+
 export default function TechnicianDashboard() {
   // Get current date
   const today = new Date();
@@ -325,7 +341,7 @@ export default function TechnicianDashboard() {
         }
 
         // Fetch quick links counts with explicit return types
-        const fetchSupportCount = async (): Promise<CountResult> => {
+        const fetchSupportCount = async (): Promise<SupportCountResult> => {
           try {
             const result = await supabase
               .from('support_tickets')
@@ -338,11 +354,12 @@ export default function TechnicianDashboard() {
               error: result.error
             };
           } catch (error) {
+            console.error('Error fetching support count:', error);
             return { count: null, error };
           }
         };
 
-        const fetchFeatureCount = async (): Promise<CountResult> => {
+        const fetchFeatureCount = async (): Promise<FeatureCountResult> => {
           try {
             const result = await supabase
               .from('feature_requests')
@@ -354,11 +371,12 @@ export default function TechnicianDashboard() {
               error: result.error
             };
           } catch (error) {
+            console.error('Error fetching feature count:', error);
             return { count: null, error };
           }
         };
 
-        const fetchCommunityCount = async (): Promise<CountResult> => {
+        const fetchCommunityCount = async (): Promise<CommunityCountResult> => {
           try {
             const result = await supabase
               .from('community_posts')
@@ -371,6 +389,7 @@ export default function TechnicianDashboard() {
               error: result.error
             };
           } catch (error) {
+            console.error('Error fetching community count:', error);
             return { count: null, error };
           }
         };
