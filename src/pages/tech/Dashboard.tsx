@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +13,7 @@ import { toast } from "sonner";
 import { useUserManagementStore } from "@/store/userManagementStore";
 import { useActivityLogger } from "@/hooks/useActivityLogger";
 import { supabase } from "@/integrations/supabase/client";
+import { TechnicianMetricsResponse } from "@/types";
 
 // Define simplified types for repairs and metrics
 interface RepairAppointment {
@@ -275,16 +275,16 @@ export default function TechnicianDashboard() {
         };
         
         // 3. Get technician performance metrics
-        const fetchPerformanceMetrics = async (): Promise<SupabaseResponse<any>> => {
+        const fetchPerformanceMetrics = async (): Promise<SupabaseResponse<TechnicianMetricsResponse>> => {
           try {
             const result = await supabase
               .from('technician_performance_metrics')
-              .select('*')
+              .select('average_service_time, efficiency_score')
               .eq('technician_id', currentUser.id)
               .single();
             
             return {
-              data: result.data,
+              data: result.data as TechnicianMetricsResponse | null,
               error: result.error,
               count: null
             };

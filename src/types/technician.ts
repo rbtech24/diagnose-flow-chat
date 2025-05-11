@@ -1,4 +1,3 @@
-
 export type Technician = {
   id: string;
   name: string; 
@@ -28,4 +27,10 @@ export interface TechnicianWithUserInfo {
   created_at?: string;
   updated_at?: string;
   last_sign_in_at?: string;
+}
+
+// Add these new types to help with Dashboard queries
+export interface TechnicianMetricsResponse {
+  average_service_time?: number | null;
+  efficiency_score?: number | null;
 }
