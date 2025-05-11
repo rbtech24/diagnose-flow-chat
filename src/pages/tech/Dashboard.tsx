@@ -80,7 +80,8 @@ interface CountResult {
   error: any;
 }
 
-// Create simple interfaces for the count query results to avoid deep instantiation
+// These interfaces may look redundant, but they help prevent TypeScript from
+// creating excessively deep type instantiations
 interface SupportCountResult {
   count: number | null;
   error: any;
@@ -252,61 +253,51 @@ export default function TechnicianDashboard() {
         }
         
         // Fetch metrics with explicit return types
-        // 1. Active jobs count
-        const fetchActiveCount = async (): Promise<CountResult> => {
+        // 1. Active jobs count - Use primitive types directly instead of objects
+        const fetchActiveCount = async (): Promise<{count: number | null; error: any}> => {
           try {
-            const result = await supabase
+            const { count, error } = await supabase
               .from('repairs')
               .select('id', { count: 'exact', head: true })
               .eq('technician_id', currentUser.id)
               .in('status', ['scheduled', 'in_progress']);
             
-            return {
-              count: result.count,
-              error: result.error
-            };
+            return { count, error };
           } catch (error) {
             console.error('Error fetching active count:', error);
             return { count: null, error };
           }
         };
         
-        // 2. Completed jobs count
-        const fetchCompletedCount = async (): Promise<CountResult> => {
+        // 2. Completed jobs count - Use primitive types directly
+        const fetchCompletedCount = async (): Promise<{count: number | null; error: any}> => {
           try {
-            const result = await supabase
+            const { count, error } = await supabase
               .from('repairs')
               .select('id', { count: 'exact', head: true })
               .eq('technician_id', currentUser.id)
               .eq('status', 'completed');
             
-            return {
-              count: result.count,
-              error: result.error
-            };
+            return { count, error };
           } catch (error) {
             console.error('Error fetching completed count:', error);
             return { count: null, error };
           }
         };
         
-        // 3. Get technician performance metrics
-        const fetchPerformanceMetrics = async (): Promise<SupabaseResponse<TechnicianMetricsResponse>> => {
+        // 3. Get technician performance metrics - Use predefined type
+        const fetchPerformanceMetrics = async (): Promise<{data: TechnicianMetricsResponse | null; error: any}> => {
           try {
-            const result = await supabase
+            const { data, error } = await supabase
               .from('technician_performance_metrics')
               .select('average_service_time, efficiency_score')
               .eq('technician_id', currentUser.id)
               .single();
             
-            return {
-              data: result.data as TechnicianMetricsResponse | null,
-              error: result.error,
-              count: null
-            };
+            return { data, error };
           } catch (error) {
             console.error('Error fetching performance metrics:', error);
-            return { data: null, error, count: null };
+            return { data: null, error };
           }
         };
         
@@ -340,54 +331,45 @@ export default function TechnicianDashboard() {
           });
         }
 
-        // Fetch quick links counts with explicit return types
-        const fetchSupportCount = async (): Promise<SupportCountResult> => {
+        // Fetch quick links counts with explicit, simplified return types
+        const fetchSupportCount = async (): Promise<{count: number | null; error: any}> => {
           try {
-            const result = await supabase
+            const { count, error } = await supabase
               .from('support_tickets')
               .select('id', { count: 'exact', head: true })
               .eq('technician_id', currentUser.id)
               .eq('status', 'open');
             
-            return {
-              count: result.count,
-              error: result.error
-            };
+            return { count, error };
           } catch (error) {
             console.error('Error fetching support count:', error);
             return { count: null, error };
           }
         };
 
-        const fetchFeatureCount = async (): Promise<FeatureCountResult> => {
+        const fetchFeatureCount = async (): Promise<{count: number | null; error: any}> => {
           try {
-            const result = await supabase
+            const { count, error } = await supabase
               .from('feature_requests')
               .select('id', { count: 'exact', head: true })
               .eq('user_id', currentUser.id);
             
-            return {
-              count: result.count,
-              error: result.error
-            };
+            return { count, error };
           } catch (error) {
             console.error('Error fetching feature count:', error);
             return { count: null, error };
           }
         };
 
-        const fetchCommunityCount = async (): Promise<CommunityCountResult> => {
+        const fetchCommunityCount = async (): Promise<{count: number | null; error: any}> => {
           try {
-            const result = await supabase
+            const { count, error } = await supabase
               .from('community_posts')
               .select('id', { count: 'exact', head: true })
               .eq('user_id', currentUser.id)
               .is('resolved', false);
             
-            return {
-              count: result.count,
-              error: result.error
-            };
+            return { count, error };
           } catch (error) {
             console.error('Error fetching community count:', error);
             return { count: null, error };
