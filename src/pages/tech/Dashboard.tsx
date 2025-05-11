@@ -52,7 +52,7 @@ interface CustomerData {
   name?: string;
   first_name?: string;
   last_name?: string;
-  service_addresses?: Array<{address?: string}>;
+  service_addresses?: Array<{address?: string}> | any; // Make it accept any to handle Json type
 }
 
 interface RepairData {
@@ -67,11 +67,11 @@ interface RepairData {
   priority?: string;
 }
 
-// Fix for deep instantiation errors - create simple type for supabase response
+// Fix for deep instantiation errors - create simple generic type for supabase response
 type SupabaseResponse<T> = {
   data: T | null;
   error: any;
-  count?: number;
+  count?: number | null;
 };
 
 export default function TechnicianDashboard() {
@@ -131,35 +131,43 @@ export default function TechnicianDashboard() {
       try {
         logEvent('user', 'Dashboard viewed');
         
-        // Fetch active repairs - use explicit return type to avoid deep instantiation
+        // Fetch active repairs with explicit return type
         const fetchActiveRepairs = async (techId: string): Promise<SupabaseResponse<RepairData[]>> => {
           try {
-            const { data, error, count } = await supabase
+            const result = await supabase
               .from('repairs')
               .select('*')
               .eq('technician_id', techId)
               .in('status', ['scheduled', 'in_progress']);
             
-            return { data, error, count };
+            return { 
+              data: result.data as RepairData[] | null, 
+              error: result.error, 
+              count: result.count 
+            };
           } catch (error) {
             console.error('Error fetching active repairs:', error);
-            return { data: null, error };
+            return { data: null, error, count: null };
           }
         };
 
-        // Fetch customer data - use explicit return type to avoid deep instantiation
+        // Fetch customer data with explicit return type
         const fetchCustomer = async (customerId: string): Promise<SupabaseResponse<CustomerData>> => {
           try {
-            const { data, error } = await supabase
+            const result = await supabase
               .from('customers')
               .select('*')
               .eq('id', customerId)
               .single();
             
-            return { data, error };
+            return { 
+              data: result.data as CustomerData | null, 
+              error: result.error,
+              count: null
+            };
           } catch (error) {
             console.error('Error fetching customer:', error);
-            return { data: null, error };
+            return { data: null, error, count: null };
           }
         };
         
@@ -183,8 +191,26 @@ export default function TechnicianDashboard() {
                 if (customerResult.data) {
                   const customer = customerResult.data;
                   customerName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim();
-                  if (customer.service_addresses && customer.service_addresses.length > 0 && customer.service_addresses[0].address) {
-                    customerAddress = customer.service_addresses[0].address;
+                  
+                  // Handle service_addresses safely
+                  if (customer.service_addresses) {
+                    // Handle both array and JSON string formats
+                    let addressArray: Array<{address?: string}> = [];
+                    
+                    if (typeof customer.service_addresses === 'string') {
+                      try {
+                        // Try to parse if it's a JSON string
+                        addressArray = JSON.parse(customer.service_addresses);
+                      } catch (e) {
+                        console.error('Error parsing service_addresses:', e);
+                      }
+                    } else if (Array.isArray(customer.service_addresses)) {
+                      addressArray = customer.service_addresses;
+                    }
+                    
+                    if (addressArray.length > 0 && addressArray[0] && addressArray[0].address) {
+                      customerAddress = addressArray[0].address;
+                    }
                   }
                 }
               }
@@ -193,7 +219,7 @@ export default function TechnicianDashboard() {
                 id: item.id,
                 time: item.scheduled_at ? new Date(item.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'No time set',
                 isCurrent: item.status === 'in_progress',
-                title: item.diagnosis || 'Repair Visit',
+                title: item.diagnosis || item.description || 'Repair Visit',
                 customer: customerName,
                 address: customerAddress
               });
