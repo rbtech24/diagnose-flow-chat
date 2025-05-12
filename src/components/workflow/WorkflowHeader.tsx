@@ -44,10 +44,7 @@ export function WorkflowHeader({
     }
   };
 
-  const handleCreateWorkflow = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent default form submission/page refresh
-    console.log("Navigating to workflow editor...");
-    
+  const handleCreateWorkflow = () => {
     // Check user role to determine the correct path
     const isAdminPath = window.location.pathname.includes('/admin');
     const editorPath = isAdminPath ? '/admin/workflow-editor' : '/workflow-editor';
