@@ -7,7 +7,7 @@ import { moveWorkflowToFolder } from '@/utils/flow';
 
 export function useWorkflowActions(
   workflowsState: SavedWorkflow[],
-  setWorkflowsState: (state: SavedWorkflow[]) => void,
+  setWorkflowsState: React.Dispatch<React.SetStateAction<SavedWorkflow[]>>,
   loadWorkflows: () => Promise<void>
 ) {
   const handleDeleteWorkflow = async (workflow: SavedWorkflow) => {
@@ -30,10 +30,10 @@ export function useWorkflowActions(
       }
       
       // Also update localStorage
-      setWorkflowsState((prev: SavedWorkflow[]) => prev.filter(w => 
+      setWorkflowsState(prev => prev.filter(w => 
         !(w.metadata.name === workflow.metadata.name && 
           w.metadata.folder === workflow.metadata.folder)
-      ) as SavedWorkflow[]);
+      ));
       
       const storedWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');
       const updatedWorkflows = storedWorkflows.filter((w: SavedWorkflow) => 
@@ -80,7 +80,7 @@ export function useWorkflowActions(
       }
       
       // Update state
-      setWorkflowsState((prev: SavedWorkflow[]) => prev.map(w => {
+      setWorkflowsState(prev => prev.map(w => {
         if (w.metadata.name === workflow.metadata.name && 
             w.metadata.folder === workflow.metadata.folder) {
           return {
@@ -92,7 +92,7 @@ export function useWorkflowActions(
           };
         }
         return w;
-      }) as SavedWorkflow[]);
+      }));
       
       // Update localStorage
       const storedWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');

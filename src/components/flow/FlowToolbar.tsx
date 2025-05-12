@@ -1,8 +1,7 @@
-
 import { Button } from '../ui/button';
 import { SaveWorkflowDialog } from './SaveWorkflowDialog';
 import { handleSaveWorkflow } from '@/utils/flow';
-import { Download, Upload, Plus, Copy, Clipboard, Search, Link2, Save } from 'lucide-react';
+import { Download, Upload, Plus, Copy, Clipboard, Search, Link2 } from 'lucide-react';
 import { useFlowState } from '@/hooks/useFlowState';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -43,38 +42,6 @@ export function FlowToolbar({
     handleSaveWorkflow(nodes, edges, nodeCounter, file.name, 'import', 'import', '');
   }, [nodes, edges, nodeCounter]);
 
-  const handleSaveButton = useCallback(async () => {
-    if (currentWorkflow) {
-      try {
-        const result = await handleSaveWorkflow(
-          nodes, 
-          edges, 
-          nodeCounter,
-          currentWorkflow.metadata.name,
-          currentWorkflow.metadata.folder || '',
-          currentWorkflow.metadata.appliance || currentWorkflow.metadata.folder || '',
-          currentWorkflow.metadata.symptom || ''
-        );
-        
-        toast({
-          title: "Workflow Saved",
-          description: "Your workflow has been saved successfully."
-        });
-        
-        // Navigate back to workflows page after save
-        const basePath = isAdmin ? '/admin/workflows' : '/workflows';
-        navigate(basePath);
-      } catch (error) {
-        console.error("Failed to save workflow", error);
-        toast({
-          title: "Save Failed",
-          description: "Failed to save workflow. Please try again.",
-          variant: "destructive"
-        });
-      }
-    }
-  }, [currentWorkflow, nodes, edges, nodeCounter, isAdmin, navigate]);
-
   const handleGoToWorkflows = useCallback(() => {
     const basePath = isAdmin ? '/admin/workflows' : '/workflows';
     navigate(basePath);
@@ -111,20 +78,6 @@ export function FlowToolbar({
       <div className="pointer-events-auto">
         <SaveWorkflowDialog onSave={onSave} currentWorkflow={currentWorkflow} />
       </div>
-
-      {currentWorkflow && (
-        <div className="pointer-events-auto">
-          <Button 
-            variant="default"
-            size="sm"
-            className="flex items-center gap-2" 
-            onClick={handleSaveButton}
-          >
-            <Save className="w-4 h-4" />
-            Save & Return
-          </Button>
-        </div>
-      )}
 
       <div className="pointer-events-auto">
         <Button 
