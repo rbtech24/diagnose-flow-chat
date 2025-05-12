@@ -36,7 +36,7 @@ export default function AdminWorkflows() {
 
   const handleCreateWorkflow = () => {
     console.log("Navigating to workflow editor");
-    navigate('/workflow-editor?new=true');
+    navigate('/admin/workflow-editor');
   };
 
   const handleEditWorkflow = (folder: string, name: string) => {

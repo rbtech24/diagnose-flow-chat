@@ -8,7 +8,7 @@ import { WorkflowHeader } from '@/components/workflow/WorkflowHeader';
 import { WorkflowView } from '@/components/workflow/WorkflowView';
 import { ApplianceManager } from '@/components/workflow/ApplianceManager';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Plus } from 'lucide-react';
 import { useUserRole } from '@/hooks/useUserRole';
 import { cleanupOrphanedWorkflows, cleanupEmptyFolders } from '@/utils/flow';
 import { getFolders } from '@/utils/flow/storage/categories';
@@ -118,6 +118,10 @@ export default function Workflows() {
     navigate('/admin/workflows');
   };
   
+  const handleCreateNewWorkflow = () => {
+    navigate('/workflow-editor');
+  };
+  
   const handleMoveWorkflowToFolderWithRefresh = async (workflow: SavedWorkflow, targetFolder: string) => {
     const success = await handleMoveWorkflowToFolder(workflow, targetFolder);
     if (success) {
@@ -148,6 +152,18 @@ export default function Workflows() {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Admin Workflows
         </Button>
+        
+        {isAdmin && (
+          <Button 
+            variant="default"
+            size="sm" 
+            className="flex items-center"
+            onClick={handleCreateNewWorkflow}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Create New Workflow
+          </Button>
+        )}
       </div>
 
       <WorkflowHeader
