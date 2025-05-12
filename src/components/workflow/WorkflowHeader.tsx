@@ -45,7 +45,11 @@ export function WorkflowHeader({
   };
 
   const handleCreateWorkflow = () => {
-    navigate('/workflow-editor');
+    console.log("Navigating to workflow editor...");
+    // Check user role to determine the correct path
+    const isAdminPath = window.location.pathname.includes('/admin');
+    const editorPath = isAdminPath ? '/admin/workflow-editor' : '/workflow-editor';
+    navigate(editorPath);
   };
 
   return (
