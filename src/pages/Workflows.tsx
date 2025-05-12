@@ -119,6 +119,7 @@ export default function Workflows() {
   };
   
   const handleCreateNewWorkflow = () => {
+    // Fixed navigation - directly to workflow editor
     navigate('/workflow-editor');
   };
   
