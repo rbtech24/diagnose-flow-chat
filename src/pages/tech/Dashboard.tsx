@@ -7,7 +7,7 @@ import {
   FileText,
   PenLine,
   MessageSquare,
-  MessageSquareQuestion,
+  HelpCircle, // Changed from MessageSquareQuestion to HelpCircle
   Clock,
   Activity,
   CheckSquare,
@@ -156,7 +156,7 @@ export default function TechDashboard() {
             onClick={() => navigate('/tech/community/new')}
           >
             <span>Ask Community</span>
-            <MessageSquareQuestion className="ml-2 h-4 w-4" />
+            <HelpCircle className="ml-2 h-4 w-4" /> {/* Changed from MessageSquareQuestion to HelpCircle */}
           </Button>
         </div>
       </div>

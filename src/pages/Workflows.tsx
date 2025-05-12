@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppliances } from '@/hooks/useAppliances';
@@ -121,7 +122,7 @@ export default function Workflows() {
 
   const handleBackToDashboard = () => {
     if (isAdmin) {
-      navigate('/admin');
+      navigate('/admin/workflows'); // Changed from '/admin' to '/admin/workflows'
     } else if (userRole === 'company') {
       navigate('/company');
     } else {
