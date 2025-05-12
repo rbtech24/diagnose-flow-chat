@@ -56,22 +56,6 @@ export default function WorkflowEditor() {
     }
   }, [folder, name]);
 
-  // We're removing this permission check to allow all users to access the editor
-  // This is based on the comment that all users can now see workflows in Workflows.tsx
-  /*
-  useEffect(() => {
-    // Check if user has admin permissions
-    if (!isLoading && userRole !== 'admin') {
-      toast({
-        title: "Access Denied",
-        description: "Only administrators can edit workflows.",
-        variant: "destructive"
-      });
-      navigate('/workflows');
-    }
-  }, [userRole, isLoading, navigate]);
-  */
-
   const handleNodeSelect = useCallback((node: Node, updateNode: (nodeId: string, newData: any) => void) => {
     console.log('WorkflowEditor handleNodeSelect:', node);
     setSelectedNode(node);
@@ -85,7 +69,9 @@ export default function WorkflowEditor() {
     }
   }, [selectedNode, updateNodeFn]);
 
-  const handleBackToDashboard = () => {
+  const handleBackToDashboard = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent default action
+    e.stopPropagation(); // Stop propagation
     navigate('/workflows', { replace: true });
   };
 

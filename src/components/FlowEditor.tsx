@@ -156,6 +156,7 @@ export default function FlowEditor({
   const handleNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
     console.log('Node clicked:', node);
     if (onNodeSelect) {
+      event.stopPropagation(); // Prevent event bubbling
       onNodeSelect(node, handleNodeUpdate);
     }
   }, [onNodeSelect, handleNodeUpdate]);

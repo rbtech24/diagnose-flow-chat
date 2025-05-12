@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppliances } from '@/hooks/useAppliances';
@@ -92,32 +91,17 @@ export default function Workflows() {
     )
   );
 
-  const handleAddAppliance = (name: string) => {
-    addAppliance(name);
-    refreshFolders();
-    toast({
-      title: "Appliance Added",
-      description: `${name} has been added successfully.`
-    });
-  };
-
   // Function to properly open workflow editor
   const openWorkflowEditor = (folder: string, name?: string) => {
     console.log("Opening workflow editor with:", { folder, name });
     
-    // Use preventDefault to ensure no default navigation occurs
-    const navigateToEditor = () => {
-      if (name) {
-        // If name is provided, we're editing an existing workflow
-        navigate(`/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`, { replace: false });
-      } else {
-        // If no name, we're creating a new workflow in the folder
-        navigate(`/workflow-editor?folder=${encodeURIComponent(folder)}`, { replace: false });
-      }
-    };
-    
-    // Use setTimeout to ensure the navigation happens after any other events
-    setTimeout(navigateToEditor, 0);
+    // Use direct navigation without any events that could get interrupted
+    const url = name 
+      ? `/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`
+      : `/workflow-editor?folder=${encodeURIComponent(folder)}`;
+      
+    // Use replace: true to prevent back button from returning to this page immediately
+    navigate(url, { replace: false });
   };
 
   const handleAddIssue = (applianceName: string) => {
