@@ -92,7 +92,7 @@ export function useFlowActions(
       toast({
         title: "Cannot Quick Save",
         description: "This is a new workflow. Please use 'Save Workflow' to save it first.",
-        variant: "warning"
+        variant: "destructive" // Changed from "warning" to "destructive" to match valid variant types
       });
       return;
     }
