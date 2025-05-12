@@ -1,3 +1,4 @@
+
 import { ApplianceCard } from '@/components/appliance/ApplianceCard';
 import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
@@ -285,7 +286,7 @@ export function WorkflowGrid({
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-3">
-                        {!isReadOnly && (
+                        {!isReadOnly && isReordering && (
                           <div className="mt-1 cursor-grab">
                             <GripVertical className="h-5 w-5 text-gray-400" />
                           </div>

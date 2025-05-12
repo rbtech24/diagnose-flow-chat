@@ -1,10 +1,11 @@
-
 import { useCallback } from 'react';
 import { Connection, Node, Edge, useReactFlow, addEdge } from '@xyflow/react';
 import { toast } from './use-toast';
 import { addToHistory } from '@/utils/workflowHistory';
 import { handleQuickSave } from '@/utils/flow';
 import { SavedWorkflow } from '@/utils/flow/types';
+import { useNavigate } from 'react-router-dom';
+import { useUserRole } from '@/hooks/useUserRole';
 
 export function useFlowActions(
   nodes: Node[],
@@ -20,6 +21,9 @@ export function useFlowActions(
   currentWorkflow?: SavedWorkflow
 ) {
   const { getViewport } = useReactFlow();
+  const navigate = useNavigate();
+  const { userRole } = useUserRole();
+  const isAdmin = userRole === 'admin';
 
   const handleConnect = useCallback(
     (params: Connection) => {
@@ -104,6 +108,10 @@ export function useFlowActions(
         title: "Workflow Saved",
         description: "Your changes have been saved successfully."
       });
+      
+      // Navigate back to workflows page after successful save
+      const basePath = isAdmin ? '/admin/workflows' : '/workflows';
+      navigate(basePath);
     } catch (error) {
       console.error("Error during quick save:", error);
       toast({
@@ -112,7 +120,7 @@ export function useFlowActions(
         variant: "destructive"
       });
     }
-  }, [nodes, edges, nodeCounter, currentWorkflow]);
+  }, [nodes, edges, nodeCounter, currentWorkflow, isAdmin, navigate]);
 
   const handleAddNode = useCallback(() => {
     const newNodeId = `node-${nodeCounter}`;

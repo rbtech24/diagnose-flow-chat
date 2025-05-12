@@ -17,18 +17,15 @@ export function FlowHeader({ currentWorkflow, onQuickSave }: FlowHeaderProps) {
   const isAdmin = userRole === 'admin';
   
   const handleBack = () => {
-    // Simplify navigation - always go back to the appropriate workflows page
-    if (isAdmin) {
-      navigate('/admin/workflows');
-    } else {
-      navigate('/workflows');
-    }
+    // Navigate back to the appropriate workflows page
+    const basePath = isAdmin ? '/admin/workflows' : '/workflows';
+    navigate(basePath);
   };
 
   const handleCreateNew = () => {
     // Clear URL parameters for new workflow
     const basePath = isAdmin ? '/admin/workflow-editor' : '/workflow-editor';
-    navigate(basePath + '?new=true');
+    navigate(`${basePath}?new=true`);
   };
 
   return (

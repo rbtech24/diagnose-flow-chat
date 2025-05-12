@@ -45,11 +45,8 @@ export function useFileHandling({
         });
         
         // Navigate back to workflows page after successful save
-        if (isAdmin) {
-          navigate('/admin/workflows');
-        } else {
-          navigate('/workflows');
-        }
+        const basePath = isAdmin ? '/admin/workflows' : '/workflows';
+        navigate(basePath);
       }
       return Promise.resolve();
     } catch (error) {

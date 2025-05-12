@@ -93,10 +93,11 @@ export default function Workflows() {
   };
 
   const openWorkflowEditor = (folder: string, name?: string) => {
-    // Correctly navigate to the workflow editor page with folder/name parameters
+    // Navigate to the workflow editor with folder/name parameters
+    const basePath = isAdmin ? '/admin/workflow-editor' : '/workflow-editor';
     const path = name 
-      ? `/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`
-      : `/workflow-editor?folder=${encodeURIComponent(folder)}`;
+      ? `${basePath}?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`
+      : `${basePath}?folder=${encodeURIComponent(folder)}`;
     navigate(path);
   };
 
@@ -120,7 +121,8 @@ export default function Workflows() {
   
   const handleCreateNewWorkflow = () => {
     // Fixed navigation - directly to workflow editor
-    navigate('/workflow-editor');
+    const basePath = isAdmin ? '/admin/workflow-editor' : '/workflow-editor';
+    navigate(`${basePath}?new=true`);
   };
   
   const handleMoveWorkflowToFolderWithRefresh = async (workflow: SavedWorkflow, targetFolder: string) => {

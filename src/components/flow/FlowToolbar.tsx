@@ -5,10 +5,11 @@ import { handleSaveWorkflow } from '@/utils/flow';
 import { Download, Upload, Plus, Copy, Clipboard, Search, Link2, Save } from 'lucide-react';
 import { useFlowState } from '@/hooks/useFlowState';
 import { useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Input } from '../ui/input';
 import { SavedWorkflow } from '@/utils/flow/types';
 import { useUserRole } from '@/hooks/useUserRole';
+import { toast } from '@/hooks/use-toast';
 
 interface FlowToolbarProps {
   onAddNode: () => void;
@@ -55,24 +56,28 @@ export function FlowToolbar({
           currentWorkflow.metadata.symptom || ''
         );
         
+        toast({
+          title: "Workflow Saved",
+          description: "Your workflow has been saved successfully."
+        });
+        
         // Navigate back to workflows page after save
-        if (isAdmin) {
-          navigate('/admin/workflows');
-        } else {
-          navigate('/workflows');
-        }
+        const basePath = isAdmin ? '/admin/workflows' : '/workflows';
+        navigate(basePath);
       } catch (error) {
         console.error("Failed to save workflow", error);
+        toast({
+          title: "Save Failed",
+          description: "Failed to save workflow. Please try again.",
+          variant: "destructive"
+        });
       }
     }
   }, [currentWorkflow, nodes, edges, nodeCounter, isAdmin, navigate]);
 
   const handleGoToWorkflows = useCallback(() => {
-    if (isAdmin) {
-      navigate('/admin/workflows');
-    } else {
-      navigate('/workflows');
-    }
+    const basePath = isAdmin ? '/admin/workflows' : '/workflows';
+    navigate(basePath);
   }, [isAdmin, navigate]);
 
   return (
