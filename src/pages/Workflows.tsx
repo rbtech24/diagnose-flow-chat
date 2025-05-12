@@ -101,7 +101,7 @@ export default function Workflows() {
       ? `/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`
       : `/workflow-editor?folder=${encodeURIComponent(folder)}`;
       
-    // Use replace: true to prevent back button from returning to this page immediately
+    // Use replace: false to prevent back button from returning to this page immediately
     navigate(url, { replace: false });
   };
 
