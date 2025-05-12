@@ -180,7 +180,7 @@ export default function Workflows() {
         onToggleWorkflow={isAdmin ? toggleWorkflow : undefined}
         onMoveSymptom={isAdmin ? moveSymptom : undefined}
         onMoveAppliance={isAdmin ? moveAppliance : undefined}
-        onOpenWorkflowEditor={isAdmin ? openWorkflowEditor : undefined}
+        onOpenWorkflowEditor={openWorkflowEditor}
         onAddIssue={isAdmin ? handleAddIssue : undefined}
         onDeleteWorkflow={isAdmin ? handleDeleteWorkflow : undefined}
         onMoveWorkflow={isAdmin ? handleMoveWorkflow : undefined}

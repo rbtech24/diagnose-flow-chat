@@ -21,9 +21,10 @@ export const getAllWorkflows = async (): Promise<SavedWorkflow[]> => {
         `)
         .eq('is_active', true);
       
-      if (error) throw error;
-      
-      if (data && data.length > 0) {
+      if (error) {
+        console.error('Error fetching from Supabase:', error);
+        // Don't throw here, just continue to localStorage fallback
+      } else if (data && data.length > 0) {
         // Transform Supabase data into SavedWorkflow format
         return data.map(item => {
           // Ensure flow_data is properly parsed
@@ -47,7 +48,7 @@ export const getAllWorkflows = async (): Promise<SavedWorkflow[]> => {
         });
       }
     } catch (error) {
-      console.error('Error getting all workflows:', error);
+      console.error('Error getting workflows from Supabase:', error);
       // If Supabase fails, we'll just continue to check localStorage
     }
     
@@ -63,9 +64,20 @@ export const getAllWorkflows = async (): Promise<SavedWorkflow[]> => {
     console.error('Error getting all workflows:', error);
     toast({
       title: "Error",
-      description: "Failed to load workflows",
+      description: "Failed to load workflows - falling back to local storage",
       variant: "destructive"
     });
+    
+    // Ultimate fallback to localStorage
+    try {
+      const storedWorkflows = localStorage.getItem('diagnostic-workflows');
+      if (storedWorkflows) {
+        return JSON.parse(storedWorkflows) as SavedWorkflow[];
+      }
+    } catch (e) {
+      console.error('Error parsing localStorage workflows:', e);
+    }
+    
     return []; // Return empty array on error
   }
 };
