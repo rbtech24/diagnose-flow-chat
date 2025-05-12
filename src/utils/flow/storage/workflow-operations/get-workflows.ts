@@ -25,6 +25,8 @@ export const getAllWorkflows = async (): Promise<SavedWorkflow[]> => {
         console.error('Error fetching from Supabase:', error);
         // Don't throw here, just continue to localStorage fallback
       } else if (data && data.length > 0) {
+        console.log('Workflows loaded from Supabase:', data.length);
+        
         // Transform Supabase data into SavedWorkflow format
         return data.map(item => {
           // Ensure flow_data is properly parsed
@@ -53,6 +55,7 @@ export const getAllWorkflows = async (): Promise<SavedWorkflow[]> => {
     }
     
     // Fallback to localStorage if Supabase didn't return any data
+    console.log('Falling back to localStorage for workflows');
     const storedWorkflows = localStorage.getItem('diagnostic-workflows');
     if (storedWorkflows) {
       const workflowsData = JSON.parse(storedWorkflows) as SavedWorkflow[];

@@ -1,3 +1,4 @@
+
 import { ApplianceCard } from '@/components/appliance/ApplianceCard';
 import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
@@ -35,7 +36,8 @@ interface WorkflowGridProps {
   isReadOnly?: boolean;
   workflowsByFolder?: Record<string, SavedWorkflow[]>;
   enableFolderView?: boolean;
-  enableDragDrop?: boolean; // New prop to control drag and drop functionality
+  enableDragDrop?: boolean;
+  isAdminRoute?: boolean;
 }
 
 export function WorkflowGrid({
@@ -57,7 +59,8 @@ export function WorkflowGrid({
   isReadOnly = false,
   workflowsByFolder = {},
   enableFolderView = false,
-  enableDragDrop = false // Default to false
+  enableDragDrop = false,
+  isAdminRoute = false
 }: WorkflowGridProps) {
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
   const [draggingWorkflow, setDraggingWorkflow] = useState<SavedWorkflow | null>(null);
@@ -220,7 +223,7 @@ export function WorkflowGrid({
   };
 
   const handleEditWorkflow = (folder: string, name: string) => {
-    // Make sure we navigate to the correct URL for editing workflows
+    console.log("Opening workflow editor for:", folder, name, "isAdmin:", isAdminRoute);
     onOpenWorkflowEditor(folder, name);
   };
 

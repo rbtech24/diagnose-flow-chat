@@ -5,7 +5,7 @@ import { Plus, Search, Settings, FolderIcon } from 'lucide-react';
 import { AddApplianceDialog } from '@/components/appliance/AddApplianceDialog';
 import { useState } from 'react';
 import { FolderManagement } from './FolderManagement';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Popover,
   PopoverContent,
@@ -37,6 +37,8 @@ export function WorkflowHeader({
 }: WorkflowHeaderProps) {
   const [isAddApplianceDialogOpen, setIsAddApplianceDialogOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAdminRoute = location.pathname.includes('/admin');
 
   const handleFoldersChange = () => {
     if (onFoldersRefresh) {
@@ -47,9 +49,8 @@ export function WorkflowHeader({
   const handleCreateWorkflow = (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent default form submission behavior
     
-    // Check if we're on the admin path
-    const isAdminPath = window.location.pathname.includes('/admin');
-    const editorPath = isAdminPath ? '/admin/workflow-editor' : '/workflow-editor';
+    // Set the correct path based on the current route
+    const editorPath = isAdminRoute ? '/admin/workflow-editor' : '/workflow-editor';
     
     // Navigate to the workflow editor with the new parameter
     console.log("Navigating to:", `${editorPath}?new=true`);

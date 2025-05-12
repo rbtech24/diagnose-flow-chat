@@ -3,6 +3,7 @@ import { WorkflowGrid } from './WorkflowGrid';
 import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
 import { toast } from '@/hooks/use-toast';
+import { useLocation } from 'react-router-dom';
 
 interface WorkflowViewProps {
   filteredAppliances: Appliance[];
@@ -23,7 +24,7 @@ interface WorkflowViewProps {
   isReadOnly?: boolean;
   workflowsByFolder?: Record<string, SavedWorkflow[]>;
   enableFolderView?: boolean;
-  enableDragDrop?: boolean; // This prop controls drag and drop functionality
+  enableDragDrop?: boolean;
 }
 
 export function WorkflowView({
@@ -45,8 +46,11 @@ export function WorkflowView({
   isReadOnly = false,
   workflowsByFolder = {},
   enableFolderView = false,
-  enableDragDrop = false // Default to false
+  enableDragDrop = false
 }: WorkflowViewProps) {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.includes('/admin');
+  
   // Generate pastel colors for item cards
   const getSymptomCardColor = (index: number) => {
     const colors = [
@@ -61,7 +65,7 @@ export function WorkflowView({
   };
 
   const handleOpenWorkflowEditor = (folder: string, name?: string) => {
-    console.log("WorkflowView opening editor with:", { folder, name });
+    console.log("WorkflowView opening editor with:", { folder, name, isAdminRoute });
     if (onOpenWorkflowEditor) {
       onOpenWorkflowEditor(folder, name);
     } else {
@@ -94,7 +98,8 @@ export function WorkflowView({
         isReadOnly={isReadOnly}
         workflowsByFolder={workflowsByFolder}
         enableFolderView={enableFolderView}
-        enableDragDrop={enableDragDrop} // Pass the enableDragDrop prop to WorkflowGrid
+        enableDragDrop={enableDragDrop}
+        isAdminRoute={isAdminRoute}
       />
     </div>
   );

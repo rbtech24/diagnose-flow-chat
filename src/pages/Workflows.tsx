@@ -23,6 +23,7 @@ export default function Workflows() {
   const [searchTerm, setSearchTerm] = useState('');
   const { userRole } = useUserRole();
   const isAdmin = userRole === 'admin';
+  const isAdminRoute = location.pathname.includes('/admin');
 
   const {
     appliances,
@@ -50,13 +51,31 @@ export default function Workflows() {
   
   const refreshFolders = useCallback(async () => {
     try {
+      console.log("Refreshing folders");
       const folders = await getFolders();
       setFolderList(folders);
-      // Run cleanup operations
-      await cleanupOrphanedWorkflows();
-      await cleanupEmptyFolders();
-      // Refresh workflows
-      await loadWorkflows();
+      // Run cleanup operations (with better error handling)
+      try {
+        await cleanupOrphanedWorkflows();
+      } catch (err) {
+        console.error("Error during orphaned workflow cleanup:", err);
+      }
+      try {
+        await cleanupEmptyFolders();
+      } catch (err) {
+        console.error("Error during empty folder cleanup:", err);
+      }
+      // Refresh workflows (with better error handling)
+      try {
+        await loadWorkflows();
+      } catch (err) {
+        console.error("Error loading workflows:", err);
+        toast({
+          title: "Load Error",
+          description: "Couldn't load workflows from server. Using local data.",
+          variant: "destructive"
+        });
+      }
     } catch (error) {
       console.error("Error refreshing folders:", error);
     }
@@ -93,10 +112,10 @@ export default function Workflows() {
     });
   };
 
-  // Fixed function to properly open workflow editor
+  // Fixed function to properly open workflow editor based on route
   const openWorkflowEditor = (folder: string, name?: string) => {
-    console.log("Opening workflow editor with:", { folder, name });
-    const basePath = isAdmin ? '/admin/workflow-editor' : '/workflow-editor';
+    console.log("Opening workflow editor with:", { folder, name, isAdminRoute });
+    const basePath = isAdminRoute ? '/admin/workflow-editor' : '/workflow-editor';
     
     if (name) {
       navigate(`${basePath}?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`);
@@ -119,13 +138,14 @@ export default function Workflows() {
   };
 
   const handleBackToDashboard = () => {
-    navigate('/admin/workflows');
+    const basePath = isAdminRoute ? '/admin/workflows' : '/';
+    navigate(basePath);
   };
   
   // Fixed function to create new workflow
   const handleCreateNewWorkflow = () => {
-    console.log("Creating new workflow");
-    const basePath = isAdmin ? '/admin/workflow-editor' : '/workflow-editor';
+    console.log("Creating new workflow", { isAdminRoute });
+    const basePath = isAdminRoute ? '/admin/workflow-editor' : '/workflow-editor';
     navigate(`${basePath}?new=true`);
   };
   
@@ -157,7 +177,7 @@ export default function Workflows() {
           onClick={handleBackToDashboard}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Admin Workflows
+          {isAdminRoute ? "Back to Admin Workflows" : "Back to Dashboard"}
         </Button>
         
         {isAdmin && (
@@ -204,7 +224,7 @@ export default function Workflows() {
         isReadOnly={!isAdmin}
         workflowsByFolder={workflowsByFolder} 
         enableFolderView={true}
-        enableDragDrop={isReordering} // Enable drag and drop functionality only when reordering is active
+        enableDragDrop={isReordering}
       />
 
       {isAdmin && (

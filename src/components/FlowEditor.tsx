@@ -15,6 +15,7 @@ import { useFileHandling } from '@/hooks/useFileHandling';
 import { useHotkeySetup } from '@/hooks/useHotkeySetup';
 import { FlowEditorContent } from './flow/FlowEditorContent';
 import { toast } from '@/hooks/use-toast';
+import { useLocation } from 'react-router-dom';
 
 interface FlowEditorProps {
   onNodeSelect?: (node: Node, updateNode: (nodeId: string, newData: any) => void) => void;
@@ -31,6 +32,10 @@ export default function FlowEditor({
   folder,
   name 
 }: FlowEditorProps) {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const isNewWorkflow = searchParams.get('new') === 'true';
+
   const {
     nodes,
     setNodes,
@@ -111,9 +116,27 @@ export default function FlowEditor({
     currentWorkflow,
   });
 
-  // Load workflow data when currentWorkflow changes
+  // Load workflow data when currentWorkflow changes or on initial load
   useEffect(() => {
-    if (currentWorkflow) {
+    console.log('FlowEditor initializing with:', { isNewWorkflow, currentWorkflow, folder, name });
+    
+    if (isNewWorkflow) {
+      console.log('Creating new workflow...');
+      clearSavedState();
+      setNodes(initialNodes);
+      setEdges(initialEdges);
+      setNodeCounter(1);
+      setHistory(createHistoryState({ 
+        nodes: initialNodes, 
+        edges: initialEdges, 
+        nodeCounter: 1 
+      }));
+      toast({
+        title: "New Workflow",
+        description: "Started creating a new workflow"
+      });
+    }
+    else if (currentWorkflow) {
       console.log('Loading workflow data:', currentWorkflow);
       setNodes(currentWorkflow.nodes);
       setEdges(currentWorkflow.edges);
@@ -128,25 +151,7 @@ export default function FlowEditor({
         description: `"${currentWorkflow.metadata.name}" from ${currentWorkflow.metadata.folder} loaded successfully`
       });
     }
-  }, [currentWorkflow, setNodes, setEdges, setNodeCounter]);
-
-  useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const isNew = searchParams.get('new') === 'true';
-    
-    if (isNew) {
-      console.log('Creating new workflow...');
-      clearSavedState();
-      setNodes(initialNodes);
-      setEdges(initialEdges);
-      setNodeCounter(1);
-      setHistory(createHistoryState({ 
-        nodes: initialNodes, 
-        edges: initialEdges, 
-        nodeCounter: 1 
-      }));
-    }
-  }, [window.location.search, clearSavedState, setNodes, setEdges, setNodeCounter]);
+  }, [currentWorkflow, isNewWorkflow, clearSavedState, setNodes, setEdges, setNodeCounter, folder, name]);
 
   const handleNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
     console.log('Node clicked:', node);
