@@ -4,9 +4,18 @@ import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ArrowUpRight, Trash, GripVertical, FileText, Edit, Eye } from 'lucide-react';
+import { ArrowUpRight, Trash, GripVertical, FileText, Edit, Eye, MoveHorizontal } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { toast } from '@/hooks/use-toast';
+import { useState } from 'react';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface WorkflowGridProps {
   appliances: Appliance[];
@@ -52,6 +61,11 @@ export function WorkflowGrid({
       </div>
     );
   }
+
+  const availableFolders = [...new Set([
+    'Default',
+    ...appliances.map(app => app.name),
+  ])];
 
   const handleDragOver = (e: React.DragEvent) => {
     if (isReadOnly) return;
@@ -202,6 +216,37 @@ export function WorkflowGrid({
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
+                    
+                    {onMoveWorkflowToFolder && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="h-8 w-8 p-0 text-purple-500 hover:text-purple-600 hover:bg-purple-50"
+                          >
+                            <MoveHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Move to folder</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {availableFolders.map((folder) => (
+                            <DropdownMenuItem 
+                              key={folder}
+                              disabled={folder === workflow.metadata.folder}
+                              onClick={() => {
+                                if (folder !== workflow.metadata.folder) {
+                                  onMoveWorkflowToFolder(workflow, folder);
+                                }
+                              }}
+                            >
+                              {folder}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </>
                 )}
                 <Button 

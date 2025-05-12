@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useUserRole } from '@/hooks/useUserRole';
 import { toast } from '@/hooks/use-toast';
+import { useWorkflows } from '@/hooks/useWorkflows';
 
 export default function WorkflowEditor() {
   const [searchParams] = useSearchParams();
@@ -18,6 +19,7 @@ export default function WorkflowEditor() {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [updateNodeFn, setUpdateNodeFn] = useState<((nodeId: string, newData: any) => void) | null>(null);
   const { userRole, isLoading } = useUserRole();
+  const { folders } = useWorkflows();
 
   useEffect(() => {
     // Check if user has admin permissions
@@ -45,11 +47,7 @@ export default function WorkflowEditor() {
   }, [selectedNode, updateNodeFn]);
 
   const handleBackToDashboard = () => {
-    if (userRole === 'admin') {
-      navigate('/admin/workflows');
-    } else {
-      navigate('/workflows');
-    }
+    navigate('/workflows');
   };
 
   if (isLoading) {
@@ -78,7 +76,7 @@ export default function WorkflowEditor() {
             <FlowEditor 
               folder={folder || ''} 
               name={name || ''} 
-              appliances={[]} 
+              appliances={folders} 
               onNodeSelect={handleNodeSelect}
             />
           </div>

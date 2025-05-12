@@ -5,32 +5,38 @@ import { toast } from '@/hooks/use-toast';
 
 export const saveWorkflowToStorage = async (workflow: SavedWorkflow): Promise<boolean> => {
   try {
-    if (!workflow.metadata?.appliance) {
-      console.error('No appliance specified for workflow');
+    if (!workflow.metadata?.folder) {
+      console.error('No folder specified for workflow');
       return false;
     }
 
     // Try to save to Supabase first
     try {
-      // First get or create the category
-      const { data: category } = await supabase
-        .from('workflow_categories')
-        .select('id')
-        .eq('name', workflow.metadata.appliance)
-        .maybeSingle();
-
-      let categoryId;
-      if (!category) {
-        const { data: newCategory, error: createError } = await supabase
+      // First get or create the category for the folder
+      let categoryId = null;
+      
+      // Skip category lookup for Default folder
+      if (workflow.metadata.folder !== 'Default') {
+        // Check if category exists
+        const { data: existingCategory, error: findCategoryError } = await supabase
           .from('workflow_categories')
-          .insert({ name: workflow.metadata.appliance })
           .select('id')
-          .single();
+          .eq('name', workflow.metadata.folder)
+          .maybeSingle();
+        
+        if (!findCategoryError && existingCategory) {
+          categoryId = existingCategory.id;
+        } else {
+          // Create new category
+          const { data: newCategory, error: createError } = await supabase
+            .from('workflow_categories')
+            .insert({ name: workflow.metadata.folder })
+            .select('id')
+            .single();
 
-        if (createError) throw createError;
-        categoryId = newCategory.id;
-      } else {
-        categoryId = category.id;
+          if (createError) throw createError;
+          categoryId = newCategory.id;
+        }
       }
 
       // First, check if the workflow already exists
@@ -47,7 +53,7 @@ export const saveWorkflowToStorage = async (workflow: SavedWorkflow): Promise<bo
           id: existingWorkflow?.id,
           name: workflow.metadata.name,
           category_id: categoryId,
-          description: '',
+          description: workflow.metadata.description || '',
           flow_data: JSON.parse(JSON.stringify({
             nodes: workflow.nodes,
             edges: workflow.edges,
@@ -99,7 +105,7 @@ export const saveWorkflowToStorage = async (workflow: SavedWorkflow): Promise<bo
     
     toast({
       title: "Success",
-      description: "Workflow saved successfully"
+      description: `Workflow saved successfully to ${workflow.metadata.folder}`
     });
     
     return true;

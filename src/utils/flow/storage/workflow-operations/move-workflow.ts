@@ -13,13 +13,38 @@ export const moveWorkflowToFolder = async (workflow: SavedWorkflow, targetFolder
       .maybeSingle();
       
     if (!findError && data) {
-      // If found in Supabase, update the folder reference
+      // Find or create target category if not "Default"
+      let categoryId = null;
+      if (targetFolder !== 'Default') {
+        // Check if category exists
+        const { data: categoryData, error: categoryError } = await supabase
+          .from('workflow_categories')
+          .select('id')
+          .eq('name', targetFolder)
+          .maybeSingle();
+          
+        if (categoryError) throw categoryError;
+        
+        // If category doesn't exist, create it
+        if (!categoryData) {
+          const { data: newCategory, error: createError } = await supabase
+            .from('workflow_categories')
+            .insert({ name: targetFolder })
+            .select('id')
+            .single();
+            
+          if (createError) throw createError;
+          categoryId = newCategory.id;
+        } else {
+          categoryId = categoryData.id;
+        }
+      }
+      
+      // Update the workflow with new category_id
       const { error } = await supabase
         .from('workflows')
         .update({
-          category_id: targetFolder === 'Default' 
-            ? null
-            : await getCategoryId(targetFolder)
+          category_id: categoryId // null for Default folder
         })
         .eq('id', data.id);
         
@@ -35,7 +60,8 @@ export const moveWorkflowToFolder = async (workflow: SavedWorkflow, targetFolder
           ...w,
           metadata: {
             ...w.metadata,
-            folder: targetFolder
+            folder: targetFolder,
+            appliance: targetFolder // Also update appliance field for compatibility
           }
         };
       }
