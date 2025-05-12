@@ -191,8 +191,8 @@ export default function Workflows() {
         onToggleWorkflowActive={isAdmin ? handleToggleWorkflowActive : undefined}
         onMoveWorkflowToFolder={isAdmin ? handleMoveWorkflowToFolderWithRefresh : undefined}
         isReadOnly={!isAdmin}
-        workflowsByFolder={workflowsByFolder} // Pass grouped workflows
-        enableFolderView={true} // Enable folder view
+        workflowsByFolder={workflowsByFolder} 
+        enableFolderView={true}
       />
 
       {isAdmin && (
