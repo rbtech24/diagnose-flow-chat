@@ -120,13 +120,7 @@ export default function Workflows() {
   };
 
   const handleBackToDashboard = () => {
-    if (isAdmin) {
-      navigate('/admin/workflows');
-    } else if (userRole === 'company') {
-      navigate('/company');
-    } else {
-      navigate('/tech');
-    }
+    navigate('/admin/workflows');
   };
   
   const handleMoveWorkflowToFolderWithRefresh = async (workflow: SavedWorkflow, targetFolder: string) => {
@@ -157,7 +151,7 @@ export default function Workflows() {
           onClick={handleBackToDashboard}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {isAdmin ? "Back to Admin Workflows" : "Back to Dashboard"}
+          Back to Admin Workflows
         </Button>
       </div>
 

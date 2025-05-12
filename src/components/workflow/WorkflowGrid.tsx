@@ -1,9 +1,10 @@
+
 import { ApplianceCard } from '@/components/appliance/ApplianceCard';
 import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ArrowUpRight, Trash, GripVertical, FileText, Edit, Eye, MoveHorizontal, FolderIcon, Plus, ChevronUp, ChevronDown, Check } from 'lucide-react';
+import { Trash, GripVertical, FileText, Edit, Eye, MoveHorizontal, FolderIcon, Plus, ChevronUp, ChevronDown, Check, ArrowUpRight } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { toast } from '@/hooks/use-toast';
 import { useState } from 'react';
@@ -285,7 +286,7 @@ export function WorkflowGrid({
                   <Card 
                     key={`workflow-${workflow.metadata.name}-${workflow.metadata.folder}`}
                     className="workflow-item group relative p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200"
-                    draggable={!isReadOnly}
+                    draggable={!isReadOnly && isReordering}
                     onDragStart={isReadOnly ? undefined : (e) => handleDragStart(e, workflow)}
                     onDragEnd={isReadOnly ? undefined : handleDragEnd}
                     onDragOver={isReadOnly ? undefined : handleDragOver}
