@@ -22,7 +22,7 @@ interface WorkflowViewProps {
   isReadOnly?: boolean;
   workflowsByFolder?: Record<string, SavedWorkflow[]>;
   enableFolderView?: boolean;
-  enableDragDrop?: boolean; // New prop to control drag and drop functionality
+  enableDragDrop?: boolean; // This prop controls drag and drop functionality
 }
 
 export function WorkflowView({
@@ -80,7 +80,7 @@ export function WorkflowView({
         isReadOnly={isReadOnly}
         workflowsByFolder={workflowsByFolder}
         enableFolderView={enableFolderView}
-        enableDragDrop={enableDragDrop} // Pass the new prop to WorkflowGrid
+        enableDragDrop={enableDragDrop} // Pass the enableDragDrop prop to WorkflowGrid
       />
     </div>
   );

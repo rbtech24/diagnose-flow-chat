@@ -17,13 +17,15 @@ export default function WorkflowEditor() {
   const navigate = useNavigate();
   const folder = searchParams.get('folder');
   const name = searchParams.get('name');
+  const isNew = searchParams.get('new') === 'true';
+  
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [updateNodeFn, setUpdateNodeFn] = useState<((nodeId: string, newData: any) => void) | null>(null);
   const { userRole, isLoading } = useUserRole();
   const { folders, loadWorkflows } = useWorkflows();
   const [currentWorkflow, setCurrentWorkflow] = useState<SavedWorkflow | undefined>(undefined);
 
-  console.log('WorkflowEditor params:', { folder, name });
+  console.log('WorkflowEditor params:', { folder, name, isNew });
 
   // Load the current workflow if name is provided
   useEffect(() => {
@@ -101,7 +103,8 @@ export default function WorkflowEditor() {
             Back to Admin Workflows
           </Button>
           <div className="ml-4 text-sm text-slate-500">
-            {folder && `Editing: ${folder}${name ? ` / ${name}` : ''}`}
+            {isNew && "Creating New Workflow"}
+            {folder && !isNew && `Editing: ${folder}${name ? ` / ${name}` : ''}`}
           </div>
         </div>
         <div className="flex flex-1">

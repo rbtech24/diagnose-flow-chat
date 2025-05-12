@@ -93,12 +93,18 @@ export default function Workflows() {
   };
 
   const openWorkflowEditor = (folder: string, name?: string) => {
-    // Navigate to the workflow editor with folder/name parameters
+    // Updated navigation logic to properly navigate to the workflow editor
     const basePath = isAdmin ? '/admin/workflow-editor' : '/workflow-editor';
-    const path = name 
-      ? `${basePath}?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`
-      : `${basePath}?folder=${encodeURIComponent(folder)}`;
-    navigate(path);
+    const queryParams = new URLSearchParams();
+    
+    if (name) {
+      queryParams.append('folder', folder);
+      queryParams.append('name', name);
+    } else {
+      queryParams.append('folder', folder);
+    }
+    
+    navigate(`${basePath}?${queryParams.toString()}`);
   };
 
   const handleAddIssue = (applianceName: string) => {
@@ -120,7 +126,7 @@ export default function Workflows() {
   };
   
   const handleCreateNewWorkflow = () => {
-    // Fixed navigation - directly to workflow editor
+    // Fixed navigation - directly to workflow editor with the new=true parameter
     const basePath = isAdmin ? '/admin/workflow-editor' : '/workflow-editor';
     navigate(`${basePath}?new=true`);
   };
