@@ -2,13 +2,14 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { getAllWorkflows } from './workflow-operations/get-workflows';
-import { getWorkflowCategories } from './categories';
+import { getFolders } from './categories';
+import { SavedWorkflow } from '@/utils/flow/types';
 
 // Clean up workflows that don't have associated folders
 export const cleanupOrphanedWorkflows = async (): Promise<void> => {
   try {
     const workflows = await getAllWorkflows();
-    const categories = await getWorkflowCategories();
+    const categories = await getFolders();
     
     // Add 'Default' to categories if it doesn't exist
     if (!categories.includes('Default')) {
@@ -27,17 +28,24 @@ export const cleanupOrphanedWorkflows = async (): Promise<void> => {
       // Move orphaned workflows to Default folder
       for (const workflow of orphanedWorkflows) {
         try {
-          // Update in Supabase
-          if (workflow.id) {
+          // Check if the workflow has a database id in metadata
+          const workflowDbId = workflow.metadata?.dbId;
+          
+          // Update in Supabase if we have a DB ID
+          if (workflowDbId) {
+            // Prepare the flow data for Supabase in the correct format
+            // Convert the workflow to a JSON string for Supabase
+            const flowDataJson = JSON.stringify({
+              ...workflow,
+              metadata: { ...workflow.metadata, folder: 'Default' }
+            });
+            
             const { error } = await supabase
               .from('workflows')
               .update({ 
-                flow_data: { 
-                  ...workflow, 
-                  metadata: { ...workflow.metadata, folder: 'Default' } 
-                } 
+                flow_data: flowDataJson
               })
-              .eq('id', workflow.id);
+              .eq('id', workflowDbId);
             
             if (error) {
               console.error('Error updating workflow in Supabase:', error);
@@ -87,7 +95,7 @@ export const cleanupOrphanedWorkflows = async (): Promise<void> => {
 export const cleanupEmptyFolders = async (): Promise<void> => {
   try {
     const workflows = await getAllWorkflows();
-    const categories = await getWorkflowCategories();
+    const categories = await getFolders();
     
     // Skip the Default folder, it should always exist
     const foldersToCheck = categories.filter(cat => cat !== 'Default');

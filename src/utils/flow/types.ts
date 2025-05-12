@@ -14,6 +14,7 @@ export interface WorkflowMetadata {
   tags?: string[];
   description?: string;
   isActive?: boolean;
+  dbId?: string; // Added this to store the Supabase ID
 }
 
 export interface SavedWorkflow {

@@ -41,7 +41,8 @@ export const getAllWorkflows = async (): Promise<SavedWorkflow[]> => {
               appliance: item.category?.name || 'Default',
               createdAt: item.created_at,
               updatedAt: item.updated_at,
-              isActive: item.is_active
+              isActive: item.is_active,
+              dbId: item.id // Store the database ID
             },
             nodes: flowData.nodes || [],
             edges: flowData.edges || [],
