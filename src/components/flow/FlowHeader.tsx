@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { QuickSaveButton } from "./QuickSaveButton";
 import { SavedWorkflow } from "@/utils/flow/types";
 import { ArrowLeft, Plus } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
 
 interface FlowHeaderProps {
@@ -13,27 +13,22 @@ interface FlowHeaderProps {
 
 export function FlowHeader({ currentWorkflow, onQuickSave }: FlowHeaderProps) {
   const navigate = useNavigate();
-  const location = useLocation();
   const { userRole } = useUserRole();
   const isAdmin = userRole === 'admin';
   
   const handleBack = () => {
+    // Simplify navigation - always go back to the appropriate workflows page
     if (isAdmin) {
-      // If coming from admin workflows page, go back there
-      if (location.key && window.history.length > 1) {
-        navigate(-1);
-      } else {
-        navigate('/admin/workflows');
-      }
+      navigate('/admin/workflows');
     } else {
-      // For non-admin users, go to the regular workflows page
       navigate('/workflows');
     }
   };
 
   const handleCreateNew = () => {
+    // Clear URL parameters for new workflow
     const basePath = isAdmin ? '/admin/workflow-editor' : '/workflow-editor';
-    navigate(basePath);
+    navigate(basePath + '?new=true');
   };
 
   return (

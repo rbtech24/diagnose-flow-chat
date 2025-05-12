@@ -5,9 +5,10 @@ import { handleSaveWorkflow } from '@/utils/flow';
 import { Download, Upload, Plus, Copy, Clipboard, Search, Link2, Save } from 'lucide-react';
 import { useFlowState } from '@/hooks/useFlowState';
 import { useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Input } from '../ui/input';
 import { SavedWorkflow } from '@/utils/flow/types';
+import { useUserRole } from '@/hooks/useUserRole';
 
 interface FlowToolbarProps {
   onAddNode: () => void;
@@ -31,12 +32,48 @@ export function FlowToolbar({
   currentWorkflow
 }: FlowToolbarProps) {
   const { nodes, edges, nodeCounter } = useFlowState();
+  const navigate = useNavigate();
+  const { userRole } = useUserRole();
+  const isAdmin = userRole === 'admin';
 
   const handleImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     handleSaveWorkflow(nodes, edges, nodeCounter, file.name, 'import', 'import', '');
   }, [nodes, edges, nodeCounter]);
+
+  const handleSaveButton = useCallback(async () => {
+    if (currentWorkflow) {
+      try {
+        const result = await handleSaveWorkflow(
+          nodes, 
+          edges, 
+          nodeCounter,
+          currentWorkflow.metadata.name,
+          currentWorkflow.metadata.folder || '',
+          currentWorkflow.metadata.appliance || currentWorkflow.metadata.folder || '',
+          currentWorkflow.metadata.symptom || ''
+        );
+        
+        // Navigate back to workflows page after save
+        if (isAdmin) {
+          navigate('/admin/workflows');
+        } else {
+          navigate('/workflows');
+        }
+      } catch (error) {
+        console.error("Failed to save workflow", error);
+      }
+    }
+  }, [currentWorkflow, nodes, edges, nodeCounter, isAdmin, navigate]);
+
+  const handleGoToWorkflows = useCallback(() => {
+    if (isAdmin) {
+      navigate('/admin/workflows');
+    } else {
+      navigate('/workflows');
+    }
+  }, [isAdmin, navigate]);
 
   return (
     <div className="absolute top-0 left-0 right-0 z-10 flex items-center gap-3 p-4 bg-background border-b pointer-events-auto">
@@ -69,6 +106,20 @@ export function FlowToolbar({
       <div className="pointer-events-auto">
         <SaveWorkflowDialog onSave={onSave} currentWorkflow={currentWorkflow} />
       </div>
+
+      {currentWorkflow && (
+        <div className="pointer-events-auto">
+          <Button 
+            variant="default"
+            size="sm"
+            className="flex items-center gap-2" 
+            onClick={handleSaveButton}
+          >
+            <Save className="w-4 h-4" />
+            Save & Return
+          </Button>
+        </div>
+      )}
 
       <div className="pointer-events-auto">
         <Button 
@@ -112,16 +163,15 @@ export function FlowToolbar({
       </div>
 
       <div className="pointer-events-auto">
-        <Link to="/workflows">
-          <Button 
-            variant="default"
-            size="sm"
-            className="flex items-center gap-2 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white"
-          >
-            <Link2 className="w-4 h-4" />
-            Workflows
-          </Button>
-        </Link>
+        <Button 
+          variant="default"
+          size="sm"
+          className="flex items-center gap-2 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white"
+          onClick={handleGoToWorkflows}
+        >
+          <Link2 className="w-4 h-4" />
+          Workflows
+        </Button>
       </div>
 
       <div className="flex-1" />

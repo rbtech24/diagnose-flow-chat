@@ -4,6 +4,8 @@ import { toast } from '@/hooks/use-toast';
 import { handleSaveWorkflow, handleImportWorkflow } from '@/utils/flow';
 import { addToHistory } from '@/utils/workflowHistory';
 import { Node } from '@xyflow/react';
+import { useNavigate } from 'react-router-dom';
+import { useUserRole } from '@/hooks/useUserRole';
 
 interface UseFileHandlingProps {
   nodes: Node[];
@@ -28,6 +30,10 @@ export function useFileHandling({
   history,
   setHistory,
 }: UseFileHandlingProps) {
+  const navigate = useNavigate();
+  const { userRole } = useUserRole();
+  const isAdmin = userRole === 'admin';
+
   const handleSave = useCallback(async (name: string, folder: string, appliance: string) => {
     try {
       console.log('Saving workflow with:', {name, folder, appliance, nodes, edges});
@@ -37,6 +43,13 @@ export function useFileHandling({
           title: "Workflow Saved",
           description: `Successfully saved "${name}" to folder "${folder}"`
         });
+        
+        // Navigate back to workflows page after successful save
+        if (isAdmin) {
+          navigate('/admin/workflows');
+        } else {
+          navigate('/workflows');
+        }
       }
       return Promise.resolve();
     } catch (error) {
@@ -48,7 +61,7 @@ export function useFileHandling({
       });
       return Promise.reject(error);
     }
-  }, [nodes, edges, nodeCounter]);
+  }, [nodes, edges, nodeCounter, navigate, isAdmin]);
 
   const handleFileImport = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
