@@ -276,8 +276,8 @@ export function WorkflowGrid({
                 {folderWorkflows.map((workflow, index) => (
                   <Card 
                     key={`workflow-${workflow.metadata.name}-${workflow.metadata.folder}`}
-                    className="workflow-item group relative p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200"
-                    draggable={!isReadOnly}
+                    className="workflow-item group relative p-4 shadow-sm border border-gray-100 hover:border-gray-300 hover:shadow-md transition-all duration-200"
+                    draggable={!isReadOnly && isReordering}
                     onDragStart={isReadOnly ? undefined : (e) => handleDragStart(e, workflow)}
                     onDragEnd={isReadOnly ? undefined : handleDragEnd}
                     onDragOver={isReadOnly ? undefined : handleDragOver}
@@ -303,24 +303,16 @@ export function WorkflowGrid({
                               <div className="h-2 w-2 rounded-full bg-green-500"></div>
                               {workflow.nodes.length} steps
                             </div>
-                            <div className={`${workflow.metadata.isActive ? 'text-gray-600' : 'text-gray-400'} flex items-center gap-1`}>
-                              {workflow.metadata.isActive ? (
-                                <>
-                                  <Check className="h-3 w-3 text-green-500" />
-                                  <span>Active</span>
-                                </>
-                              ) : (
-                                <span>Inactive</span>
-                              )}
-                            </div>
                           </div>
                         </div>
                       </div>
                       
                       <div className="flex flex-col items-end gap-2">
-                        <div className="flex gap-1">
+                        {/* Action buttons row */}
+                        <div className="flex items-center gap-2">
                           {!isReadOnly && (
                             <>
+                              {/* Delete button */}
                               <Button 
                                 variant="ghost" 
                                 size="sm"
@@ -333,13 +325,16 @@ export function WorkflowGrid({
                               >
                                 <Trash className="h-4 w-4" />
                               </Button>
+                              
+                              {/* Edit button */}
                               <Button 
-                                variant="ghost" 
+                                variant="outline" 
                                 size="sm"
-                                className="h-8 w-8 p-0 text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+                                className="flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"
                                 onClick={() => handleEditWorkflow(workflow.metadata.folder || '', workflow.metadata.name)}
                               >
                                 <Edit className="h-4 w-4" />
+                                <span>Edit</span>
                               </Button>
                               
                               {onMoveWorkflowToFolder && (
@@ -382,22 +377,37 @@ export function WorkflowGrid({
                             </>
                           )}
                           <Button 
-                            variant="ghost" 
+                            variant={isReadOnly ? "ghost" : "outline"}
                             size="sm"
-                            className="h-8 w-8 p-0 text-green-500 hover:text-green-600 hover:bg-green-50"
+                            className={`h-8 p-1 flex items-center gap-1 ${isReadOnly ? "text-green-500 hover:text-green-600 hover:bg-green-50" : "text-gray-600 hover:text-gray-700"}`}
                             onClick={() => isReadOnly ? onOpenWorkflowEditor(workflow.metadata.folder || '', workflow.metadata.name) : handleEditWorkflow(workflow.metadata.folder || '', workflow.metadata.name)}
                           >
                             {isReadOnly ? <Eye className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
+                            <span>{isReadOnly ? "View" : "Open"}</span>
                           </Button>
                         </div>
+                        
+                        {/* Active/Inactive toggle row */}
                         {!isReadOnly && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-500">{workflow.metadata.isActive ? 'Active' : 'Inactive'}</span>
-                            <Switch
-                              checked={workflow.metadata.isActive === true}
-                              onCheckedChange={() => onToggleWorkflowActive(workflow)}
-                              className="data-[state=checked]:bg-green-500"
-                            />
+                          <div className="flex items-center gap-2 mt-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className={`flex items-center gap-1 h-8 ${workflow.metadata.isActive ? 'text-green-600 border-green-200 bg-green-50 hover:bg-green-100' : 'text-gray-500 border-gray-200 hover:bg-gray-100'}`}
+                              onClick={() => onToggleWorkflowActive(workflow)}
+                            >
+                              {workflow.metadata.isActive ? (
+                                <>
+                                  <ToggleRight className="h-4 w-4" />
+                                  <span>Active</span>
+                                </>
+                              ) : (
+                                <>
+                                  <ToggleLeft className="h-4 w-4" />
+                                  <span>Inactive</span>
+                                </>
+                              )}
+                            </Button>
                           </div>
                         )}
                       </div>
@@ -489,15 +499,12 @@ export function WorkflowGrid({
                     <div className="h-2 w-2 rounded-full bg-green-500"></div>
                     {workflow.nodes.length} steps
                   </div>
-                  <div className={`${workflow.metadata.isActive ? 'text-gray-600' : 'text-gray-400'}`}>
-                    {workflow.metadata.isActive ? 'Active' : 'Inactive'}
-                  </div>
                 </div>
               </div>
             </div>
             
             <div className="flex flex-col items-end gap-2">
-              <div className="flex gap-1">
+              <div className="flex items-center gap-2">
                 {!isReadOnly && (
                   <>
                     <Button 
@@ -512,13 +519,15 @@ export function WorkflowGrid({
                     >
                       <Trash className="h-4 w-4" />
                     </Button>
+                    
                     <Button 
-                      variant="ghost" 
+                      variant="outline" 
                       size="sm"
-                      className="h-8 w-8 p-0 text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+                      className="flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"
                       onClick={() => handleEditWorkflow(workflow.metadata.folder || '', workflow.metadata.name)}
                     >
                       <Edit className="h-4 w-4" />
+                      <span>Edit</span>
                     </Button>
                     
                     {onMoveWorkflowToFolder && (
@@ -554,22 +563,37 @@ export function WorkflowGrid({
                   </>
                 )}
                 <Button 
-                  variant="ghost" 
+                  variant={isReadOnly ? "ghost" : "outline"}
                   size="sm"
-                  className="h-8 w-8 p-0 text-green-500 hover:text-green-600 hover:bg-green-50"
+                  className={`h-8 p-1 flex items-center gap-1 ${isReadOnly ? "text-green-500 hover:text-green-600 hover:bg-green-50" : "text-gray-600 hover:text-gray-700"}`}
                   onClick={() => isReadOnly ? onOpenWorkflowEditor(workflow.metadata.folder || '', workflow.metadata.name) : handleEditWorkflow(workflow.metadata.folder || '', workflow.metadata.name)}
                 >
                   {isReadOnly ? <Eye className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
+                  <span>{isReadOnly ? "View" : "Open"}</span>
                 </Button>
               </div>
+              
+              {/* Active/Inactive toggle button */}
               {!isReadOnly && (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">{workflow.metadata.isActive ? 'Active' : 'Inactive'}</span>
-                  <Switch
-                    checked={workflow.metadata.isActive === true}
-                    onCheckedChange={() => onToggleWorkflowActive(workflow)}
-                    className="data-[state=checked]:bg-green-500"
-                  />
+                <div className="flex items-center gap-2 mt-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={`flex items-center gap-1 h-8 ${workflow.metadata.isActive ? 'text-green-600 border-green-200 bg-green-50 hover:bg-green-100' : 'text-gray-500 border-gray-200 hover:bg-gray-100'}`}
+                    onClick={() => onToggleWorkflowActive(workflow)}
+                  >
+                    {workflow.metadata.isActive ? (
+                      <>
+                        <ToggleRight className="h-4 w-4" />
+                        <span>Active</span>
+                      </>
+                    ) : (
+                      <>
+                        <ToggleLeft className="h-4 w-4" />
+                        <span>Inactive</span>
+                      </>
+                    )}
+                  </Button>
                 </div>
               )}
             </div>
