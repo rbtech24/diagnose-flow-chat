@@ -1,9 +1,10 @@
+
 import { ApplianceCard } from '@/components/appliance/ApplianceCard';
 import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Trash, GripVertical, FileText, Edit, Eye, MoveHorizontal, FolderIcon, Plus, ChevronUp, ChevronDown, Check, ArrowUpRight, Toggle } from 'lucide-react';
+import { Trash, GripVertical, FileText, Edit, Eye, MoveHorizontal, FolderIcon, Plus, ChevronUp, ChevronDown, Check, ArrowUpRight, ToggleLeft, ToggleRight } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { toast } from '@/hooks/use-toast';
 import { useState } from 'react';
