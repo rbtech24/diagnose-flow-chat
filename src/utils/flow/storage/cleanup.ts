@@ -1,112 +1,140 @@
 
-// Utility functions for cleaning up workflow data
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { getAllWorkflows } from './workflow-operations/get-workflows';
 import { getWorkflowCategories } from './categories';
 
+// Clean up workflows that don't have associated folders
 export const cleanupOrphanedWorkflows = async (): Promise<void> => {
-  // This would be used to clean up workflows that no longer have a valid category
-  // or are otherwise in an inconsistent state
-  
   try {
     const workflows = await getAllWorkflows();
     const categories = await getWorkflowCategories();
     
-    // Find workflows with categories that no longer exist
-    const orphanedWorkflows = workflows.filter(
-      w => w.metadata.folder && 
-      w.metadata.folder !== 'Default' && 
-      !categories.includes(w.metadata.folder)
-    );
+    // Add 'Default' to categories if it doesn't exist
+    if (!categories.includes('Default')) {
+      categories.push('Default');
+    }
+    
+    // Filter workflows that have folders not in the categories list
+    const orphanedWorkflows = workflows.filter(workflow => {
+      const folder = workflow.metadata?.folder || 'Default';
+      return !categories.includes(folder);
+    });
     
     if (orphanedWorkflows.length > 0) {
+      console.log(`Found ${orphanedWorkflows.length} orphaned workflows`);
+      
       // Move orphaned workflows to Default folder
       for (const workflow of orphanedWorkflows) {
         try {
-          // Find workflow in Supabase
-          const { data: workflowData } = await supabase
-            .from('workflows')
-            .select('id')
-            .eq('name', workflow.metadata.name)
-            .maybeSingle();
-            
-          if (workflowData) {
-            // Update workflow to use Default category
-            await supabase
+          // Update in Supabase
+          if (workflow.id) {
+            const { error } = await supabase
               .from('workflows')
               .update({ 
-                category_id: null,
-                updated_at: new Date().toISOString()
+                flow_data: { 
+                  ...workflow, 
+                  metadata: { ...workflow.metadata, folder: 'Default' } 
+                } 
               })
-              .eq('id', workflowData.id);
+              .eq('id', workflow.id);
+            
+            if (error) {
+              console.error('Error updating workflow in Supabase:', error);
+            }
           }
+          
+          // Update in localStorage
+          const storedWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');
+          const updatedWorkflows = storedWorkflows.map((w: any) => {
+            if (w.metadata?.name === workflow.metadata?.name && 
+                (w.metadata?.folder === workflow.metadata?.folder || 
+                 w.metadata?.appliance === workflow.metadata?.folder)) {
+              return {
+                ...w,
+                metadata: {
+                  ...w.metadata,
+                  folder: 'Default'
+                }
+              };
+            }
+            return w;
+          });
+          
+          localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
+          
         } catch (error) {
-          console.error('Error updating orphaned workflow:', error);
+          console.error('Error moving orphaned workflow to Default folder:', error);
         }
       }
       
-      // Update localStorage
-      const existingWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');
-      const updatedWorkflows = existingWorkflows.map((w: any) => {
-        if (w.metadata?.folder && 
-            w.metadata.folder !== 'Default' && 
-            !categories.includes(w.metadata.folder)) {
-          return {
-            ...w,
-            metadata: {
-              ...w.metadata,
-              folder: 'Default',
-              appliance: 'Default',
-              updatedAt: new Date().toISOString()
-            }
-          };
-        }
-        return w;
-      });
-      
-      localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
-      
       toast({
-        title: "Cleanup Complete",
-        description: `Moved ${orphanedWorkflows.length} orphaned workflow(s) to Default folder`
+        title: 'Cleanup Complete',
+        description: `Moved ${orphanedWorkflows.length} workflows to Default folder`
       });
     }
   } catch (error) {
-    console.error('Error cleaning up orphaned workflows:', error);
+    console.error('Error in cleanupOrphanedWorkflows:', error);
+    toast({
+      title: 'Cleanup Error',
+      description: 'Failed to check for orphaned workflows',
+      variant: 'destructive'
+    });
   }
-  
-  return Promise.resolve();
 };
 
+// Clean up empty folders
 export const cleanupEmptyFolders = async (): Promise<void> => {
   try {
     const workflows = await getAllWorkflows();
     const categories = await getWorkflowCategories();
     
-    // Find empty categories (except Default)
-    const usedCategories = [...new Set(workflows.map(w => w.metadata.folder))];
-    const emptyCategories = categories.filter(
-      c => c !== 'Default' && !usedCategories.includes(c)
-    );
+    // Skip the Default folder, it should always exist
+    const foldersToCheck = categories.filter(cat => cat !== 'Default');
     
-    // Delete empty categories from Supabase
-    if (emptyCategories.length > 0) {
-      for (const category of emptyCategories) {
-        await supabase
-          .from('workflow_categories')
-          .delete()
-          .eq('name', category);
+    const emptyFolders = foldersToCheck.filter(folder => {
+      return !workflows.some(workflow => workflow.metadata?.folder === folder);
+    });
+    
+    if (emptyFolders.length > 0) {
+      console.log(`Found ${emptyFolders.length} empty folders`);
+      
+      // Delete empty folders
+      for (const folder of emptyFolders) {
+        try {
+          // Delete from Supabase
+          const { data: categoryData, error: findError } = await supabase
+            .from('workflow_categories')
+            .select('id')
+            .eq('name', folder)
+            .maybeSingle();
+          
+          if (!findError && categoryData) {
+            const { error: deleteError } = await supabase
+              .from('workflow_categories')
+              .delete()
+              .eq('id', categoryData.id);
+            
+            if (deleteError) {
+              console.error('Error deleting empty folder from Supabase:', deleteError);
+            }
+          }
+        } catch (error) {
+          console.error(`Error deleting empty folder "${folder}":`, error);
+        }
       }
       
       toast({
-        title: "Cleanup Complete",
-        description: `Removed ${emptyCategories.length} empty folder(s)`
+        title: 'Cleanup Complete',
+        description: `Removed ${emptyFolders.length} empty folders`
       });
     }
   } catch (error) {
-    console.error('Error cleaning up empty folders:', error);
+    console.error('Error in cleanupEmptyFolders:', error);
+    toast({
+      title: 'Cleanup Error',
+      description: 'Failed to check for empty folders',
+      variant: 'destructive'
+    });
   }
-  
-  return Promise.resolve();
 };

@@ -95,15 +95,6 @@ export default function Workflows() {
   );
 
   const handleAddAppliance = (name: string) => {
-    if (!isAdmin) {
-      toast({
-        title: "Permission Denied",
-        description: "Only administrators can add appliances.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
     addAppliance(name);
     refreshFolders();
     toast({
@@ -112,7 +103,7 @@ export default function Workflows() {
     });
   };
 
-  // Fixed function to properly open workflow editor based on route
+  // Function to properly open workflow editor based on route
   const openWorkflowEditor = (folder: string, name?: string) => {
     console.log("Opening workflow editor with:", { folder, name, isAdminRoute });
     const basePath = isAdminRoute ? '/admin/workflow-editor' : '/workflow-editor';
@@ -125,15 +116,6 @@ export default function Workflows() {
   };
 
   const handleAddIssue = (applianceName: string) => {
-    if (!isAdmin) {
-      toast({
-        title: "Permission Denied",
-        description: "Only administrators can add workflows.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
     openWorkflowEditor(applianceName);
   };
 
@@ -142,7 +124,7 @@ export default function Workflows() {
     navigate(basePath);
   };
   
-  // Fixed function to create new workflow
+  // Function to create new workflow
   const handleCreateNewWorkflow = () => {
     console.log("Creating new workflow", { isAdminRoute });
     const basePath = isAdminRoute ? '/admin/workflow-editor' : '/workflow-editor';
@@ -167,6 +149,9 @@ export default function Workflows() {
     workflowsByFolder[folderName].push(workflow);
   });
 
+  // All users can now see workflows
+  const canManageWorkflows = true;
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center justify-between mb-4">
@@ -180,17 +165,15 @@ export default function Workflows() {
           {isAdminRoute ? "Back to Admin Workflows" : "Back to Dashboard"}
         </Button>
         
-        {isAdmin && (
-          <Button 
-            variant="default"
-            size="sm" 
-            className="flex items-center"
-            onClick={handleCreateNewWorkflow}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Create New Workflow
-          </Button>
-        )}
+        <Button 
+          variant="default"
+          size="sm" 
+          className="flex items-center"
+          onClick={handleCreateNewWorkflow}
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Create New Workflow
+        </Button>
       </div>
 
       <WorkflowHeader
@@ -200,9 +183,9 @@ export default function Workflows() {
         onFolderChange={setSelectedFolder}
         folders={folderList}
         isReordering={isReordering}
-        onReorderingChange={isAdmin ? setIsReordering : undefined}
-        onAddAppliance={isAdmin ? handleAddAppliance : undefined}
-        onFoldersRefresh={isAdmin ? refreshFolders : undefined}
+        onReorderingChange={canManageWorkflows ? setIsReordering : undefined}
+        onAddAppliance={canManageWorkflows ? handleAddAppliance : undefined}
+        onFoldersRefresh={canManageWorkflows ? refreshFolders : undefined}
       />
 
       <WorkflowView
@@ -210,24 +193,24 @@ export default function Workflows() {
         workflows={workflows}
         isReordering={isReordering}
         selectedFolder={selectedFolder}
-        onEdit={isAdmin ? (index, name) => setEditingAppliance({ index, name }) : undefined}
-        onDelete={isAdmin ? (index) => setDeletingApplianceIndex(index) : undefined}
-        onToggleWorkflow={isAdmin ? toggleWorkflow : undefined}
-        onMoveSymptom={isAdmin ? moveSymptom : undefined}
-        onMoveAppliance={isAdmin ? moveAppliance : undefined}
+        onEdit={canManageWorkflows ? (index, name) => setEditingAppliance({ index, name }) : undefined}
+        onDelete={canManageWorkflows ? (index) => setDeletingApplianceIndex(index) : undefined}
+        onToggleWorkflow={canManageWorkflows ? toggleWorkflow : undefined}
+        onMoveSymptom={canManageWorkflows ? moveSymptom : undefined}
+        onMoveAppliance={canManageWorkflows ? moveAppliance : undefined}
         onOpenWorkflowEditor={openWorkflowEditor}
-        onAddIssue={isAdmin ? handleAddIssue : undefined}
-        onDeleteWorkflow={isAdmin ? handleDeleteWorkflow : undefined}
-        onMoveWorkflow={isAdmin ? handleMoveWorkflow : undefined}
-        onToggleWorkflowActive={isAdmin ? handleToggleWorkflowActive : undefined}
-        onMoveWorkflowToFolder={isAdmin ? handleMoveWorkflowToFolderWithRefresh : undefined}
-        isReadOnly={!isAdmin}
+        onAddIssue={canManageWorkflows ? handleAddIssue : undefined}
+        onDeleteWorkflow={canManageWorkflows ? handleDeleteWorkflow : undefined}
+        onMoveWorkflow={canManageWorkflows ? handleMoveWorkflow : undefined}
+        onToggleWorkflowActive={canManageWorkflows ? handleToggleWorkflowActive : undefined}
+        onMoveWorkflowToFolder={canManageWorkflows ? handleMoveWorkflowToFolderWithRefresh : undefined}
+        isReadOnly={!canManageWorkflows}
         workflowsByFolder={workflowsByFolder} 
         enableFolderView={true}
         enableDragDrop={isReordering}
       />
 
-      {isAdmin && (
+      {canManageWorkflows && (
         <ApplianceManager
           editingAppliance={editingAppliance}
           setEditingAppliance={setEditingAppliance}
