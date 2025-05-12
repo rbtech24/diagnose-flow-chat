@@ -138,6 +138,16 @@ export default function Workflows() {
     return success;
   };
 
+  // Group workflows by folder for folder view
+  const workflowsByFolder: Record<string, SavedWorkflow[]> = {};
+  workflows.forEach(workflow => {
+    const folderName = workflow.metadata?.folder || 'Default';
+    if (!workflowsByFolder[folderName]) {
+      workflowsByFolder[folderName] = [];
+    }
+    workflowsByFolder[folderName].push(workflow);
+  });
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center justify-between mb-4">
@@ -181,6 +191,8 @@ export default function Workflows() {
         onToggleWorkflowActive={isAdmin ? handleToggleWorkflowActive : undefined}
         onMoveWorkflowToFolder={isAdmin ? handleMoveWorkflowToFolderWithRefresh : undefined}
         isReadOnly={!isAdmin}
+        workflowsByFolder={workflowsByFolder} // Pass grouped workflows
+        enableFolderView={true} // Enable folder view
       />
 
       {isAdmin && (

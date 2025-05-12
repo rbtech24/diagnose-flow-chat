@@ -18,8 +18,10 @@ interface WorkflowViewProps {
   onDeleteWorkflow?: (workflow: SavedWorkflow) => void;
   onMoveWorkflow?: (fromIndex: number, toIndex: number) => void;
   onToggleWorkflowActive?: (workflow: SavedWorkflow) => void;
-  onMoveWorkflowToFolder?: (workflow: SavedWorkflow, targetFolder: string) => void;
+  onMoveWorkflowToFolder?: (workflow: SavedWorkflow, targetFolder: string) => Promise<boolean>;
   isReadOnly?: boolean;
+  workflowsByFolder?: Record<string, SavedWorkflow[]>;
+  enableFolderView?: boolean;
 }
 
 export function WorkflowView({
@@ -38,7 +40,9 @@ export function WorkflowView({
   onMoveWorkflow,
   onToggleWorkflowActive,
   onMoveWorkflowToFolder,
-  isReadOnly = false
+  isReadOnly = false,
+  workflowsByFolder = {},
+  enableFolderView = false
 }: WorkflowViewProps) {
   // Generate pastel colors for item cards
   const getSymptomCardColor = (index: number) => {
@@ -72,6 +76,8 @@ export function WorkflowView({
         onMoveWorkflowToFolder={onMoveWorkflowToFolder || (() => {})}
         getSymptomCardColor={getSymptomCardColor}
         isReadOnly={isReadOnly}
+        workflowsByFolder={workflowsByFolder}
+        enableFolderView={enableFolderView}
       />
     </div>
   );
