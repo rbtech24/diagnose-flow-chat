@@ -24,7 +24,7 @@ export const handleQuickSave = async (
     edges,
     nodeCounter,
     currentWorkflow.metadata.name,
-    currentWorkflow.metadata.appliance,
+    currentWorkflow.metadata.appliance || currentWorkflow.metadata.folder,
     currentWorkflow.metadata.appliance
   );
 };
@@ -39,6 +39,7 @@ export const handleSaveWorkflow = async (
   symptom?: string
 ) => {
   if (!name || !appliance) {
+    console.error('Missing required fields for save:', { name, appliance });
     toast({
       title: "Error",
       description: "Workflow name and appliance are required",
@@ -48,6 +49,7 @@ export const handleSaveWorkflow = async (
   }
 
   try {
+    console.log('Saving workflow:', { name, folder, appliance, nodeCounter, nodes: nodes.length, edges: edges.length });
     const existingWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');
     
     const newWorkflow: SavedWorkflow = {
@@ -65,35 +67,41 @@ export const handleSaveWorkflow = async (
       nodeCounter
     };
 
-    // Find existing workflow by name and appliance
+    // Find existing workflow by name and appliance/folder
     const existingIndex = existingWorkflows.findIndex(
       (w: SavedWorkflow) => 
       w.metadata.name === name && 
-      (w.metadata.folder === folder || w.metadata.appliance === appliance)
+      (w.metadata.folder === folder || w.metadata.appliance === folder)
     );
 
     let workflowToSave: SavedWorkflow;
     
     if (existingIndex >= 0) {
+      console.log('Updating existing workflow at index:', existingIndex);
       const updatedWorkflows = [...existingWorkflows];
       workflowToSave = {
         ...newWorkflow,
         metadata: {
           ...newWorkflow.metadata,
           createdAt: existingWorkflows[existingIndex].metadata.createdAt,
-          isActive: existingWorkflows[existingIndex].metadata.isActive
+          isActive: existingWorkflows[existingIndex].metadata.isActive !== false
         }
       };
       updatedWorkflows[existingIndex] = workflowToSave;
       localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
     } else {
+      console.log('Creating new workflow');
       workflowToSave = newWorkflow;
       existingWorkflows.push(workflowToSave);
       localStorage.setItem('diagnostic-workflows', JSON.stringify(existingWorkflows));
     }
     
-    // Try to save to Supabase as well (this could fail but we already saved to localStorage)
-    await saveWorkflowToStorage(workflowToSave);
+    // Try to save to Supabase as well
+    try {
+      await saveWorkflowToStorage(workflowToSave);
+    } catch (error) {
+      console.error('Error saving to Supabase, but workflow saved to localStorage:', error);
+    }
     
     // Dispatch a storage event to notify other components
     window.dispatchEvent(new StorageEvent('storage', {

@@ -9,12 +9,14 @@ import { useAppliances } from '@/hooks/useAppliances';
 import { getFolders } from '@/utils/flow';
 import { useLocation } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
+import { SavedWorkflow } from '@/utils/flow';
 
 interface SaveWorkflowDialogProps {
   onSave: (name: string, folder: string, appliance: string) => Promise<void>;
+  currentWorkflow?: SavedWorkflow;
 }
 
-export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
+export function SaveWorkflowDialog({ onSave, currentWorkflow }: SaveWorkflowDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [workflowName, setWorkflowName] = useState('');
   const [selectedAppliance, setSelectedAppliance] = useState('');
@@ -25,8 +27,15 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
   
   const isWorkflowsPage = location.pathname === '/workflows';
   
+  // Set initial values when dialog opens or when currentWorkflow changes
   useEffect(() => {
     if (isOpen) {
+      if (currentWorkflow) {
+        setWorkflowName(currentWorkflow.metadata.name);
+        setSelectedAppliance(currentWorkflow.metadata.folder || currentWorkflow.metadata.appliance);
+        setNewAppliance('');
+      }
+      
       const loadFolders = async () => {
         try {
           const existingFolders = await getFolders();
@@ -34,7 +43,8 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
             ? existingFolders 
             : [...new Set([...appliancesList.map(a => a.name), ...existingFolders])];
           setAppliances(availableAppliances);
-          if (availableAppliances.length > 0) {
+          
+          if (!currentWorkflow && availableAppliances.length > 0) {
             setSelectedAppliance(availableAppliances[0]);
           }
         } catch (error) {
@@ -48,7 +58,7 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
       };
       loadFolders();
     }
-  }, [isOpen, isWorkflowsPage, appliancesList]);
+  }, [isOpen, currentWorkflow, isWorkflowsPage, appliancesList]);
 
   const handleSave = async () => {
     if (!workflowName) {
@@ -71,11 +81,19 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
     }
 
     try {
+      console.log('Saving workflow with:', {
+        name: workflowName,
+        folder: targetAppliance,
+        appliance: targetAppliance
+      });
+      
       await onSave(workflowName, targetAppliance, targetAppliance);
       setIsOpen(false);
       setWorkflowName('');
       setNewAppliance('');
-      setSelectedAppliance(appliances[0] || '');
+      if (appliances.length > 0) {
+        setSelectedAppliance(appliances[0] || '');
+      }
     } catch (error) {
       console.error('Error saving workflow:', error);
       toast({
@@ -98,7 +116,7 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
         <DialogHeader>
           <DialogTitle>Save Workflow</DialogTitle>
           <DialogDescription>
-            Save your workflow to an appliance category.
+            {currentWorkflow ? "Update your existing workflow." : "Save your workflow to an appliance category."}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 pt-4">
@@ -127,6 +145,7 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
                   {appliance}
                 </option>
               ))}
+              {appliances.length === 0 && <option value="">No appliances available</option>}
             </select>
           </div>
 
@@ -148,7 +167,7 @@ export function SaveWorkflowDialog({ onSave }: SaveWorkflowDialogProps) {
             onClick={handleSave}
             disabled={!workflowName || (!selectedAppliance && !newAppliance)}
           >
-            Save
+            {currentWorkflow ? "Update Workflow" : "Save Workflow"}
           </Button>
         </div>
       </DialogContent>

@@ -73,6 +73,7 @@ export function FlowEditorContent({
         onPaste={onPaste}
         appliances={appliances}
         onApplyNodeChanges={onApplyNodeChanges}
+        currentWorkflow={currentWorkflow}
       />
     </div>
   );

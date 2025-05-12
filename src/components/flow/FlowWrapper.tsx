@@ -6,6 +6,7 @@ import { defaultEdgeOptions } from '@/utils/flow';
 import { FlowToolbar } from './FlowToolbar';
 import { FlowBackground } from './FlowBackground';
 import { Node } from '@xyflow/react';
+import { SavedWorkflow } from '@/utils/flow/types';
 
 const nodeTypes = {
   diagnosis: DiagnosisNode,
@@ -26,6 +27,7 @@ interface FlowWrapperProps {
   onPaste: () => void;
   appliances: string[];
   onApplyNodeChanges?: () => void;
+  currentWorkflow?: SavedWorkflow;
 }
 
 export function FlowWrapper({
@@ -43,6 +45,7 @@ export function FlowWrapper({
   onPaste,
   appliances,
   onApplyNodeChanges,
+  currentWorkflow,
 }: FlowWrapperProps) {
   return (
     <ReactFlow
@@ -68,6 +71,7 @@ export function FlowWrapper({
         onPaste={onPaste}
         appliances={appliances}
         onApplyNodeChanges={onApplyNodeChanges}
+        currentWorkflow={currentWorkflow}
       />
     </ReactFlow>
   );

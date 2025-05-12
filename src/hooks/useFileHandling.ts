@@ -30,6 +30,7 @@ export function useFileHandling({
 }: UseFileHandlingProps) {
   const handleSave = useCallback(async (name: string, folder: string, appliance: string) => {
     try {
+      console.log('Saving workflow with:', {name, folder, appliance, nodes, edges});
       const workflow = await handleSaveWorkflow(nodes, edges, nodeCounter, name, folder, appliance, '');
       if (workflow) {
         toast({
@@ -39,6 +40,7 @@ export function useFileHandling({
       }
       return Promise.resolve();
     } catch (error) {
+      console.error('Save error:', error);
       toast({
         title: "Save Failed",
         description: "Failed to save the workflow. Please try again.",

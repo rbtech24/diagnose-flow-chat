@@ -7,6 +7,7 @@ import { useFlowState } from '@/hooks/useFlowState';
 import { useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Input } from '../ui/input';
+import { SavedWorkflow } from '@/utils/flow/types';
 
 interface FlowToolbarProps {
   onAddNode: () => void;
@@ -16,6 +17,7 @@ interface FlowToolbarProps {
   onPaste: () => void;
   appliances: string[];
   onApplyNodeChanges?: () => void;
+  currentWorkflow?: SavedWorkflow;
 }
 
 export function FlowToolbar({
@@ -25,7 +27,8 @@ export function FlowToolbar({
   onCopySelected,
   onPaste,
   appliances,
-  onApplyNodeChanges
+  onApplyNodeChanges,
+  currentWorkflow
 }: FlowToolbarProps) {
   const { nodes, edges, nodeCounter } = useFlowState();
 
@@ -64,7 +67,7 @@ export function FlowToolbar({
       )}
 
       <div className="pointer-events-auto">
-        <SaveWorkflowDialog onSave={onSave} />
+        <SaveWorkflowDialog onSave={onSave} currentWorkflow={currentWorkflow} />
       </div>
 
       <div className="pointer-events-auto">

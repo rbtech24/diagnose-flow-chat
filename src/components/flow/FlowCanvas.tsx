@@ -1,6 +1,7 @@
 
 import { Node } from '@xyflow/react';
 import { FlowWrapperWithProvider } from './FlowWrapper';
+import { SavedWorkflow } from '@/utils/flow/types';
 
 interface FlowCanvasProps {
   nodes: Node[];
@@ -17,6 +18,7 @@ interface FlowCanvasProps {
   onPaste: () => void;
   appliances: string[];
   onApplyNodeChanges?: () => void;
+  currentWorkflow?: SavedWorkflow;
 }
 
 export function FlowCanvas({
@@ -34,6 +36,7 @@ export function FlowCanvas({
   onPaste,
   appliances,
   onApplyNodeChanges,
+  currentWorkflow,
 }: FlowCanvasProps) {
   return (
     <FlowWrapperWithProvider
@@ -51,6 +54,7 @@ export function FlowCanvas({
       onPaste={onPaste}
       appliances={appliances}
       onApplyNodeChanges={onApplyNodeChanges}
+      currentWorkflow={currentWorkflow}
     />
   );
 }
