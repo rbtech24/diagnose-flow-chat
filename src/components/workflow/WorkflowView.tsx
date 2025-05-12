@@ -2,6 +2,7 @@
 import { WorkflowGrid } from './WorkflowGrid';
 import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
+import { toast } from '@/hooks/use-toast';
 
 interface WorkflowViewProps {
   filteredAppliances: Appliance[];
@@ -59,6 +60,19 @@ export function WorkflowView({
     return colors[index % colors.length];
   };
 
+  const handleOpenWorkflowEditor = (folder: string, name?: string) => {
+    console.log("WorkflowView opening editor with:", { folder, name });
+    if (onOpenWorkflowEditor) {
+      onOpenWorkflowEditor(folder, name);
+    } else {
+      toast({
+        title: "Error",
+        description: "Workflow editor cannot be opened at this time.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="mt-6">
       <WorkflowGrid
@@ -70,7 +84,7 @@ export function WorkflowView({
         onToggleWorkflow={onToggleWorkflow || (() => {})}
         onMoveSymptom={onMoveSymptom || (() => {})}
         onMoveAppliance={onMoveAppliance || (() => {})}
-        onOpenWorkflowEditor={onOpenWorkflowEditor || (() => {})}
+        onOpenWorkflowEditor={handleOpenWorkflowEditor}
         onAddIssue={onAddIssue || (() => {})}
         onDeleteWorkflow={onDeleteWorkflow || (() => {})}
         onMoveWorkflow={onMoveWorkflow || (() => {})}

@@ -14,6 +14,7 @@ import { useNodeOperations } from '@/hooks/useNodeOperations';
 import { useFileHandling } from '@/hooks/useFileHandling';
 import { useHotkeySetup } from '@/hooks/useHotkeySetup';
 import { FlowEditorContent } from './flow/FlowEditorContent';
+import { toast } from '@/hooks/use-toast';
 
 interface FlowEditorProps {
   onNodeSelect?: (node: Node, updateNode: (nodeId: string, newData: any) => void) => void;
@@ -116,20 +117,25 @@ export default function FlowEditor({
       console.log('Loading workflow data:', currentWorkflow);
       setNodes(currentWorkflow.nodes);
       setEdges(currentWorkflow.edges);
-      setNodeCounter(currentWorkflow.nodeCounter);
+      setNodeCounter(currentWorkflow.nodeCounter || 1);
       setHistory(createHistoryState({ 
         nodes: currentWorkflow.nodes, 
         edges: currentWorkflow.edges, 
-        nodeCounter: currentWorkflow.nodeCounter 
+        nodeCounter: currentWorkflow.nodeCounter || 1
       }));
+      toast({
+        title: "Workflow Loaded",
+        description: `"${currentWorkflow.metadata.name}" from ${currentWorkflow.metadata.folder} loaded successfully`
+      });
     }
   }, [currentWorkflow, setNodes, setEdges, setNodeCounter]);
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
+    const searchParams = new URLSearchParams(window.location.search);
     const isNew = searchParams.get('new') === 'true';
     
     if (isNew) {
+      console.log('Creating new workflow...');
       clearSavedState();
       setNodes(initialNodes);
       setEdges(initialEdges);
@@ -140,7 +146,7 @@ export default function FlowEditor({
         nodeCounter: 1 
       }));
     }
-  }, [location.search, clearSavedState, setNodes, setEdges, setNodeCounter]);
+  }, [window.location.search, clearSavedState, setNodes, setEdges, setNodeCounter]);
 
   const handleNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
     console.log('Node clicked:', node);

@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppliances } from '@/hooks/useAppliances';
 import { useWorkflows } from '@/hooks/useWorkflows';
 import { toast } from '@/hooks/use-toast';
@@ -16,6 +16,7 @@ import { SavedWorkflow } from '@/utils/flow/types';
 
 export default function Workflows() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isReordering, setIsReordering] = useState(false);
   const [editingAppliance, setEditingAppliance] = useState<{index: number, name: string} | null>(null);
   const [deletingApplianceIndex, setDeletingApplianceIndex] = useState<number | null>(null);
@@ -92,19 +93,16 @@ export default function Workflows() {
     });
   };
 
+  // Fixed function to properly open workflow editor
   const openWorkflowEditor = (folder: string, name?: string) => {
-    // Updated navigation logic to properly navigate to the workflow editor
+    console.log("Opening workflow editor with:", { folder, name });
     const basePath = isAdmin ? '/admin/workflow-editor' : '/workflow-editor';
-    const queryParams = new URLSearchParams();
     
     if (name) {
-      queryParams.append('folder', folder);
-      queryParams.append('name', name);
+      navigate(`${basePath}?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`);
     } else {
-      queryParams.append('folder', folder);
+      navigate(`${basePath}?folder=${encodeURIComponent(folder)}`);
     }
-    
-    navigate(`${basePath}?${queryParams.toString()}`);
   };
 
   const handleAddIssue = (applianceName: string) => {
@@ -121,12 +119,12 @@ export default function Workflows() {
   };
 
   const handleBackToDashboard = () => {
-    // Navigate to the admin workflows page
     navigate('/admin/workflows');
   };
   
+  // Fixed function to create new workflow
   const handleCreateNewWorkflow = () => {
-    // Fixed navigation - directly to workflow editor with the new=true parameter
+    console.log("Creating new workflow");
     const basePath = isAdmin ? '/admin/workflow-editor' : '/workflow-editor';
     navigate(`${basePath}?new=true`);
   };
