@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppliances } from '@/hooks/useAppliances';
@@ -100,6 +101,7 @@ export default function Workflows() {
       return;
     }
     
+    // Correct the navigation path
     const path = name 
       ? `/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`
       : `/workflow-editor?folder=${encodeURIComponent(folder)}`;
@@ -120,6 +122,7 @@ export default function Workflows() {
   };
 
   const handleBackToDashboard = () => {
+    // Navigate to the admin workflows page
     navigate('/admin/workflows');
   };
   
