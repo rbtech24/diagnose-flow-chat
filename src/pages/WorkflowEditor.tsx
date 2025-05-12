@@ -37,6 +37,13 @@ export default function WorkflowEditor() {
         
         if (matchingWorkflow) {
           setCurrentWorkflow(matchingWorkflow);
+        } else {
+          console.error('Workflow not found:', folder, name);
+          toast({
+            title: "Workflow Not Found",
+            description: `Could not locate workflow "${name}" in folder "${folder}"`,
+            variant: "destructive"
+          });
         }
       } catch (error) {
         console.error('Error loading workflow:', error);
@@ -70,7 +77,7 @@ export default function WorkflowEditor() {
   }, [selectedNode, updateNodeFn]);
 
   const handleBackToDashboard = () => {
-    navigate('/workflows');
+    navigate('/admin/workflows');
   };
 
   if (isLoading) {
@@ -88,7 +95,7 @@ export default function WorkflowEditor() {
             onClick={handleBackToDashboard}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Workflows
+            Back to Admin Workflows
           </Button>
           <div className="ml-4 text-sm text-slate-500">
             {folder && `Editing: ${folder}${name ? ` / ${name}` : ''}`}

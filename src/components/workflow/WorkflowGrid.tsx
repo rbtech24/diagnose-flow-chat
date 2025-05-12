@@ -1,4 +1,3 @@
-
 import { ApplianceCard } from '@/components/appliance/ApplianceCard';
 import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
@@ -207,17 +206,8 @@ export function WorkflowGrid({
     setDraggingWorkflow(null);
   };
 
-  const handleViewWorkflow = (folder: string, name?: string) => {
-    if (isReadOnly) {
-      // Just show a toast message for view-only users
-      toast({
-        title: "Workflow Details",
-        description: `Viewing workflow: ${name || 'New Workflow'}`
-      });
-      return;
-    }
-    
-    // For admins, open the editor
+  const handleEditWorkflow = (folder: string, name: string) => {
+    // Make sure we navigate to the correct URL for editing workflows
     onOpenWorkflowEditor(folder, name);
   };
 
@@ -286,7 +276,7 @@ export function WorkflowGrid({
                   <Card 
                     key={`workflow-${workflow.metadata.name}-${workflow.metadata.folder}`}
                     className="workflow-item group relative p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200"
-                    draggable={!isReadOnly && isReordering}
+                    draggable={!isReadOnly}
                     onDragStart={isReadOnly ? undefined : (e) => handleDragStart(e, workflow)}
                     onDragEnd={isReadOnly ? undefined : handleDragEnd}
                     onDragOver={isReadOnly ? undefined : handleDragOver}
@@ -295,7 +285,7 @@ export function WorkflowGrid({
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-3">
-                        {!isReadOnly && isReordering && (
+                        {!isReadOnly && (
                           <div className="mt-1 cursor-grab">
                             <GripVertical className="h-5 w-5 text-gray-400" />
                           </div>
@@ -346,7 +336,7 @@ export function WorkflowGrid({
                                 variant="ghost" 
                                 size="sm"
                                 className="h-8 w-8 p-0 text-blue-500 hover:text-blue-600 hover:bg-blue-50"
-                                onClick={() => onOpenWorkflowEditor(workflow.metadata.folder || '', workflow.metadata.name)}
+                                onClick={() => handleEditWorkflow(workflow.metadata.folder || '', workflow.metadata.name)}
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
@@ -394,7 +384,7 @@ export function WorkflowGrid({
                             variant="ghost" 
                             size="sm"
                             className="h-8 w-8 p-0 text-green-500 hover:text-green-600 hover:bg-green-50"
-                            onClick={() => handleViewWorkflow(workflow.metadata.folder || '', workflow.metadata.name)}
+                            onClick={() => isReadOnly ? onOpenWorkflowEditor(workflow.metadata.folder || '', workflow.metadata.name) : handleEditWorkflow(workflow.metadata.folder || '', workflow.metadata.name)}
                           >
                             {isReadOnly ? <Eye className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
                           </Button>
@@ -522,7 +512,7 @@ export function WorkflowGrid({
                       variant="ghost" 
                       size="sm"
                       className="h-8 w-8 p-0 text-blue-500 hover:text-blue-600 hover:bg-blue-50"
-                      onClick={() => onOpenWorkflowEditor(workflow.metadata.folder || '', workflow.metadata.name)}
+                      onClick={() => handleEditWorkflow(workflow.metadata.folder || '', workflow.metadata.name)}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -563,7 +553,7 @@ export function WorkflowGrid({
                   variant="ghost" 
                   size="sm"
                   className="h-8 w-8 p-0 text-green-500 hover:text-green-600 hover:bg-green-50"
-                  onClick={() => handleViewWorkflow(workflow.metadata.folder || '', workflow.metadata.name)}
+                  onClick={() => isReadOnly ? onOpenWorkflowEditor(workflow.metadata.folder || '', workflow.metadata.name) : handleEditWorkflow(workflow.metadata.folder || '', workflow.metadata.name)}
                 >
                   {isReadOnly ? <Eye className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
                 </Button>
