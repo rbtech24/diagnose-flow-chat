@@ -3,7 +3,6 @@ import { WorkflowGrid } from './WorkflowGrid';
 import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
 import { toast } from '@/hooks/use-toast';
-import { useLocation } from 'react-router-dom';
 
 interface WorkflowViewProps {
   filteredAppliances: Appliance[];
@@ -48,8 +47,6 @@ export function WorkflowView({
   enableFolderView = false,
   enableDragDrop = false
 }: WorkflowViewProps) {
-  const location = useLocation();
-  const isAdminRoute = location.pathname.includes('/admin');
   
   // Generate pastel colors for item cards
   const getSymptomCardColor = (index: number) => {
@@ -65,7 +62,6 @@ export function WorkflowView({
   };
 
   const handleOpenWorkflowEditor = (folder: string, name?: string) => {
-    console.log("WorkflowView opening editor with:", { folder, name, isAdminRoute });
     if (onOpenWorkflowEditor) {
       onOpenWorkflowEditor(folder, name);
     } else {
@@ -99,7 +95,6 @@ export function WorkflowView({
         workflowsByFolder={workflowsByFolder}
         enableFolderView={enableFolderView}
         enableDragDrop={enableDragDrop}
-        isAdminRoute={isAdminRoute}
       />
     </div>
   );

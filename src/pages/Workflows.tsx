@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAppliances } from '@/hooks/useAppliances';
 import { useWorkflows } from '@/hooks/useWorkflows';
 import { toast } from '@/hooks/use-toast';
@@ -16,14 +16,12 @@ import { SavedWorkflow } from '@/utils/flow/types';
 
 export default function Workflows() {
   const navigate = useNavigate();
-  const location = useLocation();
   const [isReordering, setIsReordering] = useState(false);
   const [editingAppliance, setEditingAppliance] = useState<{index: number, name: string} | null>(null);
   const [deletingApplianceIndex, setDeletingApplianceIndex] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const { userRole } = useUserRole();
   const isAdmin = userRole === 'admin';
-  const isAdminRoute = location.pathname.includes('/admin');
 
   const {
     appliances,
@@ -103,15 +101,12 @@ export default function Workflows() {
     });
   };
 
-  // Function to properly open workflow editor based on route
+  // Function to properly open workflow editor
   const openWorkflowEditor = (folder: string, name?: string) => {
-    console.log("Opening workflow editor with:", { folder, name, isAdminRoute });
-    const basePath = isAdminRoute ? '/admin/workflow-editor' : '/workflow-editor';
-    
     if (name) {
-      navigate(`${basePath}?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`);
+      navigate(`/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`);
     } else {
-      navigate(`${basePath}?folder=${encodeURIComponent(folder)}`);
+      navigate(`/workflow-editor?folder=${encodeURIComponent(folder)}`);
     }
   };
 
@@ -120,15 +115,12 @@ export default function Workflows() {
   };
 
   const handleBackToDashboard = () => {
-    const basePath = isAdminRoute ? '/admin/workflows' : '/';
-    navigate(basePath);
+    navigate('/');
   };
   
   // Function to create new workflow
   const handleCreateNewWorkflow = () => {
-    console.log("Creating new workflow", { isAdminRoute });
-    const basePath = isAdminRoute ? '/admin/workflow-editor' : '/workflow-editor';
-    navigate(`${basePath}?new=true`);
+    navigate(`/workflow-editor?new=true`);
   };
   
   const handleMoveWorkflowToFolderWithRefresh = async (workflow: SavedWorkflow, targetFolder: string) => {
@@ -162,7 +154,7 @@ export default function Workflows() {
           onClick={handleBackToDashboard}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {isAdminRoute ? "Back to Admin Workflows" : "Back to Dashboard"}
+          Back to Dashboard
         </Button>
         
         <Button 
