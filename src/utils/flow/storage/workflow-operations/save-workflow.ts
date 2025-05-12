@@ -50,12 +50,12 @@ export const saveWorkflowToStorage = async (workflow: SavedWorkflow): Promise<bo
         .eq('name', workflow.metadata.name)
         .maybeSingle();
 
-      // Prepare workflow data
-      const flowData = {
+      // Prepare workflow data - Use JSON.stringify to ensure it's compatible with the JSON type
+      const flowData = JSON.stringify({
         nodes: workflow.nodes,
         edges: workflow.edges,
         nodeCounter: workflow.nodeCounter
-      };
+      });
       
       // Save workflow
       const { error } = await supabase

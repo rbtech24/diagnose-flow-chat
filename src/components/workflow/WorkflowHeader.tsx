@@ -5,6 +5,7 @@ import { Plus, Search, Settings, FolderIcon } from 'lucide-react';
 import { AddApplianceDialog } from '@/components/appliance/AddApplianceDialog';
 import { useState } from 'react';
 import { FolderManagement } from './FolderManagement';
+import { useNavigate } from 'react-router-dom';
 import {
   Popover,
   PopoverContent,
@@ -35,11 +36,16 @@ export function WorkflowHeader({
   onFoldersRefresh
 }: WorkflowHeaderProps) {
   const [isAddApplianceDialogOpen, setIsAddApplianceDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleFoldersChange = () => {
     if (onFoldersRefresh) {
       onFoldersRefresh();
     }
+  };
+
+  const handleCreateWorkflow = () => {
+    navigate('/workflow-editor');
   };
 
   return (
@@ -64,6 +70,11 @@ export function WorkflowHeader({
               onChange={(e) => onSearchChange(e.target.value)}
             />
           </div>
+          
+          <Button onClick={handleCreateWorkflow}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Workflow
+          </Button>
           
           {onAddAppliance && (
             <Button onClick={() => setIsAddApplianceDialogOpen(true)}>
