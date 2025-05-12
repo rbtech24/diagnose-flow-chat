@@ -49,7 +49,7 @@ export function WorkflowHeader({
     const isAdminPath = window.location.pathname.includes('/admin');
     const editorPath = isAdminPath ? '/admin/workflow-editor' : '/workflow-editor';
     
-    // Add ?new=true to indicate this is a new workflow
+    // Ensure this works on both /workflows and /admin/workflows
     navigate(`${editorPath}?new=true`);
   };
 
