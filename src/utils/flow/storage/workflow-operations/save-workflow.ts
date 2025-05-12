@@ -76,7 +76,8 @@ export const saveWorkflowToStorage = async (workflow: SavedWorkflow): Promise<bo
       const existingIndex = existingWorkflows.findIndex(
         (w: SavedWorkflow) => 
           w.metadata.name === workflow.metadata.name && 
-          w.metadata.folder === workflow.metadata.folder
+          (w.metadata.folder === workflow.metadata.folder || 
+           w.metadata.appliance === workflow.metadata.folder)
       );
       
       if (existingIndex >= 0) {

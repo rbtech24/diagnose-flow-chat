@@ -10,6 +10,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useUserRole } from '@/hooks/useUserRole';
 import { toast } from '@/hooks/use-toast';
 import { useWorkflows } from '@/hooks/useWorkflows';
+import { SavedWorkflow } from '@/utils/flow/types';
 
 export default function WorkflowEditor() {
   const [searchParams] = useSearchParams();
@@ -19,7 +20,29 @@ export default function WorkflowEditor() {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [updateNodeFn, setUpdateNodeFn] = useState<((nodeId: string, newData: any) => void) | null>(null);
   const { userRole, isLoading } = useUserRole();
-  const { folders } = useWorkflows();
+  const { folders, loadWorkflows } = useWorkflows();
+  const [currentWorkflow, setCurrentWorkflow] = useState<SavedWorkflow | undefined>(undefined);
+
+  // Load the current workflow if name is provided
+  useEffect(() => {
+    if (folder && name) {
+      // Attempt to load the workflow from localStorage
+      try {
+        const storedWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');
+        const matchingWorkflow = storedWorkflows.find(
+          (w: SavedWorkflow) => 
+            w.metadata.name === name && 
+            (w.metadata.folder === folder || w.metadata.appliance === folder)
+        );
+        
+        if (matchingWorkflow) {
+          setCurrentWorkflow(matchingWorkflow);
+        }
+      } catch (error) {
+        console.error('Error loading workflow:', error);
+      }
+    }
+  }, [folder, name]);
 
   useEffect(() => {
     // Check if user has admin permissions
@@ -29,7 +52,7 @@ export default function WorkflowEditor() {
         description: "Only administrators can edit workflows.",
         variant: "destructive"
       });
-      navigate('/admin/workflows');
+      navigate('/workflows');
     }
   }, [userRole, isLoading, navigate]);
 
@@ -78,6 +101,7 @@ export default function WorkflowEditor() {
               name={name || ''} 
               appliances={folders} 
               onNodeSelect={handleNodeSelect}
+              currentWorkflow={currentWorkflow}
             />
           </div>
           {selectedNode && (
