@@ -93,15 +93,7 @@ export default function Workflows() {
   };
 
   const openWorkflowEditor = (folder: string, name?: string) => {
-    if (!isAdmin) {
-      toast({
-        title: "View-Only Access",
-        description: "You don't have permission to edit workflows."
-      });
-      return;
-    }
-    
-    // Correct the navigation path
+    // Correctly navigate to the workflow editor page with folder/name parameters
     const path = name 
       ? `/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`
       : `/workflow-editor?folder=${encodeURIComponent(folder)}`;

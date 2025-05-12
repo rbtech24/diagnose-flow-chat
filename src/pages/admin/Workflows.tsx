@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Workflow, FileText } from "lucide-react";
+import { Plus, Search, Workflow, FileText, GripVertical } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Link, useNavigate } from "react-router-dom";
@@ -12,7 +12,8 @@ import { toast } from "@/hooks/use-toast";
 export default function AdminWorkflows() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const { workflows } = useWorkflows();
+  const { workflows, handleMoveWorkflow } = useWorkflows();
+  const [reorderMode, setReorderMode] = useState(false);
   
   // Filter workflows based on search term
   const filteredWorkflows = workflows.filter(workflow => 
@@ -22,13 +23,21 @@ export default function AdminWorkflows() {
 
   const handleCreateWorkflow = () => {
     console.log("Navigating to workflow editor");
-    // Make sure we're explicitly going to /admin/workflow-editor
     navigate('/workflow-editor?new=true');
   };
 
   const handleEditWorkflow = (folder: string, name: string) => {
     // Navigate to the workflow editor with the folder and name parameters
     navigate(`/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`);
+  };
+  
+  const handleMoveWorkflowItem = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+    handleMoveWorkflow(fromIndex, toIndex);
+    toast({
+      title: "Workflow Reordered",
+      description: "Workflow position updated successfully"
+    });
   };
 
   return (
@@ -48,6 +57,9 @@ export default function AdminWorkflows() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          <Button variant="outline" onClick={() => setReorderMode(!reorderMode)}>
+            {reorderMode ? "Done Reordering" : "Reorder Workflows"}
+          </Button>
           <Button onClick={handleCreateWorkflow}>
             <Plus className="h-4 w-4 mr-2" />
             Create Workflow
@@ -66,9 +78,39 @@ export default function AdminWorkflows() {
           <CardContent>
             {filteredWorkflows.length > 0 ? (
               <div className="space-y-4">
-                {filteredWorkflows.map((workflow) => (
-                  <div key={`${workflow.metadata.folder}-${workflow.metadata.name}`} className="flex items-center justify-between p-4 border rounded-lg">
+                {filteredWorkflows.map((workflow, index) => (
+                  <div 
+                    key={`${workflow.metadata.folder}-${workflow.metadata.name}`} 
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                    draggable={reorderMode}
+                    onDragStart={(e) => {
+                      if (!reorderMode) return;
+                      e.dataTransfer.setData('workflow-index', index.toString());
+                    }}
+                    onDragOver={(e) => {
+                      if (!reorderMode) return;
+                      e.preventDefault();
+                      e.currentTarget.classList.add('border-primary', 'bg-primary/5');
+                    }}
+                    onDragLeave={(e) => {
+                      if (!reorderMode) return;
+                      e.currentTarget.classList.remove('border-primary', 'bg-primary/5');
+                    }}
+                    onDrop={(e) => {
+                      if (!reorderMode) return;
+                      e.preventDefault();
+                      e.currentTarget.classList.remove('border-primary', 'bg-primary/5');
+                      
+                      const sourceIndex = parseInt(e.dataTransfer.getData('workflow-index'), 10);
+                      handleMoveWorkflowItem(sourceIndex, index);
+                    }}
+                  >
                     <div className="flex items-center gap-3">
+                      {reorderMode && (
+                        <div className="cursor-grab">
+                          <GripVertical className="h-5 w-5 text-gray-400" />
+                        </div>
+                      )}
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                         <FileText className="h-5 w-5 text-primary" />
                       </div>

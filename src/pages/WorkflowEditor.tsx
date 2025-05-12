@@ -23,6 +23,8 @@ export default function WorkflowEditor() {
   const { folders, loadWorkflows } = useWorkflows();
   const [currentWorkflow, setCurrentWorkflow] = useState<SavedWorkflow | undefined>(undefined);
 
+  console.log('WorkflowEditor params:', { folder, name });
+
   // Load the current workflow if name is provided
   useEffect(() => {
     if (folder && name) {
@@ -36,6 +38,7 @@ export default function WorkflowEditor() {
         );
         
         if (matchingWorkflow) {
+          console.log('Found matching workflow:', matchingWorkflow);
           setCurrentWorkflow(matchingWorkflow);
         } else {
           console.error('Workflow not found:', folder, name);
