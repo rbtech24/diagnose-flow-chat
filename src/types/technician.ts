@@ -30,7 +30,7 @@ export interface TechnicianWithUserInfo {
   last_sign_in_at?: string;
 }
 
-// Add these new types to help with Dashboard queries
+// Update TechnicianMetricsResponse to ensure proper typing
 export interface TechnicianMetricsResponse {
   average_service_time?: number | null;
   efficiency_score?: number | null;
