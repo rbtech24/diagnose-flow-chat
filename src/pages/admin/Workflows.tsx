@@ -2,18 +2,31 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Workflow, FileText, GripVertical } from "lucide-react";
+import { Plus, Search, Workflow, FileText, GripVertical, Trash } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useWorkflows } from "@/hooks/useWorkflows";
 import { toast } from "@/hooks/use-toast";
+import { Switch } from "@/components/ui/switch";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function AdminWorkflows() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const { workflows, handleMoveWorkflow } = useWorkflows();
+  const { workflows, handleMoveWorkflow, handleDeleteWorkflow, handleToggleWorkflowActive } = useWorkflows();
   const [reorderMode, setReorderMode] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [workflowToDelete, setWorkflowToDelete] = useState<any>(null);
   
   // Filter workflows based on search term
   const filteredWorkflows = workflows.filter(workflow => 
@@ -43,6 +56,31 @@ export default function AdminWorkflows() {
     toast({
       title: "Workflow Reordered",
       description: "Workflow position updated successfully"
+    });
+  };
+
+  const openDeleteDialog = (workflow: any) => {
+    setWorkflowToDelete(workflow);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (workflowToDelete) {
+      handleDeleteWorkflow(workflowToDelete);
+      toast({
+        title: "Workflow Deleted",
+        description: `"${workflowToDelete.metadata.name}" has been deleted`
+      });
+      setDeleteDialogOpen(false);
+      setWorkflowToDelete(null);
+    }
+  };
+
+  const handleToggleActive = (workflow: any) => {
+    handleToggleWorkflowActive(workflow);
+    toast({
+      title: workflow.metadata.isActive ? "Workflow Deactivated" : "Workflow Activated",
+      description: `"${workflow.metadata.name}" is now ${workflow.metadata.isActive ? "deactivated" : "activated"}`
     });
   };
 
@@ -134,16 +172,31 @@ export default function AdminWorkflows() {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
+                      <Switch 
+                        checked={workflow.metadata.isActive === true}
+                        onCheckedChange={() => handleToggleActive(workflow)}
+                        className="data-[state=checked]:bg-green-500"
+                      />
                       <Badge variant={workflow.metadata.isActive ? "secondary" : "outline"}>
                         {workflow.metadata.isActive ? "Active" : "Inactive"}
                       </Badge>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleEditWorkflow(workflow.metadata.folder, workflow.metadata.name)}
-                      >
-                        Edit Workflow
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleEditWorkflow(workflow.metadata.folder, workflow.metadata.name)}
+                        >
+                          Edit Workflow
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => openDeleteDialog(workflow)}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -158,6 +211,24 @@ export default function AdminWorkflows() {
           </CardContent>
         </Card>
       </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Workflow</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the workflow "{workflowToDelete?.metadata.name}"? 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-500 text-white hover:bg-red-600">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
