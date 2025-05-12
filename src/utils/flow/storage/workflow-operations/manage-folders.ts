@@ -1,6 +1,10 @@
 
 import { toast } from '@/hooks/use-toast';
-import { addWorkflowCategory, deleteWorkflowCategory } from '../categories';
+import { 
+  addWorkflowCategory, 
+  deleteWorkflowCategory, 
+  renameWorkflowCategory 
+} from '../categories';
 import { moveWorkflowToFolder } from './move-workflow';
 import { SavedWorkflow } from '@/utils/flow/types';
 import { getAllWorkflows } from './get-workflows';

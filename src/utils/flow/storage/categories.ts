@@ -1,9 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { loadWorkflows, saveWorkflow } from '.';
 import { toast } from '@/hooks/use-toast';
 
-export const getFolders = async (): Promise<string[]> => {
+export const getWorkflowCategories = async (): Promise<string[]> => {
   try {
     // Try to get categories from Supabase
     try {
@@ -48,7 +47,7 @@ export const getFolders = async (): Promise<string[]> => {
   }
 };
 
-export const createFolder = async (name: string): Promise<boolean> => {
+export const addWorkflowCategory = async (name: string): Promise<boolean> => {
   if (!name || name.trim() === '') return false;
   
   try {
@@ -69,7 +68,7 @@ export const createFolder = async (name: string): Promise<boolean> => {
       toast({
         title: "Warning",
         description: "Created folder locally only. May not sync with the server.",
-        variant: "warning"
+        variant: "destructive" // Changed from "warning" to "destructive" to match allowed variants
       });
       // Continue and create locally
     }
@@ -82,7 +81,7 @@ export const createFolder = async (name: string): Promise<boolean> => {
   }
 };
 
-export const deleteFolder = async (name: string): Promise<boolean> => {
+export const deleteWorkflowCategory = async (name: string): Promise<boolean> => {
   if (!name || name.trim() === '') return false;
   
   try {
@@ -119,13 +118,16 @@ export const deleteFolder = async (name: string): Promise<boolean> => {
     
     // Delete from localStorage too
     try {
-      const workflows = await loadWorkflows();
-      const updatedWorkflows = workflows.filter(workflow => 
-        workflow.metadata?.folder !== name && workflow.metadata?.appliance !== name
-      );
-      
-      // Save the updated workflows list
-      localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
+      const storedWorkflows = localStorage.getItem('diagnostic-workflows');
+      if (storedWorkflows) {
+        const workflows = JSON.parse(storedWorkflows);
+        const updatedWorkflows = workflows.filter((workflow: any) => 
+          workflow.metadata?.folder !== name && workflow.metadata?.appliance !== name
+        );
+        
+        // Save the updated workflows list
+        localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
+      }
       
       return true;
     } catch (e) {
@@ -138,7 +140,7 @@ export const deleteFolder = async (name: string): Promise<boolean> => {
   }
 };
 
-export const renameFolder = async (oldName: string, newName: string): Promise<boolean> => {
+export const renameWorkflowCategory = async (oldName: string, newName: string): Promise<boolean> => {
   if (!oldName || !newName || oldName.trim() === '' || newName.trim() === '') return false;
   
   try {
@@ -175,32 +177,35 @@ export const renameFolder = async (oldName: string, newName: string): Promise<bo
     
     // Rename in localStorage
     try {
-      const workflows = await loadWorkflows();
-      
-      const updatedWorkflows = workflows.map(workflow => {
-        if (workflow.metadata?.folder === oldName) {
-          return {
-            ...workflow,
-            metadata: {
-              ...workflow.metadata,
-              folder: newName.trim()
-            }
-          };
-        }
-        if (workflow.metadata?.appliance === oldName) {
-          return {
-            ...workflow,
-            metadata: {
-              ...workflow.metadata,
-              appliance: newName.trim()
-            }
-          };
-        }
-        return workflow;
-      });
-      
-      // Save the updated workflows list
-      localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
+      const storedWorkflows = localStorage.getItem('diagnostic-workflows');
+      if (storedWorkflows) {
+        const workflows = JSON.parse(storedWorkflows);
+        
+        const updatedWorkflows = workflows.map((workflow: any) => {
+          if (workflow.metadata?.folder === oldName) {
+            return {
+              ...workflow,
+              metadata: {
+                ...workflow.metadata,
+                folder: newName.trim()
+              }
+            };
+          }
+          if (workflow.metadata?.appliance === oldName) {
+            return {
+              ...workflow,
+              metadata: {
+                ...workflow.metadata,
+                appliance: newName.trim()
+              }
+            };
+          }
+          return workflow;
+        });
+        
+        // Save the updated workflows list
+        localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
+      }
       
       return true;
     } catch (e) {
@@ -212,3 +217,5 @@ export const renameFolder = async (oldName: string, newName: string): Promise<bo
     return false;
   }
 };
+
+export const getFolders = getWorkflowCategories;
