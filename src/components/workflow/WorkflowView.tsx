@@ -73,7 +73,7 @@ export function WorkflowView({
         onDeleteWorkflow={onDeleteWorkflow || (() => {})}
         onMoveWorkflow={onMoveWorkflow || (() => {})}
         onToggleWorkflowActive={onToggleWorkflowActive || (() => {})}
-        onMoveWorkflowToFolder={onMoveWorkflowToFolder || (() => {})}
+        onMoveWorkflowToFolder={onMoveWorkflowToFolder || (() => Promise.resolve(false))}
         getSymptomCardColor={getSymptomCardColor}
         isReadOnly={isReadOnly}
         workflowsByFolder={workflowsByFolder}
