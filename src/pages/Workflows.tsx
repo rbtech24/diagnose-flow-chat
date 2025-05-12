@@ -8,7 +8,7 @@ import { WorkflowHeader } from '@/components/workflow/WorkflowHeader';
 import { WorkflowView } from '@/components/workflow/WorkflowView';
 import { ApplianceManager } from '@/components/workflow/ApplianceManager';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useUserRole } from '@/hooks/useUserRole';
 import { cleanupOrphanedWorkflows, cleanupEmptyFolders } from '@/utils/flow';
 import { getFolders } from '@/utils/flow/storage/categories';
@@ -157,15 +157,7 @@ export default function Workflows() {
           Back to Dashboard
         </Button>
         
-        <Button 
-          variant="default"
-          size="sm" 
-          className="flex items-center"
-          onClick={handleCreateNewWorkflow}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Create New Workflow
-        </Button>
+        {/* Removed duplicate Create New Workflow button from here */}
       </div>
 
       <WorkflowHeader
@@ -178,6 +170,7 @@ export default function Workflows() {
         onReorderingChange={canManageWorkflows ? setIsReordering : undefined}
         onAddAppliance={canManageWorkflows ? handleAddAppliance : undefined}
         onFoldersRefresh={canManageWorkflows ? refreshFolders : undefined}
+        onCreateWorkflow={handleCreateNewWorkflow}
       />
 
       <WorkflowView

@@ -21,6 +21,11 @@ export function useWorkflows() {
     handleMoveWorkflowToFolder
   } = useWorkflowActions(workflowsState, setWorkflowsState, loadWorkflows);
 
+  // Add some console logging to help debug issues
+  console.log("useWorkflows - folders:", folders);
+  console.log("useWorkflows - workflows count:", workflows.length);
+  console.log("useWorkflows - selected folder:", selectedFolder);
+
   return {
     workflowsState,
     workflows,

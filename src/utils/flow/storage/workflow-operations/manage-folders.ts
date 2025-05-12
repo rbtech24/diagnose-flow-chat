@@ -10,6 +10,7 @@ import { SavedWorkflow } from '@/utils/flow/types';
 import { getAllWorkflows } from './get-workflows';
 
 export const addFolder = async (name: string): Promise<boolean> => {
+  console.log("addFolder function called with name:", name);
   if (!name || name.trim() === '') {
     toast({
       title: "Error",
@@ -20,16 +21,24 @@ export const addFolder = async (name: string): Promise<boolean> => {
   }
 
   const success = await addWorkflowCategory(name);
+  console.log("addWorkflowCategory result:", success);
   if (success) {
     toast({
       title: "Success",
       description: `Folder "${name}" has been created`
+    });
+  } else {
+    toast({
+      title: "Error",
+      description: "Failed to create folder",
+      variant: "destructive"
     });
   }
   return success;
 };
 
 export const deleteFolder = async (name: string): Promise<boolean> => {
+  console.log("deleteFolder function called with name:", name);
   if (name === 'Default') {
     toast({
       title: "Error",
@@ -47,6 +56,8 @@ export const deleteFolder = async (name: string): Promise<boolean> => {
       w.metadata.appliance === name
     );
     
+    console.log(`Found ${workflowsInFolder.length} workflows in folder ${name}`);
+    
     if (workflowsInFolder.length > 0) {
       // Ask user what to do with workflows
       if (confirm(`This folder contains ${workflowsInFolder.length} workflow(s). Do you want to move them to the Default folder? Click Cancel to delete them with the folder.`)) {
@@ -63,10 +74,17 @@ export const deleteFolder = async (name: string): Promise<boolean> => {
     
     // Delete the folder
     const success = await deleteWorkflowCategory(name);
+    console.log("deleteWorkflowCategory result:", success);
     if (success) {
       toast({
         title: "Success",
         description: `Folder "${name}" has been deleted`
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to delete folder",
+        variant: "destructive"
       });
     }
     return success;
@@ -82,6 +100,7 @@ export const deleteFolder = async (name: string): Promise<boolean> => {
 };
 
 export const renameFolder = async (oldName: string, newName: string): Promise<boolean> => {
+  console.log("renameFolder function called with oldName:", oldName, "newName:", newName);
   if (!newName || newName.trim() === '') {
     toast({
       title: "Error",
@@ -103,7 +122,15 @@ export const renameFolder = async (oldName: string, newName: string): Promise<bo
   try {
     // Create new folder
     const successAdd = await addWorkflowCategory(newName);
-    if (!successAdd) return false;
+    console.log("addWorkflowCategory result:", successAdd);
+    if (!successAdd) {
+      toast({
+        title: "Error",
+        description: "Failed to create new folder",
+        variant: "destructive"
+      });
+      return false;
+    }
     
     // Get all workflows in old folder
     const workflows = await getAllWorkflows();
@@ -112,14 +139,25 @@ export const renameFolder = async (oldName: string, newName: string): Promise<bo
       w.metadata.appliance === oldName
     );
     
+    console.log(`Found ${workflowsToMove.length} workflows to move from ${oldName} to ${newName}`);
+    
     // Move workflows to new folder
     for (const workflow of workflowsToMove) {
-      await moveWorkflowToFolder(workflow, newName);
+      const moveSuccess = await moveWorkflowToFolder(workflow, newName);
+      console.log(`Moving workflow ${workflow.metadata.name} result: ${moveSuccess}`);
     }
     
     // Delete old folder
     const successDelete = await deleteWorkflowCategory(oldName);
-    if (!successDelete) return false;
+    console.log("deleteWorkflowCategory result:", successDelete);
+    if (!successDelete) {
+      toast({
+        title: "Warning",
+        description: "Created new folder but could not delete the old one",
+        variant: "destructive"
+      });
+      return false;
+    }
     
     toast({
       title: "Success",

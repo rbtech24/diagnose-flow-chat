@@ -30,10 +30,10 @@ export function useWorkflowActions(
       }
       
       // Also update localStorage
-      setWorkflowsState(prev => prev.filter(w => 
+      setWorkflowsState((prev: SavedWorkflow[]) => prev.filter(w => 
         !(w.metadata.name === workflow.metadata.name && 
           w.metadata.folder === workflow.metadata.folder)
-      ));
+      ) as SavedWorkflow[]);
       
       const storedWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');
       const updatedWorkflows = storedWorkflows.filter((w: SavedWorkflow) => 
@@ -80,7 +80,7 @@ export function useWorkflowActions(
       }
       
       // Update state
-      setWorkflowsState(prev => prev.map(w => {
+      setWorkflowsState((prev: SavedWorkflow[]) => prev.map(w => {
         if (w.metadata.name === workflow.metadata.name && 
             w.metadata.folder === workflow.metadata.folder) {
           return {
@@ -92,7 +92,7 @@ export function useWorkflowActions(
           };
         }
         return w;
-      }));
+      }) as SavedWorkflow[]);
       
       // Update localStorage
       const storedWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');
@@ -141,6 +141,7 @@ export function useWorkflowActions(
   };
 
   const handleMoveWorkflowToFolder = async (workflow: SavedWorkflow, targetFolder: string) => {
+    console.log("Moving workflow to folder:", workflow.metadata.name, "to", targetFolder);
     const success = await moveWorkflowToFolder(workflow, targetFolder);
     if (success) {
       await loadWorkflows(); // Reload workflows to get updated data

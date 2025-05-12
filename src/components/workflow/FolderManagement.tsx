@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -47,7 +47,9 @@ export function FolderManagement({ folders, onFoldersChange }: FolderManagementP
       return;
     }
 
+    console.log("Adding folder:", newFolderName);
     const success = await addFolder(newFolderName);
+    console.log("Add folder result:", success);
     if (success) {
       setNewFolderName('');
       setIsAddDialogOpen(false);
@@ -65,7 +67,9 @@ export function FolderManagement({ folders, onFoldersChange }: FolderManagementP
       return;
     }
 
+    console.log("Deleting folder:", selectedFolder);
     const success = await deleteFolder(selectedFolder);
+    console.log("Delete folder result:", success);
     if (success) {
       setSelectedFolder('');
       setIsDeleteDialogOpen(false);
@@ -92,7 +96,9 @@ export function FolderManagement({ folders, onFoldersChange }: FolderManagementP
       return;
     }
 
+    console.log("Renaming folder:", selectedFolder, "to", newName);
     const success = await renameFolder(selectedFolder, newName);
+    console.log("Rename folder result:", success);
     if (success) {
       setSelectedFolder('');
       setNewName('');
@@ -112,12 +118,20 @@ export function FolderManagement({ folders, onFoldersChange }: FolderManagementP
     setIsDeleteDialogOpen(true);
   };
 
+  // Add logging to debug folder management
+  useEffect(() => {
+    console.log("FolderManagement rendered with folders:", folders);
+  }, [folders]);
+
   return (
     <div>
       <Button 
         variant="outline" 
         size="sm" 
-        onClick={() => setIsAddDialogOpen(true)}
+        onClick={() => {
+          console.log("Add folder button clicked");
+          setIsAddDialogOpen(true);
+        }}
         className="flex items-center gap-1"
       >
         <FolderPlus className="h-4 w-4" />
@@ -125,7 +139,10 @@ export function FolderManagement({ folders, onFoldersChange }: FolderManagementP
       </Button>
 
       {/* Add Folder Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+      <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+        console.log("Add dialog open state changed to:", open);
+        setIsAddDialogOpen(open);
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add New Folder</DialogTitle>
@@ -208,14 +225,20 @@ export function FolderManagement({ folders, onFoldersChange }: FolderManagementP
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      onClick={() => openRenameDialog(folder)}
+                      onClick={() => {
+                        console.log("Edit folder button clicked for:", folder);
+                        openRenameDialog(folder);
+                      }}
                     >
                       <FolderEdit className="h-4 w-4" />
                     </Button>
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      onClick={() => openDeleteDialog(folder)}
+                      onClick={() => {
+                        console.log("Delete folder button clicked for:", folder);
+                        openDeleteDialog(folder);
+                      }}
                     >
                       <Trash className="h-4 w-4" />
                     </Button>

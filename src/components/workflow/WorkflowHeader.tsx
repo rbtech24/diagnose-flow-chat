@@ -5,7 +5,6 @@ import { Plus, Search, Settings, FolderIcon } from 'lucide-react';
 import { AddApplianceDialog } from '@/components/appliance/AddApplianceDialog';
 import { useState } from 'react';
 import { FolderManagement } from './FolderManagement';
-import { useNavigate } from 'react-router-dom';
 import {
   Popover,
   PopoverContent,
@@ -22,6 +21,7 @@ interface WorkflowHeaderProps {
   onReorderingChange?: (reordering: boolean) => void;
   onAddAppliance?: (name: string) => void;
   onFoldersRefresh?: () => void;
+  onCreateWorkflow?: () => void;
 }
 
 export function WorkflowHeader({
@@ -33,19 +33,15 @@ export function WorkflowHeader({
   isReordering,
   onReorderingChange,
   onAddAppliance,
-  onFoldersRefresh
+  onFoldersRefresh,
+  onCreateWorkflow
 }: WorkflowHeaderProps) {
   const [isAddApplianceDialogOpen, setIsAddApplianceDialogOpen] = useState(false);
-  const navigate = useNavigate();
 
   const handleFoldersChange = () => {
     if (onFoldersRefresh) {
       onFoldersRefresh();
     }
-  };
-
-  const handleCreateWorkflow = () => {
-    navigate('/workflow-editor?new=true');
   };
 
   return (
@@ -71,10 +67,12 @@ export function WorkflowHeader({
             />
           </div>
           
-          <Button onClick={handleCreateWorkflow}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Workflow
-          </Button>
+          {onCreateWorkflow && (
+            <Button onClick={onCreateWorkflow}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Workflow
+            </Button>
+          )}
           
           {onAddAppliance && (
             <Button onClick={() => setIsAddApplianceDialogOpen(true)}>
