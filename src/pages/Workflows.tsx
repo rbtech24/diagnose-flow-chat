@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppliances } from '@/hooks/useAppliances';
@@ -158,7 +157,7 @@ export default function Workflows() {
           onClick={handleBackToDashboard}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Dashboard
+          {isAdmin ? "Back to Admin Workflows" : "Back to Dashboard"}
         </Button>
       </div>
 
