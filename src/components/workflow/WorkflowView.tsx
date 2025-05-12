@@ -63,6 +63,7 @@ export function WorkflowView({
 
   const handleOpenWorkflowEditor = (folder: string, name?: string) => {
     if (onOpenWorkflowEditor) {
+      console.log("WorkflowView calling onOpenWorkflowEditor with:", folder, name);
       onOpenWorkflowEditor(folder, name);
     } else {
       toast({

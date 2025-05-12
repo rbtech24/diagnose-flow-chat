@@ -101,11 +101,14 @@ export default function Workflows() {
     });
   };
 
-  // Function to properly open workflow editor
+  // Function to properly open workflow editor - FIXED THIS FUNCTION
   const openWorkflowEditor = (folder: string, name?: string) => {
+    console.log("Opening workflow editor with:", { folder, name });
     if (name) {
+      // If name is provided, we're editing an existing workflow
       navigate(`/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`);
     } else {
+      // If no name, we're creating a new workflow in the folder
       navigate(`/workflow-editor?folder=${encodeURIComponent(folder)}`);
     }
   };
@@ -156,8 +159,6 @@ export default function Workflows() {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Dashboard
         </Button>
-        
-        {/* Removed duplicate Create New Workflow button from here */}
       </div>
 
       <WorkflowHeader

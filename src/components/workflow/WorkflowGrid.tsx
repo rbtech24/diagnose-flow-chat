@@ -223,7 +223,7 @@ export function WorkflowGrid({
   };
 
   const handleEditWorkflow = (folder: string, name: string) => {
-    console.log("Opening workflow editor for:", folder, name, "isAdmin:", isAdminRoute);
+    console.log("WorkflowGrid.handleEditWorkflow called with:", folder, name);
     onOpenWorkflowEditor(folder, name);
   };
 
