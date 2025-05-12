@@ -110,6 +110,21 @@ export default function FlowEditor({
     currentWorkflow,
   });
 
+  // Load workflow data when currentWorkflow changes
+  useEffect(() => {
+    if (currentWorkflow) {
+      console.log('Loading workflow data:', currentWorkflow);
+      setNodes(currentWorkflow.nodes);
+      setEdges(currentWorkflow.edges);
+      setNodeCounter(currentWorkflow.nodeCounter);
+      setHistory(createHistoryState({ 
+        nodes: currentWorkflow.nodes, 
+        edges: currentWorkflow.edges, 
+        nodeCounter: currentWorkflow.nodeCounter 
+      }));
+    }
+  }, [currentWorkflow, setNodes, setEdges, setNodeCounter]);
+
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const isNew = searchParams.get('new') === 'true';
