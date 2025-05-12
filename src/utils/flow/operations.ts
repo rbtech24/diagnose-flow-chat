@@ -10,7 +10,7 @@ export const handleQuickSave = async (
   nodeCounter: number,
   currentWorkflow: SavedWorkflow
 ) => {
-  if (!currentWorkflow?.metadata?.appliance) {
+  if (!currentWorkflow?.metadata?.appliance && !currentWorkflow?.metadata?.folder) {
     toast({
       title: "Error",
       description: "No appliance selected for quick save",
@@ -19,14 +19,33 @@ export const handleQuickSave = async (
     return;
   }
 
-  return handleSaveWorkflow(
-    nodes,
-    edges,
-    nodeCounter,
-    currentWorkflow.metadata.name,
-    currentWorkflow.metadata.appliance || currentWorkflow.metadata.folder,
-    currentWorkflow.metadata.appliance
-  );
+  try {
+    const folder = currentWorkflow.metadata.folder || currentWorkflow.metadata.appliance;
+    const appliance = currentWorkflow.metadata.appliance || currentWorkflow.metadata.folder;
+    
+    console.log("Quick saving workflow with existing data:", {
+      name: currentWorkflow.metadata.name,
+      folder,
+      appliance,
+      nodes: nodes.length
+    });
+    
+    return handleSaveWorkflow(
+      nodes,
+      edges,
+      nodeCounter,
+      currentWorkflow.metadata.name,
+      folder,
+      appliance
+    );
+  } catch (error) {
+    console.error("Error during quick save:", error);
+    toast({
+      title: "Error",
+      description: "Failed to quick save workflow",
+      variant: "destructive"
+    });
+  }
 };
 
 export const handleSaveWorkflow = async (
@@ -101,6 +120,7 @@ export const handleSaveWorkflow = async (
       await saveWorkflowToStorage(workflowToSave);
     } catch (error) {
       console.error('Error saving to Supabase, but workflow saved to localStorage:', error);
+      // Don't rethrow this error as we've already saved to localStorage
     }
     
     // Dispatch a storage event to notify other components

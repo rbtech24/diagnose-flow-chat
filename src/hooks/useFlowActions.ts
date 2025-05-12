@@ -87,17 +87,28 @@ export function useFlowActions(
     });
   }, [copiedNodes, getViewport, edges, nodeCounter, history, setNodes, setNodeCounter, setHistory]);
 
-  const handleQuickSaveClick = useCallback(() => {
-    if (currentWorkflow) {
-      handleQuickSave(nodes, edges, nodeCounter, currentWorkflow);
-      toast({
-        title: "Workflow Auto-saved",
-        description: "Your changes have been saved automatically."
-      });
-    } else {
+  const handleQuickSaveClick = useCallback(async () => {
+    if (!currentWorkflow) {
       toast({
         title: "Cannot Quick Save",
         description: "This is a new workflow. Please use 'Save Workflow' to save it first.",
+        variant: "warning"
+      });
+      return;
+    }
+    
+    try {
+      console.log("Attempting quick save with currentWorkflow:", currentWorkflow);
+      await handleQuickSave(nodes, edges, nodeCounter, currentWorkflow);
+      toast({
+        title: "Workflow Saved",
+        description: "Your changes have been saved successfully."
+      });
+    } catch (error) {
+      console.error("Error during quick save:", error);
+      toast({
+        title: "Save Failed",
+        description: "There was an error saving your workflow. Please try using the Save button.",
         variant: "destructive"
       });
     }

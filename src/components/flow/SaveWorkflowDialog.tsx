@@ -32,7 +32,7 @@ export function SaveWorkflowDialog({ onSave, currentWorkflow }: SaveWorkflowDial
     if (isOpen) {
       if (currentWorkflow) {
         setWorkflowName(currentWorkflow.metadata.name);
-        setSelectedAppliance(currentWorkflow.metadata.folder || currentWorkflow.metadata.appliance);
+        setSelectedAppliance(currentWorkflow.metadata.folder || currentWorkflow.metadata.appliance || '');
         setNewAppliance('');
       }
       
@@ -91,6 +91,12 @@ export function SaveWorkflowDialog({ onSave, currentWorkflow }: SaveWorkflowDial
       setIsOpen(false);
       setWorkflowName('');
       setNewAppliance('');
+      
+      toast({
+        title: "Workflow Saved",
+        description: `${workflowName} has been saved successfully.`
+      });
+      
       if (appliances.length > 0) {
         setSelectedAppliance(appliances[0] || '');
       }
@@ -104,17 +110,19 @@ export function SaveWorkflowDialog({ onSave, currentWorkflow }: SaveWorkflowDial
     }
   };
 
+  const buttonText = currentWorkflow ? "Update Workflow" : "Save Workflow";
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="secondary" className="flex items-center gap-2">
           <Save className="w-4 h-4" />
-          Save Workflow
+          {buttonText}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Save Workflow</DialogTitle>
+          <DialogTitle>{currentWorkflow ? "Update Workflow" : "Save Workflow"}</DialogTitle>
           <DialogDescription>
             {currentWorkflow ? "Update your existing workflow." : "Save your workflow to an appliance category."}
           </DialogDescription>
