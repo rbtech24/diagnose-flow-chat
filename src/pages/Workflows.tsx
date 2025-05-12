@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppliances } from '@/hooks/useAppliances';
@@ -115,6 +116,16 @@ export default function Workflows() {
   // Function to create new workflow
   const handleCreateNewWorkflow = () => {
     navigate(`/workflow-editor?new=true`, { replace: false });
+  };
+  
+  // Define the handleAddAppliance function
+  const handleAddAppliance = (name: string) => {
+    addAppliance(name);
+    refreshFolders();
+    toast({
+      title: "Appliance Added",
+      description: `${name} has been added successfully.`
+    });
   };
   
   const handleMoveWorkflowToFolderWithRefresh = async (workflow: SavedWorkflow, targetFolder: string) => {
