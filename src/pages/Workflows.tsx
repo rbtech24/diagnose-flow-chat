@@ -122,7 +122,7 @@ export default function Workflows() {
 
   const handleBackToDashboard = () => {
     if (isAdmin) {
-      navigate('/admin/workflows'); // Changed from '/admin' to '/admin/workflows'
+      navigate('/admin/workflows');
     } else if (userRole === 'company') {
       navigate('/company');
     } else {
