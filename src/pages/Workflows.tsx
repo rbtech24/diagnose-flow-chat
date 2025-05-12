@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppliances } from '@/hooks/useAppliances';
@@ -12,6 +11,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useUserRole } from '@/hooks/useUserRole';
 import { cleanupOrphanedWorkflows, cleanupEmptyFolders } from '@/utils/flow';
 import { getFolders } from '@/utils/flow/storage/categories';
+import { SavedWorkflow } from '@/utils/flow/types';
 
 export default function Workflows() {
   const navigate = useNavigate();
