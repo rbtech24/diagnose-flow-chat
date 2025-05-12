@@ -1,10 +1,9 @@
-
 import { ApplianceCard } from '@/components/appliance/ApplianceCard';
 import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Trash, GripVertical, FileText, Edit, Eye, MoveHorizontal, FolderIcon, Plus, ChevronUp, ChevronDown, Check, ArrowUpRight } from 'lucide-react';
+import { Trash, GripVertical, FileText, Edit, Eye, MoveHorizontal, FolderIcon, Plus, ChevronUp, ChevronDown, Check, ArrowUpRight, Toggle } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { toast } from '@/hooks/use-toast';
 import { useState } from 'react';
@@ -85,7 +84,7 @@ export function WorkflowGrid({
   const availableFolders = [...new Set([
     'Default',
     ...appliances.map(app => app.name),
-  ])];
+  ])].filter(folder => folder && folder.trim() !== '').sort();
 
   const handleDragOver = (e: React.DragEvent) => {
     if (isReadOnly) return;
@@ -391,11 +390,14 @@ export function WorkflowGrid({
                           </Button>
                         </div>
                         {!isReadOnly && (
-                          <Switch
-                            checked={workflow.metadata.isActive === true}
-                            onCheckedChange={() => onToggleWorkflowActive(workflow)}
-                            className="data-[state=checked]:bg-green-500"
-                          />
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-500">{workflow.metadata.isActive ? 'Active' : 'Inactive'}</span>
+                            <Switch
+                              checked={workflow.metadata.isActive === true}
+                              onCheckedChange={() => onToggleWorkflowActive(workflow)}
+                              className="data-[state=checked]:bg-green-500"
+                            />
+                          </div>
                         )}
                       </div>
                     </div>
@@ -560,11 +562,14 @@ export function WorkflowGrid({
                 </Button>
               </div>
               {!isReadOnly && (
-                <Switch
-                  checked={workflow.metadata.isActive === true}
-                  onCheckedChange={() => onToggleWorkflowActive(workflow)}
-                  className="data-[state=checked]:bg-green-500"
-                />
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">{workflow.metadata.isActive ? 'Active' : 'Inactive'}</span>
+                  <Switch
+                    checked={workflow.metadata.isActive === true}
+                    onCheckedChange={() => onToggleWorkflowActive(workflow)}
+                    className="data-[state=checked]:bg-green-500"
+                  />
+                </div>
               )}
             </div>
           </div>
