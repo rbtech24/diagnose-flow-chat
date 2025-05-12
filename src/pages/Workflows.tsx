@@ -200,6 +200,7 @@ export default function Workflows() {
         isReadOnly={!isAdmin}
         workflowsByFolder={workflowsByFolder} 
         enableFolderView={true}
+        enableDragDrop={isReordering} // Enable drag and drop functionality only when reordering is active
       />
 
       {isAdmin && (

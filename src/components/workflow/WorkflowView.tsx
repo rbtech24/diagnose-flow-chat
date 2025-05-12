@@ -22,6 +22,7 @@ interface WorkflowViewProps {
   isReadOnly?: boolean;
   workflowsByFolder?: Record<string, SavedWorkflow[]>;
   enableFolderView?: boolean;
+  enableDragDrop?: boolean; // New prop to control drag and drop functionality
 }
 
 export function WorkflowView({
@@ -42,7 +43,8 @@ export function WorkflowView({
   onMoveWorkflowToFolder,
   isReadOnly = false,
   workflowsByFolder = {},
-  enableFolderView = false
+  enableFolderView = false,
+  enableDragDrop = false // Default to false
 }: WorkflowViewProps) {
   // Generate pastel colors for item cards
   const getSymptomCardColor = (index: number) => {
@@ -78,6 +80,7 @@ export function WorkflowView({
         isReadOnly={isReadOnly}
         workflowsByFolder={workflowsByFolder}
         enableFolderView={enableFolderView}
+        enableDragDrop={enableDragDrop} // Pass the new prop to WorkflowGrid
       />
     </div>
   );

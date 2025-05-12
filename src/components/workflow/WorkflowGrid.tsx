@@ -1,4 +1,3 @@
-
 import { ApplianceCard } from '@/components/appliance/ApplianceCard';
 import { Appliance } from '@/types/appliance';
 import { SavedWorkflow } from '@/utils/flow/types';
@@ -36,6 +35,7 @@ interface WorkflowGridProps {
   isReadOnly?: boolean;
   workflowsByFolder?: Record<string, SavedWorkflow[]>;
   enableFolderView?: boolean;
+  enableDragDrop?: boolean; // New prop to control drag and drop functionality
 }
 
 export function WorkflowGrid({
@@ -56,7 +56,8 @@ export function WorkflowGrid({
   getSymptomCardColor,
   isReadOnly = false,
   workflowsByFolder = {},
-  enableFolderView = false
+  enableFolderView = false,
+  enableDragDrop = false // Default to false
 }: WorkflowGridProps) {
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
   const [draggingWorkflow, setDraggingWorkflow] = useState<SavedWorkflow | null>(null);
@@ -74,6 +75,15 @@ export function WorkflowGrid({
     return expandedFolders[folderName] === true;
   };
 
+  // Expand all folders by default
+  useState(() => {
+    const initialExpansionState: Record<string, boolean> = {};
+    Object.keys(workflowsByFolder).forEach(folder => {
+      initialExpansionState[folder] = true;
+    });
+    setExpandedFolders(initialExpansionState);
+  });
+
   if (appliances.length === 0 && workflows.length === 0) {
     return (
       <div className="text-center py-12">
@@ -88,7 +98,7 @@ export function WorkflowGrid({
   ])].filter(folder => folder && folder.trim() !== '').sort();
 
   const handleDragOver = (e: React.DragEvent) => {
-    if (isReadOnly) return;
+    if (isReadOnly || !enableDragDrop) return;
     e.preventDefault();
     const targetCard = (e.target as HTMLElement).closest('.workflow-item, .appliance-card, .folder-container');
     if (targetCard) {
@@ -97,7 +107,7 @@ export function WorkflowGrid({
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
-    if (isReadOnly) return;
+    if (isReadOnly || !enableDragDrop) return;
     e.preventDefault();
     const targetCard = (e.target as HTMLElement).closest('.workflow-item, .appliance-card, .folder-container');
     if (targetCard) {
@@ -105,8 +115,8 @@ export function WorkflowGrid({
     }
   };
 
-  const handleDrop = (e: React.DragEvent, targetAppliance: string) => {
-    if (isReadOnly) return;
+  const handleDrop = (e: React.DragEvent, targetFolder: string) => {
+    if (isReadOnly || !enableDragDrop) return;
     e.preventDefault();
     
     const targetCard = (e.target as HTMLElement).closest('.workflow-item, .appliance-card, .folder-container');
@@ -118,12 +128,12 @@ export function WorkflowGrid({
     const workflowData = e.dataTransfer.getData('workflow-data');
     if (workflowData && draggingWorkflow) {
       const workflow = JSON.parse(workflowData);
-      if (workflow.metadata.folder !== targetAppliance) {
-        onMoveWorkflowToFolder?.(workflow, targetAppliance).then(success => {
+      if (workflow.metadata.folder !== targetFolder) {
+        onMoveWorkflowToFolder?.(workflow, targetFolder).then(success => {
           if (success) {
             toast({
               title: "Workflow Moved",
-              description: `Workflow moved to ${targetAppliance}`
+              description: `Workflow moved to ${targetFolder}`
             });
           }
         });
@@ -133,24 +143,26 @@ export function WorkflowGrid({
   };
 
   const handleDragStart = (e: React.DragEvent, workflow: SavedWorkflow) => {
-    if (isReadOnly) return;
-    e.dataTransfer.setData('workflow-index', workflowsByFolder[workflow.metadata.folder]?.indexOf(workflow).toString() || "0");
+    if (isReadOnly || !enableDragDrop) return;
+    const folder = workflow.metadata.folder || 'Default';
+    const index = workflowsByFolder[folder]?.indexOf(workflow) || 0;
+    e.dataTransfer.setData('workflow-index', index.toString());
     e.dataTransfer.setData('workflow-data', JSON.stringify(workflow));
-    e.dataTransfer.setData('source-folder', workflow.metadata.folder || 'Default');
+    e.dataTransfer.setData('source-folder', folder);
     setDraggingWorkflow(workflow);
     const dragPreview = e.target as HTMLElement;
     dragPreview.classList.add('opacity-50');
   };
 
   const handleDragEnd = (e: React.DragEvent) => {
-    if (isReadOnly) return;
+    if (isReadOnly || !enableDragDrop) return;
     const dragPreview = e.target as HTMLElement;
     dragPreview.classList.remove('opacity-50');
     setDraggingWorkflow(null);
   };
 
   const handleWorkflowDrop = (e: React.DragEvent, targetWorkflow: SavedWorkflow) => {
-    if (isReadOnly) return;
+    if (isReadOnly || !enableDragDrop) return;
     e.preventDefault();
     
     const targetCard = (e.target as HTMLElement).closest('.workflow-item');
@@ -181,7 +193,7 @@ export function WorkflowGrid({
   };
 
   const handleFolderDrop = (e: React.DragEvent, folderName: string) => {
-    if (isReadOnly) return;
+    if (isReadOnly || !enableDragDrop) return;
     e.preventDefault();
     
     const targetFolder = (e.target as HTMLElement).closest('.folder-container');
@@ -219,10 +231,10 @@ export function WorkflowGrid({
         {Object.entries(workflowsByFolder).map(([folderName, folderWorkflows]) => (
           <div 
             key={folderName} 
-            className="folder-container border rounded-lg overflow-hidden"
-            onDragOver={isReadOnly ? undefined : handleDragOver}
-            onDragLeave={isReadOnly ? undefined : handleDragLeave}
-            onDrop={isReadOnly ? undefined : (e) => handleFolderDrop(e, folderName)}
+            className={`folder-container border rounded-lg overflow-hidden ${enableDragDrop ? 'cursor-move' : ''}`}
+            onDragOver={isReadOnly || !enableDragDrop ? undefined : handleDragOver}
+            onDragLeave={isReadOnly || !enableDragDrop ? undefined : handleDragLeave}
+            onDrop={isReadOnly || !enableDragDrop ? undefined : (e) => handleFolderDrop(e, folderName)}
           >
             <div 
               className="bg-slate-100 p-4 flex justify-between items-center cursor-pointer"
@@ -276,17 +288,17 @@ export function WorkflowGrid({
                 {folderWorkflows.map((workflow, index) => (
                   <Card 
                     key={`workflow-${workflow.metadata.name}-${workflow.metadata.folder}`}
-                    className="workflow-item group relative p-4 shadow-sm border border-gray-100 hover:border-gray-300 hover:shadow-md transition-all duration-200"
-                    draggable={!isReadOnly && isReordering}
-                    onDragStart={isReadOnly ? undefined : (e) => handleDragStart(e, workflow)}
-                    onDragEnd={isReadOnly ? undefined : handleDragEnd}
-                    onDragOver={isReadOnly ? undefined : handleDragOver}
-                    onDragLeave={isReadOnly ? undefined : handleDragLeave}
-                    onDrop={isReadOnly ? undefined : (e) => handleWorkflowDrop(e, workflow)}
+                    className={`workflow-item group relative p-4 shadow-sm border border-gray-100 hover:border-gray-300 hover:shadow-md transition-all duration-200 ${enableDragDrop ? 'cursor-move' : ''}`}
+                    draggable={!isReadOnly && enableDragDrop}
+                    onDragStart={isReadOnly || !enableDragDrop ? undefined : (e) => handleDragStart(e, workflow)}
+                    onDragEnd={isReadOnly || !enableDragDrop ? undefined : handleDragEnd}
+                    onDragOver={isReadOnly || !enableDragDrop ? undefined : handleDragOver}
+                    onDragLeave={isReadOnly || !enableDragDrop ? undefined : handleDragLeave}
+                    onDrop={isReadOnly || !enableDragDrop ? undefined : (e) => handleWorkflowDrop(e, workflow)}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-3">
-                        {!isReadOnly && isReordering && (
+                        {!isReadOnly && enableDragDrop && (
                           <div className="mt-1 cursor-grab">
                             <GripVertical className="h-5 w-5 text-gray-400" />
                           </div>
@@ -440,9 +452,9 @@ export function WorkflowGrid({
         <div
           key={`appliance-${appliance.name}`}
           className="appliance-card"
-          onDragOver={isReadOnly ? undefined : handleDragOver}
-          onDragLeave={isReadOnly ? undefined : handleDragLeave}
-          onDrop={isReadOnly ? undefined : (e) => handleDrop(e, appliance.name)}
+          onDragOver={isReadOnly || !enableDragDrop ? undefined : handleDragOver}
+          onDragLeave={isReadOnly || !enableDragDrop ? undefined : handleDragLeave}
+          onDrop={isReadOnly || !enableDragDrop ? undefined : (e) => handleDrop(e, appliance.name)}
         >
           <ApplianceCard
             appliance={appliance}
@@ -469,21 +481,32 @@ export function WorkflowGrid({
       {workflows.map((workflow, index) => (
         <Card 
           key={`workflow-${workflow.metadata.name}-${workflow.metadata.folder}`}
-          className="group relative p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200"
-          draggable={!isReadOnly}
-          onDragStart={isReadOnly ? undefined : (e) => {
+          className={`workflow-item group relative p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 ${enableDragDrop ? 'cursor-move' : ''}`}
+          draggable={!isReadOnly && enableDragDrop}
+          onDragStart={isReadOnly || !enableDragDrop ? undefined : (e) => {
             e.dataTransfer.setData('workflow-index', index.toString());
             e.dataTransfer.setData('workflow-data', JSON.stringify(workflow));
+            e.dataTransfer.setData('source-folder', workflow.metadata.folder || 'Default');
+            setDraggingWorkflow(workflow);
             const dragPreview = e.target as HTMLElement;
             dragPreview.classList.add('opacity-50');
           }}
-          onDragEnd={isReadOnly ? undefined : (e) => {
+          onDragEnd={isReadOnly || !enableDragDrop ? undefined : (e) => {
             const dragPreview = e.target as HTMLElement;
             dragPreview.classList.remove('opacity-50');
+            setDraggingWorkflow(null);
           }}
+          onDragOver={isReadOnly || !enableDragDrop ? undefined : handleDragOver}
+          onDragLeave={isReadOnly || !enableDragDrop ? undefined : handleDragLeave}
+          onDrop={isReadOnly || !enableDragDrop ? undefined : (e) => handleWorkflowDrop(e, workflow)}
         >
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-3">
+              {!isReadOnly && enableDragDrop && (
+                <div className="mt-1 cursor-grab">
+                  <GripVertical className="h-5 w-5 text-gray-400" />
+                </div>
+              )}
               <div className="mt-1">
                 <FileText className="h-5 w-5 text-green-500" />
               </div>

@@ -149,6 +149,17 @@ export function WorkflowHeader({
           onAddAppliance={onAddAppliance}
         />
       )}
+      
+      {isReordering && (
+        <div className="bg-amber-50 border border-amber-200 p-3 rounded-md mt-4">
+          <p className="text-sm text-amber-600 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Drag and drop workflows to reorder them within a folder or drag them between folder containers to move them
+          </p>
+        </div>
+      )}
     </div>
   );
 }
