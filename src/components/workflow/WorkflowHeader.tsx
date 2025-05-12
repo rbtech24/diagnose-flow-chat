@@ -44,12 +44,16 @@ export function WorkflowHeader({
     }
   };
 
-  const handleCreateWorkflow = () => {
+  const handleCreateWorkflow = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent default form submission/page refresh
     console.log("Navigating to workflow editor...");
+    
     // Check user role to determine the correct path
     const isAdminPath = window.location.pathname.includes('/admin');
     const editorPath = isAdminPath ? '/admin/workflow-editor' : '/workflow-editor';
-    navigate(editorPath);
+    
+    // Add ?new=true to indicate this is a new workflow
+    navigate(`${editorPath}?new=true`);
   };
 
   return (
