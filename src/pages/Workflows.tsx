@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppliances } from '@/hooks/useAppliances';
 import { useWorkflows } from '@/hooks/useWorkflows';
@@ -10,6 +10,8 @@ import { ApplianceManager } from '@/components/workflow/ApplianceManager';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useUserRole } from '@/hooks/useUserRole';
+import { cleanupOrphanedWorkflows, cleanupEmptyFolders } from '@/utils/flow';
+import { getFolders } from '@/utils/flow/storage/categories';
 
 export default function Workflows() {
   const navigate = useNavigate();
@@ -32,7 +34,8 @@ export default function Workflows() {
 
   const {
     workflows,
-    folders,
+    loadWorkflows,
+    folders: workflowFolders,
     selectedFolder,
     setSelectedFolder,
     handleDeleteWorkflow,
@@ -40,6 +43,26 @@ export default function Workflows() {
     handleMoveWorkflow,
     handleMoveWorkflowToFolder
   } = useWorkflows();
+  
+  const [folderList, setFolderList] = useState<string[]>([]);
+  
+  const refreshFolders = useCallback(async () => {
+    try {
+      const folders = await getFolders();
+      setFolderList(folders);
+      // Run cleanup operations
+      await cleanupOrphanedWorkflows();
+      await cleanupEmptyFolders();
+      // Refresh workflows
+      await loadWorkflows();
+    } catch (error) {
+      console.error("Error refreshing folders:", error);
+    }
+  }, [loadWorkflows]);
+  
+  useEffect(() => {
+    refreshFolders();
+  }, [refreshFolders]);
 
   const filteredAppliances = appliances.filter(appliance => 
     (selectedFolder ? appliance.name === selectedFolder : true) &&
@@ -61,6 +84,7 @@ export default function Workflows() {
     }
     
     addAppliance(name);
+    refreshFolders();
     toast({
       title: "Appliance Added",
       description: `${name} has been added successfully.`
@@ -104,6 +128,14 @@ export default function Workflows() {
       navigate('/tech');
     }
   };
+  
+  const handleMoveWorkflowToFolderWithRefresh = async (workflow: SavedWorkflow, targetFolder: string) => {
+    const success = await handleMoveWorkflowToFolder(workflow, targetFolder);
+    if (success) {
+      await refreshFolders();
+    }
+    return success;
+  };
 
   return (
     <div className="container mx-auto p-6">
@@ -124,10 +156,11 @@ export default function Workflows() {
         onSearchChange={setSearchTerm}
         selectedFolder={selectedFolder}
         onFolderChange={setSelectedFolder}
-        folders={folders}
+        folders={folderList}
         isReordering={isReordering}
         onReorderingChange={isAdmin ? setIsReordering : undefined}
         onAddAppliance={isAdmin ? handleAddAppliance : undefined}
+        onFoldersRefresh={isAdmin ? refreshFolders : undefined}
       />
 
       <WorkflowView
@@ -145,7 +178,7 @@ export default function Workflows() {
         onDeleteWorkflow={isAdmin ? handleDeleteWorkflow : undefined}
         onMoveWorkflow={isAdmin ? handleMoveWorkflow : undefined}
         onToggleWorkflowActive={isAdmin ? handleToggleWorkflowActive : undefined}
-        onMoveWorkflowToFolder={isAdmin ? handleMoveWorkflowToFolder : undefined}
+        onMoveWorkflowToFolder={isAdmin ? handleMoveWorkflowToFolderWithRefresh : undefined}
         isReadOnly={!isAdmin}
       />
 

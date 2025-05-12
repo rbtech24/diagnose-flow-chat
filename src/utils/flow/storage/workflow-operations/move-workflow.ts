@@ -25,16 +25,30 @@ export const moveWorkflowToFolder = async (workflow: SavedWorkflow, targetFolder
         category = newCategory;
       }
 
-      // Update the workflow with the new category
-      const { error } = await supabase
+      // Find the workflow by name to get its ID
+      const { data: workflowData, error: findError } = await supabase
         .from('workflows')
-        .update({ 
-          category_id: category.id,
-          updated_at: new Date().toISOString()
-        })
-        .eq('name', workflow.metadata.name);
+        .select('id')
+        .eq('name', workflow.metadata.name)
+        .maybeSingle();
+        
+      if (findError) throw findError;
 
-      if (error) throw error;
+      if (workflowData) {
+        // Update the workflow with the new category
+        const { error } = await supabase
+          .from('workflows')
+          .update({ 
+            category_id: category.id,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', workflowData.id);
+
+        if (error) throw error;
+      } else {
+        // If workflow doesn't exist in Supabase yet, we'll just update localStorage
+        console.log('Workflow not found in Supabase, updating localStorage only');
+      }
     } catch (error) {
       console.error('Error moving workflow in Supabase:', error);
       // Fallback to localStorage

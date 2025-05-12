@@ -1,9 +1,15 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, Settings } from 'lucide-react';
+import { Plus, Search, Settings, FolderIcon } from 'lucide-react';
 import { AddApplianceDialog } from '@/components/appliance/AddApplianceDialog';
 import { useState } from 'react';
+import { FolderManagement } from './FolderManagement';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface WorkflowHeaderProps {
   searchTerm: string;
@@ -14,6 +20,7 @@ interface WorkflowHeaderProps {
   isReordering: boolean;
   onReorderingChange?: (reordering: boolean) => void;
   onAddAppliance?: (name: string) => void;
+  onFoldersRefresh?: () => void;
 }
 
 export function WorkflowHeader({
@@ -24,9 +31,16 @@ export function WorkflowHeader({
   folders,
   isReordering,
   onReorderingChange,
-  onAddAppliance
+  onAddAppliance,
+  onFoldersRefresh
 }: WorkflowHeaderProps) {
   const [isAddApplianceDialogOpen, setIsAddApplianceDialogOpen] = useState(false);
+
+  const handleFoldersChange = () => {
+    if (onFoldersRefresh) {
+      onFoldersRefresh();
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -89,6 +103,27 @@ export function WorkflowHeader({
             {folder}
           </Button>
         ))}
+        
+        {onFoldersRefresh && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-2"
+              >
+                <FolderIcon className="h-4 w-4 mr-1" />
+                Manage Folders
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80" align="end">
+              <FolderManagement 
+                folders={folders}
+                onFoldersChange={handleFoldersChange}
+              />
+            </PopoverContent>
+          </Popover>
+        )}
       </div>
       
       {onAddAppliance && (

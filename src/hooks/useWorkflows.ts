@@ -1,13 +1,16 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { SavedWorkflow } from '@/utils/flow/types';
 import { getAllWorkflows, moveWorkflowToFolder } from '@/utils/flow';
 import { supabase } from '@/integrations/supabase/client';
+import { getFolders } from '@/utils/flow/storage/categories';
 
 export function useWorkflows() {
   const [workflowsState, setWorkflowsState] = useState<SavedWorkflow[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  const [foldersList, setFoldersList] = useState<string[]>([]);
 
   // Get all appliances from localStorage
   const getAppliances = () => {
@@ -15,15 +18,15 @@ export function useWorkflows() {
     return appliancesData ? JSON.parse(appliancesData) : [];
   };
 
-  useEffect(() => {
-    loadWorkflows();
-  }, []);
-
-  const loadWorkflows = async () => {
+  const loadWorkflows = useCallback(async () => {
     setIsLoading(true);
     try {
       const workflows = await getAllWorkflows();
       setWorkflowsState(workflows);
+      
+      // Also refresh folders
+      const folders = await getFolders();
+      setFoldersList(folders);
     } catch (error) {
       console.error('Error loading workflows:', error);
       toast({
@@ -34,15 +37,33 @@ export function useWorkflows() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadWorkflows();
+    
+    // Listen for localStorage changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'diagnostic-workflows' || e.key === 'workflow-categories') {
+        loadWorkflows();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [loadWorkflows]);
 
   // Get all workflows to build the folders list
-  const folders = [...new Set([
-    ...workflowsState.map(w => w.metadata?.folder || 'Default'),
-    ...getAppliances().map((a: { name: string }) => a.name)
-  ])]
-    .filter(folder => folder && folder.trim() !== '')
-    .sort();
+  const folders = foldersList.length > 0 
+    ? foldersList 
+    : [...new Set([
+        ...workflowsState.map(w => w.metadata?.folder || 'Default'),
+        ...getAppliances().map((a: { name: string }) => a.name)
+      ])]
+        .filter(folder => folder && folder.trim() !== '')
+        .sort();
   
   // Get workflows for the selected folder or all workflows if no folder is selected
   const workflows = selectedFolder 
@@ -51,17 +72,37 @@ export function useWorkflows() {
 
   const handleDeleteWorkflow = async (workflow: SavedWorkflow) => {
     try {
-      const { error } = await supabase
+      // First try to find the workflow in Supabase by name
+      const { data, error: findError } = await supabase
         .from('workflows')
-        .update({ is_active: false })
-        .eq('name', workflow.metadata.name);
+        .select('id')
+        .eq('name', workflow.metadata.name)
+        .maybeSingle();
         
-      if (error) throw error;
+      if (!findError && data) {
+        // If found in Supabase, update is_active
+        const { error } = await supabase
+          .from('workflows')
+          .update({ is_active: false })
+          .eq('id', data.id);
+          
+        if (error) throw error;
+      }
       
+      // Also update localStorage
       setWorkflowsState(prev => prev.filter(w => 
         !(w.metadata.name === workflow.metadata.name && 
           w.metadata.folder === workflow.metadata.folder)
       ));
+      
+      const storedWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');
+      const updatedWorkflows = storedWorkflows.filter((w: SavedWorkflow) => 
+        !(w.metadata.name === workflow.metadata.name && 
+          (w.metadata.folder === workflow.metadata.folder || 
+           w.metadata.appliance === workflow.metadata.folder))
+      );
+      
+      localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
       
       toast({
         title: "Workflow Deleted",
@@ -79,15 +120,26 @@ export function useWorkflows() {
 
   const handleToggleWorkflowActive = async (workflow: SavedWorkflow) => {
     try {
-      const { error } = await supabase
+      // First find the workflow in Supabase
+      const { data, error: findError } = await supabase
         .from('workflows')
-        .update({ 
-          is_active: !workflow.metadata.isActive 
-        })
-        .eq('name', workflow.metadata.name);
+        .select('id')
+        .eq('name', workflow.metadata.name)
+        .maybeSingle();
         
-      if (error) throw error;
+      if (!findError && data) {
+        // If found in Supabase, update is_active
+        const { error } = await supabase
+          .from('workflows')
+          .update({ 
+            is_active: !workflow.metadata.isActive 
+          })
+          .eq('id', data.id);
+          
+        if (error) throw error;
+      }
       
+      // Update state
       setWorkflowsState(prev => prev.map(w => {
         if (w.metadata.name === workflow.metadata.name && 
             w.metadata.folder === workflow.metadata.folder) {
@@ -101,6 +153,25 @@ export function useWorkflows() {
         }
         return w;
       }));
+      
+      // Update localStorage
+      const storedWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');
+      const updatedWorkflows = storedWorkflows.map((w: SavedWorkflow) => {
+        if (w.metadata.name === workflow.metadata.name && 
+            (w.metadata.folder === workflow.metadata.folder || 
+             w.metadata.appliance === workflow.metadata.folder)) {
+          return {
+            ...w,
+            metadata: {
+              ...w.metadata,
+              isActive: !w.metadata.isActive
+            }
+          };
+        }
+        return w;
+      });
+      
+      localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
       
       toast({
         title: workflow.metadata.isActive ? "Workflow Deactivated" : "Workflow Activated",
@@ -151,6 +222,7 @@ export function useWorkflows() {
         variant: "destructive"
       });
     }
+    return success;
   };
 
   return {
@@ -163,6 +235,7 @@ export function useWorkflows() {
     handleDeleteWorkflow,
     handleToggleWorkflowActive,
     handleMoveWorkflow,
-    handleMoveWorkflowToFolder
+    handleMoveWorkflowToFolder,
+    loadWorkflows
   };
 }

@@ -26,7 +26,11 @@ export const getAllWorkflows = async (): Promise<SavedWorkflow[]> => {
       if (data && data.length > 0) {
         // Transform Supabase data into SavedWorkflow format
         return data.map(item => {
-          const flowData = item.flow_data || { nodes: [], edges: [], nodeCounter: 0 };
+          // Ensure flow_data is properly parsed
+          const flowData = typeof item.flow_data === 'string' 
+            ? JSON.parse(item.flow_data) 
+            : item.flow_data || { nodes: [], edges: [], nodeCounter: 0 };
+            
           return {
             metadata: {
               name: item.name,
