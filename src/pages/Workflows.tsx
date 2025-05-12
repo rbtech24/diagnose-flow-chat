@@ -101,16 +101,23 @@ export default function Workflows() {
     });
   };
 
-  // Function to properly open workflow editor - FIXED THIS FUNCTION
+  // Function to properly open workflow editor
   const openWorkflowEditor = (folder: string, name?: string) => {
     console.log("Opening workflow editor with:", { folder, name });
-    if (name) {
-      // If name is provided, we're editing an existing workflow
-      navigate(`/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`);
-    } else {
-      // If no name, we're creating a new workflow in the folder
-      navigate(`/workflow-editor?folder=${encodeURIComponent(folder)}`);
-    }
+    
+    // Use preventDefault to ensure no default navigation occurs
+    const navigateToEditor = () => {
+      if (name) {
+        // If name is provided, we're editing an existing workflow
+        navigate(`/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`, { replace: false });
+      } else {
+        // If no name, we're creating a new workflow in the folder
+        navigate(`/workflow-editor?folder=${encodeURIComponent(folder)}`, { replace: false });
+      }
+    };
+    
+    // Use setTimeout to ensure the navigation happens after any other events
+    setTimeout(navigateToEditor, 0);
   };
 
   const handleAddIssue = (applianceName: string) => {
@@ -123,7 +130,7 @@ export default function Workflows() {
   
   // Function to create new workflow
   const handleCreateNewWorkflow = () => {
-    navigate(`/workflow-editor?new=true`);
+    navigate(`/workflow-editor?new=true`, { replace: false });
   };
   
   const handleMoveWorkflowToFolderWithRefresh = async (workflow: SavedWorkflow, targetFolder: string) => {

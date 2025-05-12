@@ -56,6 +56,9 @@ export default function WorkflowEditor() {
     }
   }, [folder, name]);
 
+  // We're removing this permission check to allow all users to access the editor
+  // This is based on the comment that all users can now see workflows in Workflows.tsx
+  /*
   useEffect(() => {
     // Check if user has admin permissions
     if (!isLoading && userRole !== 'admin') {
@@ -67,6 +70,7 @@ export default function WorkflowEditor() {
       navigate('/workflows');
     }
   }, [userRole, isLoading, navigate]);
+  */
 
   const handleNodeSelect = useCallback((node: Node, updateNode: (nodeId: string, newData: any) => void) => {
     console.log('WorkflowEditor handleNodeSelect:', node);
@@ -82,7 +86,7 @@ export default function WorkflowEditor() {
   }, [selectedNode, updateNodeFn]);
 
   const handleBackToDashboard = () => {
-    navigate('/admin/workflows');
+    navigate('/workflows', { replace: true });
   };
 
   if (isLoading) {
@@ -100,7 +104,7 @@ export default function WorkflowEditor() {
             onClick={handleBackToDashboard}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Admin Workflows
+            Back to Workflows
           </Button>
           <div className="ml-4 text-sm text-slate-500">
             {isNew && "Creating New Workflow"}

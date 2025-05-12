@@ -1,3 +1,4 @@
+
 import {
   createBrowserRouter,
   RouterProvider,
@@ -68,6 +69,14 @@ import UserNew from "./pages/admin/UserNew";
 import ActivityPage from "./pages/admin/Activity";
 
 const router = createBrowserRouter([
+  {
+    path: "/workflow-editor",
+    element: <WorkflowEditor />
+  },
+  {
+    path: "/workflows",
+    element: <Workflows />
+  },
   {
     path: "/",
     element: <Index />
@@ -197,14 +206,6 @@ const router = createBrowserRouter([
       { path: "/admin/api-keys", element: <ApiKeys /> },
       { path: "activity", element: <ActivityPage /> },
     ]
-  },
-  {
-    path: "/workflow-editor",
-    element: <WorkflowEditor />
-  },
-  {
-    path: "/workflows",
-    element: <Workflows />
   },
   {
     path: "*",
