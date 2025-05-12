@@ -16,11 +16,20 @@ import {
   Shield,
   Key,
   Clock,
-  LogOut
+  LogOut,
+  Edit,
+  Folder
 } from "lucide-react";
 import { useUserManagementStore } from "@/store/userManagementStore";
 import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
+import {
+  Menubar,
+  MenubarMenu,
+  MenubarTrigger,
+  MenubarContent,
+  MenubarItem,
+} from "@/components/ui/menubar";
 
 export function AdminSidebar() {
   const location = useLocation();
@@ -42,7 +51,17 @@ export function AdminSidebar() {
     { path: "/admin/companies", label: "Companies", icon: <Building2 className="h-5 w-5" /> },
     { path: "/admin/users", label: "Users", icon: <Users className="h-5 w-5" /> },
     { path: "/admin/admin-accounts", label: "Admin Accounts", icon: <Shield className="h-5 w-5" /> },
-    { path: "/admin/workflows", label: "Workflows", icon: <FileText className="h-5 w-5" /> },
+    { 
+      path: "/admin/workflows", 
+      label: "Workflows", 
+      icon: <FileText className="h-5 w-5" />,
+      hasSubmenu: true,
+      submenu: [
+        { path: "/admin/workflows", label: "All Workflows", icon: <FileText className="h-4 w-4" /> },
+        { path: "/admin/workflow-editor", label: "Workflow Editor", icon: <Edit className="h-4 w-4" /> },
+        { path: "/workflows", label: "Workflow Folders", icon: <Folder className="h-4 w-4" /> },
+      ] 
+    },
     { path: "/admin/subscription-plans", label: "Subscription Plans", icon: <CreditCard className="h-5 w-5" /> },
     { path: "/admin/licenses", label: "Licenses", icon: <CreditCard className="h-5 w-5" /> },
     { path: "/admin/support", label: "Support", icon: <MessageSquare className="h-5 w-5" /> },
@@ -88,17 +107,48 @@ export function AdminSidebar() {
         <div className="p-4">
           <nav className="space-y-1">
             {navItems.map((item) => (
-              <Button
-                key={item.path}
-                variant="sidebar"
-                className={`w-full justify-start ${isActive(item.path) ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`}
-                asChild
-              >
-                <Link to={item.path} className="flex items-center">
-                  {item.icon}
-                  <span className="ml-3">{item.label}</span>
-                </Link>
-              </Button>
+              item.hasSubmenu ? (
+                <div key={item.path}>
+                  <Menubar className="w-full border-0 p-0 bg-transparent">
+                    <MenubarMenu>
+                      <MenubarTrigger asChild>
+                        <Button
+                          variant="sidebar"
+                          className={`w-full justify-start ${isActive(item.path) ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`}
+                        >
+                          {item.icon}
+                          <span className="ml-3">{item.label}</span>
+                        </Button>
+                      </MenubarTrigger>
+                      <MenubarContent>
+                        {item.submenu?.map((subItem) => (
+                          <MenubarItem key={subItem.path} asChild>
+                            <Link 
+                              to={subItem.path}
+                              className="flex items-center cursor-pointer w-full"
+                            >
+                              {subItem.icon}
+                              <span className="ml-2">{subItem.label}</span>
+                            </Link>
+                          </MenubarItem>
+                        ))}
+                      </MenubarContent>
+                    </MenubarMenu>
+                  </Menubar>
+                </div>
+              ) : (
+                <Button
+                  key={item.path}
+                  variant="sidebar"
+                  className={`w-full justify-start ${isActive(item.path) ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}`}
+                  asChild
+                >
+                  <Link to={item.path} className="flex items-center">
+                    {item.icon}
+                    <span className="ml-3">{item.label}</span>
+                  </Link>
+                </Button>
+              )
             ))}
           </nav>
         </div>
