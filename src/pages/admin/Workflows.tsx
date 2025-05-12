@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Search, Workflow, FileText, GripVertical } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useWorkflows } from "@/hooks/useWorkflows";
 import { toast } from "@/hooks/use-toast";
 
@@ -27,8 +27,14 @@ export default function AdminWorkflows() {
   };
 
   const handleEditWorkflow = (folder: string, name: string) => {
-    // Navigate to the workflow editor with the folder and name parameters
-    navigate(`/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`);
+    // The issue was here - we need to use the correct path format when in the admin section
+    // Using the current URL path structure to determine if we're in the admin section
+    const path = window.location.pathname.startsWith('/admin') 
+      ? `/admin/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`
+      : `/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`;
+    
+    console.log("Navigating to:", path);
+    navigate(path);
   };
   
   const handleMoveWorkflowItem = (fromIndex: number, toIndex: number) => {
