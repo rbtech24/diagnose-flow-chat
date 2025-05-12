@@ -1,88 +1,30 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export interface Category {
-  id: string;
-  name: string;
-}
-
-export const getOrCreateCategory = async (name: string): Promise<Category | null> => {
+export const getWorkflowCategories = async (): Promise<string[]> => {
   try {
-    // First try to get the category
-    const { data: existingCategory, error: fetchError } = await supabase
+    // Try to get from Supabase first
+    const { data, error } = await supabase
       .from('workflow_categories')
-      .select('id, name')
-      .eq('name', name)
-      .maybeSingle();
-      
-    if (existingCategory) {
-      return existingCategory;
-    }
-
-    // If category doesn't exist, get the user's company_id
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+      .select('name');
     
-    if (!user) {
-      console.error('No user found');
-      return null;
+    if (!error && data && data.length > 0) {
+      return data.map(category => category.name);
     }
-
-    const { data: userInfo, error: techError } = await supabase
-      .from('technicians')
-      .select('company_id')
-      .eq('id', user.id)
-      .single();
-      
-    if (techError) {
-      console.error('Error getting user company:', techError);
-      return null;
-    }
-
-    // Create new category with company_id
-    const { data: newCategory, error: createError } = await supabase
-      .from('workflow_categories')
-      .insert({ 
-        name,
-        company_id: userInfo.company_id,
-        is_active: true
-      })
-      .select('id, name')
-      .single();
-        
-    if (createError) {
-      console.error('Error creating category:', createError);
-      return null;
-    }
-
-    return newCategory;
   } catch (error) {
-    console.error('Error getting or creating category:', error);
-    return null;
+    console.error('Error getting workflow categories:', error);
+  }
+  
+  // Fallback to localStorage
+  try {
+    const storedWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');
+    return [...new Set(storedWorkflows.map((w: any) => w.metadata?.appliance || w.metadata?.folder || 'Default'))];
+  } catch (error) {
+    console.error('Error parsing localStorage workflow categories:', error);
+    return [];
   }
 };
 
 export const getFolders = async (): Promise<string[]> => {
-  try {
-    const { data: workflows, error } = await supabase
-      .from('workflows')
-      .select('category_id, workflow_categories(name)')
-      .eq('is_active', true);
-    
-    if (error) {
-      console.error('Error getting folders:', error);
-      return [];
-    }
-    
-    const folderSet = new Set<string>();
-    workflows?.forEach(workflow => {
-      if (workflow.workflow_categories?.name) {
-        folderSet.add(workflow.workflow_categories.name);
-      }
-    });
-    
-    return Array.from(folderSet).sort();
-  } catch (error) {
-    console.error('Error getting folders:', error);
-    return [];
-  }
+  return getWorkflowCategories();
 };

@@ -1,47 +1,80 @@
 
 import { SavedWorkflow } from '../../types';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
-export const moveWorkflowToFolder = async (
-  workflow: SavedWorkflow,
-  targetAppliance: string
-): Promise<boolean> => {
+export const moveWorkflowToFolder = async (workflow: SavedWorkflow, targetFolder: string): Promise<boolean> => {
   try {
-    // First get or create the category
-    const { data: category } = await supabase
-      .from('workflow_categories')
-      .select('id')
-      .eq('name', targetAppliance)
-      .maybeSingle();
-
-    let categoryId;
-    if (!category) {
-      const { data: newCategory, error: createError } = await supabase
+    // Try to move in Supabase first
+    try {
+      // First find the target category or create it
+      let { data: category } = await supabase
         .from('workflow_categories')
-        .insert({ name: targetAppliance })
         .select('id')
-        .single();
+        .eq('name', targetFolder)
+        .maybeSingle();
 
-      if (createError) throw createError;
-      categoryId = newCategory.id;
-    } else {
-      categoryId = category.id;
+      if (!category) {
+        const { data: newCategory, error: createError } = await supabase
+          .from('workflow_categories')
+          .insert({ name: targetFolder })
+          .select('id')
+          .single();
+
+        if (createError) throw createError;
+        category = newCategory;
+      }
+
+      // Update the workflow with the new category
+      const { error } = await supabase
+        .from('workflows')
+        .update({ 
+          category_id: category.id,
+          updated_at: new Date().toISOString()
+        })
+        .eq('name', workflow.metadata.name);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error moving workflow in Supabase:', error);
+      // Fallback to localStorage
     }
+
+    // Update in localStorage as well
+    const existingWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');
+    const updatedWorkflows = existingWorkflows.map((w: SavedWorkflow) => {
+      if (w.metadata.name === workflow.metadata.name && 
+          (w.metadata.folder === workflow.metadata.folder || 
+           w.metadata.appliance === workflow.metadata.appliance)) {
+        return {
+          ...w,
+          metadata: {
+            ...w.metadata,
+            folder: targetFolder,
+            appliance: targetFolder,
+            updatedAt: new Date().toISOString()
+          }
+        };
+      }
+      return w;
+    });
+
+    localStorage.setItem('diagnostic-workflows', JSON.stringify(updatedWorkflows));
     
-    // Update workflow
-    const { error } = await supabase
-      .from('workflows')
-      .update({ 
-        category_id: categoryId,
-        updated_at: new Date().toISOString()
-      })
-      .eq('name', workflow.metadata.name);
-      
-    if (error) throw error;
+    // Dispatch a storage event to notify other components
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'diagnostic-workflows',
+      newValue: localStorage.getItem('diagnostic-workflows')
+    }));
     
     return true;
   } catch (error) {
-    console.error('Error moving workflow to folder:', error);
+    console.error('Error moving workflow:', error);
+    toast({
+      title: "Error",
+      description: "Failed to move workflow",
+      variant: "destructive"
+    });
     return false;
   }
 };

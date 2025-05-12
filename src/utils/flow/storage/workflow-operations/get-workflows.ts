@@ -1,91 +1,67 @@
 
 import { SavedWorkflow } from '../../types';
 import { supabase } from '@/integrations/supabase/client';
-
-interface WorkflowData {
-  nodes: any[];
-  edges: any[];
-  nodeCounter: number;
-}
+import { toast } from '@/hooks/use-toast';
 
 export const getAllWorkflows = async (): Promise<SavedWorkflow[]> => {
   try {
-    const { data: workflows, error } = await supabase
-      .from('workflows')
-      .select(`
-        *,
-        workflow_categories (
-          name
-        )
-      `)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
+    // First try to get workflows from Supabase
+    try {
+      const { data, error } = await supabase
+        .from('workflows')
+        .select(`
+          id, 
+          name, 
+          description, 
+          flow_data, 
+          is_active, 
+          created_at, 
+          updated_at,
+          category:workflow_categories(id, name)
+        `)
+        .eq('is_active', true);
+      
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        // Transform Supabase data into SavedWorkflow format
+        return data.map(item => {
+          const flowData = item.flow_data || { nodes: [], edges: [], nodeCounter: 0 };
+          return {
+            metadata: {
+              name: item.name,
+              folder: item.category?.name || 'Default',
+              appliance: item.category?.name || 'Default',
+              createdAt: item.created_at,
+              updatedAt: item.updated_at,
+              isActive: item.is_active
+            },
+            nodes: flowData.nodes || [],
+            edges: flowData.edges || [],
+            nodeCounter: flowData.nodeCounter || 0
+          };
+        });
+      }
+    } catch (error) {
+      console.error('Error getting all workflows:', error);
+      // If Supabase fails, we'll just continue to check localStorage
+    }
     
-    if (error) throw error;
+    // Fallback to localStorage if Supabase didn't return any data
+    const storedWorkflows = localStorage.getItem('diagnostic-workflows');
+    if (storedWorkflows) {
+      const workflowsData = JSON.parse(storedWorkflows) as SavedWorkflow[];
+      return workflowsData;
+    }
     
-    return workflows.map(workflow => {
-      const flowData = workflow.flow_data as unknown as WorkflowData;
-      return {
-        metadata: {
-          name: workflow.name,
-          folder: workflow.workflow_categories?.name || 'Default',
-          appliance: workflow.workflow_categories?.name || 'Default',
-          createdAt: workflow.created_at,
-          updatedAt: workflow.updated_at,
-          isActive: workflow.is_active
-        },
-        nodes: flowData?.nodes || [],
-        edges: flowData?.edges || [],
-        nodeCounter: flowData?.nodeCounter || 0
-      };
-    });
+    return []; // Return empty array if no workflows found
   } catch (error) {
     console.error('Error getting all workflows:', error);
-    return [];
-  }
-};
-
-export const getWorkflowsInFolder = async (folder: string): Promise<SavedWorkflow[]> => {
-  try {
-    const { data: category } = await supabase
-      .from('workflow_categories')
-      .select('id')
-      .eq('name', folder)
-      .maybeSingle();
-      
-    if (!category) return [];
-    
-    const { data: workflows, error } = await supabase
-      .from('workflows')
-      .select(`
-        *,
-        workflow_categories (
-          name
-        )
-      `)
-      .eq('category_id', category.id)
-      .eq('is_active', true);
-      
-    if (error) throw error;
-    
-    return workflows.map(workflow => {
-      const flowData = workflow.flow_data as unknown as WorkflowData;
-      return {
-        metadata: {
-          name: workflow.name,
-          folder: workflow.workflow_categories?.name || 'Default',
-          appliance: workflow.workflow_categories?.name || 'Default',
-          createdAt: workflow.created_at,
-          updatedAt: workflow.updated_at,
-          isActive: workflow.is_active
-        },
-        nodes: flowData?.nodes || [],
-        edges: flowData?.edges || [],
-        nodeCounter: flowData?.nodeCounter || 0
-      };
+    toast({
+      title: "Error",
+      description: "Failed to load workflows",
+      variant: "destructive"
     });
-  } catch (error) {
-    console.error('Error getting workflows in folder:', error);
-    return [];
+    return []; // Return empty array on error
   }
 };
