@@ -27,7 +27,8 @@ export default function AdminWorkflows() {
   };
 
   const handleEditWorkflow = (folder: string, name: string) => {
-    navigate(`/admin/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`);
+    // Correctly navigate to the workflow editor with the folder and name parameters
+    navigate(`/workflows?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`);
   };
 
   return (
