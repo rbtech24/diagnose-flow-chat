@@ -22,7 +22,7 @@ export default function DiagnosticsPage() {
   // Get workflows for the selected folder
   const folderWorkflows = selectedFolder 
     ? activeWorkflows.filter(w => w.metadata.folder === selectedFolder || w.metadata.appliance === selectedFolder)
-    : activeWorkflows;
+    : [];
 
   const handleBackToDashboard = () => {
     if (userRole === 'company') {
@@ -103,11 +103,8 @@ export default function DiagnosticsPage() {
           </div>
         ) : (
           <DiagnosticSelector 
-            workflows={activeWorkflows}
             folders={folders}
-            onSelect={handleSelectWorkflow}
             onSelectFolder={handleSelectFolder}
-            selectedWorkflowId={selectedWorkflow ? getWorkflowId(selectedWorkflow) : undefined}
             title="Appliance Categories"
             showFolders={true}
           />

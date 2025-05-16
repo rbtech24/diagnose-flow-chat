@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { SavedWorkflow } from '@/utils/flow/types';
 
 interface DiagnosticSelectorProps {
-  workflows: SavedWorkflow[];
+  workflows?: SavedWorkflow[];
   folders?: string[];
-  onSelect: (workflow: SavedWorkflow) => void;
+  onSelect?: (workflow: SavedWorkflow) => void;
   onSelectFolder?: (folder: string) => void;
   selectedWorkflowId?: string;
   title?: string;
@@ -17,7 +17,7 @@ interface DiagnosticSelectorProps {
 }
 
 export function DiagnosticSelector({ 
-  workflows, 
+  workflows = [], 
   folders = [], 
   onSelect, 
   onSelectFolder,
@@ -27,23 +27,16 @@ export function DiagnosticSelector({
 }: DiagnosticSelectorProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Get unique folders from workflows
-  const uniqueFolders = showFolders
-    ? [...new Set([...folders, ...workflows.map(w => w.metadata.folder || w.metadata.appliance || 'General')])]
-        .filter(f => f && f.trim() !== '')
-        .sort()
-    : [];
+  // Filter folders by search term
+  const filteredFolders = folders.filter(folder =>
+    folder.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // Filter workflows by search term
   const filteredWorkflows = workflows.filter(workflow => 
     workflow.metadata.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (workflow.metadata.folder || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (workflow.metadata.appliance || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // Filter folders by search term
-  const filteredFolders = uniqueFolders.filter(folder =>
-    folder.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getWorkflowId = (workflow: SavedWorkflow) => 
@@ -73,31 +66,36 @@ export function DiagnosticSelector({
         {showFolders && (
           <div className="space-y-3 mb-6">
             {filteredFolders.length > 0 ? (
-              filteredFolders.map(folder => (
-                <div 
-                  key={folder}
-                  className="p-3 border rounded-lg flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
-                  onClick={() => onSelectFolder && onSelectFolder(folder)}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-                      <FolderOpen className="h-5 w-5 text-blue-600" />
+              filteredFolders.map(folder => {
+                // Count workflows in this folder
+                const workflowsInFolder = workflows.filter(w => 
+                  (w.metadata.folder === folder || w.metadata.appliance === folder) && 
+                  w.metadata.isActive !== false
+                ).length;
+                
+                return (
+                  <div 
+                    key={folder}
+                    className="p-3 border rounded-lg flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => onSelectFolder && onSelectFolder(folder)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
+                        <FolderOpen className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium">{folder}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {workflowsInFolder} diagnostic procedure{workflowsInFolder !== 1 ? 's' : ''}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-medium">{folder}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {workflows.filter(w => 
-                          (w.metadata.folder === folder || w.metadata.appliance === folder) && 
-                          w.metadata.isActive !== false
-                        ).length} diagnostic procedures
-                      </p>
-                    </div>
+                    <Button size="sm" variant="ghost" className="flex items-center gap-1">
+                      View <ArrowRight className="h-4 w-4 ml-1" />
+                    </Button>
                   </div>
-                  <Button size="sm" variant="ghost" className="flex items-center gap-1">
-                    View <ArrowRight className="h-4 w-4 ml-1" />
-                  </Button>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="text-center py-6 text-muted-foreground">
                 {searchTerm ? 
@@ -109,7 +107,7 @@ export function DiagnosticSelector({
           </div>
         )}
 
-        {(!showFolders || filteredWorkflows.length > 0) && (
+        {!showFolders && (
           <div className="space-y-3">
             {filteredWorkflows.length > 0 ? (
               filteredWorkflows.map(workflow => (
@@ -118,7 +116,7 @@ export function DiagnosticSelector({
                   className={`p-3 border rounded-lg flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors ${
                     selectedWorkflowId === getWorkflowId(workflow) ? 'border-blue-500 bg-blue-50' : ''
                   }`}
-                  onClick={() => onSelect(workflow)}
+                  onClick={() => onSelect && onSelect(workflow)}
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
