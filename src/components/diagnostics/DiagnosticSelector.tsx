@@ -42,6 +42,14 @@ export function DiagnosticSelector({
   const getWorkflowId = (workflow: SavedWorkflow) => 
     `${workflow.metadata.folder || workflow.metadata.appliance || 'General'}-${workflow.metadata.name}`;
 
+  // Count workflows for each folder
+  const getFolderWorkflowsCount = (folder: string) => {
+    return workflows.filter(w => 
+      (w.metadata.folder === folder || w.metadata.appliance === folder) && 
+      w.metadata.isActive !== false
+    ).length;
+  };
+
   return (
     <Card className="w-full mb-6">
       <CardHeader className="pb-3">
@@ -68,10 +76,7 @@ export function DiagnosticSelector({
             {filteredFolders.length > 0 ? (
               filteredFolders.map(folder => {
                 // Count workflows in this folder
-                const workflowsInFolder = workflows.filter(w => 
-                  (w.metadata.folder === folder || w.metadata.appliance === folder) && 
-                  w.metadata.isActive !== false
-                ).length;
+                const workflowsInFolder = getFolderWorkflowsCount(folder);
                 
                 return (
                   <div 

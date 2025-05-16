@@ -24,6 +24,17 @@ export default function DiagnosticsPage() {
     ? activeWorkflows.filter(w => w.metadata.folder === selectedFolder || w.metadata.appliance === selectedFolder)
     : [];
 
+  // For debug purposes, log the data
+  useEffect(() => {
+    console.log("DiagnosticsPage - All workflows:", workflows);
+    console.log("DiagnosticsPage - Active workflows:", activeWorkflows);
+    console.log("DiagnosticsPage - Available folders:", folders);
+    console.log("DiagnosticsPage - Selected folder:", selectedFolder);
+    if (selectedFolder) {
+      console.log("DiagnosticsPage - Workflows in selected folder:", folderWorkflows);
+    }
+  }, [workflows, activeWorkflows, folders, selectedFolder, folderWorkflows]);
+
   const handleBackToDashboard = () => {
     if (userRole === 'company') {
       navigate('/company');
@@ -49,7 +60,7 @@ export default function DiagnosticsPage() {
   };
 
   const getWorkflowId = (workflow: SavedWorkflow) => 
-    `${workflow.metadata.folder}-${workflow.metadata.name}`;
+    `${workflow.metadata.folder || workflow.metadata.appliance || 'General'}-${workflow.metadata.name}`;
 
   return (
     <div className="container mx-auto p-6">
@@ -104,6 +115,7 @@ export default function DiagnosticsPage() {
         ) : (
           <DiagnosticSelector 
             folders={folders}
+            workflows={activeWorkflows} // Pass all active workflows here to correctly count them
             onSelectFolder={handleSelectFolder}
             title="Appliance Categories"
             showFolders={true}
