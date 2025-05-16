@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -122,7 +121,8 @@ export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
 
   return (
     <Card className="w-full mb-6">
-      <CardHeader className="bg-blue-50 border-b border-blue-100">
+      {/* Updated header with more vibrant styling */}
+      <CardHeader className="bg-gradient-to-r from-blue-100 to-blue-50 border-b border-blue-200 pb-6">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-xl">
             <Stethoscope className="h-6 w-6 text-blue-600" />
@@ -134,7 +134,15 @@ export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
             </span>
           </div>
         </div>
-        <CardDescription className="text-lg font-medium">{data.title || 'Diagnostic Step'}</CardDescription>
+        {/* Enhanced title with larger font and bold styling */}
+        <div className="mt-3 border-l-4 border-blue-500 pl-3">
+          <h2 className="text-2xl font-bold text-blue-800 mb-1">
+            {data.title || 'Diagnostic Step'}
+          </h2>
+          <CardDescription className="text-base text-blue-700">
+            Follow the instructions below to diagnose the issue
+          </CardDescription>
+        </div>
       </CardHeader>
       <CardContent className="pt-6">
         <div className="mb-4 prose max-w-none">
