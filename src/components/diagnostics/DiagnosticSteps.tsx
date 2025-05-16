@@ -140,7 +140,7 @@ export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
             {data.title || 'Diagnostic Step'}
           </h2>
           <CardDescription className="text-base text-blue-700">
-            Follow the instructions below to diagnose the issue
+            Review instructions below
           </CardDescription>
         </div>
       </CardHeader>

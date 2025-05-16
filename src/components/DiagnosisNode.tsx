@@ -1,4 +1,3 @@
-
 import { memo } from 'react';
 import { Handle, NodeProps, Position } from '@xyflow/react';
 import { HandleWithTooltip } from './diagnosis/HandleWithTooltip';
@@ -54,7 +53,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
   };
 
   // Function to render content safely
-  const renderContent = (content: unknown) => {
+  const renderContent = (content: unknown): React.ReactNode => {
     if (typeof content === 'string') {
       return (
         <div 
