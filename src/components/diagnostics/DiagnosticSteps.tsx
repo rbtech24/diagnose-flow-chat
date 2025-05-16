@@ -206,7 +206,7 @@ export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
           
           {isFlowAnswer && (
             <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
-              <h3 className="text-lg font-semibold mb-2 text-green-700">Solution:</h3>
+              <h3 className="text-xl font-semibold mb-2 text-green-700">Solution:</h3>
               {typeof nodeContent === 'string' && (
                 <div 
                   className="prose max-w-none text-sm"
