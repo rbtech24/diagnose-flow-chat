@@ -124,8 +124,8 @@ export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
     <Card className="w-full mb-6">
       <CardHeader className="bg-blue-50 border-b border-blue-100">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Stethoscope className="h-5 w-5 text-blue-600" />
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <Stethoscope className="h-6 w-6 text-blue-600" />
             Step {currentStep + 1} of {sortedNodes.length}
           </CardTitle>
           <div className="flex items-center text-sm gap-2">
@@ -134,15 +134,15 @@ export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
             </span>
           </div>
         </div>
-        <CardDescription>{data.title || 'Diagnostic Step'}</CardDescription>
+        <CardDescription className="text-lg font-medium">{data.title || 'Diagnostic Step'}</CardDescription>
       </CardHeader>
       <CardContent className="pt-6">
         <div className="mb-4 prose max-w-none">
-          {nodeContent && (
+          {typeof nodeContent === 'string' && nodeContent && (
             <div className="mb-4 p-4 bg-gray-50 rounded-lg border">
-              <h3 className="text-lg font-semibold mb-2">Description</h3>
+              <h3 className="text-xl font-semibold mb-2">Description</h3>
               <div 
-                className="prose max-w-none"
+                className="prose max-w-none text-sm"
                 dangerouslySetInnerHTML={{ __html: nodeContent }}
               />
             </div>
@@ -154,23 +154,25 @@ export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
                 <Info className="h-4 w-4 text-blue-600" />
                 Technical Details
               </h3>
-              {data.type === 'voltage-check' && (
-                <>
-                  <p><strong>Expected:</strong> {data.technicalSpecs.range?.min}V - {data.technicalSpecs.range?.max}V</p>
-                  <p><strong>Test Points:</strong> {data.technicalSpecs.testPoints}</p>
-                </>
-              )}
-              {data.type === 'resistance-check' && (
-                <>
-                  <p><strong>Expected:</strong> {data.technicalSpecs.value}Ω</p>
-                  <p><strong>Measure:</strong> {data.technicalSpecs.measurementPoints}</p>
-                </>
-              )}
-              {data.type === 'inspection' && (
-                <div dangerouslySetInnerHTML={{ 
-                  __html: data.technicalSpecs.points?.replace(/\n/g, '<br/>') || ''
-                }} />
-              )}
+              <div className="text-sm">
+                {data.type === 'voltage-check' && (
+                  <>
+                    <p><strong>Expected:</strong> {data.technicalSpecs.range?.min}V - {data.technicalSpecs.range?.max}V</p>
+                    <p><strong>Test Points:</strong> {data.technicalSpecs.testPoints}</p>
+                  </>
+                )}
+                {data.type === 'resistance-check' && (
+                  <>
+                    <p><strong>Expected:</strong> {data.technicalSpecs.value}Ω</p>
+                    <p><strong>Measure:</strong> {data.technicalSpecs.measurementPoints}</p>
+                  </>
+                )}
+                {data.type === 'inspection' && (
+                  <div dangerouslySetInnerHTML={{ 
+                    __html: data.technicalSpecs.points?.replace(/\n/g, '<br/>') || ''
+                  }} />
+                )}
+              </div>
             </div>
           )}
           
@@ -187,7 +189,7 @@ export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
                     <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
                       <CheckCircle className="h-4 w-4 text-green-600" />
                     </div>
-                    <span>{option}</span>
+                    <span className="text-base">{option}</span>
                   </div>
                 ))}
               </div>
@@ -197,10 +199,12 @@ export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
           {isFlowAnswer && (
             <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
               <h3 className="text-lg font-semibold mb-2 text-green-700">Solution:</h3>
-              <div 
-                className="prose max-w-none"
-                dangerouslySetInnerHTML={{ __html: nodeContent }}
-              />
+              {typeof nodeContent === 'string' && (
+                <div 
+                  className="prose max-w-none text-sm"
+                  dangerouslySetInnerHTML={{ __html: nodeContent }}
+                />
+              )}
             </div>
           )}
         </div>
