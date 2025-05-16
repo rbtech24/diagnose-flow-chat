@@ -1,4 +1,3 @@
-
 import {
   createBrowserRouter,
   RouterProvider,
@@ -206,6 +205,10 @@ const router = createBrowserRouter([
       { path: "/admin/api-keys", element: <ApiKeys /> },
       { path: "activity", element: <ActivityPage /> },
     ]
+  },
+  {
+    path: "/diagnostics",
+    element: <DiagnosticsPage />
   },
   {
     path: "*",

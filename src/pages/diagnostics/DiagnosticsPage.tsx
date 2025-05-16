@@ -11,23 +11,41 @@ import { SavedWorkflow } from '@/utils/flow/types';
 
 export default function DiagnosticsPage() {
   const navigate = useNavigate();
-  const { workflows } = useWorkflows();
+  const { workflows, folders } = useWorkflows();
   const { userRole } = useUserRole();
   const [selectedWorkflow, setSelectedWorkflow] = useState<SavedWorkflow | null>(null);
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   
   // Only show active workflows
-  const activeWorkflows = workflows.filter(w => w.metadata.isActive);
+  const activeWorkflows = workflows.filter(w => w.metadata.isActive !== false);
+
+  // Get workflows for the selected folder
+  const folderWorkflows = selectedFolder 
+    ? activeWorkflows.filter(w => w.metadata.folder === selectedFolder || w.metadata.appliance === selectedFolder)
+    : activeWorkflows;
 
   const handleBackToDashboard = () => {
     if (userRole === 'company') {
       navigate('/company');
-    } else {
+    } else if (userRole === 'tech') {
       navigate('/tech');
+    } else {
+      navigate('/admin');
     }
   };
 
   const handleSelectWorkflow = (workflow: SavedWorkflow) => {
     setSelectedWorkflow(workflow);
+  };
+
+  const handleSelectFolder = (folder: string) => {
+    setSelectedFolder(folder);
+    setSelectedWorkflow(null);
+  };
+
+  const handleBackToFolders = () => {
+    setSelectedFolder(null);
+    setSelectedWorkflow(null);
   };
 
   const getWorkflowId = (workflow: SavedWorkflow) => 
@@ -65,11 +83,33 @@ export default function DiagnosticsPage() {
             </div>
             <DiagnosticSteps workflow={selectedWorkflow} />
           </div>
+        ) : selectedFolder ? (
+          <div>
+            <div className="mb-4">
+              <Button 
+                variant="outline" 
+                onClick={handleBackToFolders}
+              >
+                Back to Appliance Categories
+              </Button>
+            </div>
+            <DiagnosticSelector 
+              workflows={folderWorkflows} 
+              onSelect={handleSelectWorkflow}
+              selectedWorkflowId={selectedWorkflow ? getWorkflowId(selectedWorkflow) : undefined}
+              title={`${selectedFolder} Diagnostics`}
+              showFolders={false}
+            />
+          </div>
         ) : (
           <DiagnosticSelector 
-            workflows={activeWorkflows} 
+            workflows={activeWorkflows}
+            folders={folders}
             onSelect={handleSelectWorkflow}
+            onSelectFolder={handleSelectFolder}
             selectedWorkflowId={selectedWorkflow ? getWorkflowId(selectedWorkflow) : undefined}
+            title="Appliance Categories"
+            showFolders={true}
           />
         )}
       </div>

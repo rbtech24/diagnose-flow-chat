@@ -128,7 +128,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
       {nodeContent && !isFlowAnswer && (
         <div 
           className="text-xs mt-2 text-gray-600 max-h-[150px] overflow-auto"
-          dangerouslySetInnerHTML={{ __html: nodeContent as string }}
+          dangerouslySetInnerHTML={{ __html: typeof nodeContent === 'string' ? nodeContent : '' }}
         />
       )}
 
