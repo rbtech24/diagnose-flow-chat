@@ -1,8 +1,10 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ArrowLeft, CheckCircle, Stethoscope, AlertCircle, Info } from "lucide-react";
+import { ArrowRight, ArrowLeft, CheckCircle, Stethoscope, AlertCircle, Info, Image, Video } from "lucide-react";
 import { SavedWorkflow } from '@/utils/flow/types';
+import { MediaItem } from '@/types/node-config';
 
 interface DiagnosticStepsProps {
   workflow: SavedWorkflow;
@@ -17,6 +19,7 @@ interface NodeData {
   no?: string;
   options?: string[];
   type?: string;
+  media?: MediaItem[];
 }
 
 export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
@@ -92,6 +95,48 @@ export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
     handleNextStep();
   };
 
+  const renderMedia = (media: MediaItem[]) => {
+    if (!media || media.length === 0) return null;
+    
+    return (
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+          {media[0].type === 'image' ? (
+            <Image className="h-5 w-5 text-blue-600" />
+          ) : (
+            <Video className="h-5 w-5 text-blue-600" />
+          )}
+          Media References
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {media.map((item, idx) => (
+            <div key={idx} className="rounded-lg overflow-hidden border border-gray-200">
+              {item.type === 'image' ? (
+                <div className="relative">
+                  <img 
+                    src={item.url} 
+                    alt="Diagnostic reference" 
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="aspect-video">
+                  <iframe
+                    src={item.url}
+                    title="Diagnostic video"
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   if (!sortedNodes.length) {
     return (
       <Card className="w-full mb-6">
@@ -156,6 +201,9 @@ export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
             </div>
           )}
           
+          {/* Render media content if available */}
+          {data.media && data.media.length > 0 && renderMedia(data.media)}
+          
           {data.technicalSpecs && (
             <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
               <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
@@ -206,7 +254,9 @@ export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
           
           {isFlowAnswer && (
             <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
-              <h3 className="text-xl font-semibold mb-2 text-green-700">Solution:</h3>
+              <h3 className="text-2xl font-semibold mb-2 text-green-700">Solution:</h3>
+              {/* Display media related to the solution */}
+              {data.media && data.media.length > 0 && renderMedia(data.media)}
               {typeof nodeContent === 'string' && (
                 <div 
                   className="prose max-w-none text-sm"

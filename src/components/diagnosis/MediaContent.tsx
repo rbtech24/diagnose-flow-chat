@@ -14,18 +14,27 @@ export function MediaContent({ media }: MediaContentProps) {
   if (!media?.length) return null;
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2 mt-2">
       {media.map((item, index) => (
-        <div key={index} className="relative">
+        <div key={index} className="relative group">
           {item.type === 'image' ? (
-            <img src={item.url} alt="" className="w-20 h-20 object-cover rounded" />
+            <div className="relative">
+              <img 
+                src={item.url} 
+                alt="Reference image" 
+                className="w-20 h-20 object-cover rounded hover:scale-105 transition-transform cursor-pointer" 
+              />
+            </div>
           ) : (
-            <iframe 
-              src={item.url} 
-              className="w-40 h-24 rounded" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
+            <div className="relative">
+              <iframe 
+                src={item.url} 
+                className="w-40 h-24 rounded border-2 border-blue-100" 
+                title="Embedded video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
           )}
         </div>
       ))}
