@@ -1,7 +1,8 @@
 
 import { Node, Edge } from '@xyflow/react';
 
-export type NodeType = 'question' | 'symptom' | 'measurement' | 'solution' | 'test';
+// Expanded to include the workflow node types from the imported JSON
+export type NodeType = 'question' | 'symptom' | 'measurement' | 'solution' | 'test' | 'flowNode' | 'flowTitle' | 'flowAnswer';
 
 export interface WorkflowMetadata {
   name: string;

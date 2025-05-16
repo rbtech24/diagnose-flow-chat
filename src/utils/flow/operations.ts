@@ -156,14 +156,56 @@ export const handleImportWorkflow = (
   reader.onload = (e) => {
     try {
       const workflow = JSON.parse(e.target?.result as string);
-      setNodes(workflow.nodes);
-      setEdges(workflow.edges);
-      setNodeCounter(workflow.nodeCounter || workflow.nodes.length + 1);
+      console.log('Imported workflow data:', workflow);
+      
+      // Check if the imported data has nodes and edges
+      if (!workflow.nodes || !Array.isArray(workflow.nodes) || !workflow.edges || !Array.isArray(workflow.edges)) {
+        throw new Error('Invalid workflow format: missing nodes or edges');
+      }
+
+      // Convert any imported nodes to the correct format if needed
+      const processedNodes = workflow.nodes.map((node: any) => {
+        // Ensure each node has the required React Flow properties
+        return {
+          ...node,
+          // If node has type 'flowNode', 'flowTitle', etc. but no specific handling here,
+          // it will pass through with its original type, which is what we want
+          type: node.type || 'diagnosis', // Default to diagnosis type if none provided
+          // Ensure position exists
+          position: node.position || { x: 0, y: 0 },
+          // Ensure data exists
+          data: {
+            ...node.data,
+            nodeId: node.data?.nodeId || `N${String(Math.random().toString(36).substr(2, 5))}`
+          }
+        };
+      });
+
+      // Process edges if they don't have the required format
+      const processedEdges = workflow.edges.map((edge: any) => {
+        return {
+          ...edge,
+          // Add any required properties for edges here
+          // For example, if 'type' is missing, add a default
+          type: edge.type || 'smoothstep'
+        };
+      });
+
+      setNodes(processedNodes);
+      setEdges(processedEdges);
+      
+      // Determine a proper nodeCounter value
+      const nodeCounter = workflow.nodeCounter || processedNodes.length + 1;
+      setNodeCounter(nodeCounter);
+      
       toast({
         title: "Workflow Imported",
-        description: "Your workflow has been imported successfully."
+        description: `Successfully imported workflow with ${processedNodes.length} nodes and ${processedEdges.length} edges.`
       });
+      
+      console.log('Import complete:', { nodes: processedNodes.length, edges: processedEdges.length });
     } catch (error) {
+      console.error('Error importing workflow:', error);
       toast({
         title: "Import Error",
         description: "Failed to import workflow. Please check the file format.",

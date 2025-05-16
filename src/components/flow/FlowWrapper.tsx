@@ -8,8 +8,12 @@ import { FlowBackground } from './FlowBackground';
 import { Node } from '@xyflow/react';
 import { SavedWorkflow } from '@/utils/flow/types';
 
+// Define all node types to be rendered with DiagnosisNode
 const nodeTypes = {
   diagnosis: DiagnosisNode,
+  flowNode: DiagnosisNode,
+  flowTitle: DiagnosisNode,
+  flowAnswer: DiagnosisNode
 };
 
 interface FlowWrapperProps {

@@ -138,13 +138,29 @@ export default function FlowEditor({
     }
     else if (currentWorkflow) {
       console.log('Loading workflow data:', currentWorkflow);
-      setNodes(currentWorkflow.nodes);
+      
+      // Process nodes to ensure they have the correct format for React Flow
+      const processedNodes = currentWorkflow.nodes.map(node => {
+        // Ensure all nodes have the necessary properties
+        return {
+          ...node,
+          // Map any custom node types to ones our app can handle
+          type: node.type || 'diagnosis',
+          // Ensure data structure is compatible
+          data: {
+            ...node.data,
+            nodeId: node.data?.nodeId || `N${String(Math.random().toString(36).substr(2, 5))}`
+          }
+        };
+      });
+
+      setNodes(processedNodes);
       setEdges(currentWorkflow.edges);
-      setNodeCounter(currentWorkflow.nodeCounter || 1);
+      setNodeCounter(currentWorkflow.nodeCounter || processedNodes.length + 1);
       setHistory(createHistoryState({ 
-        nodes: currentWorkflow.nodes, 
+        nodes: processedNodes, 
         edges: currentWorkflow.edges, 
-        nodeCounter: currentWorkflow.nodeCounter || 1
+        nodeCounter: currentWorkflow.nodeCounter || processedNodes.length + 1
       }));
       toast({
         title: "Workflow Loaded",
