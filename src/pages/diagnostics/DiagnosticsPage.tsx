@@ -36,10 +36,10 @@ export default function DiagnosticsPage() {
   }, [workflows, activeWorkflows, folders, selectedFolder, folderWorkflows]);
 
   const handleBackToDashboard = () => {
-    if (userRole === 'company') {
-      navigate('/company');
-    } else if (userRole === 'tech') {
+    if (userRole === 'tech') {
       navigate('/tech');
+    } else if (userRole === 'company') {
+      navigate('/company');
     } else {
       navigate('/admin');
     }
