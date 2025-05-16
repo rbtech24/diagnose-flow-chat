@@ -11,7 +11,7 @@ interface TechnicalSpecs {
 
 interface TechnicalContentProps {
   type?: string;
-  technicalSpecs?: TechnicalSpecs;
+  technicalSpecs: TechnicalSpecs;
 }
 
 export function TechnicalContent({ type, technicalSpecs }: TechnicalContentProps) {

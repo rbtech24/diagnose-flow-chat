@@ -5,6 +5,7 @@ import { HandleWithTooltip } from './diagnosis/HandleWithTooltip';
 import { NodeHandles } from './diagnosis/NodeHandles';
 import { MediaContent } from './diagnosis/MediaContent';
 import { TechnicalContent } from './diagnosis/TechnicalContent';
+import { MediaItem } from '@/types/node-config';
 
 const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
   // Log the node data to help debug
@@ -39,6 +40,19 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
   // Determine if node has warning icon
   const hasWarningIcon = data.warningIcon && data.warningIcon !== "";
 
+  // Create a mock connected state object for NodeHandles
+  const connectedState = {
+    top: { isConnected: false, isNoOutcome: false },
+    right: { isConnected: false, isNoOutcome: false },
+    bottom: { isConnected: false, isNoOutcome: false },
+    left: { isConnected: false, isNoOutcome: false }
+  };
+
+  // Mock function for handle disconnect
+  const handleDisconnect = (handleId: string) => {
+    console.log(`Disconnecting handle: ${handleId}`);
+  };
+
   return (
     <div className={nodeClass}>
       {/* Render handles based on node type */}
@@ -69,8 +83,11 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
                   type="source"
                   position={Position.Bottom}
                   id="a"
-                  label="Yes"
+                  connected={{ isConnected: false, isNoOutcome: false }}
+                  handleDisconnect={handleDisconnect}
+                  tooltipPosition="bottom"
                   style={{ left: '30%' }}
+                  iconPosition="bottom"
                 />
               )}
               {data.no !== undefined && (
@@ -78,14 +95,17 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
                   type="source"
                   position={Position.Bottom}
                   id="b"
-                  label="No"
+                  connected={{ isConnected: false, isNoOutcome: false }}
+                  handleDisconnect={handleDisconnect}
+                  tooltipPosition="bottom"
                   style={{ left: '70%' }}
+                  iconPosition="bottom"
                 />
               )}
             </>
           ) : (
             // For standard diagnosis nodes
-            <NodeHandles data={data} />
+            <NodeHandles connected={connectedState} handleDisconnect={handleDisconnect} />
           )}
         </>
       )}
@@ -108,18 +128,21 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
       {nodeContent && !isFlowAnswer && (
         <div 
           className="text-xs mt-2 text-gray-600 max-h-[150px] overflow-auto"
-          dangerouslySetInnerHTML={{ __html: nodeContent }}
+          dangerouslySetInnerHTML={{ __html: nodeContent as string }}
         />
       )}
 
       {/* Media content if present */}
-      {data.media && data.media.length > 0 && (
-        <MediaContent media={data.media} />
+      {data.media && Array.isArray(data.media) && data.media.length > 0 && (
+        <MediaContent media={data.media as MediaItem[]} />
       )}
 
       {/* Technical content if present */}
       {data.technicalSpecs && !isFlowTitle && !isFlowNode && !isFlowAnswer && (
-        <TechnicalContent specs={data.technicalSpecs} />
+        <TechnicalContent 
+          technicalSpecs={data.technicalSpecs} 
+          type={data.type as string} 
+        />
       )}
     </div>
   );
