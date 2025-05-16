@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,12 +6,13 @@ import {
   FileText,
   PenLine,
   MessageSquare,
-  HelpCircle, // Changed from MessageSquareQuestion to HelpCircle
+  HelpCircle,
   Clock,
   Activity,
   CheckSquare,
   Users,
   Calendar,
+  Stethoscope,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -122,6 +122,30 @@ export default function TechDashboard() {
         </Card>
       </div>
 
+      {/* Diagnostic Banner - New Section */}
+      <div className="mb-8">
+        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-100">
+          <div className="flex flex-col md:flex-row items-center justify-between p-6">
+            <div className="flex items-center mb-4 md:mb-0">
+              <div className="bg-blue-100 p-3 rounded-full mr-4">
+                <Stethoscope className="h-8 w-8 text-blue-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-blue-800">Diagnostic Procedures</h2>
+                <p className="text-blue-600">Step-by-step troubleshooting guides for appliance repair</p>
+              </div>
+            </div>
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={() => navigate('/diagnostics')}
+            >
+              Access Diagnostics
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        </Card>
+      </div>
+
       {/* Quick Actions Section */}
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
@@ -132,7 +156,7 @@ export default function TechDashboard() {
             onClick={() => navigate('/diagnostics')}
           >
             <span>Start Diagnostics</span>
-            <FileText className="ml-2 h-4 w-4" />
+            <Stethoscope className="ml-2 h-4 w-4" />
           </Button>
           <Button 
             className="flex items-center justify-between py-6" 
@@ -156,7 +180,7 @@ export default function TechDashboard() {
             onClick={() => navigate('/tech/community/new')}
           >
             <span>Ask Community</span>
-            <HelpCircle className="ml-2 h-4 w-4" /> {/* Changed from MessageSquareQuestion to HelpCircle */}
+            <HelpCircle className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </div>

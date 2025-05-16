@@ -12,6 +12,7 @@ import {
   Plus,
   ListChecks,
   MessageSquare,
+  Stethoscope,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -73,6 +74,10 @@ export function TechSidebar({ collapsed = false }: TechSidebarProps) {
             <Button variant="ghost" className="justify-start" onClick={() => navigate("/tech")} >
               <LayoutDashboard className="h-4 w-4 mr-2" />
               Dashboard
+            </Button>
+            <Button variant="ghost" className="justify-start" onClick={() => navigate("/diagnostics")}>
+              <Stethoscope className="h-4 w-4 mr-2" />
+              Diagnostics
             </Button>
             <Button variant="ghost" className="justify-start" onClick={() => navigate("/tech/feature-requests")}>
               <ListChecks className="h-4 w-4 mr-2" />
