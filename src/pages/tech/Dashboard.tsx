@@ -15,17 +15,11 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUserRole } from '@/hooks/useUserRole';
-import { WorkflowView } from '@/components/workflow/WorkflowView';
-import { useWorkflows } from '@/hooks/useWorkflows';
 
 export default function TechDashboard() {
   const navigate = useNavigate();
   const { userRole } = useUserRole();
-  const { workflows, folders } = useWorkflows();
   
-  // Filter workflows based on active status
-  const activeWorkflows = workflows.filter(w => w.metadata?.isActive !== false);
-
   return (
     <div className="p-6">
       <h1 className="text-3xl font-bold mb-6">Tech Dashboard</h1>
@@ -91,34 +85,6 @@ export default function TechDashboard() {
             <HelpCircle className="ml-2 h-4 w-4" />
           </Button>
         </div>
-      </div>
-
-      {/* Workflows Section */}
-      <div className="mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Diagnostic Workflows</h2>
-          <Button 
-            variant="outline" 
-            onClick={() => navigate('/workflows')}
-            className="flex items-center"
-          >
-            View All <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-        
-        <WorkflowView 
-          filteredAppliances={[]} 
-          workflows={activeWorkflows}
-          isReordering={false}
-          selectedFolder=""
-          onOpenWorkflowEditor={(folder, name) => {
-            const path = name 
-              ? `/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`
-              : `/workflow-editor?folder=${encodeURIComponent(folder)}`;
-            navigate(path);
-          }}
-          isReadOnly={true}
-        />
       </div>
     </div>
   );
