@@ -1,3 +1,4 @@
+
 import { memo } from 'react';
 import { Handle, NodeProps, Position } from '@xyflow/react';
 import { HandleWithTooltip } from './diagnosis/HandleWithTooltip';
@@ -52,7 +53,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
     console.log(`Disconnecting handle: ${handleId}`);
   };
 
-  // Function to render content safely
+  // Function to render content safely - fixed with proper typing
   const renderContent = (content: unknown): React.ReactNode => {
     if (typeof content === 'string') {
       return (
