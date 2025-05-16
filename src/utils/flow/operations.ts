@@ -165,37 +165,80 @@ export const handleImportWorkflow = (
 
       // Convert any imported nodes to the correct format if needed
       const processedNodes = workflow.nodes.map((node: any) => {
-        // Ensure each node has the required React Flow properties
-        return {
+        console.log('Processing node:', node);
+        
+        // Preserve all original node data
+        const processedNode = {
           ...node,
-          // If node has type 'flowNode', 'flowTitle', etc. but no specific handling here,
-          // it will pass through with its original type, which is what we want
-          type: node.type || 'diagnosis', // Default to diagnosis type if none provided
+          // Make sure the node type is preserved exactly as in the original
+          type: node.type || 'diagnosis',
           // Ensure position exists
           position: node.position || { x: 0, y: 0 },
-          // Ensure data exists
+          // Ensure all data properties are preserved
           data: {
             ...node.data,
-            nodeId: node.data?.nodeId || `N${String(Math.random().toString(36).substr(2, 5))}`
+            // Only add nodeId if it doesn't exist
+            nodeId: node.data?.nodeId || `N${String(Math.random().toString(36).substr(2, 5))}`,
           }
         };
+
+        // Handle flowTitle, flowNode, flowAnswer specific properties
+        // These might have different field names or structures
+        if (node.type === 'flowTitle') {
+          processedNode.data = {
+            ...processedNode.data,
+            label: processedNode.data.title || 'Title',
+            title: processedNode.data.title || 'Title'
+          };
+        } 
+        else if (node.type === 'flowNode' || node.type === 'flowAnswer') {
+          processedNode.data = {
+            ...processedNode.data,
+            label: processedNode.data.title || 'Node',
+            content: processedNode.data.richInfo || processedNode.data.content || ''
+          };
+        }
+
+        console.log('Processed node:', processedNode);
+        return processedNode;
       });
 
-      // Process edges if they don't have the required format
+      // Process edges to ensure they have all required properties
       const processedEdges = workflow.edges.map((edge: any) => {
+        console.log('Processing edge:', edge);
+        
         return {
           ...edge,
           // Add any required properties for edges here
-          // For example, if 'type' is missing, add a default
-          type: edge.type || 'smoothstep'
+          type: edge.type || 'smoothstep',
+          // Ensure source and target exist
+          source: edge.source,
+          target: edge.target,
+          // Preserve sourceHandle and targetHandle if they exist
+          sourceHandle: edge.sourceHandle || null,
+          targetHandle: edge.targetHandle || null
         };
       });
 
       setNodes(processedNodes);
       setEdges(processedEdges);
       
-      // Determine a proper nodeCounter value
-      const nodeCounter = workflow.nodeCounter || processedNodes.length + 1;
+      // Determine a proper nodeCounter value - use the highest number found in node IDs plus one
+      let maxNodeId = 0;
+      processedNodes.forEach(node => {
+        if (node.id) {
+          // Try to extract a number from the node ID if it follows a pattern like 'node-5'
+          const match = node.id.match(/\d+$/);
+          if (match) {
+            const idNum = parseInt(match[0], 10);
+            if (!isNaN(idNum) && idNum > maxNodeId) {
+              maxNodeId = idNum;
+            }
+          }
+        }
+      });
+      
+      const nodeCounter = workflow.nodeCounter || Math.max(maxNodeId + 1, processedNodes.length + 1);
       setNodeCounter(nodeCounter);
       
       toast({
@@ -203,7 +246,11 @@ export const handleImportWorkflow = (
         description: `Successfully imported workflow with ${processedNodes.length} nodes and ${processedEdges.length} edges.`
       });
       
-      console.log('Import complete:', { nodes: processedNodes.length, edges: processedEdges.length });
+      console.log('Import complete:', { 
+        nodes: processedNodes.length, 
+        edges: processedEdges.length, 
+        nodeCounter
+      });
     } catch (error) {
       console.error('Error importing workflow:', error);
       toast({

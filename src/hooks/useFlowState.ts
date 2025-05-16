@@ -31,9 +31,23 @@ export function useFlowState() {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
   }, []);
 
+  // Enhanced setNodes function that validates and logs node data
+  const setNodesEnhanced = useCallback((newNodes: Node[] | ((nds: Node[]) => Node[])) => {
+    if (typeof newNodes === 'function') {
+      setNodes((prevNodes) => {
+        const result = newNodes(prevNodes);
+        console.log('Setting nodes with function:', result);
+        return result;
+      });
+    } else {
+      console.log('Setting nodes with array:', newNodes);
+      setNodes(newNodes);
+    }
+  }, [setNodes]);
+
   return {
     nodes,
-    setNodes,
+    setNodes: setNodesEnhanced,
     edges,
     setEdges,
     nodeCounter,
