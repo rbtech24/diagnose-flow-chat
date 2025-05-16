@@ -53,7 +53,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
     console.log(`Disconnecting handle: ${handleId}`);
   };
 
-  // Function to render content safely - properly typed to fix TS error
+  // Function to render content safely with proper typing
   const renderContent = (content: unknown): React.ReactNode => {
     if (typeof content === 'string') {
       return (
@@ -63,7 +63,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
         />
       );
     }
-    return null; // Explicit null return for non-string content
+    return null;
   };
 
   return (
