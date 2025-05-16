@@ -53,6 +53,20 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
     console.log(`Disconnecting handle: ${handleId}`);
   };
 
+  // Ensure nodeContent is a string for dangerouslySetInnerHTML
+  const renderContent = () => {
+    if (nodeContent && !isFlowAnswer && typeof nodeContent === 'string') {
+      return (
+        <div 
+          className="text-xs mt-2 text-gray-600 max-h-[150px] overflow-auto"
+          dangerouslySetInnerHTML={{ __html: nodeContent }}
+        />
+      );
+    }
+    
+    return null;
+  };
+
   return (
     <div className={nodeClass}>
       {/* Render handles based on node type */}
@@ -125,12 +139,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
       </div>
 
       {/* Node Content */}
-      {nodeContent && !isFlowAnswer && (
-        <div 
-          className="text-xs mt-2 text-gray-600 max-h-[150px] overflow-auto"
-          dangerouslySetInnerHTML={{ __html: typeof nodeContent === 'string' ? nodeContent : '' }}
-        />
-      )}
+      {renderContent()}
 
       {/* Media content if present */}
       {data.media && Array.isArray(data.media) && data.media.length > 0 && (
