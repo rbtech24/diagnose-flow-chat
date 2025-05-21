@@ -1,10 +1,7 @@
 
 import React from 'react';
-
-interface MediaItem {
-  type: 'image' | 'video';
-  url: string;
-}
+import { PDFViewer } from './PDFViewer';
+import { MediaItem } from '@/types/node-config';
 
 interface MediaContentProps {
   media: MediaItem[];
@@ -25,7 +22,7 @@ export function MediaContent({ media }: MediaContentProps) {
                 className="w-20 h-20 object-cover rounded hover:scale-105 transition-transform cursor-pointer" 
               />
             </div>
-          ) : (
+          ) : item.type === 'video' ? (
             <div className="relative">
               <iframe 
                 src={item.url} 
@@ -35,6 +32,8 @@ export function MediaContent({ media }: MediaContentProps) {
                 allowFullScreen
               />
             </div>
+          ) : (
+            <PDFViewer url={item.url} title="Wire Diagram" />
           )}
         </div>
       ))}

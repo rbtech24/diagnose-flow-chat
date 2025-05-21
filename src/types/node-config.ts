@@ -1,6 +1,6 @@
 
 export type MediaItem = {
-  type: 'image' | 'video';
+  type: 'image' | 'video' | 'pdf';
   url: string;
 };
 
