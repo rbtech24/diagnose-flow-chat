@@ -55,7 +55,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
 
   // Function to render content safely with proper typing
   const renderContent = (content: string | undefined): React.ReactNode => {
-    if (typeof content === 'string') {
+    if (typeof content === 'string' && content.trim() !== '') {
       return (
         <div 
           className="text-xs mt-2 text-gray-600 max-h-[150px] overflow-auto"
