@@ -138,7 +138,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
       </div>
 
       {/* Node Content */}
-      {!isFlowAnswer && nodeContent ? renderContent(nodeContent) : null}
+      {!isFlowAnswer && typeof nodeContent === 'string' && nodeContent ? renderContent(nodeContent) : null}
 
       {/* Media content if present */}
       {data.media && Array.isArray(data.media) && data.media.length > 0 && (
