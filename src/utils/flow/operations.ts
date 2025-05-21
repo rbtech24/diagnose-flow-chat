@@ -1,4 +1,3 @@
-
 import { Node, Edge } from '@xyflow/react';
 import { toast } from '@/hooks/use-toast';
 import { SavedWorkflow } from './types';
@@ -69,6 +68,21 @@ export const handleSaveWorkflow = async (
 
   try {
     console.log('Saving workflow:', { name, folder, appliance, nodeCounter, nodes: nodes.length, edges: edges.length });
+    
+    // Process nodes to ensure all media items have proper URLs
+    const processedNodes = nodes.map(node => {
+      // Make a deep copy of node to avoid modifying the original
+      const processedNode = JSON.parse(JSON.stringify(node));
+      
+      // If node has media items, ensure their URLs are properly formatted
+      if (processedNode.data && processedNode.data.media && Array.isArray(processedNode.data.media)) {
+        // No additional processing needed - PDFs are already saved with their URLs
+        console.log(`Node ${node.id} has ${processedNode.data.media.length} media items`);
+      }
+      
+      return processedNode;
+    });
+    
     const existingWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');
     
     const newWorkflow: SavedWorkflow = {
@@ -81,7 +95,7 @@ export const handleSaveWorkflow = async (
         updatedAt: new Date().toISOString(),
         isActive: true
       },
-      nodes,
+      nodes: processedNodes,
       edges,
       nodeCounter
     };

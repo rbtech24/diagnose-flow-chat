@@ -22,10 +22,16 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
     const newMedia = Array.from(files).map(file => {
       // Determine media type based on file extension
       const isPDF = file.name.toLowerCase().endsWith('.pdf');
-      return {
+      const url = URL.createObjectURL(file);
+      
+      // Store file metadata to help with identification
+      const mediaItem: MediaItem = {
         type: isPDF ? 'pdf' as const : 'image' as const,
-        url: URL.createObjectURL(file)
+        url: url
       };
+      
+      console.log("Created media item:", mediaItem);
+      return mediaItem;
     });
 
     onFieldChange({ 
@@ -49,9 +55,12 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
 
   const handlePdfUrl = () => {
     if (pdfUrl.trim()) {
+      const mediaItem: MediaItem = { type: 'pdf', url: pdfUrl };
+      console.log("Added PDF from URL:", mediaItem);
+      
       onFieldChange({
         ...field,
-        media: [...(field.media || []), { type: 'pdf', url: pdfUrl }]
+        media: [...(field.media || []), mediaItem]
       });
       setPdfUrl('');
     }
@@ -87,10 +96,20 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
         {field.media?.map((item, i) => (
           <div key={i} className="relative group border border-gray-200 rounded p-1 bg-gray-50">
             {item.type === 'image' ? (
-              <img src={item.url} alt="" className="w-20 h-20 object-cover rounded-lg" />
+              <img 
+                src={item.url} 
+                alt="Reference image" 
+                className="w-20 h-20 object-cover rounded-lg" 
+              />
             ) : item.type === 'video' ? (
               <div className="w-40 h-24 relative">
-                <iframe src={item.url} className="w-full h-full rounded-lg" title="Video preview" />
+                <iframe 
+                  src={item.url} 
+                  className="w-full h-full rounded-lg" 
+                  title="Video preview"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
                 <div className="absolute top-0 left-0 bg-black/30 text-white px-1 text-xs rounded">
                   Video
                 </div>

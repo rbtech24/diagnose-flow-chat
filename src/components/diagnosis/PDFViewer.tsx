@@ -10,6 +10,9 @@ interface PDFViewerProps {
 
 export function PDFViewer({ url, title = 'Wire Diagram' }: PDFViewerProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  
+  // Log the PDF URL to help with debugging
+  console.log(`Rendering PDF Viewer with URL: ${url}`);
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
@@ -17,12 +20,19 @@ export function PDFViewer({ url, title = 'Wire Diagram' }: PDFViewerProps) {
 
   const handleDownload = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = title.replace(/\s+/g, '-').toLowerCase() + '.pdf';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    
+    // For blob URLs or direct URLs
+    if (url.startsWith('blob:') || url.startsWith('http')) {
+      // Create a download link
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = title.replace(/\s+/g, '-').toLowerCase() + '.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      console.error("Invalid PDF URL format:", url);
+    }
   };
 
   const containerClass = isExpanded 

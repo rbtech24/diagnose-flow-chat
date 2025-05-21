@@ -20,6 +20,8 @@ export function MediaContent({ media }: MediaContentProps) {
   const handleCloseExpandedImage = () => {
     setExpandedImage(null);
   };
+  
+  console.log("Rendering MediaContent with media items:", media);
 
   return (
     <>
@@ -53,7 +55,7 @@ export function MediaContent({ media }: MediaContentProps) {
                   <FileVideo size={10} />
                 </div>
               </div>
-            ) : (
+            ) : item.type === 'pdf' ? (
               <div className="relative">
                 <PDFViewer 
                   url={item.url} 
@@ -63,7 +65,7 @@ export function MediaContent({ media }: MediaContentProps) {
                   <FileText size={10} />
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         ))}
       </div>
