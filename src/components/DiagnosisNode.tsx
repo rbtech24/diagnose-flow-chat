@@ -1,4 +1,3 @@
-
 import { memo } from 'react';
 import { Handle, NodeProps, Position } from '@xyflow/react';
 import { HandleWithTooltip } from './diagnosis/HandleWithTooltip';
