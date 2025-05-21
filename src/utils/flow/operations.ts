@@ -1,3 +1,4 @@
+
 import { Node, Edge } from '@xyflow/react';
 import { toast } from '@/hooks/use-toast';
 import { SavedWorkflow } from './types';
@@ -74,10 +75,23 @@ export const handleSaveWorkflow = async (
       // Make a deep copy of node to avoid modifying the original
       const processedNode = JSON.parse(JSON.stringify(node));
       
-      // If node has media items, ensure their URLs are properly formatted
+      // If node has media items, ensure they are properly formatted and preserved
       if (processedNode.data && processedNode.data.media && Array.isArray(processedNode.data.media)) {
-        // No additional processing needed - PDFs are already saved with their URLs
-        console.log(`Node ${node.id} has ${processedNode.data.media.length} media items`);
+        console.log(`Node ${node.id} has ${processedNode.data.media.length} media items`, processedNode.data.media);
+        
+        // Ensure each media item has the correct format
+        processedNode.data.media = processedNode.data.media.map((item: any) => {
+          // Make sure each item has the required properties
+          if (!item || typeof item !== 'object') {
+            console.warn(`Invalid media item found in node ${node.id}:`, item);
+            return null;
+          }
+          
+          return {
+            type: item.type || 'image', // Default to image if type is missing
+            url: item.url // Keep the URL as is
+          };
+        }).filter(Boolean); // Remove any null items
       }
       
       return processedNode;
