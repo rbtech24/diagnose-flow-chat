@@ -53,7 +53,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
     console.log(`Disconnecting handle: ${handleId}`);
   };
 
-  // Function to render content safely - this is the fixed function
+  // Function to render content safely
   const renderContent = (content: unknown): React.ReactNode => {
     if (typeof content === 'string' && content.trim() !== '') {
       return (
@@ -137,8 +137,8 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
         {nodeTitle}
       </div>
 
-      {/* Node Content - Using renderContent which now always returns ReactNode */}
-      {nodeContent && !isFlowAnswer && renderContent(nodeContent)}
+      {/* Node Content - Fix: Use proper type checking in JSX */}
+      {typeof nodeContent === 'string' && nodeContent.trim() !== '' && !isFlowAnswer && renderContent(nodeContent)}
 
       {/* Media content if present */}
       {data.media && Array.isArray(data.media) && data.media.length > 0 && (
