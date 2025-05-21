@@ -8,7 +8,7 @@ import { combineFieldsData } from './utils/nodeDataTransform';
 
 interface UseNodeConfigProps {
   node: any;
-  onUpdate: (nodeId: string, data: any) => void;
+  onUpdate: (nodeData: any) => void;
 }
 
 export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
@@ -72,7 +72,7 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
     };
 
     console.log('Applying changes with data:', updatedData);
-    onUpdate(node.id, updatedData);
+    onUpdate(updatedData);
   };
 
   const handleReset = () => {

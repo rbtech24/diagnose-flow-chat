@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useCallback } from 'react';
 import { Node } from '@xyflow/react';
 import {
@@ -34,6 +35,10 @@ export default function FlowEditor({
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const isNewWorkflow = searchParams.get('new') === 'true';
+  
+  // State for tracking selected node and update function
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [updateNodeFn, setUpdateNodeFn] = useState<((nodeId: string, newData: any) => void) | null>(null);
   
   const {
     nodes,
@@ -187,10 +192,6 @@ export default function FlowEditor({
       });
     }
   }, [selectedNode, updateNodeFn]);
-
-  // Added to keep track of the selected node and updateNode function
-  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
-  const [updateNodeFn, setUpdateNodeFn] = useState<((nodeId: string, newData: any) => void) | null>(null);
 
   // Override onNodeSelect to track selected node
   const handleNodeSelectInternal = useCallback((node: Node, updateNode: (nodeId: string, newData: any) => void) => {

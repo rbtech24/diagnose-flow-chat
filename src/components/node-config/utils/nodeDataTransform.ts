@@ -35,7 +35,7 @@ export function combineFieldsData(fields: Field[]) {
         break;
       case 'options':
         if (field.options && Array.isArray(field.options)) {
-          combinedOptions = field.options.filter(Boolean);
+          combinedOptions = [...combinedOptions, ...field.options.filter(Boolean)];
         }
         break;
     }
