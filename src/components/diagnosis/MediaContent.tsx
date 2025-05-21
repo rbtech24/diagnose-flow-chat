@@ -56,14 +56,11 @@ export function MediaContent({ media }: MediaContentProps) {
                 </div>
               </div>
             ) : item.type === 'pdf' ? (
-              <div className="relative">
+              <div className="relative w-40 h-24">
                 <PDFViewer 
                   url={item.url} 
                   title={`Wire Diagram ${index + 1}`} 
                 />
-                <div className="absolute top-1 right-1 bg-black/50 text-white p-1 rounded-full">
-                  <FileText size={10} />
-                </div>
               </div>
             ) : null}
           </div>

@@ -24,7 +24,11 @@ export function FieldWrapper({ field, index, children, onRemove, onMove }: Field
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const currentY = moveEvent.pageY;
       const diff = currentY - initialY;
-      const newIndex = Math.max(0, initialIndex + Math.round(diff / 50));
+      
+      // Calculate the new index based on the drag distance
+      // The 50 here represents the approximate height that should trigger a move
+      const newIndex = Math.max(0, Math.min(initialIndex + Math.round(diff / 50), 100));
+      
       if (newIndex !== initialIndex) {
         onMove(initialIndex, newIndex);
       }

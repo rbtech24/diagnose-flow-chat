@@ -2,9 +2,10 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ArrowLeft, CheckCircle, Stethoscope, AlertCircle, Info, Image, Video } from "lucide-react";
+import { ArrowRight, ArrowLeft, CheckCircle, Stethoscope, AlertCircle, Info, Image, Video, FileText } from "lucide-react";
 import { SavedWorkflow } from '@/utils/flow/types';
 import { MediaItem } from '@/types/node-config';
+import { PDFViewer } from '../diagnosis/PDFViewer';
 
 interface DiagnosticStepsProps {
   workflow: SavedWorkflow;
@@ -25,6 +26,7 @@ interface NodeData {
 export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [answerPath, setAnswerPath] = useState<string[]>([]);
+  const [expandedImage, setExpandedImage] = useState<string | null>(null);
   
   // Sort nodes for consistent display
   const sortedNodes = workflow.nodes.sort((a, b) => {
@@ -95,41 +97,72 @@ export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
     handleNextStep();
   };
 
+  const handleImageClick = (url: string) => {
+    setExpandedImage(url);
+  };
+
+  const handleCloseExpandedImage = () => {
+    setExpandedImage(null);
+  };
+
   const renderMedia = (media: MediaItem[]) => {
     if (!media || media.length === 0) return null;
+    
+    // Group media by type
+    const images = media.filter(item => item.type === 'image');
+    const videos = media.filter(item => item.type === 'video');
+    const pdfs = media.filter(item => item.type === 'pdf');
     
     return (
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-          {media[0].type === 'image' ? (
-            <Image className="h-5 w-5 text-blue-600" />
-          ) : (
-            <Video className="h-5 w-5 text-blue-600" />
-          )}
+          <Image className="h-5 w-5 text-blue-600" />
           Media References
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {media.map((item, idx) => (
-            <div key={idx} className="rounded-lg overflow-hidden border border-gray-200">
-              {item.type === 'image' ? (
-                <div className="relative">
-                  <img 
-                    src={item.url} 
-                    alt="Diagnostic reference" 
-                    className="w-full h-auto object-cover"
+          {images.length > 0 && images.map((item, idx) => (
+            <div key={`image-${idx}`} className="rounded-lg overflow-hidden border border-gray-200">
+              <div className="relative">
+                <img 
+                  src={item.url} 
+                  alt="Diagnostic reference" 
+                  className="w-full h-auto object-cover cursor-pointer"
+                  onClick={() => handleImageClick(item.url)}
+                />
+              </div>
+            </div>
+          ))}
+
+          {videos.length > 0 && videos.map((item, idx) => (
+            <div key={`video-${idx}`} className="rounded-lg overflow-hidden border border-gray-200">
+              <div className="aspect-video">
+                <iframe
+                  src={item.url}
+                  title="Diagnostic video"
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          ))}
+
+          {pdfs.length > 0 && pdfs.map((item, idx) => (
+            <div key={`pdf-${idx}`} className="rounded-lg overflow-hidden border border-gray-200">
+              <div className="w-full p-2 bg-gray-50">
+                <div className="flex items-center justify-between text-sm font-medium text-gray-700 p-1">
+                  <div className="flex items-center">
+                    <FileText className="mr-2 h-4 w-4 text-blue-600" />
+                    <span>PDF Document {idx + 1}</span>
+                  </div>
+                </div>
+                <div className="h-24 flex items-center justify-center bg-gray-100 rounded">
+                  <PDFViewer 
+                    url={item.url} 
+                    title={`Wire Diagram ${idx + 1}`} 
                   />
                 </div>
-              ) : (
-                <div className="aspect-video">
-                  <iframe
-                    src={item.url}
-                    title="Diagnostic video"
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-              )}
+              </div>
             </div>
           ))}
         </div>
@@ -302,6 +335,26 @@ export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
           </div>
         )}
       </CardContent>
+      
+      {/* Expanded image modal */}
+      {expandedImage && (
+        <div 
+          className="fixed top-0 left-0 w-full h-full bg-black/80 z-50 flex items-center justify-center"
+          onClick={handleCloseExpandedImage}
+        >
+          <img 
+            src={expandedImage} 
+            alt="Expanded view" 
+            className="max-w-[90%] max-h-[90vh] object-contain"
+          />
+          <button 
+            className="absolute top-4 right-4 text-white text-2xl font-bold"
+            onClick={handleCloseExpandedImage}
+          >
+            ×
+          </button>
+        </div>
+      )}
     </Card>
   );
 }

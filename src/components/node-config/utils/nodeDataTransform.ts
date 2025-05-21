@@ -23,12 +23,21 @@ export function combineFieldsData(fields: Field[]) {
           console.log(`Adding ${field.media.length} media items from field:`, field.media);
           field.media.forEach(item => {
             // Ensure each media item has the correct type property
-            if (item && typeof item === 'object' && 'url' in item) {
+            if (item && typeof item === 'object' && 'url' in item && 'type' in item) {
               const mediaItem: MediaItem = {
-                type: (item as MediaItem).type || 'image', 
-                url: (item as MediaItem).url
+                type: item.type, 
+                url: item.url
               };
               combinedMedia.push(mediaItem);
+              console.log("Added media item:", mediaItem);
+            } else if (item && typeof item === 'object' && 'url' in item) {
+              // If type is missing, default to 'image'
+              const mediaItem: MediaItem = {
+                type: 'image',
+                url: item.url
+              };
+              combinedMedia.push(mediaItem);
+              console.log("Added media item with default type:", mediaItem);
             }
           });
         }

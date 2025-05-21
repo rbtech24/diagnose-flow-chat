@@ -37,14 +37,20 @@ export function PDFViewer({ url, title = 'Wire Diagram' }: PDFViewerProps) {
 
   const containerClass = isExpanded 
     ? "fixed top-0 left-0 w-full h-full bg-black/80 z-50 flex items-center justify-center p-4"
-    : "relative w-40 h-32 border border-gray-200 rounded overflow-hidden";
+    : "relative w-full h-full border border-gray-200 rounded overflow-hidden cursor-pointer";
 
   const iframeClass = isExpanded
     ? "w-full h-full max-w-4xl max-h-[90vh]"
     : "w-full h-full";
 
+  const handleClick = () => {
+    if (!isExpanded) {
+      toggleExpanded();
+    }
+  };
+
   return (
-    <div className={containerClass}>
+    <div className={containerClass} onClick={handleClick}>
       <div className="relative w-full h-full flex flex-col bg-white rounded overflow-hidden">
         <div className="bg-gray-100 p-2 text-sm font-medium flex justify-between items-center">
           <div className="flex items-center">
@@ -57,7 +63,7 @@ export function PDFViewer({ url, title = 'Wire Diagram' }: PDFViewerProps) {
                 variant="ghost"
                 size="sm"
                 className="h-6 w-6 p-0"
-                onClick={handleDownload}
+                onClick={(e) => { e.stopPropagation(); handleDownload(e); }}
                 title="Download PDF"
               >
                 <Download className="h-4 w-4" />
@@ -67,7 +73,7 @@ export function PDFViewer({ url, title = 'Wire Diagram' }: PDFViewerProps) {
               variant="ghost" 
               size="sm" 
               className="h-6 w-6 p-0" 
-              onClick={toggleExpanded}
+              onClick={(e) => { e.stopPropagation(); toggleExpanded(); }}
               title={isExpanded ? "Minimize" : "Maximize"}
             >
               {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -80,6 +86,14 @@ export function PDFViewer({ url, title = 'Wire Diagram' }: PDFViewerProps) {
           title={title}
         />
       </div>
+      
+      {!isExpanded && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/5 hover:bg-black/10 transition-colors">
+          <div className="bg-white/70 rounded-full p-2">
+            <Maximize2 className="h-6 w-6 text-blue-600" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
