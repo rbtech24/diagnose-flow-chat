@@ -4,7 +4,7 @@ import { Label } from '../../ui/label';
 import { Input } from '../../ui/input';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { FileText, FileImage, FileVideo } from 'lucide-react';
 
@@ -17,9 +17,27 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
   const [pdfUrl, setPdfUrl] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
 
+  // Ensure media array exists
+  useEffect(() => {
+    if (!field.media) {
+      // Initialize media array if it doesn't exist
+      const updatedField: Field = {
+        ...field,
+        media: []
+      };
+      onFieldChange(updatedField);
+      console.log("Initialized media array for field:", field.id);
+    }
+  }, [field, onFieldChange]);
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (!files) return;
+    if (!files || files.length === 0) {
+      console.log("No files selected");
+      return;
+    }
+    
+    console.log(`Processing ${files.length} file(s) for upload`);
 
     const newMedia = Array.from(files).map(file => {
       // Determine media type based on file extension
@@ -38,30 +56,34 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
       }
       
       const url = URL.createObjectURL(file);
+      const mediaType: "pdf" | "image" = isPDF ? "pdf" : "image";
       
-      // Create media item with explicit type casting
+      // Create media item with proper explicit type
       const mediaItem: MediaItem = {
-        type: isPDF ? 'pdf' : 'image',
+        type: mediaType,
         url: url
       };
       
-      console.log("Created media item:", mediaItem);
+      console.log(`Created media item: ${mediaType} from file ${file.name}`);
       return mediaItem;
     }).filter(Boolean) as MediaItem[]; // Filter out null items and cast to MediaItem[]
 
-    if (newMedia.length === 0) return;
+    if (newMedia.length === 0) {
+      console.log("No valid media files to add");
+      return;
+    }
 
     // Debug log to check media items being added
     console.log("Current media:", field.media);
-    console.log("Adding new media:", newMedia);
+    console.log(`Adding ${newMedia.length} new media items:`, newMedia);
     
-    // Update the field with new media, ensuring the type is correct
+    // Create a properly typed updated field with the new media items
     const updatedField: Field = { 
       ...field, 
       media: [...(field.media || []), ...newMedia] 
     };
     
-    console.log("Updated field media:", updatedField.media);
+    console.log("Updated field:", updatedField);
     onFieldChange(updatedField);
     
     // Show success toast
@@ -75,65 +97,74 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
   };
 
   const handleVideoUrl = () => {
-    if (videoUrl.trim()) {
-      // Create a properly typed media item
-      const mediaItem: MediaItem = { 
-        type: 'video', 
-        url: videoUrl 
-      };
-      
-      const updatedField: Field = {
-        ...field,
-        media: [...(field.media || []), mediaItem]
-      };
-      
-      console.log("Added video from URL:", videoUrl);
-      console.log("Updated field media:", updatedField.media);
-      
-      onFieldChange(updatedField);
-      setVideoUrl('');
-      
-      toast({
-        title: "Video Added",
-        description: "Video URL has been added",
-      });
-    }
+    if (!videoUrl.trim()) return;
+    
+    console.log("Adding video from URL:", videoUrl);
+    
+    // Create a properly typed media item with correct type
+    const mediaItem: MediaItem = { 
+      type: "video", 
+      url: videoUrl 
+    };
+    
+    const updatedField: Field = {
+      ...field,
+      media: [...(field.media || []), mediaItem]
+    };
+    
+    console.log("Updated field media:", updatedField.media);
+    onFieldChange(updatedField);
+    setVideoUrl('');
+    
+    toast({
+      title: "Video Added",
+      description: "Video URL has been added",
+    });
   };
 
   const handlePdfUrl = () => {
-    if (pdfUrl.trim()) {
-      const mediaItem: MediaItem = { 
-        type: 'pdf', 
-        url: pdfUrl 
-      };
-      
-      console.log("Added PDF from URL:", mediaItem);
-      
-      const updatedField: Field = {
-        ...field,
-        media: [...(field.media || []), mediaItem]
-      };
-      
-      console.log("Updated field media:", updatedField.media);
-      onFieldChange(updatedField);
-      setPdfUrl('');
-      
-      toast({
-        title: "PDF Added",
-        description: "PDF URL has been added",
-      });
-    }
+    if (!pdfUrl.trim()) return;
+    
+    console.log("Adding PDF from URL:", pdfUrl);
+    
+    // Create a properly typed media item with correct type
+    const mediaItem: MediaItem = { 
+      type: "pdf", 
+      url: pdfUrl 
+    };
+    
+    const updatedField: Field = {
+      ...field,
+      media: [...(field.media || []), mediaItem]
+    };
+    
+    console.log("Updated field with PDF:", updatedField);
+    onFieldChange(updatedField);
+    setPdfUrl('');
+    
+    toast({
+      title: "PDF Added",
+      description: "PDF URL has been added",
+    });
   };
 
   const removeMedia = (index: number) => {
     console.log("Removing media at index:", index);
-    const updatedMedia = field.media?.filter((_, i) => i !== index);
-    console.log("Updated media after removal:", updatedMedia);
+    if (!field.media) {
+      console.warn("Cannot remove media, media array is undefined");
+      return;
+    }
     
-    onFieldChange({
+    const updatedMedia = field.media.filter((_, i) => i !== index);
+    console.log("Media after removal:", updatedMedia);
+    
+    const updatedField: Field = {
       ...field,
       media: updatedMedia
-    });
+    };
+    
+    console.log("Updated field after media removal:", updatedField);
+    onFieldChange(updatedField);
     
     toast({
       title: "Media Removed",
@@ -154,6 +185,8 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
         return null;
     }
   };
+
+  console.log("Rendering MediaField with media:", field.media);
 
   return (
     <div className="space-y-2">
