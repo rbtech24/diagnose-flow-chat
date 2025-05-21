@@ -54,7 +54,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
   };
 
   // Function to render content safely
-  const renderContent = (content: string): React.ReactNode => {
+  const renderContent = (content: string | undefined): React.ReactNode => {
     if (typeof content === 'string' && content.trim() !== '') {
       return (
         <div 
@@ -137,8 +137,8 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
         {nodeTitle}
       </div>
 
-      {/* Node Content - Fixed: Check if nodeContent is a string first */}
-      {typeof nodeContent === 'string' && !isFlowAnswer && renderContent(nodeContent)}
+      {/* Node Content */}
+      {!isFlowAnswer && renderContent(nodeContent)}
 
       {/* Media content if present */}
       {data.media && Array.isArray(data.media) && data.media.length > 0 && (

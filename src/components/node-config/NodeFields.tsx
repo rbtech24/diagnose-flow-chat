@@ -6,6 +6,7 @@ import { ContentField } from './field-types/ContentField';
 import { MediaField } from './field-types/MediaField';
 import { OptionsField } from './field-types/OptionsField';
 import { FieldWrapper } from './field-types/FieldWrapper';
+import { toast } from '@/hooks/use-toast';
 
 interface NodeFieldsProps {
   fields: Field[];
@@ -28,6 +29,35 @@ export function NodeFields({
     ));
   };
 
+  const handleRemoveField = (id: string) => {
+    // Prevent removing the last field
+    if (fields.length <= 1) {
+      toast({
+        title: "Cannot remove",
+        description: "You must keep at least one field",
+        variant: "destructive"
+      });
+      return;
+    }
+    onRemoveField(id);
+    
+    // Confirmation toast
+    toast({
+      title: "Section removed",
+      description: "Field has been removed successfully"
+    });
+  };
+
+  const handleAddField = (type: Field['type']) => {
+    onAddField(type);
+    
+    // Confirmation toast
+    toast({
+      title: "Section added",
+      description: `New ${type} section has been added`
+    });
+  };
+
   const renderField = (field: Field, index: number) => {
     const fieldContent = (() => {
       switch (field.type) {
@@ -47,7 +77,7 @@ export function NodeFields({
         key={field.id}
         field={field}
         index={index}
-        onRemove={() => onRemoveField(field.id)}
+        onRemove={() => handleRemoveField(field.id)}
         onMove={onMoveField}
       >
         {fieldContent}
@@ -63,7 +93,7 @@ export function NodeFields({
           <Button 
             variant="outline" 
             size="sm"
-            onClick={() => onAddField('content')}
+            onClick={() => handleAddField('content')}
             className="bg-white hover:bg-gray-50"
           >
             Add Content
@@ -71,7 +101,7 @@ export function NodeFields({
           <Button 
             variant="outline" 
             size="sm"
-            onClick={() => onAddField('media')}
+            onClick={() => handleAddField('media')}
             className="bg-white hover:bg-gray-50"
           >
             Add Media
@@ -79,7 +109,7 @@ export function NodeFields({
           <Button 
             variant="outline" 
             size="sm"
-            onClick={() => onAddField('options')}
+            onClick={() => handleAddField('options')}
             className="bg-white hover:bg-gray-50"
           >
             Add Options
