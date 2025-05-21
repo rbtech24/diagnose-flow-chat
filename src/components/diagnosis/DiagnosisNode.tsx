@@ -138,7 +138,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
 
       {/* Node Content */}
       {!isFlowAnswer && nodeContent ? (
-        renderContent(nodeContent)
+        <>{renderContent(nodeContent)}</>
       ) : null}
 
       {/* Media content if present */}
