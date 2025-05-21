@@ -2,10 +2,11 @@
 import { Field, MediaItem } from '@/types/node-config';
 import { Label } from '../../ui/label';
 import { Input } from '../../ui/input';
-import { X, FileText, FileImage, FileVideo } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { toast } from '@/hooks/use-toast';
+import { FileText, FileImage, FileVideo } from 'lucide-react';
 
 interface MediaFieldProps {
   field: Field;
@@ -22,25 +23,40 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
 
     const newMedia = Array.from(files).map(file => {
       // Determine media type based on file extension
-      const isPDF = file.name.toLowerCase().endsWith('.pdf');
+      const fileExt = file.name.toLowerCase().split('.').pop() || '';
+      const isPDF = fileExt === 'pdf';
+      const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(fileExt);
+      
+      if (!isPDF && !isImage) {
+        console.warn(`Unsupported file type: ${fileExt} for file ${file.name}`);
+        toast({
+          title: "Unsupported File Type",
+          description: `File type ${fileExt} is not supported. Only images and PDFs are allowed.`,
+          variant: "destructive"
+        });
+        return null;
+      }
+      
       const url = URL.createObjectURL(file);
       
-      // Create media item
+      // Create media item with explicit type casting
       const mediaItem: MediaItem = {
-        type: isPDF ? 'pdf' as const : 'image' as const,
+        type: isPDF ? 'pdf' : 'image',
         url: url
       };
       
       console.log("Created media item:", mediaItem);
       return mediaItem;
-    });
+    }).filter(Boolean) as MediaItem[]; // Filter out null items and cast to MediaItem[]
+
+    if (newMedia.length === 0) return;
 
     // Debug log to check media items being added
     console.log("Current media:", field.media);
     console.log("Adding new media:", newMedia);
     
-    // Update the field with new media
-    const updatedField = { 
+    // Update the field with new media, ensuring the type is correct
+    const updatedField: Field = { 
       ...field, 
       media: [...(field.media || []), ...newMedia] 
     };
@@ -60,10 +76,17 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
 
   const handleVideoUrl = () => {
     if (videoUrl.trim()) {
-      const updatedField = {
-        ...field,
-        media: [...(field.media || []), { type: 'video', url: videoUrl }]
+      // Create a properly typed media item
+      const mediaItem: MediaItem = { 
+        type: 'video', 
+        url: videoUrl 
       };
+      
+      const updatedField: Field = {
+        ...field,
+        media: [...(field.media || []), mediaItem]
+      };
+      
       console.log("Added video from URL:", videoUrl);
       console.log("Updated field media:", updatedField.media);
       
@@ -79,10 +102,14 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
 
   const handlePdfUrl = () => {
     if (pdfUrl.trim()) {
-      const mediaItem: MediaItem = { type: 'pdf', url: pdfUrl };
+      const mediaItem: MediaItem = { 
+        type: 'pdf', 
+        url: pdfUrl 
+      };
+      
       console.log("Added PDF from URL:", mediaItem);
       
-      const updatedField = {
+      const updatedField: Field = {
         ...field,
         media: [...(field.media || []), mediaItem]
       };
