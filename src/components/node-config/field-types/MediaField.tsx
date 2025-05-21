@@ -5,6 +5,7 @@ import { Input } from '../../ui/input';
 import { X, FileText, FileImage, FileVideo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import { toast } from '@/hooks/use-toast';
 
 interface MediaFieldProps {
   field: Field;
@@ -24,7 +25,7 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
       const isPDF = file.name.toLowerCase().endsWith('.pdf');
       const url = URL.createObjectURL(file);
       
-      // Store file metadata to help with identification
+      // Create media item
       const mediaItem: MediaItem = {
         type: isPDF ? 'pdf' as const : 'image' as const,
         url: url
@@ -34,9 +35,23 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
       return mediaItem;
     });
 
-    onFieldChange({ 
+    // Debug log to check media items being added
+    console.log("Current media:", field.media);
+    console.log("Adding new media:", newMedia);
+    
+    // Update the field with new media
+    const updatedField = { 
       ...field, 
       media: [...(field.media || []), ...newMedia] 
+    };
+    
+    console.log("Updated field media:", updatedField.media);
+    onFieldChange(updatedField);
+    
+    // Show success toast
+    toast({
+      title: "Media Added",
+      description: `Added ${newMedia.length} new file(s)`,
     });
     
     // Reset the input value so the same file can be selected again
@@ -45,11 +60,20 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
 
   const handleVideoUrl = () => {
     if (videoUrl.trim()) {
-      onFieldChange({
+      const updatedField = {
         ...field,
         media: [...(field.media || []), { type: 'video', url: videoUrl }]
-      });
+      };
+      console.log("Added video from URL:", videoUrl);
+      console.log("Updated field media:", updatedField.media);
+      
+      onFieldChange(updatedField);
       setVideoUrl('');
+      
+      toast({
+        title: "Video Added",
+        description: "Video URL has been added",
+      });
     }
   };
 
@@ -58,18 +82,35 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
       const mediaItem: MediaItem = { type: 'pdf', url: pdfUrl };
       console.log("Added PDF from URL:", mediaItem);
       
-      onFieldChange({
+      const updatedField = {
         ...field,
         media: [...(field.media || []), mediaItem]
-      });
+      };
+      
+      console.log("Updated field media:", updatedField.media);
+      onFieldChange(updatedField);
       setPdfUrl('');
+      
+      toast({
+        title: "PDF Added",
+        description: "PDF URL has been added",
+      });
     }
   };
 
   const removeMedia = (index: number) => {
+    console.log("Removing media at index:", index);
+    const updatedMedia = field.media?.filter((_, i) => i !== index);
+    console.log("Updated media after removal:", updatedMedia);
+    
     onFieldChange({
       ...field,
-      media: field.media?.filter((_, i) => i !== index)
+      media: updatedMedia
+    });
+    
+    toast({
+      title: "Media Removed",
+      description: "Media item has been removed",
     });
   };
 
@@ -92,46 +133,53 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
       <Label className="text-sm font-medium text-gray-700">
         Images, Videos or PDFs
       </Label>
+      
+      {/* Display current media */}
       <div className="flex flex-wrap gap-2">
-        {field.media?.map((item, i) => (
-          <div key={i} className="relative group border border-gray-200 rounded p-1 bg-gray-50">
-            {item.type === 'image' ? (
-              <img 
-                src={item.url} 
-                alt="Reference image" 
-                className="w-20 h-20 object-cover rounded-lg" 
-              />
-            ) : item.type === 'video' ? (
-              <div className="w-40 h-24 relative">
-                <iframe 
+        {field.media && field.media.length > 0 ? (
+          field.media.map((item, i) => (
+            <div key={i} className="relative group border border-gray-200 rounded p-1 bg-gray-50">
+              {item.type === 'image' ? (
+                <img 
                   src={item.url} 
-                  className="w-full h-full rounded-lg" 
-                  title="Video preview"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
+                  alt="Reference image" 
+                  className="w-20 h-20 object-cover rounded-lg" 
                 />
-                <div className="absolute top-0 left-0 bg-black/30 text-white px-1 text-xs rounded">
-                  Video
+              ) : item.type === 'video' ? (
+                <div className="w-40 h-24 relative">
+                  <iframe 
+                    src={item.url} 
+                    className="w-full h-full rounded-lg" 
+                    title="Video preview"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                  <div className="absolute top-0 left-0 bg-black/30 text-white px-1 text-xs rounded">
+                    Video
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="w-40 h-24 bg-gray-100 rounded-lg flex flex-col items-center justify-center p-2">
-                <FileText className="w-10 h-10 text-green-600" />
-                <div className="text-xs text-center mt-1 text-gray-600 truncate w-full">
-                  PDF Document
+              ) : (
+                <div className="w-40 h-24 bg-gray-100 rounded-lg flex flex-col items-center justify-center p-2">
+                  <FileText className="w-10 h-10 text-green-600" />
+                  <div className="text-xs text-center mt-1 text-gray-600 truncate w-full">
+                    PDF Document
+                  </div>
                 </div>
-              </div>
-            )}
-            <button
-              className="absolute top-1 right-1 bg-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:shadow-md"
-              onClick={() => removeMedia(i)}
-              aria-label="Remove"
-            >
-              <X className="w-3 h-3" />
-            </button>
-          </div>
-        ))}
+              )}
+              <button
+                className="absolute top-1 right-1 bg-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:shadow-md"
+                onClick={() => removeMedia(i)}
+                aria-label="Remove"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ))
+        ) : (
+          <div className="text-sm text-gray-500 italic">No media added yet</div>
+        )}
       </div>
+      
       <div className="space-y-3">
         <div>
           <Label className="text-xs text-gray-500 mb-1 block">Upload files</Label>
