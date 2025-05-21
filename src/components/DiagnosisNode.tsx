@@ -54,7 +54,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
   };
 
   // Function to render content safely with proper typing
-  const renderContent = (content: unknown): React.ReactNode => {
+  const renderContent = (content: string | undefined): React.ReactNode => {
     if (typeof content === 'string') {
       return (
         <div 
