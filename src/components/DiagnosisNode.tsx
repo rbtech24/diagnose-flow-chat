@@ -1,4 +1,3 @@
-
 import { memo } from 'react';
 import { Handle, NodeProps, Position } from '@xyflow/react';
 import { HandleWithTooltip } from './diagnosis/HandleWithTooltip';
@@ -63,7 +62,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
         />
       );
     }
-    return null;
+    return null; // Return null explicitly as a valid React.ReactNode
   };
 
   return (
