@@ -66,6 +66,10 @@ export default function WorkflowEditor() {
     console.log('WorkflowEditor handleNodeUpdate:', nodeData);
     if (selectedNode && updateNodeFn) {
       updateNodeFn(selectedNode.id, nodeData);
+      toast({
+        title: "Node Updated",
+        description: "Node data has been successfully updated"
+      });
     }
   }, [selectedNode, updateNodeFn]);
 

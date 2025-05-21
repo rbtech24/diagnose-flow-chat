@@ -29,9 +29,9 @@ export default function NodeConfigPanel({ node, onUpdate, onClose }: NodeConfigP
     validationErrors
   } = useNodeConfig({ 
     node, 
-    onUpdate: (data) => {
-      console.log('NodeConfigPanel onUpdate:', data);
-      onUpdate(data);
+    onUpdate: (nodeData) => {
+      console.log('NodeConfigPanel onUpdate with nodeData:', nodeData);
+      onUpdate(nodeData);
     }
   });
 

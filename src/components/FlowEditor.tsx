@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useCallback } from 'react';
 import { Node } from '@xyflow/react';
 import {
@@ -35,7 +34,7 @@ export default function FlowEditor({
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const isNewWorkflow = searchParams.get('new') === 'true';
-
+  
   const {
     nodes,
     setNodes,
@@ -177,6 +176,33 @@ export default function FlowEditor({
     }
   }, [onNodeSelect, handleNodeUpdate]);
 
+  // This function will be passed to the "Apply Changes" button in the NodeConfigPanel
+  const handleApplyNodeChanges = useCallback(() => {
+    if (selectedNode && updateNodeFn) {
+      console.log('Applying node changes to selected node:', selectedNode.id);
+      // Note: The actual update is handled by the NodeConfigPanel through updateNodeFn
+      toast({
+        title: "Node Updated",
+        description: "Changes have been applied successfully"
+      });
+    }
+  }, [selectedNode, updateNodeFn]);
+
+  // Added to keep track of the selected node and updateNode function
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [updateNodeFn, setUpdateNodeFn] = useState<((nodeId: string, newData: any) => void) | null>(null);
+
+  // Override onNodeSelect to track selected node
+  const handleNodeSelectInternal = useCallback((node: Node, updateNode: (nodeId: string, newData: any) => void) => {
+    console.log('Setting selected node:', node);
+    setSelectedNode(node);
+    setUpdateNodeFn(() => updateNode);
+    
+    if (onNodeSelect) {
+      onNodeSelect(node, updateNode);
+    }
+  }, [onNodeSelect]);
+
   return (
     <FlowEditorContent
       nodes={nodes}
@@ -196,6 +222,7 @@ export default function FlowEditor({
       onCopySelected={handleCopySelected}
       onPaste={handlePaste}
       appliances={appliances}
+      onApplyNodeChanges={handleApplyNodeChanges}
     />
   );
 }

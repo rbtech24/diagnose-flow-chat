@@ -19,8 +19,8 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
 
   // Ensure media array exists
   useEffect(() => {
-    if (!field.media) {
-      // Initialize media array if it doesn't exist
+    if (!field.media || !Array.isArray(field.media)) {
+      // Initialize media array if it doesn't exist or isn't an array
       const updatedField: Field = {
         ...field,
         media: []
@@ -29,6 +29,11 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
       console.log("Initialized media array for field:", field.id);
     }
   }, [field, onFieldChange]);
+
+  // Debug log to monitor field changes
+  useEffect(() => {
+    console.log("MediaField current field state:", field);
+  }, [field]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -80,10 +85,10 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
     // Create a properly typed updated field with the new media items
     const updatedField: Field = { 
       ...field, 
-      media: [...(field.media || []), ...newMedia] 
+      media: [...(Array.isArray(field.media) ? field.media : []), ...newMedia] 
     };
     
-    console.log("Updated field:", updatedField);
+    console.log("Updated field with new media:", updatedField);
     onFieldChange(updatedField);
     
     // Show success toast
@@ -109,10 +114,10 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
     
     const updatedField: Field = {
       ...field,
-      media: [...(field.media || []), mediaItem]
+      media: [...(Array.isArray(field.media) ? field.media : []), mediaItem]
     };
     
-    console.log("Updated field media:", updatedField.media);
+    console.log("Updated field with video:", updatedField);
     onFieldChange(updatedField);
     setVideoUrl('');
     
@@ -135,7 +140,7 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
     
     const updatedField: Field = {
       ...field,
-      media: [...(field.media || []), mediaItem]
+      media: [...(Array.isArray(field.media) ? field.media : []), mediaItem]
     };
     
     console.log("Updated field with PDF:", updatedField);
@@ -150,8 +155,8 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
 
   const removeMedia = (index: number) => {
     console.log("Removing media at index:", index);
-    if (!field.media) {
-      console.warn("Cannot remove media, media array is undefined");
+    if (!field.media || !Array.isArray(field.media)) {
+      console.warn("Cannot remove media, media array is undefined or not an array");
       return;
     }
     
@@ -196,7 +201,7 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
       
       {/* Display current media */}
       <div className="flex flex-wrap gap-2">
-        {field.media && field.media.length > 0 ? (
+        {Array.isArray(field.media) && field.media.length > 0 ? (
           field.media.map((item, i) => (
             <div key={i} className="relative group border border-gray-200 rounded p-1 bg-gray-50">
               {item.type === 'image' ? (

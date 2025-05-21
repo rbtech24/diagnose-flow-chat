@@ -28,6 +28,7 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
 
   useEffect(() => {
     if (node) {
+      console.log('Initializing node config with data:', node.data);
       setNodeType(node.data.type || 'question');
       setLabel(node.data.label || '');
       initializeFields(node.data);
@@ -40,7 +41,7 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
         points: ''
       });
     }
-  }, [node?.id, node?.data]);
+  }, [node?.id, node?.data, initializeFields]);
 
   const handleNodeTypeChange = (value: string) => {
     setNodeType(value);
@@ -59,12 +60,14 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
       return;
     }
 
+    console.log('Fields before combining:', fields);
     const combinedData = combineFieldsData(fields);
+    console.log('Combined data from fields:', combinedData);
     
     const updatedData = {
       type: nodeType,
       label,
-      ...combinedData,
+      ...combinedData, // This spreads content, media, options into the updatedData object
       technicalSpecs: showTechnicalFields ? technicalSpecs : undefined
     };
 

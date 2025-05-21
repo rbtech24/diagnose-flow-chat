@@ -54,8 +54,8 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
   };
 
   // Function to render content safely
-  const renderContent = (content: unknown): React.ReactNode => {
-    if (typeof content === 'string' && content.trim() !== '') {
+  const renderContent = (content: string): React.ReactNode => {
+    if (content.trim() !== '') {
       return (
         <div 
           className="text-xs mt-2 text-gray-600 max-h-[150px] overflow-auto"
@@ -63,7 +63,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
         />
       );
     }
-    return null; // Always return a valid ReactNode (null is valid)
+    return null;
   };
 
   return (
@@ -137,8 +137,8 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
         {nodeTitle}
       </div>
 
-      {/* Node Content - Fix: Use proper type checking in JSX */}
-      {typeof nodeContent === 'string' && nodeContent.trim() !== '' && !isFlowAnswer && renderContent(nodeContent)}
+      {/* Node Content - Fixed: Pass string directly to renderContent */}
+      {typeof nodeContent === 'string' && !isFlowAnswer && renderContent(nodeContent)}
 
       {/* Media content if present */}
       {data.media && Array.isArray(data.media) && data.media.length > 0 && (
