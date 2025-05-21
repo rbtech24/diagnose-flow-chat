@@ -53,7 +53,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
     console.log(`Disconnecting handle: ${handleId}`);
   };
 
-  // Function to render content safely with proper typing
+  // Function to render content safely - this is the fixed function
   const renderContent = (content: unknown): React.ReactNode => {
     if (typeof content === 'string' && content.trim() !== '') {
       return (
@@ -63,7 +63,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
         />
       );
     }
-    return null;
+    return null; // Always return a valid ReactNode (null is valid)
   };
 
   return (
@@ -137,7 +137,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
         {nodeTitle}
       </div>
 
-      {/* Node Content - safely rendered with proper typing */}
+      {/* Node Content - Using renderContent which now always returns ReactNode */}
       {nodeContent && !isFlowAnswer && renderContent(nodeContent)}
 
       {/* Media content if present */}
