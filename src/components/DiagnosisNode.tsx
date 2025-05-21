@@ -53,7 +53,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
     console.log(`Disconnecting handle: ${handleId}`);
   };
 
-  // Function to render content safely
+  // Function to render content safely - Fix TypeScript errors here
   const renderContent = (content: string | undefined): React.ReactNode => {
     if (typeof content === 'string' && content.trim() !== '') {
       return (
@@ -138,7 +138,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
       </div>
 
       {/* Node Content */}
-      {!isFlowAnswer && renderContent(nodeContent)}
+      {!isFlowAnswer && nodeContent ? renderContent(nodeContent) : null}
 
       {/* Media content if present */}
       {data.media && Array.isArray(data.media) && data.media.length > 0 && (

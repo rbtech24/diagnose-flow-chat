@@ -21,23 +21,22 @@ export function combineFieldsData(fields: Field[]) {
         if (field.media && Array.isArray(field.media)) {
           // Debug log to track media items being added
           console.log(`Adding ${field.media.length} media items from field:`, field.media);
+          
           field.media.forEach(item => {
-            // Ensure each media item has the correct type property
-            if (item && typeof item === 'object' && 'url' in item && 'type' in item) {
+            // Ensure each media item is properly typed and structured
+            if (item && typeof item === 'object') {
+              // Create a new properly typed MediaItem
               const mediaItem: MediaItem = {
-                type: item.type, 
-                url: item.url
+                // Default to 'image' if type is missing
+                type: (item.type as 'image' | 'video' | 'pdf') || 'image',
+                url: item.url as string
               };
-              combinedMedia.push(mediaItem);
-              console.log("Added media item:", mediaItem);
-            } else if (item && typeof item === 'object' && 'url' in item) {
-              // If type is missing, default to 'image'
-              const mediaItem: MediaItem = {
-                type: 'image',
-                url: item.url
-              };
-              combinedMedia.push(mediaItem);
-              console.log("Added media item with default type:", mediaItem);
+              
+              // Only add if the URL exists
+              if (mediaItem.url) {
+                combinedMedia.push(mediaItem);
+                console.log("Added media item:", mediaItem);
+              }
             }
           });
         }

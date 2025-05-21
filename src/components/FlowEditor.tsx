@@ -36,7 +36,7 @@ export default function FlowEditor({
   const searchParams = new URLSearchParams(location.search);
   const isNewWorkflow = searchParams.get('new') === 'true';
   
-  // State for tracking selected node and update function
+  // State declarations first to fix the "used before declaration" errors
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [updateNodeFn, setUpdateNodeFn] = useState<((nodeId: string, newData: any) => void) | null>(null);
   

@@ -66,6 +66,7 @@ export function FieldWrapper({ field, index, children, onRemove, onMove }: Field
         size="icon"
         onClick={onRemove}
         className="hover:bg-red-50 hover:text-red-500 transition-colors"
+        aria-label="Remove section"
       >
         <X className="w-4 h-4" />
       </Button>

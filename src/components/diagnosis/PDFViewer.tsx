@@ -8,13 +8,14 @@ interface PDFViewerProps {
   title?: string;
 }
 
-export function PDFViewer({ url, title = 'Wire Diagram' }: PDFViewerProps) {
+export function PDFViewer({ url, title = 'PDF Document' }: PDFViewerProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   
   // Log the PDF URL to help with debugging
   console.log(`Rendering PDF Viewer with URL: ${url}`);
 
-  const toggleExpanded = () => {
+  const toggleExpanded = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setIsExpanded(!isExpanded);
   };
 
@@ -43,11 +44,16 @@ export function PDFViewer({ url, title = 'Wire Diagram' }: PDFViewerProps) {
     ? "w-full h-full max-w-4xl max-h-[90vh]"
     : "w-full h-full";
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
     if (!isExpanded) {
-      toggleExpanded();
+      toggleExpanded(e);
     }
   };
+
+  // Ensure we're using an embeddable URL format for PDFs
+  const pdfViewerUrl = url.startsWith('blob:') 
+    ? url 
+    : `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(url)}`;
 
   return (
     <div className={containerClass} onClick={handleClick}>
@@ -73,7 +79,7 @@ export function PDFViewer({ url, title = 'Wire Diagram' }: PDFViewerProps) {
               variant="ghost" 
               size="sm" 
               className="h-6 w-6 p-0" 
-              onClick={(e) => { e.stopPropagation(); toggleExpanded(); }}
+              onClick={toggleExpanded}
               title={isExpanded ? "Minimize" : "Maximize"}
             >
               {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -81,9 +87,10 @@ export function PDFViewer({ url, title = 'Wire Diagram' }: PDFViewerProps) {
           </div>
         </div>
         <iframe 
-          src={url} 
+          src={url}
           className={iframeClass}
           title={title}
+          allow="fullscreen"
         />
       </div>
       
