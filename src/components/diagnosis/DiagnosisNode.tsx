@@ -54,8 +54,8 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
   };
 
   // Function to render content safely with proper TypeScript typing
-  const renderContent = (content: string): React.ReactNode => {
-    if (content && content.trim() !== '') {
+  const renderContent = (content: string | unknown): React.ReactNode => {
+    if (typeof content === 'string' && content.trim() !== '') {
       return (
         <div 
           className="text-xs mt-2 text-gray-600 max-h-[150px] overflow-auto"
@@ -138,7 +138,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
       </div>
 
       {/* Node Content */}
-      {!isFlowAnswer && typeof nodeContent === 'string' && nodeContent ? renderContent(nodeContent) : null}
+      {!isFlowAnswer && nodeContent ? renderContent(nodeContent) : null}
 
       {/* Media content if present */}
       {data.media && Array.isArray(data.media) && data.media.length > 0 && (
