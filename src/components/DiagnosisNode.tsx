@@ -1,5 +1,5 @@
 
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { Handle, NodeProps, Position } from '@xyflow/react';
 import { HandleWithTooltip } from './diagnosis/HandleWithTooltip';
 import { NodeHandles } from './diagnosis/NodeHandles';
@@ -7,10 +7,16 @@ import { MediaContent } from './diagnosis/MediaContent';
 import { TechnicalContent } from './diagnosis/TechnicalContent';
 import { MediaItem } from '@/types/node-config';
 
+// Utility function to sanitize HTML content
+const sanitizeHtml = (html: string): string => {
+  // Basic XSS protection - remove script tags and dangerous attributes
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/on\w+="[^"]*"/gi, '')
+    .replace(/javascript:/gi, '');
+};
+
 const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
-  // Log the node data to help debug
-  console.log(`Rendering node ${id} of type ${type}:`, data);
-  
   // Handle different node types
   const isFlowTitle = type === 'flowTitle';
   const isFlowNode = type === 'flowNode';
@@ -19,61 +25,56 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
   // Set node title based on node type and available data
   const nodeTitle = data.title || data.label || 'Node';
   
-  // Set node content based on node type and available data - safely extract string content
-  const extractStringContent = (): string => {
+  // Memoize string content extraction to prevent unnecessary re-renders
+  const nodeContent = useMemo((): string => {
     const richInfo = data.richInfo;
     const content = data.content;
     
     if (typeof richInfo === 'string') return richInfo;
     if (typeof content === 'string') return content;
     return '';
-  };
-  
-  const nodeContent = extractStringContent();
+  }, [data.richInfo, data.content]);
 
-  // Set node class based on type
-  let nodeClass = 'p-3 border rounded bg-white w-[200px]';
-  if (selected) {
-    nodeClass += ' border-blue-500 shadow-md';
-  } else {
-    nodeClass += ' border-gray-300';
-  }
+  // Memoize node class calculation
+  const nodeClass = useMemo(() => {
+    let baseClass = 'p-3 border rounded bg-white w-[200px]';
+    if (selected) {
+      baseClass += ' border-blue-500 shadow-md';
+    } else {
+      baseClass += ' border-gray-300';
+    }
 
-  // Add specific styling based on node type
-  if (isFlowTitle) {
-    nodeClass += ' bg-slate-100';
-  } else if (isFlowAnswer) {
-    nodeClass += ' bg-green-50 border-green-200';
-  }
+    // Add specific styling based on node type
+    if (isFlowTitle) {
+      baseClass += ' bg-slate-100';
+    } else if (isFlowAnswer) {
+      baseClass += ' bg-green-50 border-green-200';
+    }
+
+    return baseClass;
+  }, [selected, isFlowTitle, isFlowAnswer]);
 
   // Determine if node has warning icon
   const hasWarningIcon = data.warningIcon && data.warningIcon !== "";
 
-  // Create a mock connected state object for NodeHandles
-  const connectedState = {
+  // Memoize connected state object to prevent unnecessary re-renders
+  const connectedState = useMemo(() => ({
     top: { isConnected: false, isNoOutcome: false },
     right: { isConnected: false, isNoOutcome: false },
     bottom: { isConnected: false, isNoOutcome: false },
     left: { isConnected: false, isNoOutcome: false }
-  };
+  }), []);
 
-  // Mock function for handle disconnect
-  const handleDisconnect = (handleId: string) => {
-    console.log(`Disconnecting handle: ${handleId}`);
-  };
+  // Memoize handle disconnect function
+  const handleDisconnect = useMemo(() => (handleId: string) => {
+    // Handle disconnect functionality would go here
+  }, []);
 
-  // Function to render content safely with proper TypeScript typing
-  const renderContentElement = (): JSX.Element | null => {
-    if (nodeContent && nodeContent.trim() !== '') {
-      return (
-        <div 
-          className="text-xs mt-2 text-gray-600 max-h-[150px] overflow-auto"
-          dangerouslySetInnerHTML={{ __html: nodeContent }}
-        />
-      );
-    }
-    return null;
-  };
+  // Memoize sanitized content to prevent XSS attacks
+  const sanitizedContent = useMemo(() => {
+    if (!nodeContent || nodeContent.trim() === '') return null;
+    return sanitizeHtml(nodeContent);
+  }, [nodeContent]);
 
   return (
     <div className={nodeClass}>
@@ -146,10 +147,10 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
         {nodeTitle}
       </div>
 
-      {/* Node Content */}
-      {!isFlowAnswer && nodeContent && (
+      {/* Node Content - XSS protected */}
+      {!isFlowAnswer && sanitizedContent && (
         <div className="text-xs mt-2 text-gray-600 max-h-[150px] overflow-auto">
-          {renderContentElement()}
+          <div dangerouslySetInnerHTML={{ __html: sanitizedContent }} />
         </div>
       )}
 

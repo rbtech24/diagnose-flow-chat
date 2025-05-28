@@ -12,8 +12,6 @@ export function useNodeOperations(
   setHistory: (history: any) => void,
 ) {
   const handleNodeUpdate = useCallback((nodeId: string, newData: any) => {
-    console.log('handleNodeUpdate called with:', { nodeId, newData });
-    
     // Create the updated nodes array directly instead of using a callback
     const updatedNodes = nodes.map(node => {
       if (node.id === nodeId) {

@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import { Connection, Node, Edge, useReactFlow, addEdge } from '@xyflow/react';
 import { toast } from './use-toast';
@@ -102,7 +103,6 @@ export function useFlowActions(
     }
     
     try {
-      console.log("Attempting quick save with currentWorkflow:", currentWorkflow);
       await handleQuickSave(nodes, edges, nodeCounter, currentWorkflow);
       toast({
         title: "Workflow Saved",
@@ -113,7 +113,6 @@ export function useFlowActions(
       const basePath = isAdmin ? '/admin/workflows' : '/workflows';
       navigate(basePath);
     } catch (error) {
-      console.error("Error during quick save:", error);
       toast({
         title: "Save Failed",
         description: "There was an error saving your workflow. Please try using the Save button.",

@@ -25,8 +25,6 @@ export default function WorkflowEditor() {
   const { folders, loadWorkflows } = useWorkflows();
   const [currentWorkflow, setCurrentWorkflow] = useState<SavedWorkflow | undefined>(undefined);
 
-  console.log('WorkflowEditor params:', { folder, name, isNew });
-
   // Load the current workflow if name is provided
   useEffect(() => {
     if (folder && name) {
@@ -40,10 +38,8 @@ export default function WorkflowEditor() {
         );
         
         if (matchingWorkflow) {
-          console.log('Found matching workflow:', matchingWorkflow);
           setCurrentWorkflow(matchingWorkflow);
         } else {
-          console.error('Workflow not found:', folder, name);
           toast({
             title: "Workflow Not Found",
             description: `Could not locate workflow "${name}" in folder "${folder}"`,
@@ -51,19 +47,22 @@ export default function WorkflowEditor() {
           });
         }
       } catch (error) {
-        console.error('Error loading workflow:', error);
+        // Handle error silently or with user-friendly message
+        toast({
+          title: "Error Loading Workflow",
+          description: "Failed to load the requested workflow",
+          variant: "destructive"
+        });
       }
     }
   }, [folder, name]);
 
   const handleNodeSelect = useCallback((node: Node, updateNode: (nodeId: string, newData: any) => void) => {
-    console.log('WorkflowEditor handleNodeSelect:', node);
     setSelectedNode(node);
     setUpdateNodeFn(() => updateNode);
   }, []);
 
   const handleNodeUpdate = useCallback((nodeData: any) => {
-    console.log('WorkflowEditor handleNodeUpdate:', nodeData);
     if (selectedNode && updateNodeFn) {
       updateNodeFn(selectedNode.id, nodeData);
       toast({
@@ -74,8 +73,8 @@ export default function WorkflowEditor() {
   }, [selectedNode, updateNodeFn]);
 
   const handleBackToDashboard = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent default action
-    e.stopPropagation(); // Stop propagation
+    e.preventDefault();
+    e.stopPropagation();
     navigate('/workflows', { replace: true });
   };
 
