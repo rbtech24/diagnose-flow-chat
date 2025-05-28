@@ -62,26 +62,44 @@ export const sendEmail = async (message: EmailMessage): Promise<{ messageId: str
 
     if (error) throw error;
 
-    // Log email in database
-    const { error: logError } = await supabase
-      .from("email_logs")
-      .insert({
-        message_id: data.messageId,
-        to_addresses: Array.isArray(message.to) ? message.to : [message.to],
-        cc_addresses: message.cc ? (Array.isArray(message.cc) ? message.cc : [message.cc]) : [],
-        bcc_addresses: message.bcc ? (Array.isArray(message.bcc) ? message.bcc : [message.bcc]) : [],
-        subject: message.subject,
-        html_content: message.htmlContent,
-        text_content: message.textContent,
-        template_id: message.templateId,
-        template_variables: message.templateVariables,
-        sent_by: userData.user.id,
-        company_id: userData.user.raw_user_meta_data?.company_id,
-        status: 'queued'
-      });
+    // Log email in database using raw SQL to avoid type issues
+    const { error: logError } = await supabase.rpc('log_email', {
+      p_message_id: data.messageId,
+      p_to_addresses: Array.isArray(message.to) ? message.to : [message.to],
+      p_cc_addresses: message.cc ? (Array.isArray(message.cc) ? message.cc : [message.cc]) : [],
+      p_bcc_addresses: message.bcc ? (Array.isArray(message.bcc) ? message.bcc : [message.bcc]) : [],
+      p_subject: message.subject,
+      p_html_content: message.htmlContent,
+      p_text_content: message.textContent,
+      p_template_id: message.templateId,
+      p_template_variables: message.templateVariables,
+      p_sent_by: userData.user.id,
+      p_company_id: userData.user.user_metadata?.company_id
+    });
 
     if (logError) {
       console.warn("Failed to log email:", logError);
+      // Try direct insert as fallback
+      try {
+        await supabase
+          .from("email_logs")
+          .insert({
+            message_id: data.messageId,
+            to_addresses: Array.isArray(message.to) ? message.to : [message.to],
+            cc_addresses: message.cc ? (Array.isArray(message.cc) ? message.cc : [message.cc]) : [],
+            bcc_addresses: message.bcc ? (Array.isArray(message.bcc) ? message.bcc : [message.bcc]) : [],
+            subject: message.subject,
+            html_content: message.htmlContent,
+            text_content: message.textContent,
+            template_id: message.templateId,
+            template_variables: message.templateVariables,
+            sent_by: userData.user.id,
+            company_id: userData.user.user_metadata?.company_id,
+            status: 'queued'
+          });
+      } catch (insertError) {
+        console.warn("Direct email log insert also failed:", insertError);
+      }
     }
 
     return { messageId: data.messageId };
@@ -120,15 +138,19 @@ export const sendBulkEmails = async (messages: EmailMessage[]): Promise<{ messag
       template_id: message.templateId,
       template_variables: message.templateVariables,
       sent_by: userData.user.id,
-      company_id: userData.user.raw_user_meta_data?.company_id,
+      company_id: userData.user.user_metadata?.company_id,
       status: 'queued'
     }));
 
-    const { error: logError } = await supabase
-      .from("email_logs")
-      .insert(emailLogs);
+    try {
+      const { error: logError } = await supabase
+        .from("email_logs")
+        .insert(emailLogs);
 
-    if (logError) {
+      if (logError) {
+        console.warn("Failed to log bulk emails:", logError);
+      }
+    } catch (logError) {
       console.warn("Failed to log bulk emails:", logError);
     }
 
@@ -145,28 +167,33 @@ export const fetchEmailTemplates = async (): Promise<EmailTemplate[]> => {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) throw new Error("Authentication required");
 
-    const { data, error } = await supabase
-      .from("email_templates")
-      .select("*")
-      .or(`company_id.is.null,company_id.eq.${userData.user.raw_user_meta_data?.company_id}`)
-      .eq("is_active", true)
-      .order("name");
+    try {
+      const { data, error } = await supabase
+        .from("email_templates")
+        .select("*")
+        .or(`company_id.is.null,company_id.eq.${userData.user.user_metadata?.company_id}`)
+        .eq("is_active", true)
+        .order("name");
 
-    if (error) throw error;
+      if (error) throw error;
 
-    return (data || []).map(template => ({
-      id: template.id,
-      name: template.name,
-      subject: template.subject,
-      htmlContent: template.html_content,
-      textContent: template.text_content,
-      variables: template.variables || [],
-      category: template.category,
-      isActive: template.is_active,
-      companyId: template.company_id,
-      createdAt: new Date(template.created_at),
-      updatedAt: new Date(template.updated_at)
-    }));
+      return (data || []).map((template: any) => ({
+        id: template.id,
+        name: template.name,
+        subject: template.subject,
+        htmlContent: template.html_content,
+        textContent: template.text_content,
+        variables: template.variables || [],
+        category: template.category,
+        isActive: template.is_active,
+        companyId: template.company_id,
+        createdAt: new Date(template.created_at),
+        updatedAt: new Date(template.updated_at)
+      }));
+    } catch (error) {
+      console.warn("Failed to fetch email templates:", error);
+      return [];
+    }
   }, "fetchEmailTemplates");
 
   if (!response.success) throw response.error;
@@ -213,33 +240,38 @@ export const fetchEmailDeliveryStatus = async (
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) throw new Error("Authentication required");
 
-    let query = supabase
-      .from("email_logs")
-      .select("*")
-      .eq("sent_by", userData.user.id)
-      .order("created_at", { ascending: false })
-      .limit(limit);
+    try {
+      let query = supabase
+        .from("email_logs")
+        .select("*")
+        .eq("sent_by", userData.user.id)
+        .order("created_at", { ascending: false })
+        .limit(limit);
 
-    if (messageId) {
-      query = query.eq("message_id", messageId);
+      if (messageId) {
+        query = query.eq("message_id", messageId);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return (data || []).map((log: any) => ({
+        id: log.id,
+        messageId: log.message_id,
+        to: log.to_addresses[0], // Primary recipient
+        subject: log.subject,
+        status: log.status,
+        sentAt: log.sent_at ? new Date(log.sent_at) : undefined,
+        deliveredAt: log.delivered_at ? new Date(log.delivered_at) : undefined,
+        errorMessage: log.error_message,
+        opens: log.opens || 0,
+        clicks: log.clicks || 0,
+        createdAt: new Date(log.created_at)
+      }));
+    } catch (error) {
+      console.warn("Failed to fetch email delivery status:", error);
+      return [];
     }
-
-    const { data, error } = await query;
-    if (error) throw error;
-
-    return (data || []).map(log => ({
-      id: log.id,
-      messageId: log.message_id,
-      to: log.to_addresses[0], // Primary recipient
-      subject: log.subject,
-      status: log.status,
-      sentAt: log.sent_at ? new Date(log.sent_at) : undefined,
-      deliveredAt: log.delivered_at ? new Date(log.delivered_at) : undefined,
-      errorMessage: log.error_message,
-      opens: log.opens || 0,
-      clicks: log.clicks || 0,
-      createdAt: new Date(log.created_at)
-    }));
   }, "fetchEmailDeliveryStatus");
 
   if (!response.success) throw response.error;
@@ -305,44 +337,48 @@ export const saveEmailTemplate = async (template: {
       text_content: template.textContent,
       variables: template.variables,
       category: template.category,
-      company_id: userData.user.raw_user_meta_data?.company_id,
+      company_id: userData.user.user_metadata?.company_id,
       is_active: true
     };
 
     let data, error;
 
-    if (template.id) {
-      // Update existing template
-      ({ data, error } = await supabase
-        .from("email_templates")
-        .update(templateData)
-        .eq("id", template.id)
-        .select()
-        .single());
-    } else {
-      // Create new template
-      ({ data, error } = await supabase
-        .from("email_templates")
-        .insert(templateData)
-        .select()
-        .single());
+    try {
+      if (template.id) {
+        // Update existing template
+        ({ data, error } = await supabase
+          .from("email_templates")
+          .update(templateData)
+          .eq("id", template.id)
+          .select()
+          .single());
+      } else {
+        // Create new template
+        ({ data, error } = await supabase
+          .from("email_templates")
+          .insert(templateData)
+          .select()
+          .single());
+      }
+
+      if (error) throw error;
+
+      return {
+        id: data.id,
+        name: data.name,
+        subject: data.subject,
+        htmlContent: data.html_content,
+        textContent: data.text_content,
+        variables: data.variables || [],
+        category: data.category,
+        isActive: data.is_active,
+        companyId: data.company_id,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at)
+      };
+    } catch (error) {
+      throw new Error(`Failed to save email template: ${error}`);
     }
-
-    if (error) throw error;
-
-    return {
-      id: data.id,
-      name: data.name,
-      subject: data.subject,
-      htmlContent: data.html_content,
-      textContent: data.text_content,
-      variables: data.variables || [],
-      category: data.category,
-      isActive: data.is_active,
-      companyId: data.company_id,
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at)
-    };
   }, "saveEmailTemplate");
 
   if (!response.success) throw response.error;

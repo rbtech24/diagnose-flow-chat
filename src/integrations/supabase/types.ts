@@ -1402,6 +1402,140 @@ export type Database = {
           },
         ]
       }
+      email_logs: {
+        Row: {
+          bcc_addresses: string[]
+          cc_addresses: string[]
+          clicks: number | null
+          company_id: string | null
+          created_at: string
+          delivered_at: string | null
+          error_message: string | null
+          html_content: string | null
+          id: string
+          message_id: string
+          opens: number | null
+          sent_at: string | null
+          sent_by: string | null
+          status: string
+          subject: string
+          template_id: string | null
+          template_variables: Json | null
+          text_content: string | null
+          to_addresses: string[]
+          updated_at: string
+        }
+        Insert: {
+          bcc_addresses?: string[]
+          cc_addresses?: string[]
+          clicks?: number | null
+          company_id?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          html_content?: string | null
+          id?: string
+          message_id: string
+          opens?: number | null
+          sent_at?: string | null
+          sent_by?: string | null
+          status?: string
+          subject: string
+          template_id?: string | null
+          template_variables?: Json | null
+          text_content?: string | null
+          to_addresses?: string[]
+          updated_at?: string
+        }
+        Update: {
+          bcc_addresses?: string[]
+          cc_addresses?: string[]
+          clicks?: number | null
+          company_id?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          html_content?: string | null
+          id?: string
+          message_id?: string
+          opens?: number | null
+          sent_at?: string | null
+          sent_by?: string | null
+          status?: string
+          subject?: string
+          template_id?: string | null
+          template_variables?: Json | null
+          text_content?: string | null
+          to_addresses?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_email_logs_company_id"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_email_logs_template_id"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          category: string
+          company_id: string | null
+          created_at: string
+          html_content: string
+          id: string
+          is_active: boolean | null
+          name: string
+          subject: string
+          text_content: string | null
+          updated_at: string
+          variables: string[] | null
+        }
+        Insert: {
+          category: string
+          company_id?: string | null
+          created_at?: string
+          html_content: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          subject: string
+          text_content?: string | null
+          updated_at?: string
+          variables?: string[] | null
+        }
+        Update: {
+          category?: string
+          company_id?: string | null
+          created_at?: string
+          html_content?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          subject?: string
+          text_content?: string | null
+          updated_at?: string
+          variables?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_email_templates_company_id"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feature_comments: {
         Row: {
           content: string
