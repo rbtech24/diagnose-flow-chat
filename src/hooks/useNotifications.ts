@@ -1,246 +1,136 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useErrorHandler } from './useErrorHandler';
 
-interface Notification {
+export interface NotificationItem {
   id: string;
   title: string;
   message: string;
-  type: 'info' | 'warning' | 'success' | 'error';
+  type: 'info' | 'success' | 'warning' | 'error';
   timestamp: Date;
   read: boolean;
 }
 
-interface NotificationSetting {
+export interface NotificationSetting {
   id: string;
   title: string;
   description: string;
-  enabled: boolean;
   type: 'email' | 'push' | 'sms';
+  enabled: boolean;
 }
 
 export function useNotifications() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [settings, setSettings] = useState<NotificationSetting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    fetchNotifications();
-    fetchNotificationSettings();
-  }, []);
+  const { handleAsyncError } = useErrorHandler();
 
   const fetchNotifications = async () => {
-    try {
-      const { data: userData } = await supabase.auth.getUser();
+    const result = await handleAsyncError(async () => {
+      setIsLoading(true);
       
-      if (!userData.user) {
-        setIsLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', userData.user.id)
-        .order('timestamp', { ascending: false })
-        .limit(50);
-
-      if (error) {
-        console.error('Error fetching notifications:', error);
-        return;
-      }
-
-      const transformedNotifications: Notification[] = (data || []).map(notification => ({
-        id: notification.id,
-        title: notification.title,
-        message: notification.message,
-        type: notification.type as Notification['type'] || 'info',
-        timestamp: new Date(notification.timestamp),
-        read: notification.read
-      }));
-
-      setNotifications(transformedNotifications);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    }
-  };
-
-  const fetchNotificationSettings = async () => {
-    try {
-      const { data: userData } = await supabase.auth.getUser();
-      
-      if (!userData.user) return;
-
-      const { data, error } = await supabase
-        .from('notification_settings')
-        .select('*')
-        .eq('user_id', userData.user.id);
-
-      if (error) {
-        console.error('Error fetching notification settings:', error);
-        return;
-      }
-
-      // Define default settings with descriptions
-      const defaultSettings = [
+      // Mock data - replace with actual API calls
+      const mockNotifications: NotificationItem[] = [
         {
-          key: 'job_assignments',
-          title: 'Job Assignments',
-          description: 'Get notified when new jobs are assigned to you',
-          type: 'push' as const
+          id: '1',
+          title: 'New Job Assignment',
+          message: 'You have been assigned to repair HVAC at 123 Main St',
+          type: 'info',
+          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+          read: false
         },
         {
-          key: 'schedule_changes',
-          title: 'Schedule Changes',
-          description: 'Receive alerts when your schedule is modified',
-          type: 'email' as const
+          id: '2',
+          title: 'Training Reminder',
+          message: 'Your safety certification expires in 30 days',
+          type: 'warning',
+          timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+          read: false
         },
         {
-          key: 'parts_inventory',
-          title: 'Parts & Inventory',
-          description: 'Updates about parts delivery and inventory status',
-          type: 'email' as const
-        },
-        {
-          key: 'customer_messages',
-          title: 'Customer Messages',
-          description: 'Direct messages and feedback from customers',
-          type: 'push' as const
-        },
-        {
-          key: 'daily_summary',
-          title: 'Daily Summary',
-          description: 'Daily recap of completed jobs and upcoming tasks',
-          type: 'email' as const
+          id: '3',
+          title: 'Job Completed',
+          message: 'Customer rated your service 5 stars!',
+          type: 'success',
+          timestamp: new Date(Date.now() - 48 * 60 * 60 * 1000), // 2 days ago
+          read: true
         }
       ];
 
-      // Create settings map from database
-      const settingsMap = new Map();
-      data?.forEach(setting => {
-        settingsMap.set(setting.setting_key, {
-          enabled: setting.setting_value,
-          type: setting.setting_type
-        });
-      });
+      const mockSettings: NotificationSetting[] = [
+        {
+          id: 'job_assignments',
+          title: 'Job Assignments',
+          description: 'Get notified when you receive new job assignments',
+          type: 'push',
+          enabled: true
+        },
+        {
+          id: 'schedule_changes',
+          title: 'Schedule Changes',
+          description: 'Receive alerts about schedule modifications',
+          type: 'email',
+          enabled: true
+        },
+        {
+          id: 'training_reminders',
+          title: 'Training Reminders',
+          description: 'Reminders about upcoming training and certifications',
+          type: 'email',
+          enabled: false
+        },
+        {
+          id: 'emergency_alerts',
+          title: 'Emergency Alerts',
+          description: 'Critical system alerts and emergency notifications',
+          type: 'sms',
+          enabled: true
+        }
+      ];
 
-      // Transform to UI format
-      const transformedSettings: NotificationSetting[] = defaultSettings.map((defaultSetting, index) => {
-        const dbSetting = settingsMap.get(defaultSetting.key);
-        return {
-          id: (index + 1).toString(),
-          title: defaultSetting.title,
-          description: defaultSetting.description,
-          enabled: dbSetting?.enabled ?? true,
-          type: dbSetting?.type ?? defaultSetting.type
-        };
-      });
-
-      setSettings(transformedSettings);
-    } catch (error) {
-      console.error('Error fetching notification settings:', error);
-    } finally {
-      setIsLoading(false);
-    }
+      setNotifications(mockNotifications);
+      setSettings(mockSettings);
+      
+      return { notifications: mockNotifications, settings: mockSettings };
+    }, 'fetchNotifications');
+    
+    setIsLoading(false);
+    return result.data;
   };
 
-  const markAsRead = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('id', id);
-
-      if (error) {
-        console.error('Error marking notification as read:', error);
-        return;
-      }
-
-      setNotifications(prev => 
-        prev.map(notif => 
-          notif.id === id ? { ...notif, read: true } : notif
-        )
-      );
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
+  const markAsRead = async (notificationId: string) => {
+    await handleAsyncError(async () => {
+      setNotifications(prev => prev.map(notification => 
+        notification.id === notificationId 
+          ? { ...notification, read: true }
+          : notification
+      ));
+    }, 'markNotificationAsRead');
   };
 
   const markAllAsRead = async () => {
-    try {
-      const { data: userData } = await supabase.auth.getUser();
-      
-      if (!userData.user) return;
-
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('user_id', userData.user.id)
-        .eq('read', false);
-
-      if (error) {
-        console.error('Error marking all notifications as read:', error);
-        return;
-      }
-
-      setNotifications(prev => 
-        prev.map(notif => ({ ...notif, read: true }))
-      );
-
-      toast.success('All notifications marked as read');
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
-    }
+    await handleAsyncError(async () => {
+      setNotifications(prev => prev.map(notification => 
+        ({ ...notification, read: true })
+      ));
+    }, 'markAllNotificationsAsRead');
   };
 
-  const toggleSetting = async (id: string) => {
-    const setting = settings.find(s => s.id === id);
-    if (!setting) return;
-
-    try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return;
-
-      // Map UI setting to database key
-      const settingKeyMap: Record<string, string> = {
-        '1': 'job_assignments',
-        '2': 'schedule_changes',
-        '3': 'parts_inventory',
-        '4': 'customer_messages',
-        '5': 'daily_summary'
-      };
-
-      const settingKey = settingKeyMap[id];
-      if (!settingKey) return;
-
-      const newValue = !setting.enabled;
-
-      const { error } = await supabase
-        .from('notification_settings')
-        .upsert({
-          user_id: userData.user.id,
-          setting_key: settingKey,
-          setting_value: newValue,
-          setting_type: setting.type
-        });
-
-      if (error) {
-        console.error('Error updating notification setting:', error);
-        return;
-      }
-
-      setSettings(prev => 
-        prev.map(s => 
-          s.id === id ? { ...s, enabled: newValue } : s
-        )
-      );
-    } catch (error) {
-      console.error('Error toggling notification setting:', error);
-    }
+  const toggleSetting = async (settingId: string) => {
+    await handleAsyncError(async () => {
+      setSettings(prev => prev.map(setting => 
+        setting.id === settingId 
+          ? { ...setting, enabled: !setting.enabled }
+          : setting
+      ));
+    }, 'toggleNotificationSetting');
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
 
   return {
     notifications,
@@ -250,6 +140,6 @@ export function useNotifications() {
     markAsRead,
     markAllAsRead,
     toggleSetting,
-    refreshNotifications: fetchNotifications
+    refreshData: fetchNotifications
   };
 }

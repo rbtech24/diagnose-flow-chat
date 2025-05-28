@@ -1,217 +1,118 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 
-interface CalendarEvent {
+import { useState, useEffect } from 'react';
+import { useErrorHandler } from './useErrorHandler';
+
+export interface CalendarEvent {
   id: string;
   title: string;
-  customer: string;
-  location: string;
-  time: string;
-  duration: string;
-  status: 'scheduled' | 'in-progress' | 'completed';
+  description: string;
+  startTime: Date;
+  endTime: Date;
+  type: 'repair' | 'maintenance' | 'appointment';
+  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+  customerName: string;
+  address: string;
   priority: 'low' | 'medium' | 'high';
-  date: Date;
-  customerId?: string;
-  description?: string;
+}
+
+export interface CalendarStats {
+  todayJobs: number;
+  weekJobs: number;
+  overdueJobs: number;
+  onTimeRate: number;
 }
 
 export function useCalendarData(selectedDate: Date) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<CalendarStats>({
     todayJobs: 0,
     weekJobs: 0,
     overdueJobs: 0,
-    onTimeRate: 94
+    onTimeRate: 0
   });
+  const { handleAsyncError } = useErrorHandler();
 
-  useEffect(() => {
-    fetchCalendarData();
-  }, [selectedDate]);
+  const fetchEvents = async (date: Date) => {
+    const result = await handleAsyncError(async () => {
+      setIsLoading(true);
+      
+      // Mock data for now - replace with actual API call
+      const mockEvents: CalendarEvent[] = [
+        {
+          id: '1',
+          title: 'HVAC Repair - Smith Residence',
+          description: 'Air conditioning unit not cooling properly',
+          startTime: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 9, 0),
+          endTime: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 11, 0),
+          type: 'repair',
+          status: 'scheduled',
+          customerName: 'John Smith',
+          address: '123 Main St, Anytown, USA',
+          priority: 'high'
+        },
+        {
+          id: '2',
+          title: 'Routine Maintenance - Johnson Home',
+          description: 'Quarterly HVAC system check',
+          startTime: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 14, 0),
+          endTime: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 15, 30),
+          type: 'maintenance',
+          status: 'scheduled',
+          customerName: 'Sarah Johnson',
+          address: '456 Oak Ave, Anytown, USA',
+          priority: 'medium'
+        }
+      ];
 
-  const fetchCalendarData = async () => {
-    setIsLoading(true);
-    try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        setIsLoading(false);
-        return;
-      }
+      // Filter events for selected date
+      const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const dayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+      
+      const filteredEvents = mockEvents.filter(event => 
+        event.startTime >= dayStart && event.startTime < dayEnd
+      );
 
-      // Get the date range for the selected date
-      const startOfDay = new Date(selectedDate);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(selectedDate);
-      endOfDay.setHours(23, 59, 59, 999);
-
-      // Query repairs for the selected date
-      const { data: repairData, error } = await supabase
-        .from('repairs')
-        .select(`
-          *,
-          customers(first_name, last_name, service_addresses)
-        `)
-        .eq('technician_id', userData.user.id)
-        .gte('scheduled_at', startOfDay.toISOString())
-        .lte('scheduled_at', endOfDay.toISOString())
-        .order('scheduled_at', { ascending: true });
-
-      if (error) {
-        console.error('Error fetching calendar data:', error);
-        setEvents([]);
-        setIsLoading(false);
-        return;
-      }
-
-      // Transform repair data to calendar events
-      const transformedEvents: CalendarEvent[] = (repairData || []).map(repair => {
-        const scheduledTime = new Date(repair.scheduled_at);
-        const customer = repair.customers 
-          ? `${repair.customers.first_name || ''} ${repair.customers.last_name || ''}`.trim()
-          : 'Unknown Customer';
-        
-        const serviceAddress = repair.customers?.service_addresses?.[0];
-        const location = serviceAddress 
-          ? `${serviceAddress.street || ''}, ${serviceAddress.city || ''}`.trim()
-          : 'No address provided';
-
-        return {
-          id: repair.id,
-          title: `Repair Service - ${repair.diagnosis || 'General Repair'}`,
-          customer,
-          location,
-          time: scheduledTime.toLocaleTimeString('en-US', { 
-            hour: '2-digit', 
-            minute: '2-digit',
-            hour12: false 
-          }),
-          duration: typeof repair.estimated_duration === 'string' ? repair.estimated_duration : '2h',
-          status: repair.status as CalendarEvent['status'],
-          priority: repair.priority as CalendarEvent['priority'] || 'medium',
-          date: scheduledTime,
-          customerId: repair.customer_id,
-          description: repair.notes
-        };
-      });
-
-      setEvents(transformedEvents);
+      setEvents(filteredEvents);
       
       // Calculate stats
-      await calculateStats(userData.user.id);
-    } catch (error) {
-      console.error('Error fetching calendar data:', error);
-      setEvents([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const calculateStats = async (technicianId: string) => {
-    try {
       const today = new Date();
-      const weekStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay());
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekEnd.getDate() + 6);
-
-      // Today's jobs
-      const todayStart = new Date(today);
-      todayStart.setHours(0, 0, 0, 0);
-      const todayEnd = new Date(today);
-      todayEnd.setHours(23, 59, 59, 999);
-
-      const { data: todayJobs } = await supabase
-        .from('repairs')
-        .select('id')
-        .eq('technician_id', technicianId)
-        .gte('scheduled_at', todayStart.toISOString())
-        .lte('scheduled_at', todayEnd.toISOString());
-
-      // Week's jobs
-      const { data: weekJobs } = await supabase
-        .from('repairs')
-        .select('id')
-        .eq('technician_id', technicianId)
-        .gte('scheduled_at', weekStart.toISOString())
-        .lte('scheduled_at', weekEnd.toISOString());
-
-      // Overdue jobs
-      const { data: overdueJobs } = await supabase
-        .from('repairs')
-        .select('id')
-        .eq('technician_id', technicianId)
-        .eq('status', 'scheduled')
-        .lt('scheduled_at', today.toISOString());
-
-      // On-time rate calculation
-      const { data: completedJobs } = await supabase
-        .from('repairs')
-        .select('scheduled_at, completed_at')
-        .eq('technician_id', technicianId)
-        .eq('status', 'completed')
-        .not('completed_at', 'is', null)
-        .gte('completed_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
-
-      let onTimeCount = 0;
-      const totalCompleted = completedJobs?.length || 0;
-
-      if (completedJobs) {
-        onTimeCount = completedJobs.filter(job => {
-          const scheduled = new Date(job.scheduled_at);
-          const completed = new Date(job.completed_at);
-          const scheduledEndOfDay = new Date(scheduled);
-          scheduledEndOfDay.setHours(23, 59, 59, 999);
-          return completed <= scheduledEndOfDay;
-        }).length;
-      }
-
-      const onTimeRate = totalCompleted > 0 ? Math.round((onTimeCount / totalCompleted) * 100) : 100;
-
+      const todayEvents = mockEvents.filter(event => 
+        event.startTime.toDateString() === today.toDateString()
+      );
+      
       setStats({
-        todayJobs: todayJobs?.length || 0,
-        weekJobs: weekJobs?.length || 0,
-        overdueJobs: overdueJobs?.length || 0,
-        onTimeRate
-      });
-    } catch (error) {
-      console.error('Error calculating stats:', error);
-      setStats({
-        todayJobs: 0,
-        weekJobs: 0,
+        todayJobs: todayEvents.length,
+        weekJobs: mockEvents.length,
         overdueJobs: 0,
-        onTimeRate: 100
+        onTimeRate: 95
       });
-    }
+      
+      return filteredEvents;
+    }, 'fetchCalendarEvents');
+    
+    setIsLoading(false);
+    return result.data || [];
   };
 
   const startJob = async (eventId: string) => {
-    try {
-      const { error } = await supabase
-        .from('repairs')
-        .update({ 
-          status: 'in-progress',
-          started_at: new Date().toISOString()
-        })
-        .eq('id', eventId);
-
-      if (error) {
-        console.error('Error starting job:', error);
-        return;
-      }
-
+    await handleAsyncError(async () => {
       setEvents(prev => prev.map(event => 
         event.id === eventId 
-          ? { ...event, status: 'in-progress' as const }
+          ? { ...event, status: 'in_progress' }
           : event
       ));
-    } catch (error) {
-      console.error('Error starting job:', error);
-    }
+    }, 'startJob');
   };
 
   const viewDetails = (eventId: string) => {
-    // Navigate to repair details page
-    window.location.href = `/tech/repairs/${eventId}`;
+    console.log('Viewing details for event:', eventId);
+    // Implement navigation to event details
   };
+
+  useEffect(() => {
+    fetchEvents(selectedDate);
+  }, [selectedDate]);
 
   return {
     events,
@@ -219,6 +120,6 @@ export function useCalendarData(selectedDate: Date) {
     stats,
     startJob,
     viewDetails,
-    refreshData: fetchCalendarData
+    refreshEvents: () => fetchEvents(selectedDate)
   };
 }
