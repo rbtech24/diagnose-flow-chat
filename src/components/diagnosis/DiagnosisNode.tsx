@@ -70,8 +70,8 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
     // Handle disconnect functionality would go here
   }, []);
 
-  // Memoize sanitized content and return JSX element or null - Fixed typing
-  const contentElement = useMemo((): JSX.Element | null => {
+  // Memoize sanitized content and return JSX element or null
+  const contentElement = useMemo(() => {
     if (!nodeContent || nodeContent.trim() === '') return null;
     const sanitizedContent = sanitizeHtml(nodeContent);
     return (
