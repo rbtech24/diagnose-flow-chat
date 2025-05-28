@@ -58,8 +58,16 @@ export function useTraining() {
       const progressData = await fetchUserTrainingProgress(currentUserId);
       setUserProgress(progressData);
       
-      // Fetch certification programs from database
-      const certificationsData = await fetchCertificationPrograms();
+      // Fetch certification programs from database - convert to CertificationProgress format
+      const certificationsRaw = await fetchCertificationPrograms();
+      const certificationsData: CertificationProgress[] = certificationsRaw.map((cert: any) => ({
+        id: cert.id,
+        userId: currentUserId,
+        programId: cert.name || cert.id,
+        status: 'not_started' as const,
+        progress: 0,
+        moduleProgress: []
+      }));
       setCertifications(certificationsData);
       
       return { modules: modulesData, progress: progressData, certifications: certificationsData };
