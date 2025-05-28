@@ -46,6 +46,28 @@ export interface CertificationProgress {
   moduleProgress: TrainingProgress[];
 }
 
+interface TrainingModuleRecord {
+  id: string;
+  title: string;
+  description?: string;
+  content?: string;
+  type: string;
+  duration_minutes?: number;
+  difficulty: string;
+  tags?: string[];
+  media_url?: string;
+  content_url?: string;
+  thumbnail_url?: string;
+  company_id?: string;
+  author_id?: string;
+  is_public?: boolean;
+  completion_criteria?: Record<string, any>;
+  category?: string;
+  rating?: number;
+  created_at: string;
+  updated_at: string;
+}
+
 // Fetch training modules
 export const fetchTrainingModules = async (companyId?: string): Promise<TrainingModule[]> => {
   const response = await APIErrorHandler.handleAPICall(async () => {
@@ -66,7 +88,7 @@ export const fetchTrainingModules = async (companyId?: string): Promise<Training
       return [];
     }
 
-    return (data || []).map((module: any) => ({
+    return (data || []).map((module: TrainingModuleRecord) => ({
       id: module.id,
       title: module.title,
       description: module.description || '',
@@ -80,7 +102,7 @@ export const fetchTrainingModules = async (companyId?: string): Promise<Training
       companyId: module.company_id,
       authorId: module.author_id,
       isPublic: module.is_public || false,
-      completionCriteria: (module.completion_criteria as Record<string, any>) || {},
+      completionCriteria: module.completion_criteria || {},
       category: module.category,
       rating: module.rating || 0,
       createdAt: new Date(module.created_at),
