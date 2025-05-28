@@ -47,43 +47,42 @@ export interface CertificationProgress {
 // Fetch training modules
 export const fetchTrainingModules = async (companyId?: string): Promise<TrainingModule[]> => {
   const response = await APIErrorHandler.handleAPICall(async () => {
-    // Since training_modules table doesn't exist in the schema, return mock data
-    console.log('Training modules table not found, using mock data');
-    
-    return [
-      {
-        id: '1',
-        title: 'Basic Appliance Diagnostics',
-        description: 'Learn the fundamentals of appliance troubleshooting',
-        content: 'This module covers basic diagnostic techniques...',
-        type: 'video' as const,
-        duration: 30,
-        difficulty: 'beginner' as const,
-        tags: ['diagnostics', 'fundamentals'],
-        thumbnailUrl: '/placeholder.svg',
-        companyId: companyId,
-        isPublic: true,
-        completionCriteria: { minScore: 80 },
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        id: '2',
-        title: 'Advanced Repair Techniques',
-        description: 'Master complex repair procedures',
-        content: 'This module covers advanced repair techniques...',
-        type: 'document' as const,
-        duration: 45,
-        difficulty: 'advanced' as const,
-        tags: ['repair', 'advanced'],
-        thumbnailUrl: '/placeholder.svg',
-        companyId: companyId,
-        isPublic: true,
-        completionCriteria: { minScore: 85 },
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    ];
+    let query = supabase
+      .from('training_modules')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    if (companyId) {
+      query = query.or(`company_id.eq.${companyId},is_public.eq.true`);
+    } else {
+      query = query.eq('is_public', true);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      throw new Error(`Failed to fetch training modules: ${error.message}`);
+    }
+
+    return (data || []).map(module => ({
+      id: module.id,
+      title: module.title,
+      description: module.description,
+      content: module.content,
+      type: module.type as TrainingModule['type'],
+      duration: module.duration,
+      difficulty: module.difficulty as TrainingModule['difficulty'],
+      tags: module.tags || [],
+      mediaUrl: module.media_url,
+      thumbnailUrl: module.thumbnail_url,
+      companyId: module.company_id,
+      authorId: module.author_id,
+      isPublic: module.is_public,
+      completionCriteria: module.completion_criteria || {},
+      createdAt: new Date(module.created_at),
+      updatedAt: new Date(module.updated_at)
+    }));
   }, "fetchTrainingModules");
 
   if (!response.success) throw response.error;
@@ -93,32 +92,27 @@ export const fetchTrainingModules = async (companyId?: string): Promise<Training
 // Fetch user training progress
 export const fetchUserTrainingProgress = async (userId: string): Promise<TrainingProgress[]> => {
   const response = await APIErrorHandler.handleAPICall(async () => {
-    // Since training_progress table doesn't exist in the schema, return mock data
-    console.log('Training progress table not found, using mock data');
-    
-    return [
-      {
-        id: '1',
-        userId: userId,
-        moduleId: '1',
-        status: 'completed' as const,
-        progress: 100,
-        startedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-        completedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-        timeSpent: 1800,
-        lastAccessedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
-      },
-      {
-        id: '2',
-        userId: userId,
-        moduleId: '2',
-        status: 'in_progress' as const,
-        progress: 65,
-        startedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-        timeSpent: 1200,
-        lastAccessedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
-      }
-    ];
+    const { data, error } = await supabase
+      .from('training_progress')
+      .select('*')
+      .eq('user_id', userId)
+      .order('last_accessed_at', { ascending: false });
+
+    if (error) {
+      throw new Error(`Failed to fetch training progress: ${error.message}`);
+    }
+
+    return (data || []).map(progress => ({
+      id: progress.id,
+      userId: progress.user_id,
+      moduleId: progress.module_id,
+      status: progress.status as TrainingProgress['status'],
+      progress: progress.progress,
+      startedAt: progress.started_at ? new Date(progress.started_at) : undefined,
+      completedAt: progress.completed_at ? new Date(progress.completed_at) : undefined,
+      timeSpent: progress.time_spent,
+      lastAccessedAt: new Date(progress.last_accessed_at)
+    }));
   }, "fetchUserTrainingProgress");
 
   if (!response.success) throw response.error;
@@ -131,16 +125,33 @@ export const startTrainingModule = async (moduleId: string): Promise<TrainingPro
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) throw new Error("Authentication required");
 
-    // Mock implementation - would normally insert into training_progress table
+    const { data, error } = await supabase
+      .from('training_progress')
+      .insert({
+        user_id: userData.user.id,
+        module_id: moduleId,
+        status: 'in_progress',
+        progress: 0,
+        started_at: new Date().toISOString(),
+        time_spent: 0,
+        last_accessed_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to start training module: ${error.message}`);
+    }
+
     return {
-      id: `progress_${Date.now()}`,
-      userId: userData.user.id,
-      moduleId: moduleId,
-      status: 'in_progress' as const,
-      progress: 0,
-      startedAt: new Date(),
-      timeSpent: 0,
-      lastAccessedAt: new Date()
+      id: data.id,
+      userId: data.user_id,
+      moduleId: data.module_id,
+      status: data.status as TrainingProgress['status'],
+      progress: data.progress,
+      startedAt: new Date(data.started_at),
+      timeSpent: data.time_spent,
+      lastAccessedAt: new Date(data.last_accessed_at)
     };
   }, "startTrainingModule");
 
@@ -158,16 +169,44 @@ export const updateTrainingProgress = async (
   }
 ): Promise<TrainingProgress> => {
   const response = await APIErrorHandler.handleAPICall(async () => {
-    // Mock implementation - would normally update training_progress table
+    const updateData: any = {
+      last_accessed_at: new Date().toISOString()
+    };
+
+    if (updates.progress !== undefined) {
+      updateData.progress = updates.progress;
+    }
+    if (updates.timeSpent !== undefined) {
+      updateData.time_spent = updates.timeSpent;
+    }
+    if (updates.status !== undefined) {
+      updateData.status = updates.status;
+      if (updates.status === 'completed') {
+        updateData.completed_at = new Date().toISOString();
+      }
+    }
+
+    const { data, error } = await supabase
+      .from('training_progress')
+      .update(updateData)
+      .eq('id', progressId)
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to update training progress: ${error.message}`);
+    }
+
     return {
-      id: progressId,
-      userId: 'mock-user-id',
-      moduleId: 'mock-module-id',
-      status: updates.status || 'in_progress',
-      progress: updates.progress || 0,
-      timeSpent: updates.timeSpent || 0,
-      lastAccessedAt: new Date(),
-      startedAt: new Date()
+      id: data.id,
+      userId: data.user_id,
+      moduleId: data.module_id,
+      status: data.status as TrainingProgress['status'],
+      progress: data.progress,
+      startedAt: data.started_at ? new Date(data.started_at) : undefined,
+      completedAt: data.completed_at ? new Date(data.completed_at) : undefined,
+      timeSpent: data.time_spent,
+      lastAccessedAt: new Date(data.last_accessed_at)
     };
   }, "updateTrainingProgress");
 
@@ -178,26 +217,20 @@ export const updateTrainingProgress = async (
 // Fetch certification programs
 export const fetchCertificationPrograms = async (companyId?: string): Promise<any[]> => {
   const response = await APIErrorHandler.handleAPICall(async () => {
-    const { data, error } = await supabase
+    let query = supabase
       .from("certification_programs")
       .select("*")
       .eq("is_active", true)
       .order("created_at", { ascending: false });
 
+    if (companyId) {
+      query = query.eq("company_id", companyId);
+    }
+
+    const { data, error } = await query;
+
     if (error) {
-      console.log('Certification programs query failed, using mock data');
-      return [
-        {
-          id: '1',
-          name: 'Appliance Repair Certification',
-          description: 'Complete certification program for appliance repair technicians',
-          totalModules: 5,
-          companyId: companyId,
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      ];
+      throw new Error(`Failed to fetch certification programs: ${error.message}`);
     }
 
     return data || [];
