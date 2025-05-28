@@ -43,6 +43,22 @@ export interface SupportTicketMessage {
   };
 }
 
+// Helper function to validate and cast status
+function validateStatus(status: string): SupportTicket['status'] {
+  const validStatuses: SupportTicket['status'][] = ['open', 'in_progress', 'resolved', 'closed'];
+  return validStatuses.includes(status as SupportTicket['status']) 
+    ? (status as SupportTicket['status']) 
+    : 'open';
+}
+
+// Helper function to validate and cast priority
+function validatePriority(priority: string): SupportTicket['priority'] {
+  const validPriorities: SupportTicket['priority'][] = ['low', 'medium', 'high', 'urgent'];
+  return validPriorities.includes(priority as SupportTicket['priority']) 
+    ? (priority as SupportTicket['priority']) 
+    : 'medium';
+}
+
 export function useSupportTickets(initialStatus?: string, companyId?: string) {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -83,8 +99,8 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
         id: ticket.id,
         title: ticket.title,
         description: ticket.description,
-        status: ticket.status as SupportTicket['status'],
-        priority: ticket.priority as SupportTicket['priority'],
+        status: validateStatus(ticket.status),
+        priority: validatePriority(ticket.priority),
         category: 'General',
         createdAt: new Date(ticket.created_at),
         updatedAt: new Date(ticket.updated_at),
@@ -95,7 +111,7 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
         created_by_user_id: ticket.created_by_user_id,
         created_at: ticket.created_at,
         updated_at: ticket.updated_at,
-        created_by_user: ticket.created_by_user
+        created_by_user: ticket.created_by_user || null
       }));
 
       setTickets(formattedTickets);
@@ -132,8 +148,8 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
         id: data.id,
         title: data.title,
         description: data.description,
-        status: data.status as SupportTicket['status'],
-        priority: data.priority as SupportTicket['priority'],
+        status: validateStatus(data.status),
+        priority: validatePriority(data.priority),
         category: 'General',
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
@@ -144,7 +160,7 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
         created_by_user_id: data.created_by_user_id,
         created_at: data.created_at,
         updated_at: data.updated_at,
-        created_by_user: data.created_by_user
+        created_by_user: data.created_by_user || null
       };
     } catch (err) {
       throw err instanceof Error ? err : new Error(`Failed to fetch ticket ${id}`);
@@ -180,7 +196,7 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
         ticket_id: message.ticket_id,
         user_id: message.user_id,
         created_at: message.created_at,
-        sender: message.sender
+        sender: message.sender || null
       }));
     } catch (err) {
       throw err instanceof Error ? err : new Error(`Failed to fetch messages for ticket ${ticketId}`);
@@ -222,8 +238,8 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
         id: data.id,
         title: data.title,
         description: data.description,
-        status: data.status,
-        priority: data.priority,
+        status: validateStatus(data.status),
+        priority: validatePriority(data.priority),
         category: 'General',
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
@@ -233,7 +249,7 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
         created_by_user_id: data.created_by_user_id,
         created_at: data.created_at,
         updated_at: data.updated_at,
-        created_by_user: data.created_by_user
+        created_by_user: data.created_by_user || null
       };
 
       loadTickets(initialStatus);
@@ -274,8 +290,8 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
         id: data.id,
         title: data.title,
         description: data.description,
-        status: data.status,
-        priority: data.priority,
+        status: validateStatus(data.status),
+        priority: validatePriority(data.priority),
         category: 'General',
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
@@ -286,7 +302,7 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
         created_by_user_id: data.created_by_user_id,
         created_at: data.created_at,
         updated_at: data.updated_at,
-        created_by_user: data.created_by_user
+        created_by_user: data.created_by_user || null
       };
 
       setTickets(prevTickets => 
@@ -337,7 +353,7 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
         ticket_id: data.ticket_id,
         user_id: data.user_id,
         created_at: data.created_at,
-        sender: data.sender
+        sender: data.sender || null
       };
     } catch (err) {
       throw err instanceof Error ? err : new Error('Failed to add message');
