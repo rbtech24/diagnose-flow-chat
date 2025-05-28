@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Separator } from "@/components/ui/separator";
 import { SubscriptionPlanCard } from "@/components/subscription/SubscriptionPlanCard";
 import { SubscriptionPlanForm } from "@/components/subscription/SubscriptionPlanForm";
-import { SubscriptionPlan } from "@/types/subscription";
+import { SubscriptionPlan } from "@/types/subscription-enhanced";
 import { Plus, Package } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useSubscriptionStore } from "@/store/subscriptionStore";
@@ -17,7 +17,13 @@ export default function AdminSubscriptionPlans() {
   const { toast } = useToast();
 
   const handleCreatePlan = (plan: SubscriptionPlan) => {
-    addPlan(plan);
+    // Add missing required fields for consistency
+    const planWithDates = {
+      ...plan,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    addPlan(planWithDates);
     setIsDialogOpen(false);
     setEditingPlan(null);
     toast({
@@ -32,7 +38,12 @@ export default function AdminSubscriptionPlans() {
   };
 
   const handleUpdatePlan = (updatedPlan: SubscriptionPlan) => {
-    updatePlan(updatedPlan);
+    // Add updated timestamp
+    const planWithUpdatedDate = {
+      ...updatedPlan,
+      updated_at: new Date().toISOString()
+    };
+    updatePlan(planWithUpdatedDate);
     setIsDialogOpen(false);
     setEditingPlan(null);
     toast({

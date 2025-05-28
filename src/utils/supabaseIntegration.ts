@@ -30,41 +30,60 @@ export class SupabaseIntegration {
     }
   }
 
-  // Specific methods for different tables to avoid type issues
-  static async safeTechnicianInsert<T>(data: Partial<T>): Promise<SupabaseResult<T>> {
-    return this.safeQuery(() => 
-      supabase.from('technicians').insert(data).select().single()
-    );
+  static async safeTechnicianInsert(data: any): Promise<SupabaseResult<any>> {
+    return this.safeQuery(async () => {
+      const { data: result, error } = await supabase
+        .from('technicians')
+        .insert(data)
+        .select()
+        .single();
+      return { data: result, error };
+    });
   }
 
-  static async safeTechnicianUpdate<T>(
-    id: string,
-    data: Partial<T>
-  ): Promise<SupabaseResult<T>> {
-    return this.safeQuery(() => 
-      supabase.from('technicians').update(data).eq('id', id).select().single()
-    );
+  static async safeTechnicianUpdate(id: string, data: any): Promise<SupabaseResult<any>> {
+    return this.safeQuery(async () => {
+      const { data: result, error } = await supabase
+        .from('technicians')
+        .update(data)
+        .eq('id', id)
+        .select()
+        .single();
+      return { data: result, error };
+    });
   }
 
   static async safeTechnicianDelete(id: string): Promise<SupabaseResult<null>> {
-    return this.safeQuery(() => 
-      supabase.from('technicians').delete().eq('id', id)
-    );
+    return this.safeQuery(async () => {
+      const { data, error } = await supabase
+        .from('technicians')
+        .delete()
+        .eq('id', id);
+      return { data: null, error };
+    });
   }
 
-  static async safeCompanyInsert<T>(data: Partial<T>): Promise<SupabaseResult<T>> {
-    return this.safeQuery(() => 
-      supabase.from('companies').insert(data).select().single()
-    );
+  static async safeCompanyInsert(data: any): Promise<SupabaseResult<any>> {
+    return this.safeQuery(async () => {
+      const { data: result, error } = await supabase
+        .from('companies')
+        .insert(data)
+        .select()
+        .single();
+      return { data: result, error };
+    });
   }
 
-  static async safeCompanyUpdate<T>(
-    id: string,
-    data: Partial<T>
-  ): Promise<SupabaseResult<T>> {
-    return this.safeQuery(() => 
-      supabase.from('companies').update(data).eq('id', id).select().single()
-    );
+  static async safeCompanyUpdate(id: string, data: any): Promise<SupabaseResult<any>> {
+    return this.safeQuery(async () => {
+      const { data: result, error } = await supabase
+        .from('companies')
+        .update(data)
+        .eq('id', id)
+        .select()
+        .single();
+      return { data: result, error };
+    });
   }
 
   static setupRealtimeSubscription<T>(

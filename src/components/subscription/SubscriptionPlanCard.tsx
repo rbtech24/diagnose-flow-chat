@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { SubscriptionPlan, BillingCycle } from "@/types/subscription";
+import { SubscriptionPlan, BillingCycle } from "@/types/subscription-enhanced";
 import { CheckCircle2, Edit, Package } from "lucide-react";
 
 interface SubscriptionPlanCardProps {
@@ -80,12 +80,18 @@ export function SubscriptionPlanCard({
         <div className="space-y-2">
           <p className="text-sm font-medium">Features:</p>
           <ul className="space-y-1">
-            {Array.isArray(plan.features) && plan.features.map((feature, index) => (
-              <li key={index} className="flex items-center text-sm">
-                <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                <span>{feature}</span>
-              </li>
-            ))}
+            {Object.entries(plan.features).map(([key, value], index) => {
+              if (typeof value === 'boolean' && value) {
+                const featureName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                return (
+                  <li key={index} className="flex items-center text-sm">
+                    <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                    <span>{featureName}</span>
+                  </li>
+                );
+              }
+              return null;
+            })}
           </ul>
         </div>
       </CardContent>

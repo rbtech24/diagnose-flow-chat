@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { License } from "@/types/subscription";
+import { License } from "@/types/subscription-enhanced";
 import { LicenseCard } from "@/components/subscription/LicenseCard";
 import { NewLicenseForm } from "@/components/subscription/NewLicenseForm";
 import { Search, Plus, Package } from "lucide-react";
@@ -20,7 +20,7 @@ export default function AdminLicenses() {
   const filteredLicenses = licenses.filter((license) => {
     const matchesSearch =
       searchQuery === "" ||
-      license.company_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (license.company_name && license.company_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
       license.plan_name.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesStatus =

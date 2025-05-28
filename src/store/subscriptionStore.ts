@@ -33,7 +33,7 @@ interface SubscriptionStore {
   deactivateLicense: (licenseId: string) => void;
 }
 
-// Mock data for development
+// Mock data for development - this should be replaced with actual API calls
 const mockPlans: SubscriptionPlan[] = [
   {
     id: 'plan-basic',
@@ -66,6 +66,7 @@ const mockLicenses: License[] = [
   {
     id: 'license-1',
     company_id: 'company-2',
+    company_name: 'Demo Company',
     plan_id: 'plan-basic',
     plan_name: 'Basic Plan',
     status: 'trial',
@@ -105,7 +106,7 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   fetchPlans: async () => {
     set({ isLoadingPlans: true, error: null });
     try {
-      // For now, using mock data - replace with real API call when ready
+      // TODO: Replace with real API call to Supabase
       await new Promise(resolve => setTimeout(resolve, 100));
       const plans = mockPlans;
       set({ plans, isLoadingPlans: false });
@@ -121,7 +122,7 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   fetchLicenses: async (companyId: string) => {
     set({ isLoadingLicenses: true, error: null });
     try {
-      // For now, using mock data - replace with real API call when ready
+      // TODO: Replace with real API call to Supabase
       await new Promise(resolve => setTimeout(resolve, 100));
       const licenses = mockLicenses.filter(license => license.company_id === companyId);
       set({ licenses, isLoadingLicenses: false });
@@ -136,7 +137,7 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   // Fetch a single license by ID
   fetchLicenseById: async (licenseId: string) => {
     try {
-      // For now, find the license in the current state
+      // TODO: Replace with real API call to Supabase
       const license = get().licenses.find(license => license.id === licenseId) || null;
       return license;
     } catch (error) {
@@ -150,7 +151,7 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   fetchPayments: async (licenseId: string) => {
     set({ isLoadingPayments: true, error: null });
     try {
-      // For now, using mock data - replace with real API call when ready
+      // TODO: Replace with real API call to Supabase
       await new Promise(resolve => setTimeout(resolve, 100));
       const payments = mockPayments.filter(payment => payment.license_id === licenseId);
       set({ payments, isLoadingPayments: false });
@@ -168,6 +169,7 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
       const newLicense = {
         ...licenseData,
         id: `license-${Date.now()}`,
+        company_name: 'New Company',
         createdAt: new Date(),
         updatedAt: new Date(),
       } as License;

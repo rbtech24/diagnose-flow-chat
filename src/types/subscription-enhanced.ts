@@ -30,6 +30,7 @@ export interface SubscriptionPlan {
 export interface License {
   id: string;
   company_id: string;
+  company_name?: string;
   plan_id: string;
   plan_name: string;
   status: 'trial' | 'active' | 'expired' | 'canceled';
@@ -52,3 +53,5 @@ export interface Payment {
   payment_date: Date;
   payment_method: string;
 }
+
+export type BillingCycle = 'monthly' | 'yearly';
