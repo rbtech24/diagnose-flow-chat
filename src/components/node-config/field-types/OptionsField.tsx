@@ -15,7 +15,7 @@ export function OptionsField({ field, onFieldChange }: OptionsFieldProps) {
         Response Options
       </Label>
       <Textarea 
-        placeholder="Enter options (one per line)&#10;Example:&#10;Yes&#10;No&#10;Not applicable"
+        placeholder="Enter options (one per line)"
         value={field.options?.join('\n') || ''}
         onChange={(e) => onFieldChange({ 
           ...field, 

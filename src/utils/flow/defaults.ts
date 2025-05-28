@@ -14,27 +14,6 @@ export const defaultEdgeOptions = {
   },
 };
 
-export const initialNodes: Node[] = [
-  {
-    id: 'start',
-    type: 'diagnosis',
-    position: { x: 250, y: 0 },
-    data: { 
-      label: 'Start Diagnosis',
-      type: 'question',
-      content: 'Select the main symptom or issue you are experiencing.',
-      options: ['No Power', 'Not Heating', 'Making Noise', 'Not Starting'],
-      nodeId: 'START',
-      media: [],
-      technicalSpecs: {
-        range: { min: 0, max: 0 },
-        testPoints: '',
-        value: 0,
-        measurementPoints: '',
-        points: ''
-      }
-    }
-  },
-];
+export const initialNodes: Node[] = [];
 
 export const initialEdges: Edge[] = [];

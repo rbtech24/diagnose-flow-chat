@@ -15,7 +15,7 @@ export function ContentField({ field, onFieldChange }: ContentFieldProps) {
         Question or Instruction
       </Label>
       <Textarea 
-        placeholder="Enter the question or instruction text for this step..."
+        placeholder="Enter the question or instruction text for this step"
         value={field.content || ''}
         onChange={(e) => onFieldChange({ ...field, content: e.target.value })}
         className="min-h-[100px] resize-none"

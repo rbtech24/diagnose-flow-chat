@@ -23,7 +23,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
   const isFlowAnswer = type === 'flowAnswer';
 
   // Set node title based on node type and available data
-  const nodeTitle = data.title || data.label || 'Node';
+  const nodeTitle = data.title || data.label || 'Untitled Node';
   
   // Memoize string content extraction to prevent unnecessary re-renders
   const nodeContent = useMemo((): string => {
@@ -70,8 +70,8 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
     // Handle disconnect functionality would go here
   }, []);
 
-  // Memoize sanitized content and return JSX element or null - FIXED TYPE ERROR
-  const contentElement = useMemo(() => {
+  // Memoize sanitized content and return JSX element or null
+  const contentElement = useMemo((): React.ReactNode => {
     if (!nodeContent || nodeContent.trim() === '') return null;
     const sanitizedContent = sanitizeHtml(nodeContent);
     return (
