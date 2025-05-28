@@ -1,9 +1,9 @@
 
-import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
 import { 
   BookOpen, 
   Play, 
@@ -14,93 +14,18 @@ import {
   Search,
   Filter
 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-
-interface TrainingModule {
-  id: string;
-  title: string;
-  description: string;
-  type: 'video' | 'document' | 'interactive';
-  duration: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  category: string;
-  completed: boolean;
-  rating: number;
-  thumbnail?: string;
-}
-
-interface Certification {
-  id: string;
-  name: string;
-  description: string;
-  progress: number;
-  totalModules: number;
-  completedModules: number;
-  expiryDate?: Date;
-  status: 'not-started' | 'in-progress' | 'completed' | 'expired';
-}
-
-const mockTrainingModules: TrainingModule[] = [
-  {
-    id: '1',
-    title: 'Washing Machine Diagnostics',
-    description: 'Learn to diagnose common washing machine problems',
-    type: 'video',
-    duration: '45 min',
-    difficulty: 'beginner',
-    category: 'Appliance Repair',
-    completed: true,
-    rating: 4.8
-  },
-  {
-    id: '2',
-    title: 'Refrigerator Compressor Repair',
-    description: 'Advanced techniques for compressor troubleshooting',
-    type: 'interactive',
-    duration: '2 hours',
-    difficulty: 'advanced',
-    category: 'Appliance Repair',
-    completed: false,
-    rating: 4.9
-  },
-  {
-    id: '3',
-    title: 'Safety Protocols Manual',
-    description: 'Essential safety guidelines for appliance repair',
-    type: 'document',
-    duration: '30 min',
-    difficulty: 'beginner',
-    category: 'Safety',
-    completed: true,
-    rating: 4.6
-  }
-];
-
-const mockCertifications: Certification[] = [
-  {
-    id: '1',
-    name: 'Appliance Repair Fundamentals',
-    description: 'Basic certification for appliance repair technicians',
-    progress: 75,
-    totalModules: 8,
-    completedModules: 6,
-    status: 'in-progress'
-  },
-  {
-    id: '2',
-    name: 'Advanced Diagnostics',
-    description: 'Advanced troubleshooting and diagnostic techniques',
-    progress: 100,
-    totalModules: 12,
-    completedModules: 12,
-    expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-    status: 'completed'
-  }
-];
+import { useState } from 'react';
+import { useTraining } from '@/hooks/useTraining';
 
 export default function TechTraining() {
-  const [modules] = useState<TrainingModule[]>(mockTrainingModules);
-  const [certifications] = useState<Certification[]>(mockCertifications);
+  const {
+    modules,
+    certifications,
+    isLoading,
+    markModuleComplete,
+    getStats
+  } = useTraining();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
@@ -137,6 +62,18 @@ export default function TechTraining() {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const stats = getStats();
+
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-12">
+          <p className="text-lg text-muted-foreground">Loading training content...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -218,8 +155,12 @@ export default function TechTraining() {
                             Download
                           </Button>
                         )}
-                        <Button size="sm">
-                          {module.completed ? 'Review' : 'Start'}
+                        <Button 
+                          size="sm"
+                          onClick={() => markModuleComplete(module.id)}
+                          disabled={module.completed}
+                        >
+                          {module.completed ? 'Completed' : 'Start'}
                         </Button>
                       </div>
                     </div>
@@ -283,17 +224,17 @@ export default function TechTraining() {
             <CardContent>
               <div className="space-y-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">12</div>
+                  <div className="text-2xl font-bold text-blue-600">{stats.completedModules}</div>
                   <p className="text-sm text-gray-600">Modules Completed</p>
                 </div>
                 
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">2</div>
+                  <div className="text-2xl font-bold text-green-600">{stats.completedCertifications}</div>
                   <p className="text-sm text-gray-600">Certifications Earned</p>
                 </div>
                 
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">24h</div>
+                  <div className="text-2xl font-bold text-purple-600">{stats.totalLearningTime}</div>
                   <p className="text-sm text-gray-600">Total Learning Time</p>
                 </div>
               </div>

@@ -27,11 +27,6 @@ export default function CompanyCommunity() {
           .from('community_posts')
           .select(`
             *,
-            author:author_id(
-              id,
-              email,
-              raw_user_meta_data
-            ),
             community_comments(count)
           `)
           .order('created_at', { ascending: false });
@@ -49,11 +44,11 @@ export default function CompanyCommunity() {
           type: post.type as CommunityPostType,
           authorId: post.author_id,
           author: {
-            id: post.author.id,
-            name: post.author.raw_user_meta_data?.name || 'Unknown User',
-            email: post.author.email || '',
+            id: post.author_id,
+            name: 'Anonymous User',
+            email: '',
             role: 'company',
-            avatarUrl: post.author.raw_user_meta_data?.avatar_url
+            avatarUrl: undefined
           },
           attachments: [],
           createdAt: new Date(post.created_at),
@@ -62,7 +57,7 @@ export default function CompanyCommunity() {
           views: post.views || 0,
           tags: post.tags || [],
           isSolved: post.is_solved || false,
-          comments: [] // We'll load comments separately when needed
+          comments: []
         }));
 
         setPosts(transformedPosts);
@@ -78,12 +73,10 @@ export default function CompanyCommunity() {
   }, []);
 
   const filteredPosts = posts.filter(post => {
-    // Filter by search query
     const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
     
-    // Filter by type
     const matchesType = selectedType === 'all' || post.type === selectedType;
     
     return matchesSearch && matchesType;
@@ -129,14 +122,7 @@ export default function CompanyCommunity() {
           tags: post.tags,
           author_id: userData.user.id
         })
-        .select(`
-          *,
-          author:author_id(
-            id,
-            email,
-            raw_user_meta_data
-          )
-        `)
+        .select()
         .single();
 
       if (error) {
@@ -153,10 +139,10 @@ export default function CompanyCommunity() {
         authorId: postData.author_id,
         author: {
           id: userData.user.id,
-          name: postData.author.raw_user_meta_data?.name || 'Unknown User',
+          name: 'Current User',
           email: userData.user.email || '',
           role: 'company',
-          avatarUrl: postData.author.raw_user_meta_data?.avatar_url
+          avatarUrl: undefined
         },
         attachments: [],
         createdAt: new Date(postData.created_at),

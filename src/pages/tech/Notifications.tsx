@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -9,117 +8,22 @@ import {
   Bell, 
   Mail, 
   MessageSquare, 
-  Calendar,
-  AlertCircle,
   Settings,
-  Check
+  Check,
+  AlertCircle
 } from 'lucide-react';
-
-interface NotificationSetting {
-  id: string;
-  title: string;
-  description: string;
-  enabled: boolean;
-  type: 'email' | 'push' | 'sms';
-}
-
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: 'info' | 'warning' | 'success' | 'error';
-  timestamp: Date;
-  read: boolean;
-}
-
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    title: 'New Job Assignment',
-    message: 'You have been assigned a new washing machine repair job for tomorrow at 9:00 AM.',
-    type: 'info',
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    read: false
-  },
-  {
-    id: '2',
-    title: 'Parts Delivered',
-    message: 'The parts you ordered for the dishwasher repair have been delivered.',
-    type: 'success',
-    timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
-    read: false
-  },
-  {
-    id: '3',
-    title: 'Schedule Change',
-    message: 'Your 2:00 PM appointment has been rescheduled to 3:00 PM.',
-    type: 'warning',
-    timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    read: true
-  }
-];
+import { useNotifications } from '@/hooks/useNotifications';
 
 export default function TechNotifications() {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
-  const [settings, setSettings] = useState<NotificationSetting[]>([
-    {
-      id: '1',
-      title: 'Job Assignments',
-      description: 'Get notified when new jobs are assigned to you',
-      enabled: true,
-      type: 'push'
-    },
-    {
-      id: '2',
-      title: 'Schedule Changes',
-      description: 'Receive alerts when your schedule is modified',
-      enabled: true,
-      type: 'email'
-    },
-    {
-      id: '3',
-      title: 'Parts & Inventory',
-      description: 'Updates about parts delivery and inventory status',
-      enabled: false,
-      type: 'email'
-    },
-    {
-      id: '4',
-      title: 'Customer Messages',
-      description: 'Direct messages and feedback from customers',
-      enabled: true,
-      type: 'push'
-    },
-    {
-      id: '5',
-      title: 'Daily Summary',
-      description: 'Daily recap of completed jobs and upcoming tasks',
-      enabled: false,
-      type: 'email'
-    }
-  ]);
-
-  const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(notif => 
-        notif.id === id ? { ...notif, read: true } : notif
-      )
-    );
-  };
-
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notif => ({ ...notif, read: true }))
-    );
-  };
-
-  const toggleSetting = (id: string) => {
-    setSettings(prev => 
-      prev.map(setting => 
-        setting.id === id ? { ...setting, enabled: !setting.enabled } : setting
-      )
-    );
-  };
+  const {
+    notifications,
+    settings,
+    isLoading,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    toggleSetting
+  } = useNotifications();
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -138,7 +42,15 @@ export default function TechNotifications() {
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-12">
+          <p className="text-lg text-muted-foreground">Loading notifications...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">

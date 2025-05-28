@@ -24,19 +24,7 @@ export default function CompanyCommunityPostDetail() {
           .from('community_posts')
           .select(`
             *,
-            author:author_id(
-              id,
-              email,
-              raw_user_meta_data
-            ),
-            community_comments(
-              *,
-              author:author_id(
-                id,
-                email,
-                raw_user_meta_data
-              )
-            )
+            community_comments(*)
           `)
           .eq('id', postId)
           .single();
@@ -56,11 +44,11 @@ export default function CompanyCommunityPostDetail() {
             type: postData.type as CommunityPost['type'],
             authorId: postData.author_id,
             author: {
-              id: postData.author.id,
-              name: postData.author.raw_user_meta_data?.name || 'Unknown User',
-              email: postData.author.email || '',
+              id: postData.author_id,
+              name: 'Anonymous User',
+              email: '',
               role: 'company',
-              avatarUrl: postData.author.raw_user_meta_data?.avatar_url
+              avatarUrl: undefined
             },
             attachments: [],
             createdAt: new Date(postData.created_at),
@@ -75,11 +63,11 @@ export default function CompanyCommunityPostDetail() {
               content: comment.content,
               authorId: comment.author_id,
               author: {
-                id: comment.author.id,
-                name: comment.author.raw_user_meta_data?.name || 'Unknown User',
-                email: comment.author.email || '',
+                id: comment.author_id,
+                name: 'Anonymous User',
+                email: '',
                 role: 'company',
-                avatarUrl: comment.author.raw_user_meta_data?.avatar_url
+                avatarUrl: undefined
               },
               attachments: comment.attachments || [],
               createdAt: new Date(comment.created_at),
@@ -129,14 +117,7 @@ export default function CompanyCommunityPostDetail() {
           content,
           author_id: userData.user.id
         })
-        .select(`
-          *,
-          author:author_id(
-            id,
-            email,
-            raw_user_meta_data
-          )
-        `)
+        .select()
         .single();
 
       if (error) {
@@ -152,10 +133,10 @@ export default function CompanyCommunityPostDetail() {
         authorId: userData.user.id,
         author: {
           id: userData.user.id,
-          name: commentData.author.raw_user_meta_data?.name || 'Unknown User',
+          name: 'Current User',
           email: userData.user.email || '',
           role: 'company',
-          avatarUrl: commentData.author.raw_user_meta_data?.avatar_url
+          avatarUrl: undefined
         },
         attachments: [],
         createdAt: new Date(commentData.created_at),
@@ -224,9 +205,12 @@ export default function CompanyCommunityPostDetail() {
 
       if (commentId) {
         // Upvote a comment
+        const currentComment = post.comments.find(c => c.id === commentId);
+        if (!currentComment) return;
+
         const { error } = await supabase
           .from('community_comments')
-          .update({ upvotes: supabase.raw('upvotes + 1') })
+          .update({ upvotes: currentComment.upvotes + 1 })
           .eq('id', commentId);
 
         if (error) {
@@ -248,7 +232,7 @@ export default function CompanyCommunityPostDetail() {
         // Upvote the post
         const { error } = await supabase
           .from('community_posts')
-          .update({ upvotes: supabase.raw('upvotes + 1') })
+          .update({ upvotes: post.upvotes + 1 })
           .eq('id', postId);
 
         if (error) {
