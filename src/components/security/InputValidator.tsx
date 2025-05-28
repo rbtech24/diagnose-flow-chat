@@ -48,7 +48,7 @@ export const sanitizeHtml = (html: string): string => {
 };
 
 // Input validation utility
-export const validateInput = <T>(schema: z.ZodSchema<T>, value: unknown): { isValid: boolean; error?: string; data?: T } => {
+export const validateInput = function<T>(schema: z.ZodSchema<T>, value: unknown): { isValid: boolean; error?: string; data?: T } {
   try {
     const data = schema.parse(value);
     return { isValid: true, data };
