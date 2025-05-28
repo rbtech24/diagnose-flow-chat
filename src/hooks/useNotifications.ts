@@ -1,7 +1,14 @@
 
 import { useState, useEffect } from 'react';
 import { useErrorHandler } from './useErrorHandler';
-import { supabase } from '@/integrations/supabase/client';
+import { 
+  fetchNotifications, 
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  fetchNotificationSettings,
+  updateNotificationSettings
+} from '@/api/notificationApi';
+import type { Notification } from '@/api/notificationApi';
 
 export interface NotificationItem {
   id: string;
@@ -26,62 +33,47 @@ export function useNotifications() {
   const [isLoading, setIsLoading] = useState(true);
   const { handleAsyncError } = useErrorHandler();
 
-  const fetchNotifications = async () => {
+  const fetchNotificationsData = async () => {
     const result = await handleAsyncError(async () => {
       setIsLoading(true);
       
-      // Fetch notifications from database using correct column names
-      const { data: notificationsData, error: notificationsError } = await supabase
-        .from('notifications')
-        .select('*')
-        .order('timestamp', { ascending: false })
-        .limit(50);
-
-      if (notificationsError) {
-        console.error('Error fetching notifications:', notificationsError);
-        return { notifications: [], settings: [] };
-      }
-
-      // Fetch notification settings using correct column names
-      const { data: settingsData, error: settingsError } = await supabase
-        .from('notification_settings')
-        .select('*');
-
-      if (settingsError) {
-        console.error('Error fetching notification settings:', settingsError);
-      }
-
-      const formattedNotifications: NotificationItem[] = (notificationsData || []).map(notification => ({
+      // Fetch notifications from database
+      const notificationsData = await fetchNotifications();
+      
+      // Fetch notification settings from database
+      const settingsData = await fetchNotificationSettings();
+      
+      const formattedNotifications: NotificationItem[] = notificationsData.map(notification => ({
         id: notification.id,
         title: notification.title,
         message: notification.message,
-        type: notification.type as NotificationItem['type'],
-        timestamp: new Date(notification.timestamp),
-        read: notification.read || false
+        type: notification.type,
+        timestamp: notification.createdAt,
+        read: notification.read
       }));
 
-      // Create mock settings since the database structure doesn't match our interface
+      // Convert settings to UI format
       const formattedSettings: NotificationSetting[] = [
         {
           id: 'email_notifications',
           title: 'Email Notifications',
           description: 'Receive notifications via email',
           type: 'email',
-          enabled: true
+          enabled: settingsData.emailNotifications
         },
         {
           id: 'push_notifications',
           title: 'Push Notifications',
           description: 'Receive push notifications in browser',
           type: 'push',
-          enabled: true
+          enabled: settingsData.pushNotifications
         },
         {
           id: 'sms_notifications',
           title: 'SMS Notifications',
           description: 'Receive notifications via SMS',
           type: 'sms',
-          enabled: false
+          enabled: settingsData.smsNotifications
         }
       ];
 
@@ -97,12 +89,7 @@ export function useNotifications() {
 
   const markAsRead = async (notificationId: string) => {
     await handleAsyncError(async () => {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('id', notificationId);
-
-      if (error) throw error;
+      await markNotificationAsRead(notificationId);
 
       setNotifications(prev => prev.map(notification => 
         notification.id === notificationId 
@@ -114,12 +101,7 @@ export function useNotifications() {
 
   const markAllAsRead = async () => {
     await handleAsyncError(async () => {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('read', false);
-
-      if (error) throw error;
+      await markAllNotificationsAsRead();
 
       setNotifications(prev => prev.map(notification => 
         ({ ...notification, read: true })
@@ -129,22 +111,38 @@ export function useNotifications() {
 
   const toggleSetting = async (settingId: string) => {
     await handleAsyncError(async () => {
-      // Update local state since we're using mock settings
+      const currentSetting = settings.find(s => s.id === settingId);
+      if (!currentSetting) return;
+
+      // Update local state immediately
       setSettings(prev => prev.map(setting => 
         setting.id === settingId 
           ? { ...setting, enabled: !setting.enabled }
           : setting
       ));
       
-      // In a real implementation, you would update the database here
-      console.log('Setting toggled:', settingId);
+      // Update in database
+      const updateData: any = {};
+      switch (settingId) {
+        case 'email_notifications':
+          updateData.emailNotifications = !currentSetting.enabled;
+          break;
+        case 'push_notifications':
+          updateData.pushNotifications = !currentSetting.enabled;
+          break;
+        case 'sms_notifications':
+          updateData.smsNotifications = !currentSetting.enabled;
+          break;
+      }
+
+      await updateNotificationSettings(updateData);
     }, 'toggleNotificationSetting');
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
   useEffect(() => {
-    fetchNotifications();
+    fetchNotificationsData();
   }, []);
 
   return {
@@ -155,6 +153,6 @@ export function useNotifications() {
     markAsRead,
     markAllAsRead,
     toggleSetting,
-    refreshData: fetchNotifications
+    refreshData: fetchNotificationsData
   };
 }

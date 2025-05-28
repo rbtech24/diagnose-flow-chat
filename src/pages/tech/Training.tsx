@@ -12,10 +12,12 @@ import {
   Download,
   Star,
   Search,
-  Filter
+  Filter,
+  ExternalLink
 } from 'lucide-react';
 import { useState } from 'react';
 import { useTraining } from '@/hooks/useTraining';
+import { useNavigate } from 'react-router-dom';
 
 export default function TechTraining() {
   const {
@@ -29,6 +31,7 @@ export default function TechTraining() {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const navigate = useNavigate();
 
   const filteredModules = modules.filter(module => {
     const matchesSearch = module.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -64,6 +67,34 @@ export default function TechTraining() {
     }
   };
 
+  const handleStartModule = (module: any) => {
+    const progress = getModuleProgress(module.id);
+    const isCompleted = progress?.status === 'completed';
+    
+    if (isCompleted) {
+      return;
+    }
+
+    // Navigate to module content or open external URL
+    if (module.mediaUrl) {
+      window.open(module.mediaUrl, '_blank');
+    } else {
+      // Navigate to a module detail page
+      navigate(`/tech/training/module/${module.id}`);
+    }
+  };
+
+  const handleDownloadModule = (module: any) => {
+    if (module.mediaUrl) {
+      const link = document.createElement('a');
+      link.href = module.mediaUrl;
+      link.download = `${module.title}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
   const stats = getStats();
 
   if (isLoading) {
@@ -83,7 +114,7 @@ export default function TechTraining() {
           <h1 className="text-3xl font-bold text-gray-900">Training & Certification</h1>
           <p className="text-gray-600 mt-1">Enhance your skills and earn certifications</p>
         </div>
-        <Button>
+        <Button onClick={() => navigate('/tech/training/certifications')}>
           <Award className="h-4 w-4 mr-2" />
           View All Certifications
         </Button>
@@ -171,9 +202,23 @@ export default function TechTraining() {
                           <span className="text-sm text-gray-500">{module.category}</span>
                           <div className="flex gap-2">
                             {module.type === 'document' && (
-                              <Button variant="outline" size="sm">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleDownloadModule(module)}
+                              >
                                 <Download className="h-4 w-4 mr-1" />
                                 Download
+                              </Button>
+                            )}
+                            {module.mediaUrl && !isCompleted && (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleStartModule(module)}
+                              >
+                                <ExternalLink className="h-4 w-4 mr-1" />
+                                Open
                               </Button>
                             )}
                             <Button 
@@ -181,7 +226,7 @@ export default function TechTraining() {
                               onClick={() => markModuleComplete(module.id)}
                               disabled={isCompleted}
                             >
-                              {isCompleted ? 'Completed' : 'Start'}
+                              {isCompleted ? 'Completed' : 'Mark Complete'}
                             </Button>
                           </div>
                         </div>
@@ -228,7 +273,11 @@ export default function TechTraining() {
                         <Progress value={cert.progress} className="h-2" />
                       </div>
                       
-                      <Button className="w-full mt-3" size="sm">
+                      <Button 
+                        className="w-full mt-3" 
+                        size="sm"
+                        onClick={() => navigate(`/tech/training/certification/${cert.id}`)}
+                      >
                         {cert.status === 'completed' ? 'View Certificate' : 'Continue'}
                       </Button>
                     </div>

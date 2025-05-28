@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useErrorHandler } from './useErrorHandler';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   fetchTrainingModules, 
   fetchUserTrainingProgress, 
@@ -25,9 +26,27 @@ export function useTraining() {
   const [certifications, setCertifications] = useState<CertificationProgress[]>([]);
   const [userProgress, setUserProgress] = useState<TrainingProgress[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { handleAsyncError } = useErrorHandler();
 
+  // Get current user ID from Supabase auth
+  useEffect(() => {
+    async function getCurrentUserId() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setCurrentUserId(user.id);
+        }
+      } catch (error) {
+        console.error('Error getting current user:', error);
+      }
+    }
+    getCurrentUserId();
+  }, []);
+
   const fetchTrainingData = async () => {
+    if (!currentUserId) return;
+
     const result = await handleAsyncError(async () => {
       setIsLoading(true);
       
@@ -35,8 +54,8 @@ export function useTraining() {
       const modulesData = await fetchTrainingModules();
       setModules(modulesData);
       
-      // Fetch user progress
-      const progressData = await fetchUserTrainingProgress('current-user-id'); // This should come from auth context
+      // Fetch user progress with actual user ID
+      const progressData = await fetchUserTrainingProgress(currentUserId);
       setUserProgress(progressData);
       
       // Fetch certification programs
@@ -51,6 +70,8 @@ export function useTraining() {
   };
 
   const markModuleComplete = async (moduleId: string) => {
+    if (!currentUserId) return;
+
     await handleAsyncError(async () => {
       // Find existing progress or start new module
       const existingProgress = userProgress.find(p => p.moduleId === moduleId);
@@ -93,8 +114,10 @@ export function useTraining() {
   };
 
   useEffect(() => {
-    fetchTrainingData();
-  }, []);
+    if (currentUserId) {
+      fetchTrainingData();
+    }
+  }, [currentUserId]);
 
   return {
     modules,

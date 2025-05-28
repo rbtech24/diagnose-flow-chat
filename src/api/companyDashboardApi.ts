@@ -83,24 +83,25 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    // Process each activity record individually to avoid deep instantiation
-    const processedActivities: RecentActivity[] = [];
+    // Create activities array manually to avoid deep instantiation issues
+    const activities: RecentActivity[] = [];
     
-    for (let i = 0; i < activityData.length; i++) {
-      const activity = activityData[i];
-      const activityType = activity.activity_type || 'unknown';
-      const createdAt = activity.created_at || new Date().toISOString();
+    activityData.forEach((activity, index) => {
+      const type = mapActivityTypeToRecentActivity(activity.activity_type || 'unknown');
+      const description = activity.description || 'Activity recorded';
+      const time = formatTimeAgo(new Date(activity.created_at || new Date()));
+      const icon = getActivityIcon(activity.activity_type || 'unknown');
       
-      processedActivities.push({
-        id: activity.id || `activity-${i}`,
-        type: mapActivityTypeToRecentActivity(activityType),
-        description: activity.description || 'Activity recorded',
-        time: formatTimeAgo(new Date(createdAt)),
-        icon: getActivityIcon(activityType)
+      activities.push({
+        id: activity.id || `activity-${index}`,
+        type,
+        description,
+        time,
+        icon
       });
-    }
+    });
 
-    return processedActivities;
+    return activities;
   } catch (error) {
     console.error('Error in fetchRecentActivity:', error);
     return [];

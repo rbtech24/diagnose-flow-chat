@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, MessageSquare, Clock, User } from 'lucide-react';
 import { useStandardErrorHandler } from '@/utils/standardErrorHandler';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SupportTicket {
   id: string;
@@ -18,6 +19,7 @@ interface SupportTicket {
   createdAt: Date;
   updatedAt: Date;
   assignedTo?: string;
+  userId: string;
   responses: TicketResponse[];
 }
 
@@ -45,30 +47,56 @@ export default function TechSupportTicketDetail() {
     const result = await handleAsync(async () => {
       setIsLoading(true);
       
-      // Mock data - replace with actual API call
-      const mockTicket: SupportTicket = {
-        id,
-        title: 'Unable to access diagnostic tools',
-        description: 'I am unable to access the diagnostic tools section in the mobile app. The page loads but shows a blank screen.',
-        status: 'in_progress',
-        priority: 'medium',
-        category: 'Technical Issue',
-        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-        updatedAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
-        assignedTo: 'Support Team',
-        responses: [
-          {
-            id: '1',
-            content: 'Thank you for reporting this issue. We are investigating the problem with the diagnostic tools section. Can you please provide more details about your device and app version?',
-            author: 'Support Team',
-            authorRole: 'support',
-            createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000)
-          }
-        ]
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Fetch ticket from database
+      const { data: ticketData, error: ticketError } = await supabase
+        .from('support_tickets')
+        .select(`
+          *,
+          ticket_responses (
+            id,
+            content,
+            author_id,
+            created_at
+          )
+        `)
+        .eq('id', id)
+        .single();
+
+      if (ticketError) {
+        throw new Error(`Failed to fetch ticket: ${ticketError.message}`);
+      }
+
+      if (!ticketData) {
+        throw new Error('Ticket not found');
+      }
+
+      // Format ticket data
+      const formattedTicket: SupportTicket = {
+        id: ticketData.id,
+        title: ticketData.title,
+        description: ticketData.description,
+        status: ticketData.status as SupportTicket['status'],
+        priority: ticketData.priority as SupportTicket['priority'],
+        category: ticketData.category || 'General',
+        createdAt: new Date(ticketData.created_at),
+        updatedAt: new Date(ticketData.updated_at),
+        assignedTo: ticketData.assigned_to || 'Support Team',
+        userId: ticketData.user_id,
+        responses: (ticketData.ticket_responses || []).map((response: any) => ({
+          id: response.id,
+          content: response.content,
+          author: response.author_id === user.id ? 'You' : 'Support Team',
+          authorRole: response.author_id === user.id ? 'tech' as const : 'support' as const,
+          createdAt: new Date(response.created_at)
+        }))
       };
       
-      setTicket(mockTicket);
-      return mockTicket;
+      setTicket(formattedTicket);
+      return formattedTicket;
     }, {
       context: 'fetchSupportTicket',
       fallbackMessage: 'Failed to load ticket details'
@@ -84,17 +112,35 @@ export default function TechSupportTicketDetail() {
     const result = await handleAsync(async () => {
       setIsSubmitting(true);
       
-      // Mock API call - replace with actual implementation
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Insert new response
+      const { data: responseData, error } = await supabase
+        .from('ticket_responses')
+        .insert({
+          ticket_id: ticket.id,
+          content: newResponse,
+          author_id: user.id
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Failed to add response: ${error.message}`);
+      }
+
+      // Create response object
       const response: TicketResponse = {
-        id: Date.now().toString(),
+        id: responseData.id,
         content: newResponse,
         author: 'You',
         authorRole: 'tech',
-        createdAt: new Date()
+        createdAt: new Date(responseData.created_at)
       };
       
+      // Update ticket with new response
       setTicket(prev => prev ? {
         ...prev,
         responses: [...prev.responses, response],
