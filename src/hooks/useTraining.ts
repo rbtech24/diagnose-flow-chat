@@ -47,92 +47,100 @@ export function useTraining() {
         return;
       }
 
-      // For now, we'll use structured data since training modules aren't in the schema
-      // In a real implementation, this would query actual training tables
-      const mockModules: TrainingModule[] = [
-        {
-          id: '1',
-          title: 'Washing Machine Diagnostics',
-          description: 'Learn to diagnose common washing machine problems',
-          type: 'video',
-          duration: '45 min',
-          difficulty: 'beginner',
-          category: 'Appliance Repair',
-          completed: false,
-          rating: 4.8
-        },
-        {
-          id: '2',
-          title: 'Refrigerator Compressor Repair',
-          description: 'Advanced techniques for compressor troubleshooting',
-          type: 'interactive',
-          duration: '2 hours',
-          difficulty: 'advanced',
-          category: 'Appliance Repair',
-          completed: false,
-          rating: 4.9
-        },
-        {
-          id: '3',
-          title: 'Safety Protocols Manual',
-          description: 'Essential safety guidelines for appliance repair',
-          type: 'document',
-          duration: '30 min',
-          difficulty: 'beginner',
-          category: 'Safety',
-          completed: false,
-          rating: 4.6
-        }
-      ];
+      // Get user's company ID from technicians table
+      const { data: technicianData } = await supabase
+        .from('technicians')
+        .select('company_id')
+        .eq('id', userData.user.id)
+        .single();
 
-      const mockCertifications: Certification[] = [
-        {
-          id: '1',
-          name: 'Appliance Repair Fundamentals',
-          description: 'Basic certification for appliance repair technicians',
-          progress: 0,
-          totalModules: 8,
-          completedModules: 0,
-          status: 'not-started'
-        },
-        {
-          id: '2',
-          name: 'Advanced Diagnostics',
-          description: 'Advanced troubleshooting and diagnostic techniques',
-          progress: 0,
-          totalModules: 12,
-          completedModules: 0,
-          status: 'not-started'
-        }
-      ];
-
-      // Check if we have any knowledge base articles that could serve as training content
-      const { data: knowledgeArticles } = await supabase
-        .from('knowledge_base')
-        .select('*')
-        .eq('is_public', true)
-        .order('created_at', { ascending: false });
-
-      if (knowledgeArticles) {
-        const additionalModules: TrainingModule[] = knowledgeArticles.map(article => ({
-          id: article.id,
-          title: article.title,
-          description: article.content.substring(0, 100) + '...',
-          type: 'document' as const,
-          duration: '15 min',
-          difficulty: 'intermediate' as const,
-          category: article.category || 'General',
-          completed: false,
-          rating: 4.5,
-          content_url: `/knowledge/${article.id}`
-        }));
-
-        setModules([...mockModules, ...additionalModules]);
-      } else {
-        setModules(mockModules);
+      if (!technicianData?.company_id) {
+        setIsLoading(false);
+        return;
       }
 
-      setCertifications(mockCertifications);
+      // Fetch training modules
+      const { data: trainingModules, error: modulesError } = await supabase
+        .from('training_modules')
+        .select('*')
+        .eq('company_id', technicianData.company_id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (modulesError) {
+        console.error('Error fetching training modules:', modulesError);
+      }
+
+      // Fetch user progress
+      const { data: progressData, error: progressError } = await supabase
+        .from('user_training_progress')
+        .select('module_id, completed_at')
+        .eq('user_id', userData.user.id);
+
+      if (progressError) {
+        console.error('Error fetching user progress:', progressError);
+      }
+
+      // Create progress map
+      const progressMap: Record<string, boolean> = {};
+      progressData?.forEach(progress => {
+        if (progress.completed_at) {
+          progressMap[progress.module_id] = true;
+        }
+      });
+
+      // Transform training modules
+      const transformedModules: TrainingModule[] = (trainingModules || []).map(module => ({
+        id: module.id,
+        title: module.title,
+        description: module.description || '',
+        type: module.type as TrainingModule['type'],
+        duration: `${module.duration_minutes || 30} min`,
+        difficulty: module.difficulty as TrainingModule['difficulty'],
+        category: module.category,
+        completed: progressMap[module.id] || false,
+        rating: Number(module.rating) || 0,
+        thumbnail: module.thumbnail_url,
+        content_url: module.content_url
+      }));
+
+      // Fetch certification programs
+      const { data: certificationData, error: certError } = await supabase
+        .from('certification_programs')
+        .select('*')
+        .eq('company_id', technicianData.company_id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (certError) {
+        console.error('Error fetching certifications:', certError);
+      }
+
+      // Transform certifications
+      const transformedCertifications: Certification[] = (certificationData || []).map(cert => {
+        const completedModules = transformedModules.filter(m => 
+          m.category === cert.name && m.completed
+        ).length;
+        const totalModules = cert.total_modules || transformedModules.filter(m => 
+          m.category === cert.name
+        ).length;
+        const progress = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
+
+        return {
+          id: cert.id,
+          name: cert.name,
+          description: cert.description || '',
+          progress,
+          totalModules,
+          completedModules,
+          status: progress === 100 ? 'completed' : completedModules > 0 ? 'in-progress' : 'not-started'
+        };
+      });
+
+      setModules(transformedModules);
+      setCertifications(transformedCertifications);
+      setUserProgress(progressMap);
+
     } catch (error) {
       console.error('Error fetching training data:', error);
       setModules([]);
@@ -144,7 +152,26 @@ export function useTraining() {
 
   const markModuleComplete = async (moduleId: string) => {
     try {
-      // In a real implementation, this would update the database
+      const { data: userData } = await supabase.auth.getUser();
+      
+      if (!userData.user) return;
+
+      // Insert or update progress
+      const { error } = await supabase
+        .from('user_training_progress')
+        .upsert({
+          user_id: userData.user.id,
+          module_id: moduleId,
+          completed_at: new Date().toISOString(),
+          progress_data: { completed: true }
+        });
+
+      if (error) {
+        console.error('Error marking module complete:', error);
+        return;
+      }
+
+      // Update local state
       setUserProgress(prev => ({ ...prev, [moduleId]: true }));
       
       setModules(prev => prev.map(module => 

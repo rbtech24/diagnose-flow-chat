@@ -426,6 +426,47 @@ export type Database = {
           },
         ]
       }
+      certification_programs: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          total_modules: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          total_modules?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          total_modules?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certification_programs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       community_comments: {
         Row: {
           attachments: Json | null
@@ -1615,6 +1656,7 @@ export type Database = {
         Row: {
           author_id: string | null
           category: string | null
+          category_id: string | null
           company_id: string | null
           content: string
           created_at: string | null
@@ -1628,6 +1670,7 @@ export type Database = {
         Insert: {
           author_id?: string | null
           category?: string | null
+          category_id?: string | null
           company_id?: string | null
           content: string
           created_at?: string | null
@@ -1641,6 +1684,7 @@ export type Database = {
         Update: {
           author_id?: string | null
           category?: string | null
+          category_id?: string | null
           company_id?: string | null
           content?: string
           created_at?: string | null
@@ -1653,10 +1697,68 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "knowledge_base_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_categories"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "knowledge_base_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      knowledge_categories: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          parent_id: string | null
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          parent_id?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          parent_id?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_categories_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_categories"
             referencedColumns: ["id"]
           },
         ]
@@ -1823,6 +1925,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notification_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          setting_key: string
+          setting_type: string | null
+          setting_value: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          setting_key: string
+          setting_type?: string | null
+          setting_value?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          setting_key?: string
+          setting_type?: string | null
+          setting_value?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -4099,6 +4231,65 @@ export type Database = {
           },
         ]
       }
+      training_modules: {
+        Row: {
+          category: string
+          company_id: string | null
+          content_url: string | null
+          created_at: string | null
+          description: string | null
+          difficulty: string
+          duration_minutes: number | null
+          id: string
+          is_active: boolean | null
+          rating: number | null
+          thumbnail_url: string | null
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          company_id?: string | null
+          content_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          difficulty: string
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          rating?: number | null
+          thumbnail_url?: string | null
+          title: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          company_id?: string | null
+          content_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          difficulty?: string
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          rating?: number | null
+          thumbnail_url?: string | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_modules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_activity_logs: {
         Row: {
           activity_type: string
@@ -4232,6 +4423,54 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      user_training_progress: {
+        Row: {
+          certification_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          module_id: string | null
+          progress_data: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          certification_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          module_id?: string | null
+          progress_data?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          certification_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          module_id?: string | null
+          progress_data?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_training_progress_certification_id_fkey"
+            columns: ["certification_id"]
+            isOneToOne: false
+            referencedRelation: "certification_programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_training_progress_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "training_modules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       users: {
         Row: {

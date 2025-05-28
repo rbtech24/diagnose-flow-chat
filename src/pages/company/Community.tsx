@@ -7,6 +7,7 @@ import { CommunityStats } from '@/components/community/CommunityStats';
 import { NewPostDialog } from '@/components/community/NewPostDialog';
 import { CommunityPost, CommunityPostType } from '@/types/community';
 import { supabase } from '@/integrations/supabase/client';
+import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { toast } from 'sonner';
 
 export default function CompanyCommunity() {
@@ -16,6 +17,8 @@ export default function CompanyCommunity() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedSort, setSelectedSort] = useState('recent');
+  
+  const { articles: knowledgeArticles } = useKnowledgeBase();
 
   // Load posts from database
   useEffect(() => {
@@ -45,7 +48,7 @@ export default function CompanyCommunity() {
           authorId: post.author_id,
           author: {
             id: post.author_id,
-            name: 'Anonymous User',
+            name: 'Community Member',
             email: '',
             role: 'company',
             avatarUrl: undefined
@@ -113,6 +116,24 @@ export default function CompanyCommunity() {
         return;
       }
 
+      // Check if this is a tech sheet or wire diagram request
+      let knowledgeBaseArticleId = null;
+      if (post.type === 'tech-sheet-request' || post.type === 'wire-diagram-request') {
+        // Try to find matching knowledge base article
+        const matchingArticle = knowledgeArticles.find(article =>
+          article.title.toLowerCase().includes(post.title.toLowerCase()) ||
+          article.tags.some(tag => 
+            post.tags.some(postTag => 
+              postTag.toLowerCase().includes(tag.toLowerCase())
+            )
+          )
+        );
+        
+        if (matchingArticle) {
+          knowledgeBaseArticleId = matchingArticle.id;
+        }
+      }
+
       const { data: postData, error } = await supabase
         .from('community_posts')
         .insert({
@@ -120,7 +141,8 @@ export default function CompanyCommunity() {
           content: post.content,
           type: post.type,
           tags: post.tags,
-          author_id: userData.user.id
+          author_id: userData.user.id,
+          knowledge_base_article_id: knowledgeBaseArticleId
         })
         .select()
         .single();
@@ -155,7 +177,12 @@ export default function CompanyCommunity() {
       };
       
       setPosts([newPost, ...posts]);
-      toast.success('Post created successfully');
+      
+      if (knowledgeBaseArticleId) {
+        toast.success('Post created and linked to knowledge base article');
+      } else {
+        toast.success('Post created successfully');
+      }
     } catch (error) {
       console.error('Error creating post:', error);
       toast.error('Failed to create post');
