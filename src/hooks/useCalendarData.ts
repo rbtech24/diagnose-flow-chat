@@ -85,7 +85,7 @@ export function useCalendarData(selectedDate: Date) {
             minute: '2-digit',
             hour12: false 
           }),
-          duration: repair.estimated_duration || '2h',
+          duration: typeof repair.estimated_duration === 'string' ? repair.estimated_duration : '2h',
           status: repair.status as CalendarEvent['status'],
           priority: repair.priority as CalendarEvent['priority'] || 'medium',
           date: scheduledTime,
