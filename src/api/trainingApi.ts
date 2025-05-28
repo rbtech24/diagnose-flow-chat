@@ -62,7 +62,8 @@ export const fetchTrainingModules = async (companyId?: string): Promise<Training
     const { data, error } = await query;
 
     if (error) {
-      throw new Error(`Failed to fetch training modules: ${error.message}`);
+      console.error('Error fetching training modules:', error);
+      return [];
     }
 
     return (data || []).map(module => ({
@@ -87,53 +88,49 @@ export const fetchTrainingModules = async (companyId?: string): Promise<Training
     }));
   }, "fetchTrainingModules");
 
-  if (!response.success) throw response.error;
+  if (!response.success) {
+    console.error('Training modules fetch failed:', response.error);
+    return [];
+  }
   return response.data || [];
 };
 
 // Fetch user training progress
 export const fetchUserTrainingProgress = async (userId: string): Promise<TrainingProgress[]> => {
   const response = await APIErrorHandler.handleAPICall(async () => {
-    // Use a direct query since the table might not be in the types yet
-    const { data, error } = await supabase.rpc('execute_sql', {
-      sql: `
-        SELECT * FROM training_progress 
-        WHERE user_id = $1 
-        ORDER BY last_accessed_at DESC
-      `,
-      params: [userId]
-    });
+    try {
+      const { data, error } = await supabase
+        .from('training_progress')
+        .select('*')
+        .eq('user_id', userId)
+        .order('last_accessed_at', { ascending: false });
 
-    if (error) {
-      console.log('RPC failed, trying direct query...');
-      // Fallback to a simple query that should work
-      const { data: fallbackData, error: fallbackError } = await supabase
-        .from('training_modules')
-        .select('id')
-        .limit(1);
-      
-      if (fallbackError) {
-        throw new Error(`Failed to fetch training progress: ${fallbackError.message}`);
+      if (error) {
+        console.error('Training progress query failed:', error);
+        return [];
       }
-      
-      // Return empty array if we can't access the training_progress table yet
+
+      return (data || []).map((progress: any) => ({
+        id: progress.id,
+        userId: progress.user_id,
+        moduleId: progress.module_id,
+        status: progress.status as TrainingProgress['status'],
+        progress: progress.progress,
+        startedAt: progress.started_at ? new Date(progress.started_at) : undefined,
+        completedAt: progress.completed_at ? new Date(progress.completed_at) : undefined,
+        timeSpent: progress.time_spent,
+        lastAccessedAt: new Date(progress.last_accessed_at)
+      }));
+    } catch (error) {
+      console.error('Training progress table not ready yet:', error);
       return [];
     }
-
-    return (data || []).map((progress: any) => ({
-      id: progress.id,
-      userId: progress.user_id,
-      moduleId: progress.module_id,
-      status: progress.status as TrainingProgress['status'],
-      progress: progress.progress,
-      startedAt: progress.started_at ? new Date(progress.started_at) : undefined,
-      completedAt: progress.completed_at ? new Date(progress.completed_at) : undefined,
-      timeSpent: progress.time_spent,
-      lastAccessedAt: new Date(progress.last_accessed_at)
-    }));
   }, "fetchUserTrainingProgress");
 
-  if (!response.success) throw response.error;
+  if (!response.success) {
+    console.error('Training progress fetch failed:', response.error);
+    return [];
+  }
   return response.data || [];
 };
 
@@ -143,42 +140,36 @@ export const startTrainingModule = async (moduleId: string): Promise<TrainingPro
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) throw new Error("Authentication required");
 
-    // Try to insert, but handle the case where the table might not exist yet
     try {
-      const { data, error } = await supabase.rpc('execute_sql', {
-        sql: `
-          INSERT INTO training_progress (
-            user_id, module_id, status, progress, started_at, time_spent, last_accessed_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-          RETURNING *
-        `,
-        params: [
-          userData.user.id,
-          moduleId,
-          'in_progress',
-          0,
-          new Date().toISOString(),
-          0,
-          new Date().toISOString()
-        ]
-      });
+      const { data, error } = await supabase
+        .from('training_progress')
+        .insert({
+          user_id: userData.user.id,
+          module_id: moduleId,
+          status: 'in_progress',
+          progress: 0,
+          started_at: new Date().toISOString(),
+          time_spent: 0,
+          last_accessed_at: new Date().toISOString()
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
-      const record = data[0];
       return {
-        id: record.id,
-        userId: record.user_id,
-        moduleId: record.module_id,
-        status: record.status as TrainingProgress['status'],
-        progress: record.progress,
-        startedAt: new Date(record.started_at),
-        timeSpent: record.time_spent,
-        lastAccessedAt: new Date(record.last_accessed_at)
+        id: data.id,
+        userId: data.user_id,
+        moduleId: data.module_id,
+        status: data.status as TrainingProgress['status'],
+        progress: data.progress,
+        startedAt: new Date(data.started_at),
+        timeSpent: data.time_spent,
+        lastAccessedAt: new Date(data.last_accessed_at)
       };
     } catch (error) {
-      // Fallback - just return a mock progress object for now
       console.error('Training progress table not ready yet:', error);
+      // Return a mock progress object for now
       return {
         id: crypto.randomUUID(),
         userId: userData.user.id,
@@ -224,43 +215,27 @@ export const updateTrainingProgress = async (
         }
       }
 
-      const { data, error } = await supabase.rpc('execute_sql', {
-        sql: `
-          UPDATE training_progress 
-          SET progress = COALESCE($2, progress),
-              time_spent = COALESCE($3, time_spent),
-              status = COALESCE($4, status),
-              completed_at = COALESCE($5, completed_at),
-              last_accessed_at = $6
-          WHERE id = $1
-          RETURNING *
-        `,
-        params: [
-          progressId,
-          updates.progress,
-          updates.timeSpent,
-          updates.status,
-          updates.status === 'completed' ? new Date().toISOString() : null,
-          new Date().toISOString()
-        ]
-      });
+      const { data, error } = await supabase
+        .from('training_progress')
+        .update(updateData)
+        .eq('id', progressId)
+        .select()
+        .single();
 
       if (error) throw error;
 
-      const record = data[0];
       return {
-        id: record.id,
-        userId: record.user_id,
-        moduleId: record.module_id,
-        status: record.status as TrainingProgress['status'],
-        progress: record.progress,
-        startedAt: record.started_at ? new Date(record.started_at) : undefined,
-        completedAt: record.completed_at ? new Date(record.completed_at) : undefined,
-        timeSpent: record.time_spent,
-        lastAccessedAt: new Date(record.last_accessed_at)
+        id: data.id,
+        userId: data.user_id,
+        moduleId: data.module_id,
+        status: data.status as TrainingProgress['status'],
+        progress: data.progress,
+        startedAt: data.started_at ? new Date(data.started_at) : undefined,
+        completedAt: data.completed_at ? new Date(data.completed_at) : undefined,
+        timeSpent: data.time_spent,
+        lastAccessedAt: new Date(data.last_accessed_at)
       };
     } catch (error) {
-      // Fallback for when table doesn't exist yet
       console.error('Training progress update failed:', error);
       throw new Error('Training progress update not available yet');
     }
@@ -286,12 +261,16 @@ export const fetchCertificationPrograms = async (companyId?: string): Promise<an
     const { data, error } = await query;
 
     if (error) {
-      throw new Error(`Failed to fetch certification programs: ${error.message}`);
+      console.error('Error fetching certification programs:', error);
+      return [];
     }
 
     return data || [];
   }, "fetchCertificationPrograms");
 
-  if (!response.success) throw response.error;
+  if (!response.success) {
+    console.error('Certification programs fetch failed:', response.error);
+    return [];
+  }
   return response.data || [];
 };

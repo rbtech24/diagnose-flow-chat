@@ -20,56 +20,77 @@ export interface RecentActivity {
 export const fetchDashboardStats = async (companyId: string): Promise<DashboardStats> => {
   console.log('Fetching dashboard stats for company:', companyId);
   
-  const { data: repairsData, error: repairsError } = await supabase
-    .from('repairs')
-    .select('status, actual_cost, completed_at')
-    .eq('company_id', companyId);
+  try {
+    const { data: repairsData, error: repairsError } = await supabase
+      .from('repairs')
+      .select('status, actual_cost, completed_at')
+      .eq('company_id', companyId);
 
-  if (repairsError) {
-    console.error('Error fetching repairs data:', repairsError);
-    throw new Error('Failed to fetch dashboard statistics');
+    if (repairsError) {
+      console.error('Error fetching repairs data:', repairsError);
+      // Return default stats if table doesn't exist or has errors
+      return {
+        activeJobs: 0,
+        completedJobs: 0,
+        revenue: 0,
+        completionRate: 0
+      };
+    }
+
+    const activeJobs = repairsData?.filter(r => r.status === 'in_progress').length || 0;
+    const completedJobs = repairsData?.filter(r => r.status === 'completed').length || 0;
+    const revenue = repairsData
+      ?.filter(r => r.status === 'completed' && r.actual_cost)
+      .reduce((sum, r) => sum + (r.actual_cost || 0), 0) || 0;
+    const completionRate = repairsData && repairsData.length > 0 
+      ? Math.round((completedJobs / repairsData.length) * 100) 
+      : 0;
+
+    return {
+      activeJobs,
+      completedJobs,
+      revenue,
+      completionRate
+    };
+  } catch (error) {
+    console.error('Error in fetchDashboardStats:', error);
+    return {
+      activeJobs: 0,
+      completedJobs: 0,
+      revenue: 0,
+      completionRate: 0
+    };
   }
-
-  const activeJobs = repairsData?.filter(r => r.status === 'in_progress').length || 0;
-  const completedJobs = repairsData?.filter(r => r.status === 'completed').length || 0;
-  const revenue = repairsData
-    ?.filter(r => r.status === 'completed' && r.actual_cost)
-    .reduce((sum, r) => sum + (r.actual_cost || 0), 0) || 0;
-  const completionRate = repairsData && repairsData.length > 0 
-    ? Math.round((completedJobs / repairsData.length) * 100) 
-    : 0;
-
-  return {
-    activeJobs,
-    completedJobs,
-    revenue,
-    completionRate
-  };
 };
 
 // Fetch recent activity
 export const fetchRecentActivity = async (companyId: string): Promise<RecentActivity[]> => {
   console.log('Fetching recent activity for company:', companyId);
   
-  const { data: activityData, error } = await supabase
-    .from("user_activity_logs")
-    .select("*")
-    .eq("company_id", companyId)
-    .order("created_at", { ascending: false })
-    .limit(10);
+  try {
+    const { data: activityData, error } = await supabase
+      .from("user_activity_logs")
+      .select("*")
+      .eq("company_id", companyId)
+      .order("created_at", { ascending: false })
+      .limit(10);
 
-  if (error) {
-    console.error('Error fetching activity data:', error);
-    throw new Error('Failed to fetch recent activity');
+    if (error) {
+      console.error('Error fetching activity data:', error);
+      return [];
+    }
+
+    return (activityData || []).map(activity => ({
+      id: activity.id,
+      type: mapActivityTypeToRecentActivity(activity.activity_type),
+      description: activity.description,
+      time: formatTimeAgo(new Date(activity.created_at)),
+      icon: getActivityIcon(activity.activity_type)
+    }));
+  } catch (error) {
+    console.error('Error in fetchRecentActivity:', error);
+    return [];
   }
-
-  return (activityData || []).map(activity => ({
-    id: activity.id,
-    type: mapActivityTypeToRecentActivity(activity.activity_type),
-    description: activity.description,
-    time: formatTimeAgo(new Date(activity.created_at)),
-    icon: getActivityIcon(activity.activity_type)
-  }));
 };
 
 // Helper function to map activity types
