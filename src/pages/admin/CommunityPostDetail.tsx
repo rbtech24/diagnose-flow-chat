@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CommunityPostDetail } from '@/components/community/CommunityPostDetail';
 import { CommunityPost, CommunityComment } from '@/types/community';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchCommunityPostById, addCommentToPost, markCommentAsAnswer, upvotePost, upvoteComment } from '@/api/communityApi';
 import { toast } from 'sonner';
 
 export default function AdminCommunityPostDetail() {
@@ -18,73 +18,8 @@ export default function AdminCommunityPostDetail() {
       
       try {
         setLoading(true);
-        
-        const { data: postData, error: postError } = await supabase
-          .from('community_posts')
-          .select(`
-            *,
-            community_comments(*)
-          `)
-          .eq('id', postId)
-          .single();
-
-        if (postError) {
-          console.error('Error loading post:', postError);
-          toast.error('Failed to load post');
-          return;
-        }
-
-        if (postData) {
-          const transformedPost: CommunityPost = {
-            id: postData.id,
-            title: postData.title,
-            content: postData.content,
-            type: postData.type as CommunityPost['type'],
-            authorId: postData.author_id,
-            author: {
-              id: postData.author_id,
-              name: 'Admin User',
-              email: 'admin@company.com',
-              role: 'admin',
-              avatarUrl: undefined
-            },
-            attachments: [],
-            createdAt: new Date(postData.created_at),
-            updatedAt: new Date(postData.updated_at),
-            upvotes: postData.upvotes || 0,
-            views: postData.views || 0,
-            tags: postData.tags || [],
-            isSolved: postData.is_solved || false,
-            comments: (postData.community_comments || []).map((comment: any) => ({
-              id: comment.id,
-              postId: comment.post_id,
-              content: comment.content,
-              authorId: comment.author_id,
-              author: {
-                id: comment.author_id,
-                name: 'User',
-                email: 'user@company.com',
-                role: 'tech',
-                avatarUrl: undefined
-              },
-              attachments: comment.attachments || [],
-              createdAt: new Date(comment.created_at),
-              updatedAt: new Date(comment.updated_at),
-              upvotes: comment.upvotes || 0,
-              isAnswer: comment.is_answer || false
-            }))
-          };
-
-          await supabase.rpc('increment_view_count', {
-            table_name: 'community_posts',
-            row_id: postId
-          });
-
-          setPost({
-            ...transformedPost,
-            views: transformedPost.views + 1
-          });
-        }
+        const data = await fetchCommunityPostById(postId);
+        setPost(data);
       } catch (error) {
         console.error('Error loading post:', error);
         toast.error('Failed to load post');
@@ -102,44 +37,9 @@ export default function AdminCommunityPostDetail() {
 
   const handleAddComment = async (postId: string, content: string, files: File[]) => {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      
-      if (!userData.user || !post) return;
+      if (!post) return;
 
-      const { data: commentData, error } = await supabase
-        .from('community_comments')
-        .insert({
-          post_id: postId,
-          content,
-          author_id: userData.user.id
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error adding comment:', error);
-        toast.error('Failed to add comment');
-        return;
-      }
-
-      const newComment: CommunityComment = {
-        id: commentData.id,
-        postId,
-        content,
-        authorId: userData.user.id,
-        author: {
-          id: userData.user.id,
-          name: 'Admin User',
-          email: userData.user.email || '',
-          role: 'admin',
-          avatarUrl: undefined
-        },
-        attachments: [],
-        createdAt: new Date(commentData.created_at),
-        updatedAt: new Date(commentData.updated_at),
-        upvotes: 0,
-        isAnswer: false
-      };
+      const newComment = await addCommentToPost(postId, content);
       
       setPost({
         ...post,
@@ -158,21 +58,7 @@ export default function AdminCommunityPostDetail() {
     try {
       if (!post) return;
 
-      const { error } = await supabase
-        .from('community_comments')
-        .update({ is_answer: true })
-        .eq('id', commentId);
-
-      if (error) {
-        console.error('Error marking as answer:', error);
-        toast.error('Failed to mark as answer');
-        return;
-      }
-
-      await supabase
-        .from('community_posts')
-        .update({ is_solved: true })
-        .eq('id', postId);
+      await markCommentAsAnswer(postId, commentId);
 
       const updatedComments = post.comments.map(comment => ({
         ...comment,
@@ -198,16 +84,8 @@ export default function AdminCommunityPostDetail() {
       if (!post) return;
 
       if (commentId) {
-        const { error } = await supabase
-          .from('community_comments')
-          .update({ upvotes: post.comments.find(c => c.id === commentId)?.upvotes || 0 + 1 })
-          .eq('id', commentId);
-
-        if (error) {
-          console.error('Error upvoting comment:', error);
-          return;
-        }
-
+        await upvoteComment(commentId);
+        
         const updatedComments = post.comments.map(comment => 
           comment.id === commentId 
             ? { ...comment, upvotes: comment.upvotes + 1 } 
@@ -219,16 +97,8 @@ export default function AdminCommunityPostDetail() {
           comments: updatedComments
         });
       } else {
-        const { error } = await supabase
-          .from('community_posts')
-          .update({ upvotes: post.upvotes + 1 })
-          .eq('id', postId);
-
-        if (error) {
-          console.error('Error upvoting post:', error);
-          return;
-        }
-
+        await upvotePost(postId);
+        
         setPost({
           ...post,
           upvotes: post.upvotes + 1

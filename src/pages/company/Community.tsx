@@ -6,7 +6,7 @@ import { CommunityPostCard } from '@/components/community/CommunityPostCard';
 import { CommunityStats } from '@/components/community/CommunityStats';
 import { NewPostDialog } from '@/components/community/NewPostDialog';
 import { CommunityPost, CommunityPostType } from '@/types/community';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchCommunityPosts, createCommunityPost } from '@/api/communityApi';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { toast } from 'sonner';
 
@@ -20,50 +20,13 @@ export default function CompanyCommunity() {
   
   const { articles: knowledgeArticles } = useKnowledgeBase();
 
-  // Load posts from database
+  // Load posts from database using the API
   useEffect(() => {
     const loadPosts = async () => {
       try {
         setLoading(true);
-        
-        const { data: postsData, error } = await supabase
-          .from('community_posts')
-          .select(`
-            *,
-            community_comments(count)
-          `)
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          console.error('Error loading posts:', error);
-          toast.error('Failed to load community posts');
-          return;
-        }
-
-        const transformedPosts: CommunityPost[] = (postsData || []).map(post => ({
-          id: post.id,
-          title: post.title,
-          content: post.content,
-          type: post.type as CommunityPostType,
-          authorId: post.author_id,
-          author: {
-            id: post.author_id,
-            name: 'Community Member',
-            email: '',
-            role: 'company',
-            avatarUrl: undefined
-          },
-          attachments: [],
-          createdAt: new Date(post.created_at),
-          updatedAt: new Date(post.updated_at),
-          upvotes: post.upvotes || 0,
-          views: post.views || 0,
-          tags: post.tags || [],
-          isSolved: post.is_solved || false,
-          comments: []
-        }));
-
-        setPosts(transformedPosts);
+        const data = await fetchCommunityPosts();
+        setPosts(data);
       } catch (error) {
         console.error('Error loading community posts:', error);
         toast.error('Failed to load community posts');
@@ -109,13 +72,6 @@ export default function CompanyCommunity() {
     attachments: File[];
   }) => {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      
-      if (!userData.user) {
-        toast.error('You must be logged in to create a post');
-        return;
-      }
-
       // Check if this is a tech sheet or wire diagram request
       let knowledgeBaseArticleId = null;
       if (post.type === 'tech-sheet-request' || post.type === 'wire-diagram-request') {
@@ -134,49 +90,16 @@ export default function CompanyCommunity() {
         }
       }
 
-      const { data: postData, error } = await supabase
-        .from('community_posts')
-        .insert({
-          title: post.title,
-          content: post.content,
-          type: post.type,
-          tags: post.tags,
-          author_id: userData.user.id,
-          knowledge_base_article_id: knowledgeBaseArticleId
-        })
-        .select()
-        .single();
+      const postId = await createCommunityPost({
+        title: post.title,
+        content: post.content,
+        type: post.type,
+        tags: post.tags
+      });
 
-      if (error) {
-        console.error('Error creating post:', error);
-        toast.error('Failed to create post');
-        return;
-      }
-
-      const newPost: CommunityPost = {
-        id: postData.id,
-        title: postData.title,
-        content: postData.content,
-        type: postData.type as CommunityPostType,
-        authorId: postData.author_id,
-        author: {
-          id: userData.user.id,
-          name: 'Current User',
-          email: userData.user.email || '',
-          role: 'company',
-          avatarUrl: undefined
-        },
-        attachments: [],
-        createdAt: new Date(postData.created_at),
-        updatedAt: new Date(postData.updated_at),
-        upvotes: 0,
-        views: 0,
-        isSolved: false,
-        tags: postData.tags || [],
-        comments: []
-      };
-      
-      setPosts([newPost, ...posts]);
+      // Refresh posts to show the new one
+      const updatedPosts = await fetchCommunityPosts();
+      setPosts(updatedPosts);
       
       if (knowledgeBaseArticleId) {
         toast.success('Post created and linked to knowledge base article');
