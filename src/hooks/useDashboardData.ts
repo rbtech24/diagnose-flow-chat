@@ -19,10 +19,15 @@ export function useDashboardData(companyId: string) {
 
     const result = await handleAsyncError(async () => {
       setIsLoading(true);
+      console.log('Loading dashboard data for company:', companyId);
+      
       const [statsData, activityData] = await Promise.all([
         fetchDashboardStats(companyId),
         fetchRecentActivity(companyId)
       ]);
+      
+      console.log('Dashboard stats loaded:', statsData);
+      console.log('Recent activity loaded:', activityData);
       
       setStats(statsData);
       setRecentActivity(activityData);

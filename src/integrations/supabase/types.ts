@@ -1653,6 +1653,62 @@ export type Database = {
           },
         ]
       }
+      file_uploads: {
+        Row: {
+          bucket: string
+          company_id: string | null
+          created_at: string
+          file_name: string
+          id: string
+          metadata: Json | null
+          mime_type: string
+          original_name: string
+          path: string
+          size: number
+          updated_at: string
+          uploaded_by: string | null
+          url: string
+        }
+        Insert: {
+          bucket?: string
+          company_id?: string | null
+          created_at?: string
+          file_name: string
+          id?: string
+          metadata?: Json | null
+          mime_type: string
+          original_name: string
+          path: string
+          size: number
+          updated_at?: string
+          uploaded_by?: string | null
+          url: string
+        }
+        Update: {
+          bucket?: string
+          company_id?: string | null
+          created_at?: string
+          file_name?: string
+          id?: string
+          metadata?: Json | null
+          mime_type?: string
+          original_name?: string
+          path?: string
+          size?: number
+          updated_at?: string
+          uploaded_by?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_uploads_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incident_updates: {
         Row: {
           created_at: string | null
