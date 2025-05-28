@@ -4491,6 +4491,56 @@ export type Database = {
           },
         ]
       }
+      training_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          last_accessed_at: string
+          module_id: string | null
+          progress: number
+          started_at: string | null
+          status: string
+          time_spent: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          last_accessed_at?: string
+          module_id?: string | null
+          progress?: number
+          started_at?: string | null
+          status?: string
+          time_spent?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          last_accessed_at?: string
+          module_id?: string | null
+          progress?: number
+          started_at?: string | null
+          status?: string
+          time_spent?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_progress_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "training_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_activity_logs: {
         Row: {
           activity_type: string
