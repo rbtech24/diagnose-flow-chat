@@ -19,7 +19,7 @@ export interface RecentActivity {
 
 // Fetch dashboard statistics
 export const fetchDashboardStats = async (companyId: string): Promise<DashboardStats> => {
-  const response = await APIErrorHandler.handleAPICall(async () => {
+  try {
     console.log('Fetching dashboard stats for company:', companyId);
     
     // Try to fetch real data first
@@ -58,15 +58,15 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
       revenue: Math.floor(Math.random() * 50000) + 10000,
       completionRate: Math.floor(Math.random() * 30) + 70
     };
-  }, "fetchDashboardStats");
-
-  if (!response.success) throw response.error;
-  return response.data!;
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    throw new Error('Failed to fetch dashboard statistics');
+  }
 };
 
 // Fetch recent activity
 export const fetchRecentActivity = async (companyId: string): Promise<RecentActivity[]> => {
-  const response = await APIErrorHandler.handleAPICall(async () => {
+  try {
     console.log('Fetching recent activity for company:', companyId);
     
     try {
@@ -93,10 +93,10 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
 
     // Fallback to mock data
     return generateMockActivity();
-  }, "fetchRecentActivity");
-
-  if (!response.success) throw response.error;
-  return response.data!;
+  } catch (error) {
+    console.error('Error fetching recent activity:', error);
+    throw new Error('Failed to fetch recent activity');
+  }
 };
 
 // Helper function to map activity types

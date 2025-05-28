@@ -39,6 +39,12 @@ export interface EmailLog {
   updatedAt: Date;
 }
 
+// Helper function to ensure valid status
+const validateEmailStatus = (status: string): EmailLog['status'] => {
+  const validStatuses: EmailLog['status'][] = ['queued', 'sent', 'delivered', 'failed', 'bounced'];
+  return validStatuses.includes(status as EmailLog['status']) ? status as EmailLog['status'] : 'queued';
+};
+
 // Send email using template
 export const sendEmailFromTemplate = async (
   templateId: string,
@@ -100,11 +106,11 @@ export const sendEmailFromTemplate = async (
       subject: emailLog.subject,
       htmlContent: emailLog.html_content,
       textContent: emailLog.text_content,
-      status: emailLog.status,
+      status: validateEmailStatus(emailLog.status),
       sentAt: emailLog.sent_at ? new Date(emailLog.sent_at) : undefined,
       deliveredAt: emailLog.delivered_at ? new Date(emailLog.delivered_at) : undefined,
-      opens: emailLog.opens,
-      clicks: emailLog.clicks,
+      opens: emailLog.opens || 0,
+      clicks: emailLog.clicks || 0,
       errorMessage: emailLog.error_message,
       templateId: emailLog.template_id,
       templateVariables: emailLog.template_variables,
@@ -169,11 +175,11 @@ export const sendEmail = async (
       subject: emailLog.subject,
       htmlContent: emailLog.html_content,
       textContent: emailLog.text_content,
-      status: emailLog.status,
+      status: validateEmailStatus(emailLog.status),
       sentAt: emailLog.sent_at ? new Date(emailLog.sent_at) : undefined,
       deliveredAt: emailLog.delivered_at ? new Date(emailLog.delivered_at) : undefined,
-      opens: emailLog.opens,
-      clicks: emailLog.clicks,
+      opens: emailLog.opens || 0,
+      clicks: emailLog.clicks || 0,
       errorMessage: emailLog.error_message,
       templateId: emailLog.template_id,
       templateVariables: emailLog.template_variables,
@@ -259,11 +265,11 @@ export const fetchEmailLogs = async (options?: {
       subject: log.subject,
       htmlContent: log.html_content,
       textContent: log.text_content,
-      status: log.status,
+      status: validateEmailStatus(log.status),
       sentAt: log.sent_at ? new Date(log.sent_at) : undefined,
       deliveredAt: log.delivered_at ? new Date(log.delivered_at) : undefined,
-      opens: log.opens,
-      clicks: log.clicks,
+      opens: log.opens || 0,
+      clicks: log.clicks || 0,
       errorMessage: log.error_message,
       templateId: log.template_id,
       templateVariables: log.template_variables,
