@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { BillingCycle } from "@/types/subscription-enhanced";
+import { BillingCycle } from "@/types/subscription-consolidated";
 import { SubscriptionPlanCard } from "@/components/subscription/SubscriptionPlanCard";
 import { PaymentForm } from "@/components/subscription/PaymentForm";
 import { AlertCircle, Clock, Users, Calendar, CreditCard } from "lucide-react";

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { SubscriptionPlan, BillingCycle } from "@/types/subscription";
+import { SubscriptionPlan, BillingCycle } from "@/types/subscription-consolidated";
 import { CheckCircle2, CreditCard, Calendar, Lock } from "lucide-react";
 
 interface PaymentFormProps {
