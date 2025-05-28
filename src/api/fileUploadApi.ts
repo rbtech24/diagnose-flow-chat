@@ -70,7 +70,7 @@ export const uploadFile = async (
         path: filePath,
         url: urlData.publicUrl,
         uploaded_by: userData.user.id,
-        company_id: userData.user.raw_user_meta_data?.company_id,
+        company_id: userData.user.user_metadata?.company_id,
         metadata: options?.metadata || {},
         bucket: bucket
       })
@@ -89,7 +89,7 @@ export const uploadFile = async (
       path: fileRecord.path,
       uploadedBy: fileRecord.uploaded_by,
       companyId: fileRecord.company_id,
-      metadata: fileRecord.metadata,
+      metadata: (fileRecord.metadata as Record<string, any>) || {},
       createdAt: new Date(fileRecord.created_at)
     };
   }, "uploadFile");
@@ -154,7 +154,7 @@ export const deleteFile = async (fileId: string): Promise<void> => {
 
     // Check permissions
     if (fileRecord.uploaded_by !== userData.user.id) {
-      const userRole = userData.user.raw_user_meta_data?.role;
+      const userRole = userData.user.user_metadata?.role;
       if (userRole !== 'admin' && userRole !== 'company_admin') {
         throw new Error("Insufficient permissions to delete this file");
       }
@@ -218,7 +218,7 @@ export const fetchUserFiles = async (options?: {
       path: file.path,
       uploadedBy: file.uploaded_by,
       companyId: file.company_id,
-      metadata: file.metadata,
+      metadata: (file.metadata as Record<string, any>) || {},
       createdAt: new Date(file.created_at)
     }));
   }, "fetchUserFiles");
@@ -249,7 +249,7 @@ export const getFileInfo = async (fileId: string): Promise<UploadedFile> => {
       path: data.path,
       uploadedBy: data.uploaded_by,
       companyId: data.company_id,
-      metadata: data.metadata,
+      metadata: (data.metadata as Record<string, any>) || {},
       createdAt: new Date(data.created_at)
     };
   }, "getFileInfo");
@@ -281,9 +281,7 @@ export const generatePresignedUrl = async (
 
     const { data, error } = await supabase.storage
       .from(bucket)
-      .createSignedUploadUrl(filePath, {
-        expiresIn: options?.expiresIn || 3600 // 1 hour default
-      });
+      .createSignedUploadUrl(filePath);
 
     if (error) throw error;
 

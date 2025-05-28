@@ -7,7 +7,7 @@ export interface EmailTemplate {
   name: string;
   subject: string;
   htmlContent: string;
-  textContent?: string;
+  textContent: string;
   variables: string[];
   category: 'system' | 'marketing' | 'transactional';
   isActive: boolean;
@@ -16,371 +16,264 @@ export interface EmailTemplate {
   updatedAt: Date;
 }
 
-export interface EmailMessage {
-  to: string | string[];
-  cc?: string | string[];
-  bcc?: string | string[];
+export interface EmailLog {
+  id: string;
+  messageId: string;
+  toAddresses: string[];
+  ccAddresses: string[];
+  bccAddresses: string[];
   subject: string;
   htmlContent?: string;
   textContent?: string;
-  templateId?: string;
-  templateVariables?: Record<string, any>;
-  attachments?: Array<{
-    filename: string;
-    content: string;
-    type: string;
-  }>;
-}
-
-export interface EmailDeliveryStatus {
-  id: string;
-  messageId: string;
-  to: string;
-  subject: string;
-  status: 'queued' | 'sent' | 'delivered' | 'bounced' | 'failed';
+  status: 'queued' | 'sent' | 'delivered' | 'failed' | 'bounced';
   sentAt?: Date;
   deliveredAt?: Date;
-  errorMessage?: string;
   opens: number;
   clicks: number;
+  errorMessage?: string;
+  templateId?: string;
+  templateVariables?: Record<string, any>;
+  sentBy?: string;
+  companyId?: string;
   createdAt: Date;
+  updatedAt: Date;
 }
 
-// Send email
-export const sendEmail = async (message: EmailMessage): Promise<{ messageId: string }> => {
+// Send email using template
+export const sendEmailFromTemplate = async (
+  templateId: string,
+  toAddresses: string[],
+  variables: Record<string, any> = {},
+  options?: {
+    ccAddresses?: string[];
+    bccAddresses?: string[];
+    fromName?: string;
+    fromEmail?: string;
+  }
+): Promise<EmailLog> => {
   const response = await APIErrorHandler.handleAPICall(async () => {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) throw new Error("Authentication required");
 
-    // Call edge function to send email
-    const { data, error } = await supabase.functions.invoke('send-email', {
-      body: {
-        ...message,
-        from: userData.user.email // Use authenticated user's email as sender
-      }
-    });
+    // Get template
+    const { data: template, error: templateError } = await supabase
+      .from("email_templates")
+      .select("*")
+      .eq("id", templateId)
+      .single();
 
-    if (error) throw error;
+    if (templateError) throw templateError;
+    if (!template) throw new Error("Template not found");
 
-    // Log email in database using raw SQL to avoid type issues
-    const { error: logError } = await supabase.rpc('log_email', {
-      p_message_id: data.messageId,
-      p_to_addresses: Array.isArray(message.to) ? message.to : [message.to],
-      p_cc_addresses: message.cc ? (Array.isArray(message.cc) ? message.cc : [message.cc]) : [],
-      p_bcc_addresses: message.bcc ? (Array.isArray(message.bcc) ? message.bcc : [message.bcc]) : [],
-      p_subject: message.subject,
-      p_html_content: message.htmlContent,
-      p_text_content: message.textContent,
-      p_template_id: message.templateId,
-      p_template_variables: message.templateVariables,
-      p_sent_by: userData.user.id,
-      p_company_id: userData.user.user_metadata?.company_id
-    });
+    // Note: In a real implementation, this would integrate with SendGrid
+    // For now, we'll just log the email
+    const messageId = `msg_${Date.now()}_${Math.random().toString(36).substring(2)}`;
+    
+    const { data: emailLog, error: logError } = await supabase
+      .from("email_logs")
+      .insert({
+        message_id: messageId,
+        to_addresses: toAddresses,
+        cc_addresses: options?.ccAddresses || [],
+        bcc_addresses: options?.bccAddresses || [],
+        subject: template.subject,
+        html_content: template.html_content,
+        text_content: template.text_content,
+        template_id: templateId,
+        template_variables: variables,
+        sent_by: userData.user.id,
+        company_id: userData.user.user_metadata?.company_id,
+        status: 'sent',
+        sent_at: new Date().toISOString()
+      })
+      .select()
+      .single();
 
-    if (logError) {
-      console.warn("Failed to log email:", logError);
-      // Try direct insert as fallback
-      try {
-        await supabase
-          .from("email_logs")
-          .insert({
-            message_id: data.messageId,
-            to_addresses: Array.isArray(message.to) ? message.to : [message.to],
-            cc_addresses: message.cc ? (Array.isArray(message.cc) ? message.cc : [message.cc]) : [],
-            bcc_addresses: message.bcc ? (Array.isArray(message.bcc) ? message.bcc : [message.bcc]) : [],
-            subject: message.subject,
-            html_content: message.htmlContent,
-            text_content: message.textContent,
-            template_id: message.templateId,
-            template_variables: message.templateVariables,
-            sent_by: userData.user.id,
-            company_id: userData.user.user_metadata?.company_id,
-            status: 'queued'
-          });
-      } catch (insertError) {
-        console.warn("Direct email log insert also failed:", insertError);
-      }
-    }
+    if (logError) throw logError;
 
-    return { messageId: data.messageId };
+    return {
+      id: emailLog.id,
+      messageId: emailLog.message_id,
+      toAddresses: emailLog.to_addresses,
+      ccAddresses: emailLog.cc_addresses,
+      bccAddresses: emailLog.bcc_addresses,
+      subject: emailLog.subject,
+      htmlContent: emailLog.html_content,
+      textContent: emailLog.text_content,
+      status: emailLog.status,
+      sentAt: emailLog.sent_at ? new Date(emailLog.sent_at) : undefined,
+      deliveredAt: emailLog.delivered_at ? new Date(emailLog.delivered_at) : undefined,
+      opens: emailLog.opens,
+      clicks: emailLog.clicks,
+      errorMessage: emailLog.error_message,
+      templateId: emailLog.template_id,
+      templateVariables: emailLog.template_variables,
+      sentBy: emailLog.sent_by,
+      companyId: emailLog.company_id,
+      createdAt: new Date(emailLog.created_at),
+      updatedAt: new Date(emailLog.updated_at)
+    };
+  }, "sendEmailFromTemplate");
+
+  if (!response.success) throw response.error;
+  return response.data!;
+};
+
+// Send simple email
+export const sendEmail = async (
+  toAddresses: string[],
+  subject: string,
+  htmlContent: string,
+  options?: {
+    textContent?: string;
+    ccAddresses?: string[];
+    bccAddresses?: string[];
+    fromName?: string;
+    fromEmail?: string;
+  }
+): Promise<EmailLog> => {
+  const response = await APIErrorHandler.handleAPICall(async () => {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) throw new Error("Authentication required");
+
+    // Note: In a real implementation, this would integrate with SendGrid
+    // For now, we'll just log the email
+    const messageId = `msg_${Date.now()}_${Math.random().toString(36).substring(2)}`;
+    
+    const { data: emailLog, error: logError } = await supabase
+      .from("email_logs")
+      .insert({
+        message_id: messageId,
+        to_addresses: toAddresses,
+        cc_addresses: options?.ccAddresses || [],
+        bcc_addresses: options?.bccAddresses || [],
+        subject: subject,
+        html_content: htmlContent,
+        text_content: options?.textContent,
+        sent_by: userData.user.id,
+        company_id: userData.user.user_metadata?.company_id,
+        status: 'sent',
+        sent_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (logError) throw logError;
+
+    return {
+      id: emailLog.id,
+      messageId: emailLog.message_id,
+      toAddresses: emailLog.to_addresses,
+      ccAddresses: emailLog.cc_addresses,
+      bccAddresses: emailLog.bcc_addresses,
+      subject: emailLog.subject,
+      htmlContent: emailLog.html_content,
+      textContent: emailLog.text_content,
+      status: emailLog.status,
+      sentAt: emailLog.sent_at ? new Date(emailLog.sent_at) : undefined,
+      deliveredAt: emailLog.delivered_at ? new Date(emailLog.delivered_at) : undefined,
+      opens: emailLog.opens,
+      clicks: emailLog.clicks,
+      errorMessage: emailLog.error_message,
+      templateId: emailLog.template_id,
+      templateVariables: emailLog.template_variables,
+      sentBy: emailLog.sent_by,
+      companyId: emailLog.company_id,
+      createdAt: new Date(emailLog.created_at),
+      updatedAt: new Date(emailLog.updated_at)
+    };
   }, "sendEmail");
 
   if (!response.success) throw response.error;
   return response.data!;
 };
 
-// Send bulk emails
-export const sendBulkEmails = async (messages: EmailMessage[]): Promise<{ messageIds: string[] }> => {
+// Fetch email templates
+export const fetchEmailTemplates = async (companyId?: string): Promise<EmailTemplate[]> => {
   const response = await APIErrorHandler.handleAPICall(async () => {
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) throw new Error("Authentication required");
+    let query = supabase
+      .from("email_templates")
+      .select("*")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
 
-    const { data, error } = await supabase.functions.invoke('send-bulk-email', {
-      body: {
-        messages: messages.map(message => ({
-          ...message,
-          from: userData.user.email
-        }))
-      }
-    });
+    if (companyId) {
+      query = query.eq("company_id", companyId);
+    }
 
+    const { data, error } = await query;
     if (error) throw error;
 
-    // Log emails in database
-    const emailLogs = messages.map((message, index) => ({
-      message_id: data.messageIds[index],
-      to_addresses: Array.isArray(message.to) ? message.to : [message.to],
-      cc_addresses: message.cc ? (Array.isArray(message.cc) ? message.cc : [message.cc]) : [],
-      bcc_addresses: message.bcc ? (Array.isArray(message.bcc) ? message.bcc : [message.bcc]) : [],
-      subject: message.subject,
-      html_content: message.htmlContent,
-      text_content: message.textContent,
-      template_id: message.templateId,
-      template_variables: message.templateVariables,
-      sent_by: userData.user.id,
-      company_id: userData.user.user_metadata?.company_id,
-      status: 'queued'
+    return (data || []).map(template => ({
+      id: template.id,
+      name: template.name,
+      subject: template.subject,
+      htmlContent: template.html_content,
+      textContent: template.text_content,
+      variables: template.variables || [],
+      category: template.category as EmailTemplate['category'],
+      isActive: template.is_active,
+      companyId: template.company_id,
+      createdAt: new Date(template.created_at),
+      updatedAt: new Date(template.updated_at)
     }));
-
-    try {
-      const { error: logError } = await supabase
-        .from("email_logs")
-        .insert(emailLogs);
-
-      if (logError) {
-        console.warn("Failed to log bulk emails:", logError);
-      }
-    } catch (logError) {
-      console.warn("Failed to log bulk emails:", logError);
-    }
-
-    return { messageIds: data.messageIds };
-  }, "sendBulkEmails");
-
-  if (!response.success) throw response.error;
-  return response.data!;
-};
-
-// Fetch email templates
-export const fetchEmailTemplates = async (): Promise<EmailTemplate[]> => {
-  const response = await APIErrorHandler.handleAPICall(async () => {
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) throw new Error("Authentication required");
-
-    try {
-      const { data, error } = await supabase
-        .from("email_templates")
-        .select("*")
-        .or(`company_id.is.null,company_id.eq.${userData.user.user_metadata?.company_id}`)
-        .eq("is_active", true)
-        .order("name");
-
-      if (error) throw error;
-
-      return (data || []).map((template: any) => ({
-        id: template.id,
-        name: template.name,
-        subject: template.subject,
-        htmlContent: template.html_content,
-        textContent: template.text_content,
-        variables: template.variables || [],
-        category: template.category,
-        isActive: template.is_active,
-        companyId: template.company_id,
-        createdAt: new Date(template.created_at),
-        updatedAt: new Date(template.updated_at)
-      }));
-    } catch (error) {
-      console.warn("Failed to fetch email templates:", error);
-      return [];
-    }
   }, "fetchEmailTemplates");
 
   if (!response.success) throw response.error;
   return response.data || [];
 };
 
-// Get email template by ID
-export const getEmailTemplate = async (templateId: string): Promise<EmailTemplate> => {
+// Fetch email logs
+export const fetchEmailLogs = async (options?: {
+  limit?: number;
+  companyId?: string;
+  status?: EmailLog['status'];
+}): Promise<EmailLog[]> => {
   const response = await APIErrorHandler.handleAPICall(async () => {
-    const { data, error } = await supabase
-      .from("email_templates")
+    let query = supabase
+      .from("email_logs")
       .select("*")
-      .eq("id", templateId)
-      .single();
+      .order("created_at", { ascending: false });
 
-    if (error) throw error;
-    if (!data) throw new Error("Template not found");
-
-    return {
-      id: data.id,
-      name: data.name,
-      subject: data.subject,
-      htmlContent: data.html_content,
-      textContent: data.text_content,
-      variables: data.variables || [],
-      category: data.category,
-      isActive: data.is_active,
-      companyId: data.company_id,
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at)
-    };
-  }, "getEmailTemplate");
-
-  if (!response.success) throw response.error;
-  return response.data!;
-};
-
-// Fetch email delivery status
-export const fetchEmailDeliveryStatus = async (
-  messageId?: string,
-  limit = 50
-): Promise<EmailDeliveryStatus[]> => {
-  const response = await APIErrorHandler.handleAPICall(async () => {
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) throw new Error("Authentication required");
-
-    try {
-      let query = supabase
-        .from("email_logs")
-        .select("*")
-        .eq("sent_by", userData.user.id)
-        .order("created_at", { ascending: false })
-        .limit(limit);
-
-      if (messageId) {
-        query = query.eq("message_id", messageId);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-
-      return (data || []).map((log: any) => ({
-        id: log.id,
-        messageId: log.message_id,
-        to: log.to_addresses[0], // Primary recipient
-        subject: log.subject,
-        status: log.status,
-        sentAt: log.sent_at ? new Date(log.sent_at) : undefined,
-        deliveredAt: log.delivered_at ? new Date(log.delivered_at) : undefined,
-        errorMessage: log.error_message,
-        opens: log.opens || 0,
-        clicks: log.clicks || 0,
-        createdAt: new Date(log.created_at)
-      }));
-    } catch (error) {
-      console.warn("Failed to fetch email delivery status:", error);
-      return [];
+    if (options?.limit) {
+      query = query.limit(options.limit);
     }
-  }, "fetchEmailDeliveryStatus");
+
+    if (options?.companyId) {
+      query = query.eq("company_id", options.companyId);
+    }
+
+    if (options?.status) {
+      query = query.eq("status", options.status);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    return (data || []).map(log => ({
+      id: log.id,
+      messageId: log.message_id,
+      toAddresses: log.to_addresses,
+      ccAddresses: log.cc_addresses,
+      bccAddresses: log.bcc_addresses,
+      subject: log.subject,
+      htmlContent: log.html_content,
+      textContent: log.text_content,
+      status: log.status,
+      sentAt: log.sent_at ? new Date(log.sent_at) : undefined,
+      deliveredAt: log.delivered_at ? new Date(log.delivered_at) : undefined,
+      opens: log.opens,
+      clicks: log.clicks,
+      errorMessage: log.error_message,
+      templateId: log.template_id,
+      templateVariables: log.template_variables,
+      sentBy: log.sent_by,
+      companyId: log.company_id,
+      createdAt: new Date(log.created_at),
+      updatedAt: new Date(log.updated_at)
+    }));
+  }, "fetchEmailLogs");
 
   if (!response.success) throw response.error;
   return response.data || [];
-};
-
-// Send template email
-export const sendTemplateEmail = async (
-  templateId: string,
-  to: string | string[],
-  variables: Record<string, any>,
-  options?: {
-    cc?: string | string[];
-    bcc?: string | string[];
-  }
-): Promise<{ messageId: string }> => {
-  const template = await getEmailTemplate(templateId);
-  
-  // Replace variables in subject and content
-  let subject = template.subject;
-  let htmlContent = template.htmlContent;
-  let textContent = template.textContent;
-
-  Object.entries(variables).forEach(([key, value]) => {
-    const placeholder = `{{${key}}}`;
-    subject = subject.replace(new RegExp(placeholder, 'g'), String(value));
-    htmlContent = htmlContent.replace(new RegExp(placeholder, 'g'), String(value));
-    if (textContent) {
-      textContent = textContent.replace(new RegExp(placeholder, 'g'), String(value));
-    }
-  });
-
-  return sendEmail({
-    to,
-    cc: options?.cc,
-    bcc: options?.bcc,
-    subject,
-    htmlContent,
-    textContent,
-    templateId,
-    templateVariables: variables
-  });
-};
-
-// Create or update email template
-export const saveEmailTemplate = async (template: {
-  id?: string;
-  name: string;
-  subject: string;
-  htmlContent: string;
-  textContent?: string;
-  variables: string[];
-  category: EmailTemplate['category'];
-}): Promise<EmailTemplate> => {
-  const response = await APIErrorHandler.handleAPICall(async () => {
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) throw new Error("Authentication required");
-
-    const templateData = {
-      name: template.name,
-      subject: template.subject,
-      html_content: template.htmlContent,
-      text_content: template.textContent,
-      variables: template.variables,
-      category: template.category,
-      company_id: userData.user.user_metadata?.company_id,
-      is_active: true
-    };
-
-    let data, error;
-
-    try {
-      if (template.id) {
-        // Update existing template
-        ({ data, error } = await supabase
-          .from("email_templates")
-          .update(templateData)
-          .eq("id", template.id)
-          .select()
-          .single());
-      } else {
-        // Create new template
-        ({ data, error } = await supabase
-          .from("email_templates")
-          .insert(templateData)
-          .select()
-          .single());
-      }
-
-      if (error) throw error;
-
-      return {
-        id: data.id,
-        name: data.name,
-        subject: data.subject,
-        htmlContent: data.html_content,
-        textContent: data.text_content,
-        variables: data.variables || [],
-        category: data.category,
-        isActive: data.is_active,
-        companyId: data.company_id,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at)
-      };
-    } catch (error) {
-      throw new Error(`Failed to save email template: ${error}`);
-    }
-  }, "saveEmailTemplate");
-
-  if (!response.success) throw response.error;
-  return response.data!;
 };

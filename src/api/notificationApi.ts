@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { APIErrorHandler } from "@/utils/apiErrorHandler";
 
@@ -46,12 +45,12 @@ export const fetchNotifications = async (limit = 50): Promise<Notification[]> =>
     return (data || []).map(notification => ({
       id: notification.id,
       userId: notification.user_id,
-      type: notification.type,
+      type: notification.type as Notification['type'],
       title: notification.title,
       message: notification.message,
       read: notification.read,
       companyId: notification.company_id,
-      metadata: notification.metadata,
+      metadata: {},
       createdAt: new Date(notification.timestamp)
     }));
   }, "fetchNotifications");
@@ -106,7 +105,6 @@ export const createNotification = async (notification: {
         title: notification.title,
         message: notification.message,
         company_id: notification.companyId,
-        metadata: notification.metadata,
         read: false
       })
       .select()
@@ -117,12 +115,12 @@ export const createNotification = async (notification: {
     return {
       id: data.id,
       userId: data.user_id,
-      type: data.type,
+      type: data.type as Notification['type'],
       title: data.title,
       message: data.message,
       read: data.read,
       companyId: data.company_id,
-      metadata: data.metadata,
+      metadata: {},
       createdAt: new Date(data.timestamp)
     };
   }, "createNotification");

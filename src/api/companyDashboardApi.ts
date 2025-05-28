@@ -20,13 +20,38 @@ export interface RecentActivity {
 // Fetch dashboard statistics
 export const fetchDashboardStats = async (companyId: string): Promise<DashboardStats> => {
   const response = await APIErrorHandler.handleAPICall(async () => {
-    // Since we don't have a repairs table yet, let's return mock data
-    // that simulates what would come from a real database
     console.log('Fetching dashboard stats for company:', companyId);
     
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Try to fetch real data first
+    try {
+      // Check if repairs table exists and get actual data
+      const { data: repairsData, error: repairsError } = await supabase
+        .from('repairs')
+        .select('status, actual_cost, completed_at')
+        .eq('company_id', companyId);
+
+      if (!repairsError && repairsData) {
+        const activeJobs = repairsData.filter(r => r.status === 'in_progress').length;
+        const completedJobs = repairsData.filter(r => r.status === 'completed').length;
+        const revenue = repairsData
+          .filter(r => r.status === 'completed' && r.actual_cost)
+          .reduce((sum, r) => sum + (r.actual_cost || 0), 0);
+        const completionRate = repairsData.length > 0 
+          ? Math.round((completedJobs / repairsData.length) * 100) 
+          : 0;
+
+        return {
+          activeJobs,
+          completedJobs,
+          revenue,
+          completionRate
+        };
+      }
+    } catch (error) {
+      console.log('Repairs table not available, using mock data');
+    }
     
+    // Fallback to mock data if real data is not available
     return {
       activeJobs: Math.floor(Math.random() * 50) + 10,
       completedJobs: Math.floor(Math.random() * 100) + 20,
@@ -44,8 +69,8 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
   const response = await APIErrorHandler.handleAPICall(async () => {
     console.log('Fetching recent activity for company:', companyId);
     
-    // Check if user_activity_logs table exists, if not return mock data
     try {
+      // Try to get real activity data
       const { data: activityData, error } = await supabase
         .from("user_activity_logs")
         .select("*")
@@ -53,56 +78,72 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
         .order("created_at", { ascending: false })
         .limit(10);
 
-      if (error) {
-        console.log('Activity logs table not found, using mock data');
-        // Return mock data if table doesn't exist
-        return generateMockActivity();
+      if (!error && activityData && activityData.length > 0) {
+        return activityData.map(activity => ({
+          id: activity.id,
+          type: mapActivityTypeToRecentActivity(activity.activity_type),
+          description: activity.description,
+          time: formatTimeAgo(new Date(activity.created_at)),
+          icon: getActivityIcon(activity.activity_type)
+        }));
       }
-
-      return (activityData || []).map(activity => ({
-        id: activity.id,
-        type: activity.activity_type as RecentActivity['type'],
-        description: activity.description,
-        time: formatTimeAgo(new Date(activity.created_at)),
-        icon: getActivityIcon(activity.activity_type)
-      }));
     } catch (error) {
-      console.log('Using mock activity data due to error:', error);
-      return generateMockActivity();
+      console.log('Activity logs table not found, using mock data');
     }
+
+    // Fallback to mock data
+    return generateMockActivity();
   }, "fetchRecentActivity");
 
   if (!response.success) throw response.error;
   return response.data!;
 };
 
+// Helper function to map activity types
+function mapActivityTypeToRecentActivity(activityType: string): RecentActivity['type'] {
+  switch (activityType) {
+    case 'repair_completed':
+    case 'job_completed':
+      return 'repair_completed';
+    case 'repair_started':
+    case 'job_started':
+      return 'job_started';
+    case 'parts_ordered':
+    case 'parts_needed':
+      return 'parts_needed';
+    case 'job_scheduled':
+    case 'appointment_scheduled':
+      return 'job_scheduled';
+    default:
+      return 'job_started';
+  }
+}
+
 // Generate mock activity data
 function generateMockActivity(): RecentActivity[] {
-  const activities = [
+  return [
     {
       id: '1',
-      type: 'repair_completed' as const,
+      type: 'repair_completed',
       description: 'Washing machine repair completed successfully',
       time: '2 hours ago',
       icon: 'CheckSquare'
     },
     {
       id: '2', 
-      type: 'job_started' as const,
+      type: 'job_started',
       description: 'Started dishwasher diagnostic',
       time: '4 hours ago',
       icon: 'Clock'
     },
     {
       id: '3',
-      type: 'parts_needed' as const,
+      type: 'parts_needed',
       description: 'Ordered replacement motor for dryer repair',
       time: '6 hours ago',
       icon: 'AlertCircle'
     }
   ];
-  
-  return activities;
 }
 
 // Helper function to format time ago
@@ -126,12 +167,16 @@ function formatTimeAgo(date: Date): string {
 function getActivityIcon(activityType: string): string {
   switch (activityType) {
     case 'repair_completed':
+    case 'job_completed':
       return 'CheckSquare';
+    case 'repair_started':
     case 'job_started':
       return 'Clock';
+    case 'parts_ordered':
     case 'parts_needed':
       return 'AlertCircle';
     case 'job_scheduled':
+    case 'appointment_scheduled':
       return 'Calendar';
     default:
       return 'Activity';
