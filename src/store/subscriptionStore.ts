@@ -2,7 +2,7 @@
 import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
 import { SubscriptionPlan, License, Payment } from "@/types/subscription";
-import { mockSubscriptionPlans, mockLicenses, mockPayments } from "@/data/mockSubscriptions";
+import { getSubscriptionPlans, getLicenses, getPayments } from "@/data/mockSubscriptions";
 import { toast } from "sonner";
 
 // Define the store state
@@ -36,9 +36,9 @@ interface SubscriptionStore {
 
 // Create the store
 export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
-  plans: mockSubscriptionPlans as SubscriptionPlan[],
-  licenses: mockLicenses as License[],
-  payments: mockPayments as Payment[],
+  plans: [],
+  licenses: [],
+  payments: [],
   isLoadingPlans: false,
   isLoadingLicenses: false,
   isLoadingPayments: false,
@@ -49,44 +49,7 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   fetchPlans: async () => {
     set({ isLoadingPlans: true, error: null });
     try {
-      // Since there is no subscription_plans table yet in Supabase, we'll use mock data
-      // If you create the table later, you can uncomment the database code
-      
-      /*
-      const { data, error } = await supabase
-        .from('subscription_plans')
-        .select('*')
-        .eq('is_active', true);
-        
-      if (error) throw new Error(error.message);
-      
-      // Transform database records to match our SubscriptionPlan type
-      const plans = data.map(plan => ({
-        id: plan.id,
-        name: plan.name,
-        description: plan.description,
-        price_monthly: plan.price_monthly,
-        price_yearly: plan.price_yearly,
-        features: Array.isArray(plan.features) ? plan.features : [],
-        limits: typeof plan.limits === 'object' ? plan.limits : {
-          technicians: 5,
-          admins: 1,
-          workflows: 10,
-          storage_gb: 10,
-          api_calls: 1000,
-          diagnostics_per_day: 20
-        },
-        trial_period: plan.trial_period,
-        is_active: plan.is_active,
-        recommended: plan.recommended,
-        createdAt: new Date(plan.created_at),
-        updatedAt: new Date(plan.updated_at)
-      })) as SubscriptionPlan[];
-      */
-      
-      // Use mock plans instead
-      const plans = mockSubscriptionPlans;
-      
+      const plans = await getSubscriptionPlans();
       set({ plans, isLoadingPlans: false });
       return plans;
     } catch (error) {
@@ -100,39 +63,7 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   fetchLicenses: async (companyId: string) => {
     set({ isLoadingLicenses: true, error: null });
     try {
-      // Since there is no licenses table yet in Supabase, we'll use mock data
-      // If you create the table later, you can uncomment the database code
-      
-      /*
-      const { data, error } = await supabase
-        .from('licenses')
-        .select('*')
-        .eq('company_id', companyId);
-        
-      if (error) throw new Error(error.message);
-      
-      // Transform database records to match our License type
-      const licenses = data.map(license => ({
-        id: license.id,
-        company_id: license.company_id,
-        company_name: license.company_name || '',
-        plan_id: license.plan_id,
-        plan_name: license.plan_name || '',
-        status: license.status,
-        activeTechnicians: license.active_technicians || 0,
-        startDate: new Date(license.start_date),
-        endDate: license.end_date ? new Date(license.end_date) : undefined,
-        trialEndsAt: license.trial_ends_at ? new Date(license.trial_ends_at) : undefined,
-        lastPayment: license.last_payment ? new Date(license.last_payment) : undefined,
-        nextPayment: license.next_payment ? new Date(license.next_payment) : undefined,
-        createdAt: new Date(license.created_at),
-        updatedAt: new Date(license.updated_at)
-      })) as License[];
-      */
-      
-      // Use mock licenses filtered by company ID
-      const licenses = mockLicenses.filter(license => license.company_id === companyId);
-      
+      const licenses = await getLicenses(companyId);
       set({ licenses, isLoadingLicenses: false });
       return licenses;
     } catch (error) {
@@ -145,40 +76,8 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   // Fetch a single license by ID
   fetchLicenseById: async (licenseId: string) => {
     try {
-      // Since there is no licenses table yet in Supabase, we'll use mock data
-      // If you create the table later, you can uncomment the database code
-      
-      /*
-      const { data, error } = await supabase
-        .from('licenses')
-        .select('*')
-        .eq('id', licenseId)
-        .single();
-        
-      if (error) throw new Error(error.message);
-      
-      // Transform to our License type
-      const license = {
-        id: data.id,
-        company_id: data.company_id,
-        company_name: data.company_name || '',
-        plan_id: data.plan_id,
-        plan_name: data.plan_name || '',
-        status: data.status,
-        activeTechnicians: data.active_technicians || 0,
-        startDate: new Date(data.start_date),
-        endDate: data.end_date ? new Date(data.end_date) : undefined,
-        trialEndsAt: data.trial_ends_at ? new Date(data.trial_ends_at) : undefined,
-        lastPayment: data.last_payment ? new Date(data.last_payment) : undefined,
-        nextPayment: data.next_payment ? new Date(data.next_payment) : undefined,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at)
-      } as License;
-      */
-      
-      // Find the license in mock data
-      const license = mockLicenses.find(license => license.id === licenseId) || null;
-      
+      // For now, find the license in the current state
+      const license = get().licenses.find(license => license.id === licenseId) || null;
       return license;
     } catch (error) {
       console.error('Error fetching license:', error);
@@ -191,37 +90,11 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   fetchPayments: async (licenseId: string) => {
     set({ isLoadingPayments: true, error: null });
     try {
-      // Since there is no license_payments table yet in Supabase, we'll use mock data
-      // If you create the table later, you can uncomment the database code
-      
-      /*
-      const { data, error } = await supabase
-        .from('license_payments')
-        .select('*')
-        .eq('license_id', licenseId);
-        
-      if (error) throw new Error(error.message);
-      
-      // Transform to our Payment type
-      const payments = data.map(payment => ({
-        id: payment.id,
-        license_id: payment.license_id,
-        company_id: payment.company_id,
-        amount: payment.amount,
-        currency: payment.currency,
-        status: payment.status,
-        paymentMethod: payment.payment_method,
-        paymentDate: new Date(payment.payment_date),
-        invoiceUrl: payment.invoice_url,
-        createdAt: new Date(payment.created_at)
-      })) as Payment[];
-      */
-      
-      // Use mock payments filtered by license ID
-      const payments = mockPayments.filter(payment => payment.license_id === licenseId);
-      
-      set({ payments, isLoadingPayments: false });
-      return payments;
+      const payments = await getPayments();
+      // Filter payments by license ID if needed
+      const filteredPayments = payments.filter(payment => payment.license_id === licenseId);
+      set({ payments: filteredPayments, isLoadingPayments: false });
+      return filteredPayments;
     } catch (error) {
       console.error('Error fetching payments:', error);
       set({ error: (error as Error).message, isLoadingPayments: false });

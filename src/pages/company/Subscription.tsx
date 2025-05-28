@@ -14,13 +14,27 @@ import { AlertCircle, Clock, Users, Calendar, CreditCard } from "lucide-react";
 import { useSubscriptionStore } from "@/store/subscriptionStore";
 
 export default function CompanySubscription() {
-  const { plans, licenses } = useSubscriptionStore();
+  const { 
+    plans, 
+    licenses, 
+    fetchPlans, 
+    fetchLicenses,
+    isLoadingPlans,
+    isLoadingLicenses
+  } = useSubscriptionStore();
+  
   const activePlans = plans.filter(plan => plan.is_active);
   
   // For demo purposes, use the first license with company_id "company-2"
   const [currentLicense, setCurrentLicense] = useState<License | undefined>(undefined);
   
-  // Load the license when component mounts
+  // Load data when component mounts
+  useEffect(() => {
+    fetchPlans();
+    fetchLicenses("company-2");
+  }, [fetchPlans, fetchLicenses]);
+  
+  // Load the license when licenses are available
   useEffect(() => {
     const companyLicense = licenses.find(license => license.company_id === "company-2");
     if (companyLicense) {
@@ -46,6 +60,16 @@ export default function CompanySubscription() {
   // Calculate days left in trial
   const daysLeft = currentLicense?.trialEndsAt ? 
     Math.max(0, Math.ceil((currentLicense.trialEndsAt.getTime() - new Date().getTime()) / (1000 * 3600 * 24))) : 0;
+
+  if (isLoadingPlans || isLoadingLicenses) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-center py-12">
+          <p className="text-lg text-muted-foreground">Loading subscription data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6">
