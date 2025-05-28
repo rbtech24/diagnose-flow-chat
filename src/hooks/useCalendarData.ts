@@ -63,8 +63,8 @@ export function useCalendarData(selectedDate: Date) {
         
         return {
           id: repair.id,
-          title: repair.problem_description || `${repair.appliance_type} Service`,
-          description: repair.diagnosis || '',
+          title: repair.diagnosis || `Repair Service`,
+          description: repair.diagnosis || 'Repair service appointment',
           startTime: scheduledAt,
           endTime: new Date(scheduledAt.getTime() + (estimatedDuration * 60000)),
           type: 'repair' as const,

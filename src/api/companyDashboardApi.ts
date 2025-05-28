@@ -79,13 +79,22 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    return (activityData || []).map((activity: any) => ({
-      id: activity.id,
-      type: mapActivityTypeToRecentActivity(activity.activity_type),
-      description: activity.description,
-      time: formatTimeAgo(new Date(activity.created_at)),
-      icon: getActivityIcon(activity.activity_type)
-    }));
+    // Explicitly type the activity data to avoid deep instantiation
+    const activities: RecentActivity[] = [];
+    
+    if (activityData) {
+      for (const activity of activityData) {
+        activities.push({
+          id: activity.id,
+          type: mapActivityTypeToRecentActivity(activity.activity_type),
+          description: activity.description,
+          time: formatTimeAgo(new Date(activity.created_at)),
+          icon: getActivityIcon(activity.activity_type)
+        });
+      }
+    }
+
+    return activities;
   } catch (error) {
     console.error('Error in fetchRecentActivity:', error);
     return [];
