@@ -1,19 +1,17 @@
 
 import React from 'react';
-import { Handle, Position } from '@xyflow/react';
-import { getHandleStyle } from '@/utils/handleUtils';
-import { ArrowDown, ArrowUp, LucideIcon } from 'lucide-react';
+import { Handle, Position, HandleType } from '@xyflow/react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface HandleWithTooltipProps {
-  type: 'source' | 'target';
+  type: HandleType;
   position: Position;
   id: string;
   connected: { isConnected: boolean; isNoOutcome: boolean };
   handleDisconnect: (handleId: string) => void;
-  tooltipPosition: 'top' | 'bottom' | 'left' | 'right';
+  tooltipPosition: string;
   style?: React.CSSProperties;
-  Icon?: LucideIcon;
-  iconPosition: 'top' | 'bottom';
+  iconPosition?: string;
 }
 
 export function HandleWithTooltip({
@@ -24,58 +22,32 @@ export function HandleWithTooltip({
   handleDisconnect,
   tooltipPosition,
   style,
-  Icon,
   iconPosition
 }: HandleWithTooltipProps) {
-  const isIncoming = type === 'target';
-  const tooltipClasses = {
-    top: '-top-6 left-1/2 -translate-x-1/2',
-    bottom: '-bottom-6 left-1/2 -translate-x-1/2',
-    left: '-left-16 top-1/2 -translate-y-1/2',
-    right: '-right-16 top-1/2 -translate-y-1/2'
-  };
-
-  const iconClasses = {
-    top: '-top-4',
-    bottom: '-bottom-4'
-  };
-
   return (
-    <div className="relative group">
-      <Handle
-        type={type}
-        position={position}
-        id={id}
-        style={{
-          ...getHandleStyle(connected),
-          backgroundColor: isIncoming ? '#e2e8f0' : '#f1f5f9',
-          border: `2px solid ${isIncoming ? '#94a3b8' : '#64748b'}`,
-          transition: 'all 150ms ease-in-out',
-          ...style
-        }}
-        onClick={() => connected.isConnected && handleDisconnect(id)}
-      />
-      <div 
-        className={`
-          absolute ${tooltipClasses[tooltipPosition]} 
-          opacity-0 scale-95
-          group-hover:opacity-100 group-hover:scale-100
-          transition-all duration-150 ease-in-out
-          text-[10px] bg-gray-800/90 text-white 
-          px-1.5 py-0.5 rounded-sm 
-          shadow-sm backdrop-blur-[2px]
-          whitespace-nowrap
-          pointer-events-none
-          z-50
-        `}
-      >
-        {isIncoming ? 'Incoming' : 'Outgoing'}
-      </div>
-      {Icon && (
-        <Icon 
-          className={`w-3 h-3 text-gray-${isIncoming ? '400' : '600'} absolute ${iconClasses[iconPosition]}`} 
-        />
-      )}
-    </div>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Handle
+            type={type}
+            position={position}
+            id={id}
+            style={style}
+            className={`w-3 h-3 border-2 ${connected.isConnected ? 'bg-green-500' : 'bg-gray-300'}`}
+          />
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{connected.isConnected ? 'Connected' : 'Not connected'}</p>
+          {connected.isConnected && (
+            <button 
+              onClick={() => handleDisconnect(id)}
+              className="text-red-500 text-xs hover:underline"
+            >
+              Disconnect
+            </button>
+          )}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
