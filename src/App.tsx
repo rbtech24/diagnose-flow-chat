@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,32 +9,30 @@ import { GlobalErrorBoundary } from "@/components/error/GlobalErrorBoundary";
 import { LayoutProvider } from "@/components/layout/LayoutProvider";
 import { DataProvider } from "@/components/data/DataProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
-import { Home } from "@/pages/Home";
-import { Login } from "@/pages/Login";
-import { SignUp } from "@/pages/SignUp";
-import { Pricing } from "@/pages/Pricing";
-import { Contact } from "@/pages/Contact";
-import { TermsOfService } from "@/pages/TermsOfService";
-import { PrivacyPolicy } from "@/pages/PrivacyPolicy";
+import Home from "@/pages/Home";
+import Login from "@/pages/Login";
+import SignUp from "@/pages/SignUp";
+import Pricing from "@/pages/Pricing";
+import Contact from "@/pages/Contact";
+import TermsOfService from "@/pages/TermsOfService";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import { TechLayout } from "@/components/tech/TechLayout";
-import { TechDashboard } from "@/pages/tech/TechDashboard";
-import { TechCalendar } from "@/pages/tech/TechCalendar";
-import { TechTraining } from "@/pages/tech/TechTraining";
-import { TechProfile } from "@/pages/tech/TechProfile";
-import { TechCustomers } from "@/pages/tech/TechCustomers";
-import { TechEquipment } from "@/pages/tech/TechEquipment";
-import { TechSettings } from "@/pages/tech/TechSettings";
+import TechDashboard from "@/pages/tech/TechDashboard";
+import TechCalendar from "@/pages/tech/TechCalendar";
+import TechTraining from "@/pages/tech/TechTraining";
+import TechProfile from "@/pages/tech/TechProfile";
+import TechCustomers from "@/pages/tech/TechCustomers";
+import TechEquipment from "@/pages/tech/TechEquipment";
+import TechSettings from "@/pages/tech/TechSettings";
 import { RouteErrorBoundary } from "@/components/error/RouteErrorBoundary";
-import { NotFound } from "@/pages/NotFound";
-import { UserManagement } from "@/pages/admin/UserManagement";
-import { SystemMessages } from "@/pages/admin/SystemMessages";
-import { ActivityLogs } from "@/pages/admin/ActivityLogs";
+import NotFound from "@/pages/NotFound";
+import UserManagement from "@/pages/admin/UserManagement";
+import SystemMessages from "@/pages/admin/SystemMessages";
+import ActivityLogs from "@/pages/admin/ActivityLogs";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { Billing } from "@/pages/admin/Billing";
-import { Workflows } from "@/pages/admin/Workflows";
-import { CompanySettings } from "@/pages/admin/CompanySettings";
-import { useUserManagementStore } from "@/store/userManagementStore";
-import { useEffect } from "react";
+import Billing from "@/pages/admin/Billing";
+import Workflows from "@/pages/admin/Workflows";
+import CompanySettings from "@/pages/admin/CompanySettings";
 
 const queryClient = new QueryClient();
 
@@ -68,7 +67,7 @@ function App() {
                       <Route path="settings" element={<TechSettings />} />
                     </Route>
 
-                    <Route path="/admin" element={<RouteGuard requireAdmin={true}><AdminLayout /></RouteGuard>}>
+                    <Route path="/admin" element={<RouteGuard allowedRoles={['admin']}><AdminLayout /></RouteGuard>}>
                       <Route index element={<UserManagement />} />
                       <Route path="users" element={<UserManagement />} />
                       <Route path="messages" element={<SystemMessages />} />
