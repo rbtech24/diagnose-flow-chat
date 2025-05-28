@@ -1,3 +1,4 @@
+
 import {
   createBrowserRouter,
   RouterProvider,
@@ -66,11 +67,11 @@ import { AuthProvider } from "./context/AuthContext";
 import UserEdit from "./pages/admin/UserEdit";
 import UserNew from "./pages/admin/UserNew";
 import ActivityPage from "./pages/admin/Activity";
-import TechCalendar from "./pages/tech/TechCalendar";
-import TechNotifications from "./pages/tech/TechNotifications";
-import TechTraining from "./pages/tech/TechTraining";
-import TechNewCommunityPost from "./pages/tech/TechNewCommunityPost";
-import TechNewFeatureRequest from "./pages/tech/TechNewFeatureRequest";
+import TechCalendar from "./pages/tech/Calendar";
+import TechNotifications from "./pages/tech/Notifications";
+import TechTraining from "./pages/tech/Training";
+import TechNewCommunityPost from "./pages/tech/NewCommunityPost";
+import TechNewFeatureRequest from "./pages/tech/NewFeatureRequest";
 import { RouteGuard } from "./components/RouteGuard";
 
 const router = createBrowserRouter([
