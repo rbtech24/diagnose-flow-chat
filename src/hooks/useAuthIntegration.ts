@@ -40,7 +40,11 @@ export function useAuthIntegration(): AuthIntegrationState {
     };
 
     const canAccessRoute = (route: string): boolean => {
-      if (!isAuthenticated) return false;
+      if (!isAuthenticated) {
+        // Allow access to public routes
+        const publicRoutes = ['/', '/login', '/signup', '/forgot-password', '/about', '/contact'];
+        return publicRoutes.includes(route);
+      }
       
       const routeAccess = {
         '/admin': ['admin'],
@@ -50,7 +54,9 @@ export function useAuthIntegration(): AuthIntegrationState {
         '/diagnostics': ['admin', 'company', 'tech']
       };
 
-      const allowedRoles = routeAccess[route as keyof typeof routeAccess] || [];
+      const allowedRoles = routeAccess[route as keyof typeof routeAccess];
+      if (!allowedRoles) return true; // Allow access to routes not specifically restricted
+      
       return allowedRoles.includes(userRole);
     };
 

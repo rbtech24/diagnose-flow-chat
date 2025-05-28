@@ -1,4 +1,6 @@
 
+import React from 'react';
+
 export class PerformanceMonitor {
   private static measurements: Map<string, number> = new Map();
 
@@ -36,7 +38,7 @@ export class PerformanceMonitor {
 
   static measureComponent(componentName: string) {
     return function<T extends React.ComponentType<any>>(Component: T): T {
-      const MeasuredComponent = (props: any) => {
+      const MeasuredComponent = React.forwardRef<any, any>((props, ref) => {
         React.useEffect(() => {
           PerformanceMonitor.startMeasurement(`${componentName}-render`);
           return () => {
@@ -44,8 +46,8 @@ export class PerformanceMonitor {
           };
         });
 
-        return React.createElement(Component, props);
-      };
+        return React.createElement(Component, { ...props, ref });
+      });
 
       MeasuredComponent.displayName = `Measured(${Component.displayName || Component.name})`;
       return MeasuredComponent as T;
@@ -55,12 +57,14 @@ export class PerformanceMonitor {
 
 // Memory usage monitoring
 export const monitorMemoryUsage = () => {
-  if ('memory' in performance) {
+  if ('memory' in performance && (performance as any).memory) {
     const memory = (performance as any).memory;
     console.log('Memory usage:', {
       used: Math.round(memory.usedJSHeapSize / 1048576) + ' MB',
       total: Math.round(memory.totalJSHeapSize / 1048576) + ' MB',
       limit: Math.round(memory.jsHeapSizeLimit / 1048576) + ' MB'
     });
+  } else {
+    console.log('Memory monitoring not available in this environment');
   }
 };
