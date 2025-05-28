@@ -1,19 +1,18 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { CommunityPost, CommunityComment, Attachment, CommunityPostType } from "@/types/community";
 
-// Helper function to format user data
+// Helper function to format user data from profiles table
 const formatUserData = async (userId?: string | null) => {
   if (!userId) return undefined;
   
-  const { data: userData, error } = await supabase
+  const { data: profileData, error } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", userId)
     .single();
     
-  if (error || !userData) {
-    console.warn(`Could not fetch user data for ${userId}:`, error);
+  if (error || !profileData) {
+    console.warn(`Could not fetch profile data for ${userId}:`, error);
     return {
       id: userId,
       name: 'Unknown User',
@@ -25,11 +24,10 @@ const formatUserData = async (userId?: string | null) => {
   
   return {
     id: userId,
-    name: userData.full_name || 'Unknown User',
-    // The profile table doesn't have an email field, so we'll use an empty string
+    name: profileData.full_name || 'Unknown User',
     email: '',
-    role: userData.role as "admin" | "company" | "tech",
-    avatarUrl: userData.avatar_url
+    role: profileData.role as "admin" | "company" | "tech",
+    avatarUrl: profileData.avatar_url
   };
 };
 
@@ -82,7 +80,7 @@ export const fetchCommunityPosts = async (): Promise<CommunityPost[]> => {
       type: post.type as CommunityPostType,
       authorId: post.author_id,
       author: author,
-      attachments: [],  // Default empty array as the field doesn't exist in the table
+      attachments: [],
       createdAt: new Date(post.created_at),
       updatedAt: new Date(post.updated_at),
       upvotes: post.upvotes || 0,
@@ -156,7 +154,7 @@ export const fetchCommunityPostById = async (id: string): Promise<CommunityPost>
     type: data.type as CommunityPostType,
     authorId: data.author_id,
     author: author,
-    attachments: [], // Default empty array as the field doesn't exist in the table
+    attachments: [],
     createdAt: new Date(data.created_at),
     updatedAt: new Date(data.updated_at),
     upvotes: data.upvotes || 0,

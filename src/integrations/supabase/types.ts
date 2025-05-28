@@ -1958,6 +1958,7 @@ export type Database = {
       }
       notifications: {
         Row: {
+          company_id: string | null
           id: string
           message: string
           read: boolean | null
@@ -1967,6 +1968,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          company_id?: string | null
           id?: string
           message: string
           read?: boolean | null
@@ -1976,6 +1978,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          company_id?: string | null
           id?: string
           message?: string
           read?: boolean | null
@@ -1984,7 +1987,15 @@ export type Database = {
           type?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notifications_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       part_categories: {
         Row: {
