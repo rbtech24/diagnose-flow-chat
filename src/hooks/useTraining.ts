@@ -1,29 +1,18 @@
 
 import { useState, useEffect } from 'react';
 import { useErrorHandler } from './useErrorHandler';
-
-export interface TrainingModule {
-  id: string;
-  title: string;
-  description: string;
-  type: 'video' | 'document' | 'interactive';
-  duration: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  category: string;
-  rating: number;
-  completed: boolean;
-}
-
-export interface Certification {
-  id: string;
-  name: string;
-  description: string;
-  status: 'not_started' | 'in_progress' | 'completed' | 'expired';
-  progress: number;
-  completedModules: number;
-  totalModules: number;
-  expiryDate?: Date;
-}
+import { 
+  fetchTrainingModules, 
+  fetchUserTrainingProgress, 
+  startTrainingModule, 
+  updateTrainingProgress,
+  fetchCertificationPrograms 
+} from '@/api/trainingApi';
+import type { 
+  TrainingModule, 
+  TrainingProgress, 
+  CertificationProgress 
+} from '@/api/trainingApi';
 
 export interface TrainingStats {
   completedModules: number;
@@ -33,7 +22,8 @@ export interface TrainingStats {
 
 export function useTraining() {
   const [modules, setModules] = useState<TrainingModule[]>([]);
-  const [certifications, setCertifications] = useState<Certification[]>([]);
+  const [certifications, setCertifications] = useState<CertificationProgress[]>([]);
+  const [userProgress, setUserProgress] = useState<TrainingProgress[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { handleAsyncError } = useErrorHandler();
 
@@ -41,70 +31,19 @@ export function useTraining() {
     const result = await handleAsyncError(async () => {
       setIsLoading(true);
       
-      // Mock data - replace with actual API calls
-      const mockModules: TrainingModule[] = [
-        {
-          id: '1',
-          title: 'HVAC Fundamentals',
-          description: 'Learn the basics of heating, ventilation, and air conditioning systems',
-          type: 'video',
-          duration: '2h 30min',
-          difficulty: 'beginner',
-          category: 'Technical Skills',
-          rating: 4.8,
-          completed: false
-        },
-        {
-          id: '2',
-          title: 'Safety Procedures Manual',
-          description: 'Essential safety guidelines for technicians',
-          type: 'document',
-          duration: '45min',
-          difficulty: 'beginner',
-          category: 'Safety',
-          rating: 4.9,
-          completed: true
-        },
-        {
-          id: '3',
-          title: 'Advanced Diagnostics',
-          description: 'Interactive troubleshooting scenarios',
-          type: 'interactive',
-          duration: '3h 15min',
-          difficulty: 'advanced',
-          category: 'Technical Skills',
-          rating: 4.7,
-          completed: false
-        }
-      ];
-
-      const mockCertifications: Certification[] = [
-        {
-          id: '1',
-          name: 'HVAC Technician Level 1',
-          description: 'Basic certification for HVAC technicians',
-          status: 'in_progress',
-          progress: 60,
-          completedModules: 3,
-          totalModules: 5,
-          expiryDate: new Date(2025, 11, 31)
-        },
-        {
-          id: '2',
-          name: 'Safety Compliance',
-          description: 'Workplace safety certification',
-          status: 'completed',
-          progress: 100,
-          completedModules: 2,
-          totalModules: 2,
-          expiryDate: new Date(2026, 5, 15)
-        }
-      ];
-
-      setModules(mockModules);
-      setCertifications(mockCertifications);
+      // Fetch training modules
+      const modulesData = await fetchTrainingModules();
+      setModules(modulesData);
       
-      return { modules: mockModules, certifications: mockCertifications };
+      // Fetch user progress
+      const progressData = await fetchUserTrainingProgress('current-user-id'); // This should come from auth context
+      setUserProgress(progressData);
+      
+      // Fetch certification programs
+      const certificationsData = await fetchCertificationPrograms();
+      setCertifications(certificationsData);
+      
+      return { modules: modulesData, progress: progressData, certifications: certificationsData };
     }, 'fetchTrainingData');
     
     setIsLoading(false);
@@ -113,23 +52,44 @@ export function useTraining() {
 
   const markModuleComplete = async (moduleId: string) => {
     await handleAsyncError(async () => {
-      setModules(prev => prev.map(module => 
-        module.id === moduleId 
-          ? { ...module, completed: true }
-          : module
-      ));
+      // Find existing progress or start new module
+      const existingProgress = userProgress.find(p => p.moduleId === moduleId);
+      
+      if (existingProgress) {
+        await updateTrainingProgress(existingProgress.id, {
+          progress: 100,
+          status: 'completed'
+        });
+      } else {
+        const newProgress = await startTrainingModule(moduleId);
+        await updateTrainingProgress(newProgress.id, {
+          progress: 100,
+          status: 'completed'
+        });
+      }
+      
+      // Refresh data
+      await fetchTrainingData();
     }, 'markModuleComplete');
   };
 
   const getStats = (): TrainingStats => {
-    const completedModules = modules.filter(m => m.completed).length;
-    const completedCertifications = certifications.filter(c => c.status === 'completed').length;
+    const completedCount = userProgress.filter(p => p.status === 'completed').length;
+    const completedCerts = certifications.filter(c => c.status === 'completed').length;
+    const totalTime = userProgress.reduce((total, p) => total + p.timeSpent, 0);
+    
+    const hours = Math.floor(totalTime / 3600);
+    const minutes = Math.floor((totalTime % 3600) / 60);
     
     return {
-      completedModules,
-      completedCertifications,
-      totalLearningTime: '12h 30min'
+      completedModules: completedCount,
+      completedCertifications: completedCerts,
+      totalLearningTime: `${hours}h ${minutes}min`
     };
+  };
+
+  const getModuleProgress = (moduleId: string): TrainingProgress | undefined => {
+    return userProgress.find(p => p.moduleId === moduleId);
   };
 
   useEffect(() => {
@@ -139,9 +99,11 @@ export function useTraining() {
   return {
     modules,
     certifications,
+    userProgress,
     isLoading,
     markModuleComplete,
     getStats,
+    getModuleProgress,
     refreshData: fetchTrainingData
   };
 }

@@ -23,7 +23,8 @@ export default function TechTraining() {
     certifications,
     isLoading,
     markModuleComplete,
-    getStats
+    getStats,
+    getModuleProgress
   } = useTraining();
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -57,7 +58,7 @@ export default function TechTraining() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800';
-      case 'in-progress': return 'bg-blue-100 text-blue-800';
+      case 'in_progress': return 'bg-blue-100 text-blue-800';
       case 'expired': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -115,58 +116,80 @@ export default function TechTraining() {
               <CardTitle>Training Modules</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {filteredModules.map((module) => (
-                  <div key={module.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{module.title}</h3>
-                        <p className="text-sm text-gray-600 mt-1">{module.description}</p>
-                      </div>
-                      {module.completed && (
-                        <Badge className="bg-green-100 text-green-800">Completed</Badge>
-                      )}
-                    </div>
+              {filteredModules.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <BookOpen className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p>No training modules available</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {filteredModules.map((module) => {
+                    const progress = getModuleProgress(module.id);
+                    const isCompleted = progress?.status === 'completed';
                     
-                    <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                      <span className="flex items-center gap-1">
-                        {getTypeIcon(module.type)}
-                        {module.type}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        {module.duration}
-                      </span>
-                      <Badge className={getDifficultyColor(module.difficulty)}>
-                        {module.difficulty}
-                      </Badge>
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 text-yellow-500" />
-                        <span>{module.rating}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-500">{module.category}</span>
-                      <div className="flex gap-2">
-                        {module.type === 'document' && (
-                          <Button variant="outline" size="sm">
-                            <Download className="h-4 w-4 mr-1" />
-                            Download
-                          </Button>
+                    return (
+                      <div key={module.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-lg">{module.title}</h3>
+                            <p className="text-sm text-gray-600 mt-1">{module.description}</p>
+                          </div>
+                          {isCompleted && (
+                            <Badge className="bg-green-100 text-green-800">Completed</Badge>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                          <span className="flex items-center gap-1">
+                            {getTypeIcon(module.type)}
+                            {module.type}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" />
+                            {module.duration} min
+                          </span>
+                          <Badge className={getDifficultyColor(module.difficulty)}>
+                            {module.difficulty}
+                          </Badge>
+                          <div className="flex items-center gap-1">
+                            <Star className="h-4 w-4 text-yellow-500" />
+                            <span>{module.rating || 0}</span>
+                          </div>
+                        </div>
+                        
+                        {progress && progress.progress > 0 && progress.progress < 100 && (
+                          <div className="mb-3">
+                            <div className="flex justify-between text-sm mb-1">
+                              <span>Progress</span>
+                              <span>{progress.progress}%</span>
+                            </div>
+                            <Progress value={progress.progress} className="h-2" />
+                          </div>
                         )}
-                        <Button 
-                          size="sm"
-                          onClick={() => markModuleComplete(module.id)}
-                          disabled={module.completed}
-                        >
-                          {module.completed ? 'Completed' : 'Start'}
-                        </Button>
+                        
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-500">{module.category}</span>
+                          <div className="flex gap-2">
+                            {module.type === 'document' && (
+                              <Button variant="outline" size="sm">
+                                <Download className="h-4 w-4 mr-1" />
+                                Download
+                              </Button>
+                            )}
+                            <Button 
+                              size="sm"
+                              onClick={() => markModuleComplete(module.id)}
+                              disabled={isCompleted}
+                            >
+                              {isCompleted ? 'Completed' : 'Start'}
+                            </Button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -181,38 +204,37 @@ export default function TechTraining() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {certifications.map((cert) => (
-                  <div key={cert.id} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <h3 className="font-medium">{cert.name}</h3>
-                      <Badge className={getStatusColor(cert.status)}>
-                        {cert.status}
-                      </Badge>
-                    </div>
-                    
-                    <p className="text-sm text-gray-600 mb-3">{cert.description}</p>
-                    
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Progress</span>
-                        <span>{cert.completedModules}/{cert.totalModules} modules</span>
+              {certifications.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Award className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p>No certifications available</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {certifications.map((cert) => (
+                    <div key={cert.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <h3 className="font-medium">{cert.programId}</h3>
+                        <Badge className={getStatusColor(cert.status)}>
+                          {cert.status}
+                        </Badge>
                       </div>
-                      <Progress value={cert.progress} className="h-2" />
+                      
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>Progress</span>
+                          <span>{cert.progress}%</span>
+                        </div>
+                        <Progress value={cert.progress} className="h-2" />
+                      </div>
+                      
+                      <Button className="w-full mt-3" size="sm">
+                        {cert.status === 'completed' ? 'View Certificate' : 'Continue'}
+                      </Button>
                     </div>
-                    
-                    {cert.expiryDate && (
-                      <p className="text-xs text-gray-500 mt-2">
-                        Expires: {cert.expiryDate.toLocaleDateString()}
-                      </p>
-                    )}
-                    
-                    <Button className="w-full mt-3" size="sm">
-                      {cert.status === 'completed' ? 'View Certificate' : 'Continue'}
-                    </Button>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 

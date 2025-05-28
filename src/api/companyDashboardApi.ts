@@ -28,32 +28,13 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
   console.log('Fetching dashboard stats for company:', companyId);
   
   try {
-    // Check if repairs table exists first
     const { data: repairsData, error: repairsError } = await supabase
-      .from('repairs')
-      .select('status, actual_cost, completed_at')
-      .eq('company_id', companyId)
-      .limit(1); // Just check if table exists
-
-    if (repairsError) {
-      console.error('Repairs table not available:', repairsError);
-      // Return default stats if table doesn't exist or has errors
-      return {
-        activeJobs: 0,
-        completedJobs: 0,
-        revenue: 0,
-        completionRate: 0
-      };
-    }
-
-    // If table exists, fetch all data
-    const { data: allRepairsData, error: allRepairsError } = await supabase
       .from('repairs')
       .select('status, actual_cost, completed_at')
       .eq('company_id', companyId);
 
-    if (allRepairsError) {
-      console.error('Error fetching repairs data:', allRepairsError);
+    if (repairsError) {
+      console.error('Error fetching repairs data:', repairsError);
       return {
         activeJobs: 0,
         completedJobs: 0,
@@ -62,13 +43,13 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
       };
     }
 
-    const activeJobs = allRepairsData?.filter(r => r.status === 'in_progress').length || 0;
-    const completedJobs = allRepairsData?.filter(r => r.status === 'completed').length || 0;
-    const revenue = allRepairsData
+    const activeJobs = repairsData?.filter(r => r.status === 'in_progress').length || 0;
+    const completedJobs = repairsData?.filter(r => r.status === 'completed').length || 0;
+    const revenue = repairsData
       ?.filter(r => r.status === 'completed' && r.actual_cost)
       .reduce((sum, r) => sum + (r.actual_cost || 0), 0) || 0;
-    const completionRate = allRepairsData && allRepairsData.length > 0 
-      ? Math.round((completedJobs / allRepairsData.length) * 100) 
+    const completionRate = repairsData && repairsData.length > 0 
+      ? Math.round((completedJobs / repairsData.length) * 100) 
       : 0;
 
     return {

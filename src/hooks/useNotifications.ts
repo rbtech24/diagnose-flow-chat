@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useErrorHandler } from './useErrorHandler';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface NotificationItem {
   id: string;
@@ -29,69 +30,48 @@ export function useNotifications() {
     const result = await handleAsyncError(async () => {
       setIsLoading(true);
       
-      // Mock data - replace with actual API calls
-      const mockNotifications: NotificationItem[] = [
-        {
-          id: '1',
-          title: 'New Job Assignment',
-          message: 'You have been assigned to repair HVAC at 123 Main St',
-          type: 'info',
-          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-          read: false
-        },
-        {
-          id: '2',
-          title: 'Training Reminder',
-          message: 'Your safety certification expires in 30 days',
-          type: 'warning',
-          timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-          read: false
-        },
-        {
-          id: '3',
-          title: 'Job Completed',
-          message: 'Customer rated your service 5 stars!',
-          type: 'success',
-          timestamp: new Date(Date.now() - 48 * 60 * 60 * 1000), // 2 days ago
-          read: true
-        }
-      ];
+      // Fetch notifications from database
+      const { data: notificationsData, error: notificationsError } = await supabase
+        .from('notifications')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
 
-      const mockSettings: NotificationSetting[] = [
-        {
-          id: 'job_assignments',
-          title: 'Job Assignments',
-          description: 'Get notified when you receive new job assignments',
-          type: 'push',
-          enabled: true
-        },
-        {
-          id: 'schedule_changes',
-          title: 'Schedule Changes',
-          description: 'Receive alerts about schedule modifications',
-          type: 'email',
-          enabled: true
-        },
-        {
-          id: 'training_reminders',
-          title: 'Training Reminders',
-          description: 'Reminders about upcoming training and certifications',
-          type: 'email',
-          enabled: false
-        },
-        {
-          id: 'emergency_alerts',
-          title: 'Emergency Alerts',
-          description: 'Critical system alerts and emergency notifications',
-          type: 'sms',
-          enabled: true
-        }
-      ];
+      if (notificationsError) {
+        console.error('Error fetching notifications:', notificationsError);
+        return { notifications: [], settings: [] };
+      }
 
-      setNotifications(mockNotifications);
-      setSettings(mockSettings);
+      // Fetch notification settings
+      const { data: settingsData, error: settingsError } = await supabase
+        .from('notification_settings')
+        .select('*');
+
+      if (settingsError) {
+        console.error('Error fetching notification settings:', settingsError);
+      }
+
+      const formattedNotifications: NotificationItem[] = (notificationsData || []).map(notification => ({
+        id: notification.id,
+        title: notification.title,
+        message: notification.message,
+        type: notification.type as NotificationItem['type'],
+        timestamp: new Date(notification.created_at),
+        read: notification.read || false
+      }));
+
+      const formattedSettings: NotificationSetting[] = (settingsData || []).map(setting => ({
+        id: setting.id,
+        title: setting.title,
+        description: setting.description,
+        type: setting.type as NotificationSetting['type'],
+        enabled: setting.enabled || false
+      }));
+
+      setNotifications(formattedNotifications);
+      setSettings(formattedSettings);
       
-      return { notifications: mockNotifications, settings: mockSettings };
+      return { notifications: formattedNotifications, settings: formattedSettings };
     }, 'fetchNotifications');
     
     setIsLoading(false);
@@ -100,6 +80,13 @@ export function useNotifications() {
 
   const markAsRead = async (notificationId: string) => {
     await handleAsyncError(async () => {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', notificationId);
+
+      if (error) throw error;
+
       setNotifications(prev => prev.map(notification => 
         notification.id === notificationId 
           ? { ...notification, read: true }
@@ -110,6 +97,13 @@ export function useNotifications() {
 
   const markAllAsRead = async () => {
     await handleAsyncError(async () => {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('read', false);
+
+      if (error) throw error;
+
       setNotifications(prev => prev.map(notification => 
         ({ ...notification, read: true })
       ));
@@ -118,6 +112,16 @@ export function useNotifications() {
 
   const toggleSetting = async (settingId: string) => {
     await handleAsyncError(async () => {
+      const setting = settings.find(s => s.id === settingId);
+      if (!setting) return;
+
+      const { error } = await supabase
+        .from('notification_settings')
+        .update({ enabled: !setting.enabled })
+        .eq('id', settingId);
+
+      if (error) throw error;
+
       setSettings(prev => prev.map(setting => 
         setting.id === settingId 
           ? { ...setting, enabled: !setting.enabled }
