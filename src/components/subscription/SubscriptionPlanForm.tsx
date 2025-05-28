@@ -22,27 +22,37 @@ export function SubscriptionPlanForm({ plan, onSave, onCancel }: SubscriptionPla
     price_monthly: plan?.price_monthly || 0,
     price_yearly: plan?.price_yearly || 0,
     is_active: plan?.is_active ?? true,
-    features: plan?.features || [],
+    features: plan?.features || {},
     limits: plan?.limits || {
       technicians: 1,
       admins: 1,
       diagnostics_per_day: 10,
-      storage_gb: 1
+      storage_gb: 1,
+      workflows: 10,
+      api_calls: 1000
     }
   });
 
   const [featuresArray, setFeaturesArray] = useState<string[]>(
-    Array.isArray(plan?.features) ? plan.features : []
+    Array.isArray(plan?.features) ? plan.features : 
+    plan?.features && typeof plan.features === 'object' ? Object.keys(plan.features) : []
   );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Convert features array to SubscriptionFeatures object
+    const featuresObject = featuresArray.reduce((acc, feature, index) => {
+      acc[`feature_${index}`] = feature;
+      return acc;
+    }, {} as Record<string, string>);
+
     onSave({
       id: plan?.id || crypto.randomUUID(),
       created_at: plan?.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
       ...formData,
-      features: featuresArray
+      features: featuresObject
     } as SubscriptionPlan);
   };
 
@@ -191,6 +201,30 @@ export function SubscriptionPlanForm({ plan, onSave, onCancel }: SubscriptionPla
                 onChange={(e) => setFormData({
                   ...formData,
                   limits: {...formData.limits!, storage_gb: parseInt(e.target.value)}
+                })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="workflows">Workflows</Label>
+              <Input
+                id="workflows"
+                type="number"
+                value={formData.limits?.workflows}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  limits: {...formData.limits!, workflows: parseInt(e.target.value)}
+                })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="api_calls">API Calls</Label>
+              <Input
+                id="api_calls"
+                type="number"
+                value={formData.limits?.api_calls}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  limits: {...formData.limits!, api_calls: parseInt(e.target.value)}
                 })}
               />
             </div>
