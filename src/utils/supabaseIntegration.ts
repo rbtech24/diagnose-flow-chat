@@ -1,86 +1,86 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { PostgrestError } from '@supabase/supabase-js';
 
-export interface SupabaseOperationResult<T = any> {
-  data?: T;
-  error?: string;
+export interface SupabaseResult<T> {
   success: boolean;
+  data?: T;
+  error?: PostgrestError | Error;
 }
 
 export class SupabaseIntegration {
   static async safeQuery<T>(
-    operation: () => Promise<{ data: T | null; error: any }>
-  ): Promise<SupabaseOperationResult<T>> {
+    queryFn: () => Promise<{ data: T | null; error: PostgrestError | null }>
+  ): Promise<SupabaseResult<T>> {
     try {
-      const { data, error } = await operation();
+      const { data, error } = await queryFn();
       
       if (error) {
-        console.error('Supabase operation error:', error);
-        return {
-          success: false,
-          error: error.message || 'Database operation failed'
-        };
+        console.error('Supabase query error:', error);
+        return { success: false, error };
       }
       
-      return {
-        success: true,
-        data: data || undefined
-      };
+      return { success: true, data: data || undefined };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Supabase operation exception:', errorMessage);
-      return {
-        success: false,
-        error: errorMessage
+      console.error('Supabase integration error:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error : new Error('Unknown error')
       };
     }
   }
 
-  static async safeMutation<T>(
-    operation: () => Promise<{ data: T | null; error: any }>,
-    successMessage?: string,
-    showToast = true
-  ): Promise<SupabaseOperationResult<T>> {
-    const result = await this.safeQuery(operation);
-    
-    if (showToast) {
-      if (result.success && successMessage) {
-        toast({
-          title: "Success",
-          description: successMessage,
-          variant: "default"
-        });
-      } else if (!result.success) {
-        toast({
-          title: "Error",
-          description: result.error || "Operation failed",
-          variant: "destructive"
-        });
-      }
-    }
-    
-    return result;
+  static async safeInsert<T>(
+    table: string,
+    data: Partial<T>
+  ): Promise<SupabaseResult<T>> {
+    return this.safeQuery(() => 
+      supabase.from(table).insert(data).select().single()
+    );
   }
 
-  static handleRealtimeSubscription(
+  static async safeUpdate<T>(
+    table: string,
+    id: string,
+    data: Partial<T>
+  ): Promise<SupabaseResult<T>> {
+    return this.safeQuery(() => 
+      supabase.from(table).update(data).eq('id', id).select().single()
+    );
+  }
+
+  static async safeDelete(table: string, id: string): Promise<SupabaseResult<null>> {
+    return this.safeQuery(() => 
+      supabase.from(table).delete().eq('id', id)
+    );
+  }
+
+  static setupRealtimeSubscription<T>(
     table: string,
     callback: (payload: any) => void,
-    event: 'INSERT' | 'UPDATE' | 'DELETE' = 'INSERT'
+    filters?: { column: string; value: string }[]
   ) {
-    const channel = supabase
-      .channel(`${table}-changes`)
-      .on(
-        'postgres_changes',
-        {
-          event,
+    let channel = supabase.channel(`${table}-changes`);
+    
+    if (filters) {
+      filters.forEach(filter => {
+        channel = channel.on('postgres_changes', {
+          event: '*',
           schema: 'public',
-          table
-        },
-        callback
-      )
-      .subscribe();
-
+          table,
+          filter: `${filter.column}=eq.${filter.value}`
+        }, callback);
+      });
+    } else {
+      channel = channel.on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table
+      }, callback);
+    }
+    
+    channel.subscribe();
+    
     return () => {
       supabase.removeChannel(channel);
     };

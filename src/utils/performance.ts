@@ -1,70 +1,80 @@
+import React, { ComponentType, memo, useMemo, useCallback, useState, useEffect } from 'react';
+import { debounce } from 'lodash';
 
-import React from 'react';
-
-export class PerformanceMonitor {
-  private static measurements: Map<string, number> = new Map();
-
-  static startMeasurement(name: string): void {
-    this.measurements.set(name, performance.now());
-  }
-
-  static endMeasurement(name: string): number {
-    const startTime = this.measurements.get(name);
-    if (!startTime) {
-      console.warn(`No measurement started for: ${name}`);
-      return 0;
-    }
-    
-    const duration = performance.now() - startTime;
-    this.measurements.delete(name);
-    
-    console.log(`Performance measurement - ${name}: ${duration.toFixed(2)}ms`);
+// Performance monitoring utilities
+export const performanceMonitor = {
+  startTime: 0,
+  
+  start(label: string) {
+    this.startTime = performance.now();
+    console.log(`Performance: Starting ${label}`);
+  },
+  
+  end(label: string) {
+    const endTime = performance.now();
+    const duration = endTime - this.startTime;
+    console.log(`Performance: ${label} took ${duration.toFixed(2)}ms`);
     return duration;
-  }
-
-  static measureAsync<T>(name: string, fn: () => Promise<T>): Promise<T> {
-    return new Promise(async (resolve, reject) => {
-      this.startMeasurement(name);
-      try {
-        const result = await fn();
-        this.endMeasurement(name);
-        resolve(result);
-      } catch (error) {
-        this.endMeasurement(name);
-        reject(error);
-      }
-    });
-  }
-
-  static measureComponent(componentName: string) {
-    return function<T extends React.ComponentType<any>>(Component: T): T {
-      const MeasuredComponent = React.forwardRef<any, any>((props, ref) => {
-        React.useEffect(() => {
-          PerformanceMonitor.startMeasurement(`${componentName}-render`);
-          return () => {
-            PerformanceMonitor.endMeasurement(`${componentName}-render`);
-          };
-        });
-
-        return React.createElement(Component, { ...props, ref });
-      });
-
-      MeasuredComponent.displayName = `Measured(${Component.displayName || Component.name})`;
-      return MeasuredComponent as T;
-    };
-  }
-}
-
-// Memory usage monitoring
-export const monitorMemoryUsage = () => {
-  if ('memory' in performance && (performance as any).memory) {
-    const memory = (performance as any).memory;
-    console.log('Memory usage:', {
-      used: Math.round(memory.usedJSHeapSize / 1048576) + ' MB',
-      total: Math.round(memory.totalJSHeapSize / 1048576) + ' MB',
-      limit: Math.round(memory.jsHeapSizeLimit / 1048576) + ' MB'
-    });
-  } else {
-    console.log('Memory monitoring not available in this environment');
+  },
+  
+  measure<T>(label: string, fn: () => T): T {
+    this.start(label);
+    const result = fn();
+    this.end(label);
+    return result;
   }
 };
+
+// Debounced search hook
+export function useDebouncedSearch(searchTerm: string, delay: number = 300) {
+  const [debouncedTerm, setDebouncedTerm] = useState(searchTerm);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedTerm(searchTerm);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm, delay]);
+
+  return debouncedTerm;
+}
+
+// Memoized component wrapper
+export function withMemo<T extends ComponentType<any>>(
+  Component: T,
+  areEqual?: (prevProps: any, nextProps: any) => boolean
+): T {
+  return memo(Component, areEqual) as unknown as T;
+}
+
+// Function memoization hook
+export function useComponentMemo<T>(factory: () => T, dependencies: any[]): T {
+  return useMemo(factory, dependencies);
+}
+
+// Callback memoization hook
+export function useComponentCallback<T extends (...args: any[]) => any>(callback: T, dependencies: any[]): T {
+  return useCallback(callback, dependencies);
+}
+
+// State management with performance logging
+export function usePerformanceState<T>(initialValue: T, label: string): [T, (newValue: T) => void] {
+  const [state, setState] = useState<T>(initialValue);
+
+  const setPerformanceState = useCallback((newValue: T) => {
+    performanceMonitor.start(`State Update: ${label}`);
+    setState(newValue);
+    performanceMonitor.end(`State Update: ${label}`);
+  }, [label]);
+
+  return [state, setPerformanceState];
+}
+
+// Debounced function
+export function useDebounce<T extends (...args: any[]) => any>(func: T, delay: number): T {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return useMemo(() => debounce(func, delay), [func, delay]);
+}

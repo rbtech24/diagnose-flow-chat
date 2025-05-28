@@ -24,9 +24,6 @@ export const getCurrentUser = async (): Promise<User | null> => {
           company_id,
           status,
           phone,
-          avatar_url,
-          name,
-          last_sign_in_at,
           created_at,
           updated_at
         `)
@@ -41,12 +38,12 @@ export const getCurrentUser = async (): Promise<User | null> => {
 
     const userData: User = {
       id: result.data.id,
-      name: result.data.name || result.data.email?.split('@')[0] || 'Unknown',
+      name: result.data.email?.split('@')[0] || 'Unknown',
       email: result.data.email || '',
       role: (result.data.role as 'admin' | 'company' | 'tech') || 'tech',
       companyId: result.data.company_id || '',
       status: result.data.status || 'active',
-      avatarUrl: result.data.avatar_url,
+      avatarUrl: user.user_metadata?.avatar_url,
       activeJobs: 0
     };
 

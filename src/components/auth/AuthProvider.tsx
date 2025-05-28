@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,7 +38,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const { data, error } = await supabase
         .from('technicians')
-        .select('*')
+        .select('id, email, role, company_id, status, phone, created_at, updated_at')
         .eq('id', authUser.id)
         .single();
 
@@ -48,7 +49,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       return {
         id: data.id,
-        name: data.full_name || authUser.email?.split('@')[0] || 'Unknown',
+        name: authUser.email?.split('@')[0] || 'Unknown',
         email: data.email || authUser.email || '',
         role: (data.role as 'admin' | 'company' | 'tech') || 'tech',
         companyId: data.company_id || '',

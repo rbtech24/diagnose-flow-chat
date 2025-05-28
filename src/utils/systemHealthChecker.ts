@@ -1,111 +1,123 @@
+import { supabase } from '@/integrations/supabase/client';
 
-import { checkComponentDependencies, checkTypeSafety } from './dependencyChecker';
-import { SupabaseIntegration } from './supabaseIntegration';
-import { monitorMemoryUsage } from './performance';
-
-export interface SystemHealthReport {
-  dependencies: {
-    issues: string[];
-    recommendations: string[];
-  };
-  typeSafety: {
-    recommendations: string[];
-  };
-  database: {
-    connected: boolean;
-    error?: string;
-  };
-  memory: any;
-  auth: {
-    configured: boolean;
-    issues: string[];
-  };
+interface HealthCheckResult {
+  service: string;
+  status: 'healthy' | 'degraded' | 'down';
+  responseTime?: number;
+  error?: string;
+  timestamp: Date;
 }
 
-export class SystemHealthChecker {
-  static async generateReport(): Promise<SystemHealthReport> {
-    console.log('🔍 Running system health check...');
+interface SystemHealth {
+  overall: 'healthy' | 'degraded' | 'down';
+  services: HealthCheckResult[];
+  lastChecked: Date;
+}
+
+class SystemHealthChecker {
+  private healthHistory: HealthCheckResult[] = [];
+  private checkInterval: NodeJS.Timeout | null = null;
+
+  async checkDatabaseHealth(): Promise<HealthCheckResult> {
+    const startTime = performance.now();
     
-    // Check dependencies
-    const dependencies = checkComponentDependencies();
-    console.log('✅ Dependencies checked');
-    
-    // Check type safety
-    const typeSafety = checkTypeSafety();
-    console.log('✅ Type safety checked');
-    
-    // Check database connection
-    const database = await this.checkDatabaseHealth();
-    console.log('✅ Database health checked');
-    
-    // Check memory usage
-    const memory = this.getMemoryInfo();
-    console.log('✅ Memory usage checked');
-    
-    // Check auth configuration
-    const auth = this.checkAuthConfiguration();
-    console.log('✅ Auth configuration checked');
-    
-    const report: SystemHealthReport = {
-      dependencies,
-      typeSafety,
-      database,
-      memory,
-      auth
-    };
-    
-    console.log('📊 System Health Report:', report);
-    return report;
-  }
-  
-  private static async checkDatabaseHealth(): Promise<{ connected: boolean; error?: string }> {
     try {
-      const result = await SupabaseIntegration.safeQuery(async () => {
-        // Simple query to test connection
-        const { data, error } = await supabase.from('workflows').select('count').limit(1);
-        return { data, error };
-      });
+      const { error } = await supabase.from('companies').select('id').limit(1);
+      const responseTime = performance.now() - startTime;
       
       return {
-        connected: result.success,
-        error: result.error
+        service: 'database',
+        status: error ? 'down' : 'healthy',
+        responseTime,
+        error: error?.message,
+        timestamp: new Date()
       };
     } catch (error) {
       return {
-        connected: false,
-        error: error instanceof Error ? error.message : 'Unknown database error'
+        service: 'database',
+        status: 'down',
+        responseTime: performance.now() - startTime,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date()
       };
     }
   }
-  
-  private static getMemoryInfo() {
-    if ('memory' in performance) {
-      const memory = (performance as any).memory;
-      return {
-        used: Math.round(memory.usedJSHeapSize / 1048576),
-        total: Math.round(memory.totalJSHeapSize / 1048576),
-        limit: Math.round(memory.jsHeapSizeLimit / 1048576)
-      };
-    }
-    return { supported: false };
-  }
-  
-  private static checkAuthConfiguration(): { configured: boolean; issues: string[] } {
-    const issues: string[] = [];
+
+  async checkAuthHealth(): Promise<HealthCheckResult> {
+    const startTime = performance.now();
     
-    // Check if auth context is properly configured
     try {
-      const currentUser = localStorage.getItem('currentUser');
-      if (!currentUser) {
-        issues.push('No user session found in localStorage');
-      }
+      const { error } = await supabase.auth.getSession();
+      const responseTime = performance.now() - startTime;
+      
+      return {
+        service: 'auth',
+        status: error ? 'degraded' : 'healthy',
+        responseTime,
+        error: error?.message,
+        timestamp: new Date()
+      };
     } catch (error) {
-      issues.push('Cannot access localStorage for auth state');
+      return {
+        service: 'auth',
+        status: 'down',
+        responseTime: performance.now() - startTime,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date()
+      };
     }
+  }
+
+  async performHealthCheck(): Promise<SystemHealth> {
+    const checks = await Promise.all([
+      this.checkDatabaseHealth(),
+      this.checkAuthHealth()
+    ]);
+
+    this.healthHistory.push(...checks);
     
+    // Keep only last 100 checks
+    if (this.healthHistory.length > 100) {
+      this.healthHistory = this.healthHistory.slice(-100);
+    }
+
+    const downServices = checks.filter(check => check.status === 'down').length;
+    const degradedServices = checks.filter(check => check.status === 'degraded').length;
+
+    let overall: 'healthy' | 'degraded' | 'down' = 'healthy';
+    if (downServices > 0) {
+      overall = 'down';
+    } else if (degradedServices > 0) {
+      overall = 'degraded';
+    }
+
     return {
-      configured: issues.length === 0,
-      issues
+      overall,
+      services: checks,
+      lastChecked: new Date()
     };
   }
+
+  startMonitoring(intervalMs: number = 30000) {
+    this.stopMonitoring();
+    this.checkInterval = setInterval(() => {
+      this.performHealthCheck().then(health => {
+        console.log('System Health Check:', health);
+      });
+    }, intervalMs);
+  }
+
+  stopMonitoring() {
+    if (this.checkInterval) {
+      clearInterval(this.checkInterval);
+      this.checkInterval = null;
+    }
+  }
+
+  getHealthHistory(): HealthCheckResult[] {
+    return [...this.healthHistory];
+  }
 }
+
+export const systemHealthChecker = new SystemHealthChecker();
+export type { HealthCheckResult, SystemHealth };

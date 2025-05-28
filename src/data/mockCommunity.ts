@@ -24,7 +24,6 @@ export const mockCommunityPosts: CommunityPost[] = [
     views: 45,
     tags: ['electrical', 'washing-machine', 'troubleshooting'],
     isSolved: false,
-    isFulfilled: false,
     comments: []
   }
 ];
