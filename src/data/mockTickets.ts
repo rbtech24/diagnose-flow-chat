@@ -57,14 +57,3 @@ export const getCurrentUser = async (): Promise<User | null> => {
     return null;
   }
 };
-
-export const currentUser: User & { avatar_url?: string } = {
-  id: "demo-user-id",
-  name: "Demo User",
-  email: "demo@example.com",
-  role: "company",
-  companyId: "demo-company-id",
-  status: "active",
-  avatar_url: "",
-  activeJobs: 0
-};

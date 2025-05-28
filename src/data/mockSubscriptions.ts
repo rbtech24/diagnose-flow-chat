@@ -1,3 +1,4 @@
+
 import { SubscriptionPlan, License, Payment } from "@/types/subscription";
 import { supabase } from "@/integrations/supabase/client";
 import { SupabaseIntegration } from "@/utils/supabaseIntegration";
@@ -89,8 +90,3 @@ export const getPayments = async (companyId?: string): Promise<Payment[]> => {
     return [];
   }
 };
-
-// Keep the original exports for backwards compatibility but mark as deprecated
-export const mockSubscriptionPlans: SubscriptionPlan[] = [];
-export const mockLicenses: License[] = [];
-export const mockPayments: Payment[] = [];

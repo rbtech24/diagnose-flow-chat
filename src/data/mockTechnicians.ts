@@ -1,3 +1,4 @@
+
 import { User } from "@/types/user";
 import { supabase } from "@/integrations/supabase/client";
 import { SupabaseIntegration } from "@/utils/supabaseIntegration";
@@ -73,6 +74,3 @@ export const subscribeTechniciansUpdates = (
     'UPDATE'
   );
 };
-
-// Keep the original export for backwards compatibility but mark as deprecated
-export const mockTechnicians: User[] = [];

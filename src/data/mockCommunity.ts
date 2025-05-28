@@ -140,16 +140,3 @@ export const subscribeCommunityUpdates = (
     unsubscribeComments?.();
   };
 };
-
-// Current user with fallback values
-export const currentUser = {
-  id: "demo-user-id",
-  name: "Demo User",
-  email: "demo@example.com",
-  role: "tech",
-  avatarUrl: ""
-};
-
-// Mock posts - should be replaced with real data from database
-export const mockPosts: CommunityPost[] = [];
-export const mockComments: CommunityComment[] = [];

@@ -1,3 +1,4 @@
+
 import { SupportTicket } from "@/types/support";
 import { supabase } from "@/integrations/supabase/client";
 import { SupabaseIntegration } from "@/utils/supabaseIntegration";
@@ -78,6 +79,3 @@ export const subscribeSupportTicketsUpdates = (
     }
   );
 };
-
-// Keep the original export for backwards compatibility but mark as deprecated
-export const mockSupportTickets: SupportTicket[] = [];

@@ -85,6 +85,3 @@ export const subscribeFeatureRequestsUpdates = (
     }
   );
 };
-
-// Keep the original export for backwards compatibility but mark as deprecated
-export const mockFeatureRequests: FeatureRequest[] = [];
