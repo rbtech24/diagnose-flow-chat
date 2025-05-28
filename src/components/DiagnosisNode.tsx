@@ -147,7 +147,11 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
       </div>
 
       {/* Node Content */}
-      {!isFlowAnswer && nodeContent && renderContentElement()}
+      {!isFlowAnswer && nodeContent && (
+        <div className="text-xs mt-2 text-gray-600 max-h-[150px] overflow-auto">
+          {renderContentElement()}
+        </div>
+      )}
 
       {/* Media content if present */}
       {data.media && Array.isArray(data.media) && data.media.length > 0 && (
