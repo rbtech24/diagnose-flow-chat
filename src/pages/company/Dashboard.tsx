@@ -16,21 +16,52 @@ import {
   MessageSquare,
   Bell,
   FileText,
-  Wrench
+  Wrench,
+  Activity
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCompanyTechnicians } from '@/hooks/useCompanyTechnicians';
+import { useDashboardData } from '@/hooks/useDashboardData';
 
 export default function CompanyDashboard() {
   const navigate = useNavigate();
   
   // For demo purposes, using a hardcoded company ID
   const companyId = 'company-2';
-  const { technicians, isLoading } = useCompanyTechnicians(companyId);
+  const { technicians, isLoading: techLoading } = useCompanyTechnicians(companyId);
+  const { stats, recentActivity, isLoading: dashboardLoading } = useDashboardData(companyId);
 
   // Calculate basic stats from technicians data
   const activeTechnicians = technicians.filter(tech => tech.status === 'active').length;
   const totalTechnicians = technicians.length;
+
+  // Helper function to get icon component
+  const getIconComponent = (iconName: string) => {
+    const iconMap: { [key: string]: any } = {
+      CheckSquare,
+      Clock,
+      AlertCircle,
+      Calendar,
+      Activity
+    };
+    return iconMap[iconName] || Activity;
+  };
+
+  // Helper function to get icon color
+  const getIconColor = (activityType: string) => {
+    switch (activityType) {
+      case 'repair_completed':
+        return 'text-green-500';
+      case 'job_started':
+        return 'text-blue-500';
+      case 'parts_needed':
+        return 'text-orange-500';
+      case 'job_scheduled':
+        return 'text-purple-500';
+      default:
+        return 'text-gray-500';
+    }
+  };
   
   return (
     <div className="p-6">
@@ -71,23 +102,35 @@ export default function CompanyDashboard() {
             <Wrench className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">
-              +2 from yesterday
-            </p>
+            {dashboardLoading ? (
+              <div className="text-2xl font-bold">Loading...</div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{stats.activeJobs}</div>
+                <p className="text-xs text-muted-foreground">
+                  Currently in progress
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">Revenue (30 days)</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$12,470</div>
-            <p className="text-xs text-muted-foreground">
-              +15% from last month
-            </p>
+            {dashboardLoading ? (
+              <div className="text-2xl font-bold">Loading...</div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">${stats.revenue.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats.completedJobs} jobs completed
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -97,10 +140,16 @@ export default function CompanyDashboard() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">94%</div>
-            <p className="text-xs text-muted-foreground">
-              +2% from last week
-            </p>
+            {dashboardLoading ? (
+              <div className="text-2xl font-bold">Loading...</div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{stats.completionRate}%</div>
+                <p className="text-xs text-muted-foreground">
+                  Last 30 days
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -112,37 +161,31 @@ export default function CompanyDashboard() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest updates from your technicians</CardDescription>
+            <CardDescription>Latest updates from your business</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
-                <CheckSquare className="h-5 w-5 text-green-500" />
-                <div className="flex-1">
-                  <p className="font-medium">Repair completed</p>
-                  <p className="text-sm text-gray-600">Washing machine repair by John Doe</p>
-                </div>
-                <span className="text-xs text-gray-500">2 hours ago</span>
+            {dashboardLoading ? (
+              <div className="text-center py-4">Loading activity...</div>
+            ) : recentActivity.length > 0 ? (
+              <div className="space-y-4">
+                {recentActivity.slice(0, 3).map((activity) => {
+                  const IconComponent = getIconComponent(activity.icon);
+                  return (
+                    <div key={activity.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                      <IconComponent className={`h-5 w-5 ${getIconColor(activity.type)}`} />
+                      <div className="flex-1">
+                        <p className="font-medium">{activity.description}</p>
+                        <p className="text-sm text-gray-600">{activity.time}</p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              
-              <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
-                <Clock className="h-5 w-5 text-blue-500" />
-                <div className="flex-1">
-                  <p className="font-medium">Job started</p>
-                  <p className="text-sm text-gray-600">Dishwasher repair by Jane Smith</p>
-                </div>
-                <span className="text-xs text-gray-500">4 hours ago</span>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                No recent activity
               </div>
-              
-              <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
-                <AlertCircle className="h-5 w-5 text-orange-500" />
-                <div className="flex-1">
-                  <p className="font-medium">Parts needed</p>
-                  <p className="text-sm text-gray-600">Refrigerator repair on hold</p>
-                </div>
-                <span className="text-xs text-gray-500">6 hours ago</span>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -153,7 +196,7 @@ export default function CompanyDashboard() {
             <CardDescription>Currently working technicians</CardDescription>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
+            {techLoading ? (
               <div className="text-center py-4">Loading technicians...</div>
             ) : (
               <div className="space-y-3">
