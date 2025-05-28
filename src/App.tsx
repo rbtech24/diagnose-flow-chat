@@ -66,6 +66,12 @@ import { AuthProvider } from "./context/AuthContext";
 import UserEdit from "./pages/admin/UserEdit";
 import UserNew from "./pages/admin/UserNew";
 import ActivityPage from "./pages/admin/Activity";
+import TechCalendar from "./pages/tech/TechCalendar";
+import TechNotifications from "./pages/tech/TechNotifications";
+import TechTraining from "./pages/tech/TechTraining";
+import TechNewCommunityPost from "./pages/tech/TechNewCommunityPost";
+import TechNewFeatureRequest from "./pages/tech/TechNewFeatureRequest";
+import { RouteGuard } from "./components/RouteGuard";
 
 const router = createBrowserRouter([
   {
@@ -161,17 +167,25 @@ const router = createBrowserRouter([
   },
   {
     path: "/tech",
-    element: <TechLayout />,
+    element: (
+      <RouteGuard allowedRoles={['tech']}>
+        <TechLayout />
+      </RouteGuard>
+    ),
     children: [
       { index: true, element: <TechDashboard /> },
-      { path: "dashboard", element: <TechDashboard /> },
-      { path: "support", element: <TechSupport /> },
-      { path: "support/:ticketId", element: <TechSupport /> },
+      { path: "calendar", element: <TechCalendar /> },
+      { path: "notifications", element: <TechNotifications /> },
+      { path: "training", element: <TechTraining /> },
       { path: "profile", element: <TechProfile /> },
+      { path: "support", element: <TechSupport /> },
+      { path: "support/:id", element: <TechSupportTicketDetail /> },
       { path: "community", element: <TechCommunity /> },
-      { path: "community/:postId", element: <TechCommunityPostDetail /> },
+      { path: "community/:id", element: <TechCommunityPostDetail /> },
+      { path: "community/new", element: <TechNewCommunityPost /> },
       { path: "feature-requests", element: <TechFeatureRequests /> },
-      { path: "feature-requests/:id", element: <TechFeatureRequestDetailPage /> },
+      { path: "feature-requests/:id", element: <TechFeatureRequestDetail /> },
+      { path: "feature-requests/new", element: <TechNewFeatureRequest /> },
       { path: "diagnostics", element: <DiagnosticsPage /> }
     ]
   },
