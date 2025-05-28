@@ -11,7 +11,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
-  signUp: (email: string, password: string, userData?: any) => Promise<boolean>;
+  signUp: (email: string, password: string, userData?: Partial<AppUser>) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -51,10 +51,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         id: data.id,
         name: data.name || authUser.email?.split('@')[0] || 'Unknown',
         email: data.email || authUser.email || '',
-        role: data.role as 'admin' | 'company' | 'tech',
+        role: (data.role as 'admin' | 'company' | 'tech') || 'tech',
         companyId: data.company_id || '',
         status: data.status || 'active',
-        avatarUrl: data.avatar_url
+        avatarUrl: data.avatar_url,
+        activeJobs: 0
       };
     } catch (error) {
       handleError(error, 'fetchUserProfile', { showToast: false });
@@ -84,7 +85,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const signUp = async (email: string, password: string, userData?: any): Promise<boolean> => {
+  const signUp = async (email: string, password: string, userData?: Partial<AppUser>): Promise<boolean> => {
     try {
       setIsLoading(true);
       const { data, error } = await supabase.auth.signUp({
@@ -158,7 +159,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const value = {
+  const value: AuthContextType = {
     user,
     session,
     isLoading,

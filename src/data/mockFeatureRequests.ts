@@ -1,3 +1,4 @@
+
 import { FeatureRequest } from "@/types/feature-request";
 import { supabase } from "@/integrations/supabase/client";
 import { SupabaseIntegration } from "@/utils/supabaseIntegration";
@@ -58,7 +59,7 @@ export const getFeatureRequests = async (
       comments_count: request.comments_count || 0,
       user_has_voted: request.user_has_voted || false,
       createdAt: new Date(request.created_at),
-      updatedAt: new(request.updated_at)
+      updatedAt: new Date(request.updated_at)
     }));
 
     console.log(`Successfully fetched ${requests.length} feature requests`);

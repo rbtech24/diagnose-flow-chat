@@ -141,11 +141,11 @@ export const subscribeCommunityUpdates = (
   };
 };
 
-// Current user - this should be replaced with actual auth context
+// Current user with fallback values
 export const currentUser = {
-  id: "",
-  name: "",
-  email: "",
+  id: "demo-user-id",
+  name: "Demo User",
+  email: "demo@example.com",
   role: "tech",
   avatarUrl: ""
 };

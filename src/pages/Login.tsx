@@ -9,12 +9,18 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { CheckCircle, Wrench, Building2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
+import { loginRateLimiter } from "@/utils/rateLimiter";
+import { emailSchema, passwordSchema } from "@/components/security/InputValidator";
+
+type UserRole = "tech" | "admin" | "company";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [userRole, setUserRole] = useState<"tech" | "admin" | "company">("tech");
+  const [userRole, setUserRole] = useState<UserRole>("tech");
   const [isLoading, setIsLoading] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
   const { login, user } = useAuth();
@@ -26,13 +32,42 @@ export default function Login() {
     }
   }, [user, navigate]);
 
+  const validateForm = (): boolean => {
+    let isValid = true;
+    setEmailError("");
+    setPasswordError("");
+
+    // Validate email
+    const emailResult = emailSchema.safeParse(email);
+    if (!emailResult.success) {
+      setEmailError(emailResult.error.errors[0]?.message || "Invalid email");
+      isValid = false;
+    }
+
+    // Validate password
+    const passwordResult = passwordSchema.safeParse(password);
+    if (!passwordResult.success) {
+      setPasswordError(passwordResult.error.errors[0]?.message || "Invalid password");
+      isValid = false;
+    }
+
+    return isValid;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
+    if (!validateForm()) {
+      return;
+    }
+
+    // Check rate limiting
+    const rateLimitResult = loginRateLimiter.check(email);
+    if (!rateLimitResult.allowed) {
+      const resetTime = new Date(rateLimitResult.resetTime || Date.now());
       toast({
-        title: "Login failed",
-        description: "Please enter both email and password.",
+        title: "Too many login attempts",
+        description: `Please try again after ${resetTime.toLocaleTimeString()}`,
         variant: "destructive",
       });
       return;
@@ -41,9 +76,12 @@ export default function Login() {
     setIsLoading(true);
     
     try {
-      const success = await login(email, password, userRole);
+      const success = await login(email, password);
       
       if (success) {
+        // Reset rate limiter on successful login
+        loginRateLimiter.reset(email);
+        
         toast({
           title: "Login successful",
           description: `Welcome back! Redirecting to ${userRole} dashboard.`,
@@ -59,6 +97,12 @@ export default function Login() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleRoleChange = (value: string | undefined) => {
+    if (value && (value === "tech" || value === "admin" || value === "company")) {
+      setUserRole(value as UserRole);
     }
   };
 
@@ -81,7 +125,13 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="role">Select your role</Label>
-              <ToggleGroup type="single" variant="outline" value={userRole} onValueChange={(value) => value && setUserRole(value as "tech" | "admin" | "company")} className="justify-between">
+              <ToggleGroup 
+                type="single" 
+                variant="outline" 
+                value={userRole} 
+                onValueChange={handleRoleChange}
+                className="justify-between"
+              >
                 <ToggleGroupItem value="tech" className="flex-1 gap-1.5">
                   <Wrench className="h-4 w-4" />
                   Technician
@@ -105,8 +155,10 @@ export default function Login() {
                 placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className={emailError ? "border-red-500" : ""}
                 required
               />
+              {emailError && <p className="text-sm text-red-500">{emailError}</p>}
             </div>
             
             <div className="space-y-2">
@@ -122,11 +174,17 @@ export default function Login() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className={passwordError ? "border-red-500" : ""}
                 required
               />
+              {passwordError && <p className="text-sm text-red-500">{passwordError}</p>}
             </div>
             
-            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
+            <Button 
+              type="submit" 
+              className="w-full bg-blue-600 hover:bg-blue-700" 
+              disabled={isLoading}
+            >
               {isLoading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
