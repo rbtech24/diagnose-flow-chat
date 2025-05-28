@@ -70,7 +70,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
     // Handle disconnect functionality would go here
   }, []);
 
-  // Memoize sanitized content and return JSX element or null
+  // Memoize sanitized content and return JSX element or null - FIXED TYPE ERROR
   const contentElement = useMemo(() => {
     if (!nodeContent || nodeContent.trim() === '') return null;
     const sanitizedContent = sanitizeHtml(nodeContent);
