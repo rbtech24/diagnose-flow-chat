@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -71,12 +72,12 @@ export default function TechSupportTicketDetail() {
       if (ticketData.assigned_to) {
         const { data: techData } = await supabase
           .from('technicians')
-          .select('id, email, full_name')
+          .select('id, email')
           .eq('id', ticketData.assigned_to)
           .single();
           
         if (techData) {
-          assignedToName = techData.full_name || techData.email.split('@')[0];
+          assignedToName = techData.email.split('@')[0];
         }
       }
       setAssignedTechnician(assignedToName);
@@ -103,7 +104,7 @@ export default function TechSupportTicketDetail() {
         description: ticketData.description,
         status: ticketData.status as SupportTicket['status'],
         priority: ticketData.priority as SupportTicket['priority'],
-        category: ticketData.category || 'General',
+        category: 'General', // Default category since column doesn't exist in DB
         createdAt: new Date(ticketData.created_at),
         updatedAt: new Date(ticketData.updated_at),
         assignedTo: assignedToName,

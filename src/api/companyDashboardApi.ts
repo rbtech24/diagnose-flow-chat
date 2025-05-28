@@ -69,7 +69,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
   try {
     const { data: activityData, error } = await supabase
       .from("user_activity_logs")
-      .select("*")
+      .select("id, activity_type, description, created_at")
       .eq("company_id", companyId)
       .order("created_at", { ascending: false })
       .limit(10);
