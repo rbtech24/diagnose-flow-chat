@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { SubscriptionPlan, BillingCycle } from "@/types/subscription-enhanced";
+import { SubscriptionPlan, BillingCycle } from "@/types/subscription-consolidated";
 import { CheckCircle2, Edit, Package } from "lucide-react";
 
 interface SubscriptionPlanCardProps {

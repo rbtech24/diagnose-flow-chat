@@ -1,7 +1,7 @@
 
 import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
-import { SubscriptionPlan, License, Payment } from "@/types/subscription-enhanced";
+import { SubscriptionPlan, License, Payment } from "@/types/subscription-consolidated";
 import { toast } from "sonner";
 
 // Define the store state
