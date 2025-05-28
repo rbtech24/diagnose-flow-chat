@@ -66,7 +66,7 @@ export const fetchTrainingModules = async (companyId?: string): Promise<Training
       return [];
     }
 
-    return (data || []).map(module => ({
+    return (data || []).map((module: any) => ({
       id: module.id,
       title: module.title,
       description: module.description || '',

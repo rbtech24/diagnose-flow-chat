@@ -98,7 +98,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    return (activityData || []).map(activity => ({
+    return (activityData || []).map((activity: any) => ({
       id: activity.id,
       type: mapActivityTypeToRecentActivity(activity.activity_type),
       description: activity.description,
