@@ -1,3 +1,4 @@
+
 import { memo } from 'react';
 import { Handle, NodeProps, Position } from '@xyflow/react';
 import { HandleWithTooltip } from './HandleWithTooltip';
@@ -53,16 +54,16 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
   };
 
   // Function to render content safely with proper TypeScript typing
-  const renderContent = (content: unknown): React.ReactNode => {
-    if (typeof content === 'string' && content.trim() !== '') {
+  const renderContentElement = (): React.ReactNode => {
+    if (typeof nodeContent === 'string' && nodeContent.trim() !== '') {
       return (
         <div 
           className="text-xs mt-2 text-gray-600 max-h-[150px] overflow-auto"
-          dangerouslySetInnerHTML={{ __html: content }}
+          dangerouslySetInnerHTML={{ __html: nodeContent }}
         />
       );
     }
-    return null; // Return null explicitly as a valid React.ReactNode
+    return null;
   };
 
   return (
@@ -137,9 +138,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
       </div>
 
       {/* Node Content */}
-      {!isFlowAnswer && nodeContent ? (
-        <>{renderContent(nodeContent)}</>
-      ) : null}
+      {!isFlowAnswer && nodeContent ? renderContentElement() : null}
 
       {/* Media content if present */}
       {data.media && Array.isArray(data.media) && data.media.length > 0 && (
