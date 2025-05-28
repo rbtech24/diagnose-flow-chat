@@ -16,6 +16,23 @@ export interface PaymentResult {
   error?: string;
 }
 
+// Helper function to safely convert Json to Record<string, any>
+function parseJsonToRecord(json: any): Record<string, any> {
+  if (json === null || json === undefined) {
+    return {};
+  }
+  if (typeof json === 'object' && !Array.isArray(json)) {
+    return json as Record<string, any>;
+  }
+  return {};
+}
+
+// Helper function to safely get payment method type
+function getPaymentMethodType(paymentMethod: any): string | undefined {
+  const parsed = parseJsonToRecord(paymentMethod);
+  return parsed.type;
+}
+
 export class PaymentService {
   static async createPaymentIntent(
     amount: number,
@@ -44,7 +61,7 @@ export class PaymentService {
           amount: data.amount,
           currency: data.currency,
           status: data.status as PaymentIntent['status'],
-          metadata: data.metadata
+          metadata: parseJsonToRecord(data.metadata)
         }
       };
     } catch (error) {
@@ -95,7 +112,7 @@ export class PaymentService {
           currency: completedData.currency,
           status: completedData.status as PaymentIntent['status'],
           payment_method: paymentMethod,
-          metadata: completedData.metadata
+          metadata: parseJsonToRecord(completedData.metadata)
         }
       };
     } catch (error) {
@@ -134,8 +151,8 @@ export class PaymentService {
         amount: payment.amount,
         currency: payment.currency,
         status: payment.status as PaymentIntent['status'],
-        payment_method: payment.payment_method?.type,
-        metadata: payment.metadata
+        payment_method: getPaymentMethodType(payment.payment_method),
+        metadata: parseJsonToRecord(payment.metadata)
       }));
     } catch (error) {
       console.error('Error fetching payment history:', error);
