@@ -1,6 +1,4 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { APIErrorHandler } from "@/utils/apiErrorHandler";
 
 export interface DashboardStats {
   activeJobs: number;

@@ -45,6 +45,17 @@ const validateEmailStatus = (status: string): EmailLog['status'] => {
   return validStatuses.includes(status as EmailLog['status']) ? status as EmailLog['status'] : 'queued';
 };
 
+// Helper function to safely convert Json to Record<string, any>
+const convertJsonToRecord = (jsonValue: any): Record<string, any> => {
+  if (jsonValue === null || jsonValue === undefined) {
+    return {};
+  }
+  if (typeof jsonValue === 'object' && !Array.isArray(jsonValue)) {
+    return jsonValue as Record<string, any>;
+  }
+  return {};
+};
+
 // Send email using template
 export const sendEmailFromTemplate = async (
   templateId: string,
@@ -113,7 +124,7 @@ export const sendEmailFromTemplate = async (
       clicks: emailLog.clicks || 0,
       errorMessage: emailLog.error_message,
       templateId: emailLog.template_id,
-      templateVariables: emailLog.template_variables,
+      templateVariables: convertJsonToRecord(emailLog.template_variables),
       sentBy: emailLog.sent_by,
       companyId: emailLog.company_id,
       createdAt: new Date(emailLog.created_at),
@@ -182,7 +193,7 @@ export const sendEmail = async (
       clicks: emailLog.clicks || 0,
       errorMessage: emailLog.error_message,
       templateId: emailLog.template_id,
-      templateVariables: emailLog.template_variables,
+      templateVariables: convertJsonToRecord(emailLog.template_variables),
       sentBy: emailLog.sent_by,
       companyId: emailLog.company_id,
       createdAt: new Date(emailLog.created_at),
@@ -272,7 +283,7 @@ export const fetchEmailLogs = async (options?: {
       clicks: log.clicks || 0,
       errorMessage: log.error_message,
       templateId: log.template_id,
-      templateVariables: log.template_variables,
+      templateVariables: convertJsonToRecord(log.template_variables),
       sentBy: log.sent_by,
       companyId: log.company_id,
       createdAt: new Date(log.created_at),
