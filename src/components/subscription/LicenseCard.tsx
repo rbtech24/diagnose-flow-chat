@@ -2,7 +2,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { License } from "@/types/subscription-enhanced";
+import { License } from "@/types/subscription-consolidated";
 import { Building2, Calendar, Users, Clock } from "lucide-react";
 
 interface LicenseCardProps {

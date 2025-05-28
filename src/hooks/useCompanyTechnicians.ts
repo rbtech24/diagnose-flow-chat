@@ -55,6 +55,7 @@ export function useCompanyTechnicians(companyId?: string): UseCompanyTechnicians
         const transformedTechnicians: TechnicianProfile[] = result.data.map(tech => ({
           ...tech,
           role: tech.role as 'admin' | 'company_admin' | 'technician',
+          status: tech.status as 'active' | 'inactive' | 'pending',
           full_name: tech.email?.split('@')[0] || 'Unknown',
           avatar_url: undefined
         }));

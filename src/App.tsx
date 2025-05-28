@@ -1,4 +1,3 @@
-
 import {
   createBrowserRouter,
   RouterProvider,
@@ -72,6 +71,7 @@ import TechNotifications from "./pages/tech/Notifications";
 import TechTraining from "./pages/tech/Training";
 import TechNewCommunityPost from "./pages/tech/NewCommunityPost";
 import TechNewFeatureRequest from "./pages/tech/NewFeatureRequest";
+import TechSupportTicketDetail from "./pages/tech/SupportTicketDetail";
 import { RouteGuard } from "./components/RouteGuard";
 
 const router = createBrowserRouter([
@@ -185,7 +185,7 @@ const router = createBrowserRouter([
       { path: "community/:id", element: <TechCommunityPostDetail /> },
       { path: "community/new", element: <TechNewCommunityPost /> },
       { path: "feature-requests", element: <TechFeatureRequests /> },
-      { path: "feature-requests/:id", element: <TechFeatureRequestDetail /> },
+      { path: "feature-requests/:id", element: <TechFeatureRequestDetailPage /> },
       { path: "feature-requests/new", element: <TechNewFeatureRequest /> },
       { path: "diagnostics", element: <DiagnosticsPage /> }
     ]

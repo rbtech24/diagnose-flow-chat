@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { License } from "@/types/subscription-enhanced";
+import { License } from "@/types/subscription-consolidated";
 import { LicenseCard } from "@/components/subscription/LicenseCard";
 import { NewLicenseForm } from "@/components/subscription/NewLicenseForm";
 import { Search, Plus, Package } from "lucide-react";

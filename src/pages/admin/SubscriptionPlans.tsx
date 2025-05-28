@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Separator } from "@/components/ui/separator";
 import { SubscriptionPlanCard } from "@/components/subscription/SubscriptionPlanCard";
 import { SubscriptionPlanForm } from "@/components/subscription/SubscriptionPlanForm";
-import { SubscriptionPlan } from "@/types/subscription-enhanced";
+import { SubscriptionPlan } from "@/types/subscription-consolidated";
 import { Plus, Package } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useSubscriptionStore } from "@/store/subscriptionStore";

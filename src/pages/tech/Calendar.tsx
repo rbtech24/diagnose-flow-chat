@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, CalendarDate } from '@/components/ui/calendar';
+import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
 import { 
   Calendar as CalendarIcon, 
