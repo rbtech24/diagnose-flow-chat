@@ -1,8 +1,7 @@
 
 import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
-import { SubscriptionPlan, License, Payment } from "@/types/subscription";
-import { getSubscriptionPlans, getLicenses, getPayments } from "@/data/mockSubscriptions";
+import { SubscriptionPlan, License, Payment } from "@/types/subscription-enhanced";
 import { toast } from "sonner";
 
 // Define the store state
@@ -34,6 +33,63 @@ interface SubscriptionStore {
   deactivateLicense: (licenseId: string) => void;
 }
 
+// Mock data for development
+const mockPlans: SubscriptionPlan[] = [
+  {
+    id: 'plan-basic',
+    name: 'Basic',
+    description: 'Perfect for small repair shops',
+    price_monthly: 29.99,
+    price_yearly: 299.99,
+    features: {
+      workflows: true,
+      diagnostics: true,
+      basic_support: true
+    },
+    limits: {
+      technicians: 5,
+      admins: 2,
+      workflows: 50,
+      storage_gb: 10,
+      api_calls: 1000,
+      diagnostics_per_day: 100
+    },
+    is_active: true,
+    recommended: false,
+    trial_period: 14,
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-01-01T00:00:00Z'
+  }
+];
+
+const mockLicenses: License[] = [
+  {
+    id: 'license-1',
+    company_id: 'company-2',
+    plan_id: 'plan-basic',
+    plan_name: 'Basic Plan',
+    status: 'trial',
+    startDate: new Date('2024-01-01'),
+    trialEndsAt: new Date('2024-02-01'),
+    activeTechnicians: 3,
+    maxTechnicians: 5,
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01')
+  }
+];
+
+const mockPayments: Payment[] = [
+  {
+    id: 'payment-1',
+    license_id: 'license-1',
+    amount: 29.99,
+    currency: 'USD',
+    status: 'completed',
+    payment_date: new Date('2024-01-01'),
+    payment_method: 'credit_card'
+  }
+];
+
 // Create the store
 export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   plans: [],
@@ -49,7 +105,9 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   fetchPlans: async () => {
     set({ isLoadingPlans: true, error: null });
     try {
-      const plans = await getSubscriptionPlans();
+      // For now, using mock data - replace with real API call when ready
+      await new Promise(resolve => setTimeout(resolve, 100));
+      const plans = mockPlans;
       set({ plans, isLoadingPlans: false });
       return plans;
     } catch (error) {
@@ -63,7 +121,9 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   fetchLicenses: async (companyId: string) => {
     set({ isLoadingLicenses: true, error: null });
     try {
-      const licenses = await getLicenses(companyId);
+      // For now, using mock data - replace with real API call when ready
+      await new Promise(resolve => setTimeout(resolve, 100));
+      const licenses = mockLicenses.filter(license => license.company_id === companyId);
       set({ licenses, isLoadingLicenses: false });
       return licenses;
     } catch (error) {
@@ -90,11 +150,11 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   fetchPayments: async (licenseId: string) => {
     set({ isLoadingPayments: true, error: null });
     try {
-      const payments = await getPayments();
-      // Filter payments by license ID if needed
-      const filteredPayments = payments.filter(payment => payment.license_id === licenseId);
-      set({ payments: filteredPayments, isLoadingPayments: false });
-      return filteredPayments;
+      // For now, using mock data - replace with real API call when ready
+      await new Promise(resolve => setTimeout(resolve, 100));
+      const payments = mockPayments.filter(payment => payment.license_id === licenseId);
+      set({ payments, isLoadingPayments: false });
+      return payments;
     } catch (error) {
       console.error('Error fetching payments:', error);
       set({ error: (error as Error).message, isLoadingPayments: false });
@@ -105,9 +165,6 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   // Create a new license
   createLicense: async (licenseData: Partial<License>) => {
     try {
-      // For now, we'll use the mock data approach and just create a new license in memory
-      // In a real application, you would insert into the database
-      
       const newLicense = {
         ...licenseData,
         id: `license-${Date.now()}`,
@@ -130,9 +187,6 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   // Update an existing license
   updateLicense: async (licenseId: string, updateData: Partial<License>) => {
     try {
-      // For now, we'll update the license in memory
-      // In a real application, you would update the database record
-      
       let updatedLicense: License | null = null;
       
       set(state => {
@@ -162,9 +216,6 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   // Cancel a license
   cancelLicense: async (licenseId: string) => {
     try {
-      // For now, we'll just update the license status in memory
-      // In a real application, you would update the database record
-      
       set(state => ({
         licenses: state.licenses.map(license => 
           license.id === licenseId ? { ...license, status: 'canceled', updatedAt: new Date() } : license

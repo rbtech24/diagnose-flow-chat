@@ -26,6 +26,33 @@ export const mockSubscriptionPlans: SubscriptionPlan[] = [
     trial_period: 14,
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: 'plan-pro',
+    name: 'Professional',
+    description: 'For growing businesses',
+    price_monthly: 59.99,
+    price_yearly: 599.99,
+    features: {
+      workflows: true,
+      diagnostics: true,
+      basic_support: true,
+      priority_support: true,
+      advanced_analytics: true
+    },
+    limits: {
+      technicians: 20,
+      admins: 5,
+      workflows: 200,
+      storage_gb: 50,
+      api_calls: 10000,
+      diagnostics_per_day: 500
+    },
+    is_active: true,
+    recommended: true,
+    trial_period: 14,
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-01-01T00:00:00Z'
   }
 ];
 

@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { BillingCycle, License } from "@/types/subscription";
+import { BillingCycle } from "@/types/subscription-enhanced";
 import { SubscriptionPlanCard } from "@/components/subscription/SubscriptionPlanCard";
 import { PaymentForm } from "@/components/subscription/PaymentForm";
 import { AlertCircle, Clock, Users, Calendar, CreditCard } from "lucide-react";
@@ -26,7 +26,7 @@ export default function CompanySubscription() {
   const activePlans = plans.filter(plan => plan.is_active);
   
   // For demo purposes, use the first license with company_id "company-2"
-  const [currentLicense, setCurrentLicense] = useState<License | undefined>(undefined);
+  const [currentLicense, setCurrentLicense] = useState(licenses.find(license => license.company_id === "company-2"));
   
   // Load data when component mounts
   useEffect(() => {
@@ -46,7 +46,7 @@ export default function CompanySubscription() {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 
-  const handlePlanSelect = (plan) => {
+  const handlePlanSelect = (plan: any) => {
     setSelectedPlan(plan);
     setIsPaymentDialogOpen(true);
   };

@@ -30,28 +30,40 @@ export class SupabaseIntegration {
     }
   }
 
-  static async safeInsert<T>(
-    table: string,
-    data: Partial<T>
-  ): Promise<SupabaseResult<T>> {
+  // Specific methods for different tables to avoid type issues
+  static async safeTechnicianInsert<T>(data: Partial<T>): Promise<SupabaseResult<T>> {
     return this.safeQuery(() => 
-      supabase.from(table).insert(data).select().single()
+      supabase.from('technicians').insert(data).select().single()
     );
   }
 
-  static async safeUpdate<T>(
-    table: string,
+  static async safeTechnicianUpdate<T>(
     id: string,
     data: Partial<T>
   ): Promise<SupabaseResult<T>> {
     return this.safeQuery(() => 
-      supabase.from(table).update(data).eq('id', id).select().single()
+      supabase.from('technicians').update(data).eq('id', id).select().single()
     );
   }
 
-  static async safeDelete(table: string, id: string): Promise<SupabaseResult<null>> {
+  static async safeTechnicianDelete(id: string): Promise<SupabaseResult<null>> {
     return this.safeQuery(() => 
-      supabase.from(table).delete().eq('id', id)
+      supabase.from('technicians').delete().eq('id', id)
+    );
+  }
+
+  static async safeCompanyInsert<T>(data: Partial<T>): Promise<SupabaseResult<T>> {
+    return this.safeQuery(() => 
+      supabase.from('companies').insert(data).select().single()
+    );
+  }
+
+  static async safeCompanyUpdate<T>(
+    id: string,
+    data: Partial<T>
+  ): Promise<SupabaseResult<T>> {
+    return this.safeQuery(() => 
+      supabase.from('companies').update(data).eq('id', id).select().single()
     );
   }
 
