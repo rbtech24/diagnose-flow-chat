@@ -16,13 +16,6 @@ export interface RecentActivity {
   icon: string;
 }
 
-interface ActivityRecord {
-  id: string;
-  activity_type: string;
-  description: string;
-  created_at: string;
-}
-
 // Fetch dashboard statistics
 export const fetchDashboardStats = async (companyId: string): Promise<DashboardStats> => {
   console.log('Fetching dashboard stats for company:', companyId);
@@ -47,7 +40,7 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     const completedJobs = repairsData?.filter(r => r.status === 'completed').length || 0;
     const revenue = repairsData
       ?.filter(r => r.status === 'completed' && r.actual_cost)
-      .reduce((sum, r) => sum + (r.actual_cost || 0), 0) || 0;
+      .reduce((sum, r) => sum + (Number(r.actual_cost) || 0), 0) || 0;
     const completionRate = repairsData && repairsData.length > 0 
       ? Math.round((completedJobs / repairsData.length) * 100) 
       : 0;
@@ -86,7 +79,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    return (activityData || []).map((activity: ActivityRecord) => ({
+    return (activityData || []).map((activity: any) => ({
       id: activity.id,
       type: mapActivityTypeToRecentActivity(activity.activity_type),
       description: activity.description,

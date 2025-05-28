@@ -41,34 +41,41 @@ export function useCalendarData(selectedDate: Date) {
       const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       const dayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
       
-      // Fetch repairs/appointments for the selected date
+      // Fetch repairs/appointments for the selected date using correct column names
       const { data: repairsData, error } = await supabase
         .from('repairs')
         .select(`
           *,
-          customer:customers(name, address)
+          customer:customers(first_name, last_name, email)
         `)
-        .gte('scheduled_date', dayStart.toISOString())
-        .lt('scheduled_date', dayEnd.toISOString())
-        .order('scheduled_date');
+        .gte('scheduled_at', dayStart.toISOString())
+        .lt('scheduled_at', dayEnd.toISOString())
+        .order('scheduled_at');
 
       if (error) {
         console.error('Error fetching calendar events:', error);
         return [];
       }
 
-      const formattedEvents: CalendarEvent[] = (repairsData || []).map(repair => ({
-        id: repair.id,
-        title: repair.title || `${repair.appliance_type} ${repair.type}`,
-        description: repair.description || '',
-        startTime: new Date(repair.scheduled_date),
-        endTime: new Date(new Date(repair.scheduled_date).getTime() + (repair.estimated_duration * 60000)),
-        type: repair.type as CalendarEvent['type'],
-        status: repair.status as CalendarEvent['status'],
-        customerName: repair.customer?.name || 'Unknown Customer',
-        address: repair.customer?.address || 'No address',
-        priority: repair.priority as CalendarEvent['priority']
-      }));
+      const formattedEvents: CalendarEvent[] = (repairsData || []).map(repair => {
+        const scheduledAt = new Date(repair.scheduled_at);
+        const estimatedDuration = typeof repair.estimated_duration === 'number' ? repair.estimated_duration : 60;
+        
+        return {
+          id: repair.id,
+          title: repair.problem_description || `${repair.appliance_type} Service`,
+          description: repair.diagnosis || '',
+          startTime: scheduledAt,
+          endTime: new Date(scheduledAt.getTime() + (estimatedDuration * 60000)),
+          type: 'repair' as const,
+          status: repair.status as CalendarEvent['status'],
+          customerName: repair.customer ? 
+            `${repair.customer.first_name || ''} ${repair.customer.last_name || ''}`.trim() || 
+            repair.customer.email || 'Unknown Customer' : 'Unknown Customer',
+          address: 'Service Address',
+          priority: (repair.priority as CalendarEvent['priority']) || 'medium'
+        };
+      });
 
       setEvents(formattedEvents);
       
@@ -80,22 +87,23 @@ export function useCalendarData(selectedDate: Date) {
       // Fetch stats data
       const { data: statsData } = await supabase
         .from('repairs')
-        .select('scheduled_date, status, completed_at, estimated_duration, actual_duration')
-        .gte('scheduled_date', weekStart.toISOString())
-        .lt('scheduled_date', weekEnd.toISOString());
+        .select('scheduled_at, status, completed_at, estimated_duration, actual_duration')
+        .gte('scheduled_at', weekStart.toISOString())
+        .lt('scheduled_at', weekEnd.toISOString());
 
       const todayEvents = (statsData || []).filter(repair => 
-        new Date(repair.scheduled_date).toDateString() === today.toDateString()
+        new Date(repair.scheduled_at).toDateString() === today.toDateString()
       );
 
       const overdueEvents = (statsData || []).filter(repair => 
-        new Date(repair.scheduled_date) < today && repair.status !== 'completed'
+        new Date(repair.scheduled_at) < today && repair.status !== 'completed'
       );
 
-      const completedOnTime = (statsData || []).filter(repair => 
-        repair.status === 'completed' && 
-        repair.actual_duration <= repair.estimated_duration
-      );
+      const completedOnTime = (statsData || []).filter(repair => {
+        const actualDuration = typeof repair.actual_duration === 'number' ? repair.actual_duration : 0;
+        const estimatedDuration = typeof repair.estimated_duration === 'number' ? repair.estimated_duration : 0;
+        return repair.status === 'completed' && actualDuration <= estimatedDuration;
+      });
 
       setStats({
         todayJobs: todayEvents.length,
