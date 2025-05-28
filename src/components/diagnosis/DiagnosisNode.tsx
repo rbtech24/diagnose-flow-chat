@@ -19,8 +19,10 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
   // Set node title based on node type and available data
   const nodeTitle = data.title || data.label || 'Node';
   
-  // Set node content based on node type and available data
-  const nodeContent = data.richInfo || data.content || '';
+  // Set node content based on node type and available data - properly typed as string
+  const nodeContent: string = typeof (data.richInfo || data.content) === 'string' 
+    ? (data.richInfo || data.content) 
+    : '';
 
   // Set node class based on type
   let nodeClass = 'p-3 border rounded bg-white w-[200px]';
@@ -55,7 +57,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
 
   // Function to render content safely with proper TypeScript typing
   const renderContentElement = (): React.ReactNode => {
-    if (typeof nodeContent === 'string' && nodeContent.trim() !== '') {
+    if (nodeContent && nodeContent.trim() !== '') {
       return (
         <div 
           className="text-xs mt-2 text-gray-600 max-h-[150px] overflow-auto"
