@@ -16,7 +16,6 @@ export interface RecentActivity {
   icon: string;
 }
 
-// Fetch dashboard statistics
 export const fetchDashboardStats = async (companyId: string): Promise<DashboardStats> => {
   console.log('Fetching dashboard stats for company:', companyId);
   
@@ -62,7 +61,6 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
   }
 };
 
-// Fetch recent activity
 export const fetchRecentActivity = async (companyId: string): Promise<RecentActivity[]> => {
   console.log('Fetching recent activity for company:', companyId);
   
@@ -83,22 +81,19 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    const activities: RecentActivity[] = activityData.map((activity) => ({
+    return activityData.map((activity) => ({
       id: activity.id || `activity-${Date.now()}`,
       type: mapActivityTypeToRecentActivity(activity.activity_type || 'unknown'),
       description: activity.description || 'Activity recorded',
       time: formatTimeAgo(new Date(activity.created_at || new Date())),
       icon: getActivityIcon(activity.activity_type || 'unknown')
     }));
-
-    return activities;
   } catch (error) {
     console.error('Error in fetchRecentActivity:', error);
     return [];
   }
 };
 
-// Helper function to map activity types
 function mapActivityTypeToRecentActivity(activityType: string): RecentActivity['type'] {
   switch (activityType) {
     case 'repair_completed':
@@ -118,7 +113,6 @@ function mapActivityTypeToRecentActivity(activityType: string): RecentActivity['
   }
 }
 
-// Helper function to format time ago
 function formatTimeAgo(date: Date): string {
   const now = new Date();
   const diffInMs = now.getTime() - date.getTime();
@@ -135,7 +129,6 @@ function formatTimeAgo(date: Date): string {
   }
 }
 
-// Helper function to get activity icon
 function getActivityIcon(activityType: string): string {
   switch (activityType) {
     case 'repair_completed':

@@ -4,9 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { SupportTicket } from "@/types/support";
 import { useNavigate } from "react-router-dom";
-import { Loader2 } from "lucide-react";
 import { CreateTicketButton } from "@/components/support/CreateTicketButton";
 import { useSupportTickets } from "@/hooks/useSupportTickets";
 
@@ -14,7 +12,6 @@ export default function CompanySupport() {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   
-  // Use the hook with company filtering
   const { tickets, isLoading, error } = useSupportTickets(undefined, 'company');
 
   const filteredTickets = tickets.filter(ticket => 
@@ -37,7 +34,7 @@ export default function CompanySupport() {
       case "low": return "bg-gray-100 text-gray-800";
       case "medium": return "bg-blue-100 text-blue-800";
       case "high": return "bg-orange-100 text-orange-800";
-      case "critical": return "bg-red-100 text-red-800";
+      case "urgent": return "bg-red-100 text-red-800";
       default: return "bg-gray-100 text-gray-800";
     }
   };

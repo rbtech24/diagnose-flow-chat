@@ -1,32 +1,18 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { SupportTicket } from "@/types/support";
 import { useNavigate } from "react-router-dom";
-import { fetchSupportTickets } from "@/api/supportTicketsApi";
-import { Loader2 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
 import { CreateTicketButton } from "@/components/support/CreateTicketButton";
 import { useSupportTickets } from "@/hooks/useSupportTickets";
 
 export default function TechSupport() {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const { tickets, isLoading, error, loadTickets } = useSupportTickets();
-
-  useEffect(() => {
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Error loading tickets",
-        description: "Failed to load support tickets. Please try again later."
-      });
-    }
-  }, [error, toast]);
+  
+  const { tickets, isLoading, error } = useSupportTickets();
 
   const filteredTickets = tickets.filter(ticket => 
     ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -48,7 +34,7 @@ export default function TechSupport() {
       case "low": return "bg-gray-100 text-gray-800";
       case "medium": return "bg-blue-100 text-blue-800";
       case "high": return "bg-orange-100 text-orange-800";
-      case "critical": return "bg-red-100 text-red-800";
+      case "urgent": return "bg-red-100 text-red-800";
       default: return "bg-gray-100 text-gray-800";
     }
   };
@@ -57,8 +43,8 @@ export default function TechSupport() {
     <div className="container mx-auto p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Support Tickets</h1>
-          <p className="text-muted-foreground">View and manage tech support requests</p>
+          <h1 className="text-3xl font-bold">Support Center</h1>
+          <p className="text-muted-foreground">Get help and create support tickets</p>
         </div>
         <div>
           <CreateTicketButton />
@@ -125,7 +111,7 @@ export default function TechSupport() {
       ) : (
         <div className="text-center py-12 border rounded-lg">
           <h3 className="text-lg font-medium mb-2">No tickets found</h3>
-          <p className="text-muted-foreground mb-4">Try adjusting your search criteria</p>
+          <p className="text-muted-foreground mb-4">Try adjusting your search criteria or create a new ticket</p>
           <CreateTicketButton buttonText="Create New Ticket" />
         </div>
       )}

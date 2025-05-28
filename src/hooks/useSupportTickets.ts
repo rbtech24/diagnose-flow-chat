@@ -14,6 +14,16 @@ export interface SupportTicket {
   assignedTo?: string;
   userId: string;
   companyId?: string;
+  user_id: string;
+  created_by_user_id: string;
+  created_at: string;
+  updated_at: string;
+  created_by_user?: {
+    name: string;
+    email: string;
+    avatar_url?: string;
+    role: string;
+  };
 }
 
 export interface SupportTicketMessage {
@@ -22,6 +32,15 @@ export interface SupportTicketMessage {
   content: string;
   userId: string;
   createdAt: Date;
+  ticket_id: string;
+  user_id: string;
+  created_at: string;
+  sender?: {
+    name: string;
+    email: string;
+    avatar_url?: string;
+    role: string;
+  };
 }
 
 export function useSupportTickets(initialStatus?: string, companyId?: string) {
@@ -35,7 +54,15 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
     try {
       let query = supabase
         .from('support_tickets')
-        .select('*')
+        .select(`
+          *,
+          created_by_user:created_by_user_id(
+            name,
+            email,
+            avatar_url,
+            role
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (status && status !== 'all') {
@@ -58,12 +85,17 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
         description: ticket.description,
         status: ticket.status as SupportTicket['status'],
         priority: ticket.priority as SupportTicket['priority'],
-        category: 'General', // Default since category might not exist in DB
+        category: 'General',
         createdAt: new Date(ticket.created_at),
         updatedAt: new Date(ticket.updated_at),
         assignedTo: ticket.assigned_to,
         userId: ticket.user_id,
-        companyId: ticket.company_id
+        companyId: ticket.company_id,
+        user_id: ticket.user_id,
+        created_by_user_id: ticket.created_by_user_id,
+        created_at: ticket.created_at,
+        updated_at: ticket.updated_at,
+        created_by_user: ticket.created_by_user
       }));
 
       setTickets(formattedTickets);
@@ -78,7 +110,15 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
     try {
       const { data, error } = await supabase
         .from('support_tickets')
-        .select('*')
+        .select(`
+          *,
+          created_by_user:created_by_user_id(
+            name,
+            email,
+            avatar_url,
+            role
+          )
+        `)
         .eq('id', id)
         .single();
 
@@ -99,7 +139,12 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
         updatedAt: new Date(data.updated_at),
         assignedTo: data.assigned_to,
         userId: data.user_id,
-        companyId: data.company_id
+        companyId: data.company_id,
+        user_id: data.user_id,
+        created_by_user_id: data.created_by_user_id,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        created_by_user: data.created_by_user
       };
     } catch (err) {
       throw err instanceof Error ? err : new Error(`Failed to fetch ticket ${id}`);
@@ -110,7 +155,15 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
     try {
       const { data, error } = await supabase
         .from('support_ticket_messages')
-        .select('*')
+        .select(`
+          *,
+          sender:user_id(
+            name,
+            email,
+            avatar_url,
+            role
+          )
+        `)
         .eq('ticket_id', ticketId)
         .order('created_at', { ascending: true });
 
@@ -123,7 +176,11 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
         ticketId: message.ticket_id,
         content: message.content,
         userId: message.user_id,
-        createdAt: new Date(message.created_at)
+        createdAt: new Date(message.created_at),
+        ticket_id: message.ticket_id,
+        user_id: message.user_id,
+        created_at: message.created_at,
+        sender: message.sender
       }));
     } catch (err) {
       throw err instanceof Error ? err : new Error(`Failed to fetch messages for ticket ${ticketId}`);
@@ -143,9 +200,18 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
           priority: ticketData.priority || 'medium',
           status: 'open',
           user_id: user.id,
+          created_by_user_id: user.id,
           company_id: ticketData.companyId
         })
-        .select()
+        .select(`
+          *,
+          created_by_user:created_by_user_id(
+            name,
+            email,
+            avatar_url,
+            role
+          )
+        `)
         .single();
 
       if (error) {
@@ -162,10 +228,14 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
         userId: data.user_id,
-        companyId: data.company_id
+        companyId: data.company_id,
+        user_id: data.user_id,
+        created_by_user_id: data.created_by_user_id,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        created_by_user: data.created_by_user
       };
 
-      // Reload tickets to include the new one
       loadTickets(initialStatus);
       return newTicket;
     } catch (err) {
@@ -185,7 +255,15 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
           assigned_to: updateData.assignedTo
         })
         .eq('id', ticketId)
-        .select()
+        .select(`
+          *,
+          created_by_user:created_by_user_id(
+            name,
+            email,
+            avatar_url,
+            role
+          )
+        `)
         .single();
 
       if (error) {
@@ -203,10 +281,14 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
         updatedAt: new Date(data.updated_at),
         assignedTo: data.assigned_to,
         userId: data.user_id,
-        companyId: data.company_id
+        companyId: data.company_id,
+        user_id: data.user_id,
+        created_by_user_id: data.created_by_user_id,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        created_by_user: data.created_by_user
       };
 
-      // Update the ticket in the local state
       setTickets(prevTickets => 
         prevTickets.map(ticket => 
           ticket.id === ticketId ? updatedTicket : ticket
@@ -231,7 +313,15 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
           content: messageData.content,
           user_id: user.id
         })
-        .select()
+        .select(`
+          *,
+          sender:user_id(
+            name,
+            email,
+            avatar_url,
+            role
+          )
+        `)
         .single();
 
       if (error) {
@@ -243,14 +333,17 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
         ticketId: data.ticket_id,
         content: data.content,
         userId: data.user_id,
-        createdAt: new Date(data.created_at)
+        createdAt: new Date(data.created_at),
+        ticket_id: data.ticket_id,
+        user_id: data.user_id,
+        created_at: data.created_at,
+        sender: data.sender
       };
     } catch (err) {
       throw err instanceof Error ? err : new Error('Failed to add message');
     }
   };
 
-  // Load tickets on component mount
   useEffect(() => {
     loadTickets(initialStatus);
   }, [initialStatus, companyId]);
