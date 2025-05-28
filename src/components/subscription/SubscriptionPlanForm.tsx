@@ -22,6 +22,8 @@ export function SubscriptionPlanForm({ plan, onSave, onCancel }: SubscriptionPla
     price_monthly: plan?.price_monthly || 0,
     price_yearly: plan?.price_yearly || 0,
     is_active: plan?.is_active ?? true,
+    recommended: plan?.recommended ?? false,
+    trial_period: plan?.trial_period || 14,
     features: plan?.features || {},
     limits: plan?.limits || {
       technicians: 1,
@@ -117,6 +119,19 @@ export function SubscriptionPlanForm({ plan, onSave, onCancel }: SubscriptionPla
           </div>
         </div>
 
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="trial_period">Trial Period (days)</Label>
+            <Input
+              id="trial_period"
+              type="number"
+              value={formData.trial_period}
+              onChange={(e) => setFormData({...formData, trial_period: parseInt(e.target.value)})}
+              required
+            />
+          </div>
+        </div>
+
         <div className="flex items-center space-x-2">
           <Switch
             id="is_active"
@@ -124,6 +139,15 @@ export function SubscriptionPlanForm({ plan, onSave, onCancel }: SubscriptionPla
             onCheckedChange={(checked) => setFormData({...formData, is_active: checked})}
           />
           <Label htmlFor="is_active">Active Plan</Label>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="recommended"
+            checked={formData.recommended}
+            onCheckedChange={(checked) => setFormData({...formData, recommended: checked})}
+          />
+          <Label htmlFor="recommended">Recommended Plan</Label>
         </div>
 
         <div>

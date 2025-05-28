@@ -1,6 +1,7 @@
 
 import { create } from "zustand";
 import { SubscriptionPlan, License, Payment } from "@/types/subscription-consolidated";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface SubscriptionStore {
@@ -30,65 +31,8 @@ interface SubscriptionStore {
   deactivateLicense: (licenseId: string) => void;
 }
 
-// Mock data for development
-const mockPlans: SubscriptionPlan[] = [
-  {
-    id: '1',
-    name: 'Basic',
-    description: 'Perfect for small teams',
-    price_monthly: 29,
-    price_yearly: 290,
-    features: {
-      basic_support: true,
-      mobile_app: true,
-      reporting: false,
-      api_access: false
-    },
-    limits: {
-      technicians: 5,
-      admins: 2,
-      workflows: 10,
-      storage_gb: 10,
-      api_calls: 1000,
-      diagnostics_per_day: 50
-    },
-    is_active: true,
-    recommended: false,
-    trial_period: 14,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: '2',
-    name: 'Professional',
-    description: 'For growing businesses',
-    price_monthly: 79,
-    price_yearly: 790,
-    features: {
-      basic_support: true,
-      mobile_app: true,
-      reporting: true,
-      api_access: true,
-      priority_support: true
-    },
-    limits: {
-      technicians: 20,
-      admins: 5,
-      workflows: 50,
-      storage_gb: 100,
-      api_calls: 10000,
-      diagnostics_per_day: 200
-    },
-    is_active: true,
-    recommended: true,
-    trial_period: 14,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
-];
-
 export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
-  plans: mockPlans,
+  plans: [],
   licenses: [],
   payments: [],
   isLoadingPlans: false,
@@ -100,22 +44,52 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   fetchPlans: async () => {
     set({ isLoadingPlans: true, error: null });
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    set({ plans: mockPlans, isLoadingPlans: false });
-    return mockPlans;
+    try {
+      const { data, error } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      const plans = data.map(plan => ({
+        ...plan,
+        features: plan.features || {},
+        limits: plan.limits || {
+          technicians: 1,
+          admins: 1,
+          diagnostics_per_day: 10,
+          storage_gb: 1,
+          workflows: 10,
+          api_calls: 1000
+        }
+      }));
+
+      set({ plans, isLoadingPlans: false });
+      return plans;
+    } catch (error) {
+      console.error('Error fetching plans:', error);
+      set({ error: (error as Error).message, isLoadingPlans: false });
+      toast.error('Failed to fetch subscription plans');
+      return [];
+    }
   },
   
   fetchLicenses: async (companyId: string) => {
     set({ isLoadingLicenses: true, error: null });
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const mockLicenses: License[] = [];
-    set({ licenses: mockLicenses, isLoadingLicenses: false });
-    return mockLicenses;
+    try {
+      // Note: This would require a licenses table to be created
+      // For now, return empty array
+      console.log('Fetching licenses for company:', companyId);
+      set({ licenses: [], isLoadingLicenses: false });
+      return [];
+    } catch (error) {
+      console.error('Error fetching licenses:', error);
+      set({ error: (error as Error).message, isLoadingLicenses: false });
+      toast.error('Failed to fetch licenses');
+      return [];
+    }
   },
   
   fetchLicenseById: async (licenseId: string) => {
@@ -126,13 +100,22 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   fetchPayments: async (licenseId: string) => {
     set({ isLoadingPayments: true, error: null });
     
-    const mockPayments: Payment[] = [];
-    set({ payments: mockPayments, isLoadingPayments: false });
-    return mockPayments;
+    try {
+      // Note: This would require a payments table to be created
+      console.log('Fetching payments for license:', licenseId);
+      set({ payments: [], isLoadingPayments: false });
+      return [];
+    } catch (error) {
+      console.error('Error fetching payments:', error);
+      set({ error: (error as Error).message, isLoadingPayments: false });
+      toast.error('Failed to fetch payments');
+      return [];
+    }
   },
   
   createLicense: async (licenseData: Partial<License>) => {
     try {
+      // Note: This would require a licenses table to be created
       const newLicense: License = {
         id: `license-${Date.now()}`,
         company_id: licenseData.company_id || '',
@@ -227,31 +210,100 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
     return get().plans.filter(plan => plan.is_active);
   },
   
-  addPlan: (newPlan: SubscriptionPlan) => {
-    set(state => ({
-      plans: [...state.plans, {
-        ...newPlan,
-        id: newPlan.id || `plan-${Date.now()}`
-      }]
-    }));
+  addPlan: async (newPlan: SubscriptionPlan) => {
+    try {
+      const { data, error } = await supabase
+        .from('subscription_plans')
+        .insert({
+          name: newPlan.name,
+          description: newPlan.description,
+          price_monthly: newPlan.price_monthly,
+          price_yearly: newPlan.price_yearly,
+          features: newPlan.features,
+          limits: newPlan.limits,
+          is_active: newPlan.is_active,
+          recommended: newPlan.recommended || false,
+          trial_period: newPlan.trial_period || 14
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      set(state => ({
+        plans: [...state.plans, { ...data, features: data.features || {}, limits: data.limits || {} }]
+      }));
+
+      toast.success('Plan created successfully');
+    } catch (error) {
+      console.error('Error adding plan:', error);
+      toast.error('Failed to create plan');
+    }
   },
   
-  updatePlan: (updatedPlan: SubscriptionPlan) => {
-    set(state => ({
-      plans: state.plans.map(plan => 
-        plan.id === updatedPlan.id ? updatedPlan : plan
-      )
-    }));
+  updatePlan: async (updatedPlan: SubscriptionPlan) => {
+    try {
+      const { data, error } = await supabase
+        .from('subscription_plans')
+        .update({
+          name: updatedPlan.name,
+          description: updatedPlan.description,
+          price_monthly: updatedPlan.price_monthly,
+          price_yearly: updatedPlan.price_yearly,
+          features: updatedPlan.features,
+          limits: updatedPlan.limits,
+          is_active: updatedPlan.is_active,
+          recommended: updatedPlan.recommended || false,
+          trial_period: updatedPlan.trial_period || 14,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', updatedPlan.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      set(state => ({
+        plans: state.plans.map(plan => 
+          plan.id === updatedPlan.id ? { ...data, features: data.features || {}, limits: data.limits || {} } : plan
+        )
+      }));
+
+      toast.success('Plan updated successfully');
+    } catch (error) {
+      console.error('Error updating plan:', error);
+      toast.error('Failed to update plan');
+    }
   },
   
-  togglePlanStatus: (planId: string) => {
-    set(state => ({
-      plans: state.plans.map(plan => 
-        plan.id === planId ? 
-        { ...plan, is_active: !plan.is_active } : 
-        plan
-      )
-    }));
+  togglePlanStatus: async (planId: string) => {
+    try {
+      const plan = get().plans.find(p => p.id === planId);
+      if (!plan) return;
+
+      const { data, error } = await supabase
+        .from('subscription_plans')
+        .update({ 
+          is_active: !plan.is_active,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', planId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      set(state => ({
+        plans: state.plans.map(plan => 
+          plan.id === planId ? { ...data, features: data.features || {}, limits: data.limits || {} } : plan
+        )
+      }));
+
+      toast.success(`Plan ${data.is_active ? 'activated' : 'deactivated'} successfully`);
+    } catch (error) {
+      console.error('Error toggling plan status:', error);
+      toast.error('Failed to update plan status');
+    }
   },
   
   addLicense: (license: License) => {
