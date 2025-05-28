@@ -1,14 +1,13 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus } from 'lucide-react';
 import { CommunityFilters } from '@/components/community/CommunityFilters';
 import { CommunityPostCard } from '@/components/community/CommunityPostCard';
 import { CommunityStats } from '@/components/community/CommunityStats';
 import { NewPostDialog } from '@/components/community/NewPostDialog';
-import { Button } from '@/components/ui/button';
 import { CommunityPost, CommunityPostType } from '@/types/community';
-import { getCommunityPosts } from '@/data/mockCommunity';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export default function CompanyCommunity() {
   const navigate = useNavigate();
@@ -23,10 +22,53 @@ export default function CompanyCommunity() {
     const loadPosts = async () => {
       try {
         setLoading(true);
-        const fetchedPosts = await getCommunityPosts();
-        setPosts(fetchedPosts);
+        
+        const { data: postsData, error } = await supabase
+          .from('community_posts')
+          .select(`
+            *,
+            author:author_id(
+              id,
+              email,
+              raw_user_meta_data
+            ),
+            community_comments(count)
+          `)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error loading posts:', error);
+          toast.error('Failed to load community posts');
+          return;
+        }
+
+        const transformedPosts: CommunityPost[] = (postsData || []).map(post => ({
+          id: post.id,
+          title: post.title,
+          content: post.content,
+          type: post.type as CommunityPostType,
+          authorId: post.author_id,
+          author: {
+            id: post.author.id,
+            name: post.author.raw_user_meta_data?.name || 'Unknown User',
+            email: post.author.email || '',
+            role: 'company',
+            avatarUrl: post.author.raw_user_meta_data?.avatar_url
+          },
+          attachments: [],
+          createdAt: new Date(post.created_at),
+          updatedAt: new Date(post.updated_at),
+          upvotes: post.upvotes || 0,
+          views: post.views || 0,
+          tags: post.tags || [],
+          isSolved: post.is_solved || false,
+          comments: [] // We'll load comments separately when needed
+        }));
+
+        setPosts(transformedPosts);
       } catch (error) {
         console.error('Error loading community posts:', error);
+        toast.error('Failed to load community posts');
       } finally {
         setLoading(false);
       }
@@ -70,32 +112,68 @@ export default function CompanyCommunity() {
     tags: string[];
     attachments: File[];
   }) => {
-    // In a real implementation, this would create the post in the database
-    // For now, we'll create a temporary post object
-    const newPost: CommunityPost = {
-      id: `post-${Date.now()}`,
-      title: post.title,
-      content: post.content,
-      type: post.type,
-      authorId: 'company-1',
-      author: {
-        id: 'company-1',
-        name: 'Company User',
-        email: 'company@example.com',
-        role: 'company',
-        avatarUrl: ''
-      },
-      attachments: [], // In a real app, you would upload these files
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      upvotes: 0,
-      views: 0,
-      isSolved: false,
-      tags: post.tags,
-      comments: []
-    };
-    
-    setPosts([newPost, ...posts]);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      
+      if (!userData.user) {
+        toast.error('You must be logged in to create a post');
+        return;
+      }
+
+      const { data: postData, error } = await supabase
+        .from('community_posts')
+        .insert({
+          title: post.title,
+          content: post.content,
+          type: post.type,
+          tags: post.tags,
+          author_id: userData.user.id
+        })
+        .select(`
+          *,
+          author:author_id(
+            id,
+            email,
+            raw_user_meta_data
+          )
+        `)
+        .single();
+
+      if (error) {
+        console.error('Error creating post:', error);
+        toast.error('Failed to create post');
+        return;
+      }
+
+      const newPost: CommunityPost = {
+        id: postData.id,
+        title: postData.title,
+        content: postData.content,
+        type: postData.type as CommunityPostType,
+        authorId: postData.author_id,
+        author: {
+          id: userData.user.id,
+          name: postData.author.raw_user_meta_data?.name || 'Unknown User',
+          email: userData.user.email || '',
+          role: 'company',
+          avatarUrl: postData.author.raw_user_meta_data?.avatar_url
+        },
+        attachments: [],
+        createdAt: new Date(postData.created_at),
+        updatedAt: new Date(postData.updated_at),
+        upvotes: 0,
+        views: 0,
+        isSolved: false,
+        tags: postData.tags || [],
+        comments: []
+      };
+      
+      setPosts([newPost, ...posts]);
+      toast.success('Post created successfully');
+    } catch (error) {
+      console.error('Error creating post:', error);
+      toast.error('Failed to create post');
+    }
   };
 
   const handlePostClick = (postId: string) => {
@@ -107,9 +185,8 @@ export default function CompanyCommunity() {
   const techSheetRequestCount = posts.filter(post => post.type === 'tech-sheet-request').length;
   const wireDiagramRequestCount = posts.filter(post => post.type === 'wire-diagram-request').length;
   
-  // In a real app, you'd calculate this differently
-  const activeMemberCount = new Set(posts.map(post => post.authorId)
-    .concat(posts.flatMap(post => post.comments.map(comment => comment.authorId)))).size;
+  // Calculate active member count from unique authors
+  const activeMemberCount = new Set(posts.map(post => post.authorId)).size;
 
   if (loading) {
     return (
