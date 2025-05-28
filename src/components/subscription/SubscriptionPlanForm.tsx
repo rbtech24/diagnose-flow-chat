@@ -10,236 +10,202 @@ import { SubscriptionPlan } from "@/types/subscription-consolidated";
 import { Trash2, Plus } from "lucide-react";
 
 interface SubscriptionPlanFormProps {
-  initialData?: SubscriptionPlan | null;
-  onSubmit: (plan: SubscriptionPlan) => void;
+  plan?: SubscriptionPlan;
+  onSave: (plan: SubscriptionPlan) => void;
   onCancel: () => void;
 }
 
-export function SubscriptionPlanForm({
-  initialData,
-  onSubmit,
-  onCancel
-}: SubscriptionPlanFormProps) {
-  const [name, setName] = useState(initialData?.name || "");
-  const [description, setDescription] = useState(initialData?.description || "");
-  const [monthlyPrice, setMonthlyPrice] = useState(initialData?.price_monthly.toString() || "0");
-  const [yearlyPrice, setYearlyPrice] = useState(initialData?.price_yearly.toString() || "0");
-  const [maxTechnicians, setMaxTechnicians] = useState(initialData?.limits?.technicians?.toString() || "5");
-  const [maxAdmins, setMaxAdmins] = useState(initialData?.limits?.admins?.toString() || "1");
-  const [dailyDiagnostics, setDailyDiagnostics] = useState(initialData?.limits?.diagnostics_per_day?.toString() || "20");
-  const [storageLimit, setStorageLimit] = useState(initialData?.limits?.storage_gb?.toString() || "10");
-  const [features, setFeatures] = useState<string[]>(initialData?.features || [
-    "Basic AI diagnostics",
-    "Mobile app access",
-    "Community access",
-    "Email support"
-  ]);
-  const [newFeature, setNewFeature] = useState("");
-  const [trialPeriod, setTrialPeriod] = useState(initialData?.trial_period.toString() || "14");
-  const [isActive, setIsActive] = useState(initialData?.is_active !== false);
-
-  const handleAddFeature = () => {
-    if (newFeature.trim()) {
-      setFeatures([...features, newFeature.trim()]);
-      setNewFeature("");
+export function SubscriptionPlanForm({ plan, onSave, onCancel }: SubscriptionPlanFormProps) {
+  const [formData, setFormData] = useState<Partial<SubscriptionPlan>>({
+    name: plan?.name || "",
+    description: plan?.description || "",
+    price_monthly: plan?.price_monthly || 0,
+    price_yearly: plan?.price_yearly || 0,
+    is_active: plan?.is_active ?? true,
+    features: plan?.features || [],
+    limits: plan?.limits || {
+      technicians: 1,
+      admins: 1,
+      diagnostics_per_day: 10,
+      storage_gb: 1
     }
+  });
+
+  const [featuresArray, setFeaturesArray] = useState<string[]>(
+    Array.isArray(plan?.features) ? plan.features : []
+  );
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave({
+      id: plan?.id || crypto.randomUUID(),
+      created_at: plan?.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      ...formData,
+      features: featuresArray
+    } as SubscriptionPlan);
   };
 
-  const handleRemoveFeature = (index: number) => {
-    setFeatures(features.filter((_, i) => i !== index));
+  const addFeature = () => {
+    setFeaturesArray([...featuresArray, ""]);
   };
 
-  const handleSubmit = () => {
-    const plan: SubscriptionPlan = {
-      id: initialData?.id || `plan-${Date.now()}`,
-      name,
-      description,
-      price_monthly: parseFloat(monthlyPrice) || 0,
-      price_yearly: parseFloat(yearlyPrice) || 0,
-      limits: {
-        technicians: parseInt(maxTechnicians) || 1,
-        admins: parseInt(maxAdmins) || 1,
-        workflows: 10,
-        storage_gb: parseInt(storageLimit) || 0,
-        api_calls: 1000,
-        diagnostics_per_day: parseInt(dailyDiagnostics) || 0
-      },
-      features,
-      trial_period: parseInt(trialPeriod) || 14,
-      is_active: isActive,
-      createdAt: initialData?.createdAt || new Date(),
-      updatedAt: new Date()
-    };
-    
-    onSubmit(plan);
+  const updateFeature = (index: number, value: string) => {
+    const updated = [...featuresArray];
+    updated[index] = value;
+    setFeaturesArray(updated);
+  };
+
+  const removeFeature = (index: number) => {
+    setFeaturesArray(featuresArray.filter((_, i) => i !== index));
   };
 
   return (
-    <div className="space-y-4 py-2 pb-4">
-      <div className="space-y-2">
-        <Label htmlFor="name">Plan Name</Label>
-        <Input
-          id="name"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          placeholder="e.g. Basic, Professional, Enterprise"
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-          placeholder="Brief description of this plan"
-          className="min-h-[80px]"
-        />
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="monthlyPrice">Monthly Price ($)</Label>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="name">Plan Name</Label>
           <Input
-            id="monthlyPrice"
-            type="number"
-            min="0"
-            step="0.01"
-            value={monthlyPrice}
-            onChange={e => setMonthlyPrice(e.target.value)}
+            id="name"
+            value={formData.name}
+            onChange={(e) => setFormData({...formData, name: e.target.value})}
+            required
           />
         </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="yearlyPrice">Yearly Price ($)</Label>
-          <Input
-            id="yearlyPrice"
-            type="number"
-            min="0"
-            step="0.01"
-            value={yearlyPrice}
-            onChange={e => setYearlyPrice(e.target.value)}
+
+        <div>
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            value={formData.description}
+            onChange={(e) => setFormData({...formData, description: e.target.value})}
           />
         </div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="maxTechnicians">Max Technicians</Label>
-          <Input
-            id="maxTechnicians"
-            type="number"
-            min="1"
-            value={maxTechnicians}
-            onChange={e => setMaxTechnicians(e.target.value)}
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="maxAdmins">Max Admins</Label>
-          <Input
-            id="maxAdmins"
-            type="number"
-            min="1"
-            value={maxAdmins}
-            onChange={e => setMaxAdmins(e.target.value)}
-          />
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="dailyDiagnostics">Daily Diagnostics</Label>
-          <Input
-            id="dailyDiagnostics"
-            type="number"
-            min="0"
-            value={dailyDiagnostics}
-            onChange={e => setDailyDiagnostics(e.target.value)}
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="storageLimit">Storage (GB)</Label>
-          <Input
-            id="storageLimit"
-            type="number"
-            min="0"
-            value={storageLimit}
-            onChange={e => setStorageLimit(e.target.value)}
-          />
-        </div>
-      </div>
-      
-      <div className="space-y-2">
-        <Label>Features</Label>
-        <div className="space-y-2">
-          {features.map((feature, index) => (
-            <div key={index} className="flex items-center space-x-2">
-              <Checkbox id={`feature-${index}`} checked />
-              <Label htmlFor={`feature-${index}`} className="flex-1">{feature}</Label>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => handleRemoveFeature(index)}
-              >
-                <Trash2 className="h-4 w-4 text-red-500" />
-              </Button>
-            </div>
-          ))}
-          
-          <div className="flex items-center space-x-2">
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="price_monthly">Monthly Price</Label>
             <Input
-              value={newFeature}
-              onChange={e => setNewFeature(e.target.value)}
-              placeholder="Add a feature"
-              onKeyDown={e => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleAddFeature();
-                }
-              }}
+              id="price_monthly"
+              type="number"
+              step="0.01"
+              value={formData.price_monthly}
+              onChange={(e) => setFormData({...formData, price_monthly: parseFloat(e.target.value)})}
+              required
             />
-            <Button
-              type="button"
-              onClick={handleAddFeature}
-              size="icon"
-            >
-              <Plus className="h-4 w-4" />
+          </div>
+          <div>
+            <Label htmlFor="price_yearly">Yearly Price</Label>
+            <Input
+              id="price_yearly"
+              type="number"
+              step="0.01"
+              value={formData.price_yearly}
+              onChange={(e) => setFormData({...formData, price_yearly: parseFloat(e.target.value)})}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="is_active"
+            checked={formData.is_active}
+            onCheckedChange={(checked) => setFormData({...formData, is_active: checked})}
+          />
+          <Label htmlFor="is_active">Active Plan</Label>
+        </div>
+
+        <div>
+          <Label>Features</Label>
+          <div className="space-y-2">
+            {featuresArray.map((feature, index) => (
+              <div key={index} className="flex items-center space-x-2">
+                <Input
+                  value={feature}
+                  onChange={(e) => updateFeature(index, e.target.value)}
+                  placeholder="Enter feature"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => removeFeature(index)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            <Button type="button" variant="outline" onClick={addFeature}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Feature
             </Button>
           </div>
         </div>
+
+        <div>
+          <Label>Limits</Label>
+          <div className="grid grid-cols-2 gap-4 mt-2">
+            <div>
+              <Label htmlFor="technicians">Technicians</Label>
+              <Input
+                id="technicians"
+                type="number"
+                value={formData.limits?.technicians}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  limits: {...formData.limits!, technicians: parseInt(e.target.value)}
+                })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="admins">Admins</Label>
+              <Input
+                id="admins"
+                type="number"
+                value={formData.limits?.admins}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  limits: {...formData.limits!, admins: parseInt(e.target.value)}
+                })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="diagnostics_per_day">Diagnostics per Day</Label>
+              <Input
+                id="diagnostics_per_day"
+                type="number"
+                value={formData.limits?.diagnostics_per_day}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  limits: {...formData.limits!, diagnostics_per_day: parseInt(e.target.value)}
+                })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="storage_gb">Storage (GB)</Label>
+              <Input
+                id="storage_gb"
+                type="number"
+                value={formData.limits?.storage_gb}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  limits: {...formData.limits!, storage_gb: parseInt(e.target.value)}
+                })}
+              />
+            </div>
+          </div>
+        </div>
       </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="trialPeriod">Trial Period (days)</Label>
-        <Input
-          id="trialPeriod"
-          type="number"
-          min="0"
-          value={trialPeriod}
-          onChange={e => setTrialPeriod(e.target.value)}
-        />
-      </div>
-      
-      <div className="flex items-center space-x-2">
-        <Switch
-          id="active"
-          checked={isActive}
-          onCheckedChange={setIsActive}
-        />
-        <Label htmlFor="active">Active</Label>
-      </div>
-      
-      <div className="flex justify-end space-x-2 pt-4">
-        <Button variant="outline" onClick={onCancel}>
+
+      <div className="flex justify-end space-x-2">
+        <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button onClick={handleSubmit}>
-          {initialData ? 'Update Plan' : 'Create Plan'}
+        <Button type="submit">
+          {plan ? "Update Plan" : "Create Plan"}
         </Button>
       </div>
-    </div>
+    </form>
   );
 }
