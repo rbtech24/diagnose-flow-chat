@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -10,14 +10,41 @@ import { LicenseCard } from "@/components/subscription/LicenseCard";
 import { NewLicenseForm } from "@/components/subscription/NewLicenseForm";
 import { Search, Plus, Package } from "lucide-react";
 import { useSubscriptionStore } from "@/store/subscriptionStore";
+import { LicenseService } from "@/services/licenseService";
 
 export default function AdminLicenses() {
-  const { licenses, addLicense, deactivateLicense } = useSubscriptionStore();
+  const { 
+    licenses, 
+    fetchPlans, 
+    isLoadingLicenses,
+    error 
+  } = useSubscriptionStore();
+  
+  const [allLicenses, setAllLicenses] = useState<License[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  const filteredLicenses = licenses.filter((license) => {
+  // Load all licenses for admin view
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        await fetchPlans();
+        const allLicensesData = await LicenseService.getAllLicenses();
+        setAllLicenses(allLicensesData);
+      } catch (error) {
+        console.error('Error loading licenses:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [fetchPlans]);
+  
+  const filteredLicenses = allLicenses.filter((license) => {
     const matchesSearch =
       searchQuery === "" ||
       (license.company_name && license.company_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -30,14 +57,48 @@ export default function AdminLicenses() {
     return matchesSearch && matchesStatus;
   });
 
-  const handleAddLicense = (newLicense: License) => {
-    addLicense(newLicense);
-    setIsDialogOpen(false);
+  const handleAddLicense = async (newLicense: License) => {
+    try {
+      const createdLicense = await LicenseService.createLicense({
+        company_id: newLicense.company_id,
+        company_name: newLicense.company_name,
+        plan_id: newLicense.plan_id,
+        plan_name: newLicense.plan_name,
+        active_technicians: newLicense.activeTechnicians,
+        max_technicians: newLicense.maxTechnicians
+      });
+      
+      setAllLicenses(prev => [createdLicense, ...prev]);
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Error adding license:', error);
+    }
   };
 
-  const handleDeactivateLicense = (licenseId: string) => {
-    deactivateLicense(licenseId);
+  const handleDeactivateLicense = async (licenseId: string) => {
+    try {
+      await LicenseService.updateLicense(licenseId, { status: 'canceled' });
+      setAllLicenses(prev => 
+        prev.map(license => 
+          license.id === licenseId 
+            ? { ...license, status: 'canceled' as const, updatedAt: new Date() }
+            : license
+        )
+      );
+    } catch (error) {
+      console.error('Error deactivating license:', error);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-center py-12">
+          <p className="text-lg text-muted-foreground">Loading licenses...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6">

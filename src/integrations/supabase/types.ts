@@ -1758,6 +1758,72 @@ export type Database = {
           },
         ]
       }
+      licenses: {
+        Row: {
+          active_technicians: number
+          company_id: string
+          company_name: string | null
+          created_at: string
+          end_date: string | null
+          id: string
+          max_technicians: number
+          next_payment: string | null
+          plan_id: string
+          plan_name: string
+          start_date: string
+          status: string
+          trial_ends_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          active_technicians?: number
+          company_id: string
+          company_name?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          max_technicians?: number
+          next_payment?: string | null
+          plan_id: string
+          plan_name: string
+          start_date?: string
+          status?: string
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active_technicians?: number
+          company_id?: string
+          company_name?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          max_technicians?: number
+          next_payment?: string | null
+          plan_id?: string
+          plan_name?: string
+          start_date?: string
+          status?: string
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "licenses_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "licenses_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           id: string
@@ -2108,6 +2174,50 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          license_id: string
+          payment_date: string
+          payment_method: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          license_id: string
+          payment_date?: string
+          payment_method?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          license_id?: string
+          payment_date?: string
+          payment_method?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_license_id_fkey"
+            columns: ["license_id"]
+            isOneToOne: false
+            referencedRelation: "licenses"
             referencedColumns: ["id"]
           },
         ]

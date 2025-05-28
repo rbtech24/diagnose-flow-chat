@@ -1,6 +1,8 @@
+
 import { create } from "zustand";
 import { SubscriptionPlan, License, Payment } from "@/types/subscription-consolidated";
 import { SubscriptionService } from "@/services/subscriptionService";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface SubscriptionStore {
@@ -59,11 +61,36 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
     set({ isLoadingLicenses: true, error: null });
     
     try {
-      // Note: This would require a licenses table to be created
-      // For now, return empty array
-      console.log('Fetching licenses for company:', companyId);
-      set({ licenses: [], isLoadingLicenses: false });
-      return [];
+      const { data, error } = await supabase
+        .from('licenses')
+        .select(`
+          *,
+          subscription_plans!inner(name)
+        `)
+        .eq('company_id', companyId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const licenses: License[] = data.map(license => ({
+        id: license.id,
+        company_id: license.company_id,
+        company_name: license.company_name,
+        plan_id: license.plan_id,
+        plan_name: license.plan_name,
+        status: license.status as License['status'],
+        startDate: new Date(license.start_date),
+        endDate: license.end_date ? new Date(license.end_date) : undefined,
+        trialEndsAt: license.trial_ends_at ? new Date(license.trial_ends_at) : undefined,
+        nextPayment: license.next_payment ? new Date(license.next_payment) : undefined,
+        activeTechnicians: license.active_technicians,
+        maxTechnicians: license.max_technicians,
+        createdAt: new Date(license.created_at),
+        updatedAt: new Date(license.updated_at)
+      }));
+
+      set({ licenses, isLoadingLicenses: false });
+      return licenses;
     } catch (error) {
       console.error('Error fetching licenses:', error);
       set({ error: (error as Error).message, isLoadingLicenses: false });
@@ -73,18 +100,63 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   },
   
   fetchLicenseById: async (licenseId: string) => {
-    const license = get().licenses.find(license => license.id === licenseId);
-    return license || null;
+    try {
+      const { data, error } = await supabase
+        .from('licenses')
+        .select('*')
+        .eq('id', licenseId)
+        .single();
+
+      if (error) throw error;
+
+      const license: License = {
+        id: data.id,
+        company_id: data.company_id,
+        company_name: data.company_name,
+        plan_id: data.plan_id,
+        plan_name: data.plan_name,
+        status: data.status as License['status'],
+        startDate: new Date(data.start_date),
+        endDate: data.end_date ? new Date(data.end_date) : undefined,
+        trialEndsAt: data.trial_ends_at ? new Date(data.trial_ends_at) : undefined,
+        nextPayment: data.next_payment ? new Date(data.next_payment) : undefined,
+        activeTechnicians: data.active_technicians,
+        maxTechnicians: data.max_technicians,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at)
+      };
+
+      return license;
+    } catch (error) {
+      console.error('Error fetching license:', error);
+      return null;
+    }
   },
   
   fetchPayments: async (licenseId: string) => {
     set({ isLoadingPayments: true, error: null });
     
     try {
-      // Note: This would require a payments table to be created
-      console.log('Fetching payments for license:', licenseId);
-      set({ payments: [], isLoadingPayments: false });
-      return [];
+      const { data, error } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('license_id', licenseId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const payments: Payment[] = data.map(payment => ({
+        id: payment.id,
+        license_id: payment.license_id,
+        amount: payment.amount,
+        currency: payment.currency,
+        status: payment.status as Payment['status'],
+        payment_date: new Date(payment.payment_date),
+        payment_method: payment.payment_method || ''
+      }));
+
+      set({ payments, isLoadingPayments: false });
+      return payments;
     } catch (error) {
       console.error('Error fetching payments:', error);
       set({ error: (error as Error).message, isLoadingPayments: false });
@@ -95,20 +167,41 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   
   createLicense: async (licenseData: Partial<License>) => {
     try {
-      // Note: This would require a licenses table to be created
+      const trialEndDate = new Date();
+      trialEndDate.setDate(trialEndDate.getDate() + 14); // 14-day trial
+
+      const { data, error } = await supabase
+        .from('licenses')
+        .insert({
+          company_id: licenseData.company_id,
+          company_name: licenseData.company_name,
+          plan_id: licenseData.plan_id,
+          plan_name: licenseData.plan_name || '',
+          status: 'trial',
+          active_technicians: licenseData.activeTechnicians || 0,
+          max_technicians: licenseData.maxTechnicians || 1,
+          trial_ends_at: trialEndDate.toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
       const newLicense: License = {
-        id: `license-${Date.now()}`,
-        company_id: licenseData.company_id || '',
-        company_name: licenseData.company_name || '',
-        plan_id: licenseData.plan_id || '',
-        plan_name: licenseData.plan_name || '',
-        status: licenseData.status || 'trial',
-        startDate: licenseData.startDate || new Date(),
-        trialEndsAt: licenseData.trialEndsAt,
-        activeTechnicians: licenseData.activeTechnicians || 0,
-        maxTechnicians: licenseData.maxTechnicians || 0,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        id: data.id,
+        company_id: data.company_id,
+        company_name: data.company_name,
+        plan_id: data.plan_id,
+        plan_name: data.plan_name,
+        status: data.status as License['status'],
+        startDate: new Date(data.start_date),
+        endDate: data.end_date ? new Date(data.end_date) : undefined,
+        trialEndsAt: data.trial_ends_at ? new Date(data.trial_ends_at) : undefined,
+        nextPayment: data.next_payment ? new Date(data.next_payment) : undefined,
+        activeTechnicians: data.active_technicians,
+        maxTechnicians: data.max_technicians,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at)
       };
       
       set(state => ({
@@ -127,27 +220,48 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   
   updateLicense: async (licenseId: string, updateData: Partial<License>) => {
     try {
-      let updatedLicense: License | null = null;
+      const { data, error } = await supabase
+        .from('licenses')
+        .update({
+          company_name: updateData.company_name,
+          plan_name: updateData.plan_name,
+          status: updateData.status,
+          active_technicians: updateData.activeTechnicians,
+          max_technicians: updateData.maxTechnicians,
+          end_date: updateData.endDate?.toISOString(),
+          trial_ends_at: updateData.trialEndsAt?.toISOString(),
+          next_payment: updateData.nextPayment?.toISOString()
+        })
+        .eq('id', licenseId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const updatedLicense: License = {
+        id: data.id,
+        company_id: data.company_id,
+        company_name: data.company_name,
+        plan_id: data.plan_id,
+        plan_name: data.plan_name,
+        status: data.status as License['status'],
+        startDate: new Date(data.start_date),
+        endDate: data.end_date ? new Date(data.end_date) : undefined,
+        trialEndsAt: data.trial_ends_at ? new Date(data.trial_ends_at) : undefined,
+        nextPayment: data.next_payment ? new Date(data.next_payment) : undefined,
+        activeTechnicians: data.active_technicians,
+        maxTechnicians: data.max_technicians,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at)
+      };
       
-      set(state => {
-        const licenses = state.licenses.map(license => 
-          license.id === licenseId ? 
-          { 
-            ...license, 
-            ...updateData,
-            updatedAt: new Date()
-          } : 
-          license
-        );
-        
-        updatedLicense = licenses.find(license => license.id === licenseId) || null;
-        
-        return {
-          licenses,
-          selectedLicense: state.selectedLicense?.id === licenseId ? 
-            updatedLicense : state.selectedLicense
-        };
-      });
+      set(state => ({
+        licenses: state.licenses.map(license => 
+          license.id === licenseId ? updatedLicense : license
+        ),
+        selectedLicense: state.selectedLicense?.id === licenseId ? 
+          updatedLicense : state.selectedLicense
+      }));
       
       toast.success('License updated successfully');
       return updatedLicense;
@@ -161,14 +275,23 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   
   cancelLicense: async (licenseId: string) => {
     try {
+      const { data, error } = await supabase
+        .from('licenses')
+        .update({ status: 'canceled' })
+        .eq('id', licenseId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
       set(state => ({
         licenses: state.licenses.map(license => 
           license.id === licenseId ? 
-          { ...license, status: 'canceled', updatedAt: new Date() } : 
+          { ...license, status: 'canceled' as const, updatedAt: new Date() } : 
           license
         ),
         selectedLicense: state.selectedLicense?.id === licenseId ? 
-          { ...state.selectedLicense, status: 'canceled', updatedAt: new Date() } : 
+          { ...state.selectedLicense, status: 'canceled' as const, updatedAt: new Date() } : 
           state.selectedLicense
       }));
       
