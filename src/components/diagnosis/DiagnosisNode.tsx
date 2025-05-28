@@ -71,7 +71,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
   }, []);
 
   // Memoize sanitized content and return JSX element or null
-  const contentElement = useMemo((): JSX.Element | null => {
+  const contentElement = useMemo(() => {
     if (!nodeContent || nodeContent.trim() === '') return null;
     const sanitizedContent = sanitizeHtml(nodeContent);
     return (
