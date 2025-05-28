@@ -1,7 +1,6 @@
-
 import { create } from "zustand";
 import { SubscriptionPlan, License, Payment } from "@/types/subscription-consolidated";
-import { supabase } from "@/integrations/supabase/client";
+import { SubscriptionService } from "@/services/subscriptionService";
 import { toast } from "sonner";
 
 interface SubscriptionStore {
@@ -45,26 +44,7 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
     set({ isLoadingPlans: true, error: null });
     
     try {
-      const { data, error } = await supabase
-        .from('subscription_plans')
-        .select('*')
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-
-      const plans = data.map(plan => ({
-        ...plan,
-        features: plan.features || {},
-        limits: plan.limits || {
-          technicians: 1,
-          admins: 1,
-          diagnostics_per_day: 10,
-          storage_gb: 1,
-          workflows: 10,
-          api_calls: 1000
-        }
-      }));
-
+      const plans = await SubscriptionService.getPlans();
       set({ plans, isLoadingPlans: false });
       return plans;
     } catch (error) {
@@ -212,28 +192,10 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   
   addPlan: async (newPlan: SubscriptionPlan) => {
     try {
-      const { data, error } = await supabase
-        .from('subscription_plans')
-        .insert({
-          name: newPlan.name,
-          description: newPlan.description,
-          price_monthly: newPlan.price_monthly,
-          price_yearly: newPlan.price_yearly,
-          features: newPlan.features,
-          limits: newPlan.limits,
-          is_active: newPlan.is_active,
-          recommended: newPlan.recommended || false,
-          trial_period: newPlan.trial_period || 14
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
+      const createdPlan = await SubscriptionService.createPlan(newPlan);
       set(state => ({
-        plans: [...state.plans, { ...data, features: data.features || {}, limits: data.limits || {} }]
+        plans: [...state.plans, createdPlan]
       }));
-
       toast.success('Plan created successfully');
     } catch (error) {
       console.error('Error adding plan:', error);
@@ -243,32 +205,12 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   
   updatePlan: async (updatedPlan: SubscriptionPlan) => {
     try {
-      const { data, error } = await supabase
-        .from('subscription_plans')
-        .update({
-          name: updatedPlan.name,
-          description: updatedPlan.description,
-          price_monthly: updatedPlan.price_monthly,
-          price_yearly: updatedPlan.price_yearly,
-          features: updatedPlan.features,
-          limits: updatedPlan.limits,
-          is_active: updatedPlan.is_active,
-          recommended: updatedPlan.recommended || false,
-          trial_period: updatedPlan.trial_period || 14,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', updatedPlan.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
+      const updated = await SubscriptionService.updatePlan(updatedPlan.id, updatedPlan);
       set(state => ({
         plans: state.plans.map(plan => 
-          plan.id === updatedPlan.id ? { ...data, features: data.features || {}, limits: data.limits || {} } : plan
+          plan.id === updatedPlan.id ? updated : plan
         )
       }));
-
       toast.success('Plan updated successfully');
     } catch (error) {
       console.error('Error updating plan:', error);
@@ -281,25 +223,13 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
       const plan = get().plans.find(p => p.id === planId);
       if (!plan) return;
 
-      const { data, error } = await supabase
-        .from('subscription_plans')
-        .update({ 
-          is_active: !plan.is_active,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', planId)
-        .select()
-        .single();
-
-      if (error) throw error;
-
+      const updated = await SubscriptionService.togglePlanStatus(planId, plan.is_active);
       set(state => ({
         plans: state.plans.map(plan => 
-          plan.id === planId ? { ...data, features: data.features || {}, limits: data.limits || {} } : plan
+          plan.id === planId ? updated : plan
         )
       }));
-
-      toast.success(`Plan ${data.is_active ? 'activated' : 'deactivated'} successfully`);
+      toast.success(`Plan ${updated.is_active ? 'activated' : 'deactivated'} successfully`);
     } catch (error) {
       console.error('Error toggling plan status:', error);
       toast.error('Failed to update plan status');

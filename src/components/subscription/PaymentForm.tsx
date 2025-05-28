@@ -5,7 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { SubscriptionPlan, BillingCycle } from "@/types/subscription-consolidated";
+import { PaymentService } from "@/services/paymentService";
 import { CheckCircle2, CreditCard, Calendar, Lock } from "lucide-react";
+import { toast } from "sonner";
 
 interface PaymentFormProps {
   plan: SubscriptionPlan;
@@ -28,13 +30,43 @@ export function PaymentForm({
 
   const price = billingCycle === "monthly" ? plan.price_monthly : plan.price_yearly;
   
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setIsSubmitting(true);
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsSubmitting(false);
+    
+    try {
+      // Create payment intent
+      const createResult = await PaymentService.createPaymentIntent(
+        price,
+        'USD',
+        {
+          plan_id: plan.id,
+          plan_name: plan.name,
+          billing_cycle: billingCycle
+        }
+      );
+
+      if (!createResult.success || !createResult.payment_intent) {
+        throw new Error(createResult.error || 'Failed to create payment intent');
+      }
+
+      // Confirm payment
+      const confirmResult = await PaymentService.confirmPayment(
+        createResult.payment_intent.id,
+        'credit_card'
+      );
+
+      if (!confirmResult.success) {
+        throw new Error(confirmResult.error || 'Payment failed');
+      }
+
+      toast.success('Payment completed successfully!');
       onComplete();
-    }, 1500);
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast.error((error as Error).message || 'Payment failed');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Format card number with spaces
@@ -202,7 +234,7 @@ export function PaymentForm({
       
       <div className="text-center text-xs text-gray-500">
         <Lock className="inline h-3 w-3 mr-1" />
-        Secure payment processed by Stripe. We don't store your card details.
+        Secure payment processed. Payment data is stored securely in our database.
       </div>
     </div>
   );
