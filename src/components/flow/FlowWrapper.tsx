@@ -1,7 +1,7 @@
 
 import { ReactFlow, ReactFlowProvider } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import DiagnosisNode from '../DiagnosisNode';
+import DiagnosisNode from '../diagnosis/DiagnosisNode';
 import { defaultEdgeOptions } from '@/utils/flow';
 import { FlowToolbar } from './FlowToolbar';
 import { FlowBackground } from './FlowBackground';
