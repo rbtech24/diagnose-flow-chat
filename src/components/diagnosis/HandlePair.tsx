@@ -2,7 +2,6 @@
 import React from 'react';
 import { Position } from '@xyflow/react';
 import { HandleWithTooltip } from './HandleWithTooltip';
-import { ArrowDown, ArrowUp } from 'lucide-react';
 
 interface HandlePairProps {
   position: Position;
@@ -34,15 +33,6 @@ export function HandlePair({ position, connected, handleDisconnect, orientation 
     }
   };
 
-  const getArrowIcon = () => {
-    switch (position) {
-      case Position.Top: return { incoming: ArrowDown, outgoing: ArrowUp };
-      case Position.Bottom: return { incoming: ArrowUp, outgoing: ArrowDown };
-      default: return null;
-    }
-  };
-
-  const arrows = getArrowIcon();
   const tooltipPosition = getTooltipPosition();
 
   return (
@@ -57,7 +47,6 @@ export function HandlePair({ position, connected, handleDisconnect, orientation 
         style={{
           [isVertical ? 'top' : 'left']: '-12px'
         }}
-        Icon={arrows?.incoming}
         iconPosition={position === Position.Top ? 'top' : 'bottom'}
       />
       <HandleWithTooltip
@@ -70,7 +59,6 @@ export function HandlePair({ position, connected, handleDisconnect, orientation 
         style={{
           [isVertical ? 'top' : 'left']: '12px'
         }}
-        Icon={arrows?.outgoing}
         iconPosition={position === Position.Top ? 'top' : 'bottom'}
       />
     </div>

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MediaItem } from '@/types/node-config';
+import { MediaItem } from '@/types/media';
 
 interface MediaContentProps {
   media: MediaItem[];
@@ -16,7 +16,7 @@ export function MediaContent({ media }: MediaContentProps) {
           {item.type === 'image' && (
             <img 
               src={item.url} 
-              alt={item.caption || 'Media content'} 
+              alt={item.alt || item.title || 'Media content'} 
               className="max-w-full h-auto rounded border"
             />
           )}
@@ -36,11 +36,11 @@ export function MediaContent({ media }: MediaContentProps) {
               rel="noopener noreferrer"
               className="text-blue-600 hover:underline text-sm"
             >
-              📄 {item.caption || 'View PDF'}
+              📄 {item.title || 'View PDF'}
             </a>
           )}
-          {item.caption && (
-            <p className="text-xs text-gray-600 mt-1">{item.caption}</p>
+          {item.title && (
+            <p className="text-xs text-gray-600 mt-1">{item.title}</p>
           )}
         </div>
       ))}

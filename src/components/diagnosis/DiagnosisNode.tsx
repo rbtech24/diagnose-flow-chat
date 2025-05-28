@@ -1,166 +1,144 @@
 
-import { memo, useMemo } from 'react';
-import { Handle, NodeProps, Position } from '@xyflow/react';
-import { HandleWithTooltip } from './HandleWithTooltip';
+import React, { memo, useMemo } from 'react';
+import { Handle, Position, NodeProps } from '@xyflow/react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { NodeHandles } from './NodeHandles';
 import { MediaContent } from './MediaContent';
 import { TechnicalContent } from './TechnicalContent';
-import { MediaItem } from '@/types/node-config';
-import { sanitizeHtml } from '@/components/security/InputValidator';
+import { NodeData, TechnicalSpecs } from '@/types/node-config';
+import { ApplicationError } from '@/types/error';
 
-const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
-  // Handle different node types
-  const isFlowTitle = type === 'flowTitle';
-  const isFlowNode = type === 'flowNode';
-  const isFlowAnswer = type === 'flowAnswer';
+interface DiagnosisNodeProps extends NodeProps {
+  data: NodeData;
+}
 
-  // Set node title based on node type and available data
-  const nodeTitle = data.title || data.label || 'Untitled Node';
+const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
+  const nodeData = data as NodeData;
   
-  // Memoize string content extraction to prevent unnecessary re-renders
+  // Properly type the node content with error handling
   const nodeContent = useMemo((): string => {
-    const richInfo = data.richInfo;
-    const content = data.content;
-    
-    if (typeof richInfo === 'string') return richInfo;
-    if (typeof content === 'string') return content;
-    return '';
-  }, [data.richInfo, data.content]);
-
-  // Memoize node class calculation
-  const nodeClass = useMemo(() => {
-    let baseClass = 'p-3 border rounded bg-white w-[200px]';
-    if (selected) {
-      baseClass += ' border-blue-500 shadow-md';
-    } else {
-      baseClass += ' border-gray-300';
+    try {
+      if (typeof nodeData.content === 'string') {
+        return nodeData.content;
+      }
+      if (typeof nodeData.richInfo === 'string') {
+        return nodeData.richInfo;
+      }
+      return '';
+    } catch (error) {
+      console.error('Error processing node content:', error);
+      return '';
     }
+  }, [nodeData.content, nodeData.richInfo]);
 
-    // Add specific styling based on node type
-    if (isFlowTitle) {
-      baseClass += ' bg-slate-100';
-    } else if (isFlowAnswer) {
-      baseClass += ' bg-green-50 border-green-200';
+  // Type-safe technical specs with default values
+  const technicalSpecs = useMemo((): TechnicalSpecs => {
+    if (nodeData.technicalSpecs && typeof nodeData.technicalSpecs === 'object') {
+      return {
+        range: nodeData.technicalSpecs.range || { min: 0, max: 0 },
+        testPoints: nodeData.technicalSpecs.testPoints,
+        value: nodeData.technicalSpecs.value,
+        measurementPoints: nodeData.technicalSpecs.measurementPoints,
+        points: nodeData.technicalSpecs.points
+      };
     }
+    return {
+      range: { min: 0, max: 0 }
+    };
+  }, [nodeData.technicalSpecs]);
 
-    return baseClass;
-  }, [selected, isFlowTitle, isFlowAnswer]);
+  // Safely handle connections with proper typing
+  const connected = useMemo(() => {
+    return {
+      top: { isConnected: false, isNoOutcome: false },
+      right: { isConnected: false, isNoOutcome: false },
+      bottom: { isConnected: false, isNoOutcome: false },
+      left: { isConnected: false, isNoOutcome: false }
+    };
+  }, []);
 
-  // Determine if node has warning icon
-  const hasWarningIcon = data.warningIcon && data.warningIcon !== "";
+  const handleDisconnect = (handleId: string): void => {
+    try {
+      console.log(`Disconnecting handle: ${handleId} from node: ${id}`);
+      // Implementation for disconnecting handles
+    } catch (error) {
+      const applicationError: ApplicationError = {
+        message: `Failed to disconnect handle: ${handleId}`,
+        code: 'HANDLE_DISCONNECT_ERROR',
+        timestamp: new Date()
+      };
+      console.error('Handle disconnect error:', applicationError);
+    }
+  };
 
-  // Memoize connected state object to prevent unnecessary re-renders
-  const connectedState = useMemo(() => ({
-    top: { isConnected: false, isNoOutcome: false },
-    right: { isConnected: false, isNoOutcome: false },
-    bottom: { isConnected: false, isNoOutcome: false },
-    left: { isConnected: false, isNoOutcome: false }
-  }), []);
+  // Type-safe node type determination
+  const getNodeTypeColor = (type?: string): string => {
+    switch (type) {
+      case 'question': return 'bg-blue-50 border-blue-200';
+      case 'test': return 'bg-green-50 border-green-200';
+      case 'solution': return 'bg-purple-50 border-purple-200';
+      case 'measurement': return 'bg-yellow-50 border-yellow-200';
+      default: return 'bg-gray-50 border-gray-200';
+    }
+  };
 
-  // Memoize handle disconnect function
-  const handleDisconnect = useMemo(() => (handleId: string) => {
-    console.log(`Disconnect handle: ${handleId} from node: ${id}`);
-    // Handle disconnect functionality would go here
-  }, [id]);
-
-  // Memoize sanitized content and return JSX element or null
-  const contentElement = useMemo(() => {
-    if (!nodeContent || nodeContent.trim() === '') return null;
-    const sanitizedContent = sanitizeHtml(nodeContent);
-    return (
-      <div className="text-xs mt-2 text-gray-600 max-h-[150px] overflow-auto">
-        <div dangerouslySetInnerHTML={{ __html: sanitizedContent }} />
-      </div>
-    );
-  }, [nodeContent]);
+  const cardClassName = `min-w-[200px] max-w-[300px] ${getNodeTypeColor(nodeData.type)}`;
 
   return (
-    <div className={nodeClass}>
-      {/* Render handles based on node type */}
-      {isFlowAnswer ? (
-        // Flow Answer only needs a target handle
-        <Handle
-          type="target"
-          position={Position.Top}
-          className="w-3 h-3 border-2"
-          id="target"
-        />
-      ) : (
-        // For all other nodes, render appropriate handles
-        <>
-          <Handle
-            type="target"
-            position={Position.Top}
-            className="w-3 h-3 border-2"
-            id="target"
-          />
-          
-          {/* Source handles - different for different node types */}
-          {isFlowTitle || isFlowNode ? (
-            // Flow Title and Flow Node typically have yes/no or similar handles
-            <>
-              {data.yes !== undefined && (
-                <HandleWithTooltip
-                  type="source"
-                  position={Position.Bottom}
-                  id="a"
-                  connected={{ isConnected: false, isNoOutcome: false }}
-                  handleDisconnect={handleDisconnect}
-                  tooltipPosition="bottom"
-                  style={{ left: '30%' }}
-                  iconPosition="bottom"
-                />
-              )}
-              {data.no !== undefined && (
-                <HandleWithTooltip
-                  type="source"
-                  position={Position.Bottom}
-                  id="b"
-                  connected={{ isConnected: false, isNoOutcome: false }}
-                  handleDisconnect={handleDisconnect}
-                  tooltipPosition="bottom"
-                  style={{ left: '70%' }}
-                  iconPosition="bottom"
-                />
-              )}
-            </>
-          ) : (
-            // For standard diagnosis nodes
-            <NodeHandles connected={connectedState} handleDisconnect={handleDisconnect} />
+    <Card className={cardClassName}>
+      <Handle
+        type="target"
+        position={Position.Top}
+        id="target"
+        className="w-3 h-3 border-2 bg-gray-300"
+      />
+      
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm font-medium">
+            {nodeData.title || 'Untitled Node'}
+          </CardTitle>
+          {nodeData.type && (
+            <Badge variant="secondary" className="text-xs">
+              {nodeData.type}
+            </Badge>
           )}
-        </>
-      )}
-
-      {/* Node Header */}
-      <div className="font-medium text-center relative">
-        {hasWarningIcon && (
-          <div className="absolute left-0 top-0">
-            {data.warningIcon === "electric" ? (
-              <span role="img" aria-label="electric" className="text-yellow-500">⚡</span>
-            ) : (
-              <span role="img" aria-label="warning" className="text-yellow-500">⚠️</span>
-            )}
+        </div>
+      </CardHeader>
+      
+      <CardContent className="pt-0">
+        {nodeContent && (
+          <div 
+            className="text-sm text-gray-700 mb-2"
+            dangerouslySetInnerHTML={{ __html: nodeContent }}
+          />
+        )}
+        
+        {nodeData.media && nodeData.media.length > 0 && (
+          <MediaContent media={nodeData.media} />
+        )}
+        
+        {nodeData.technicalSpecs && (
+          <TechnicalContent 
+            technicalSpecs={technicalSpecs} 
+            type={nodeData.type || ''} 
+          />
+        )}
+        
+        {(nodeData.yes || nodeData.no) && (
+          <div className="mt-2 text-xs text-gray-600">
+            <div>Yes: {nodeData.yes || 'Continue'}</div>
+            <div>No: {nodeData.no || 'Stop'}</div>
           </div>
         )}
-        {nodeTitle}
-      </div>
-
-      {/* Node Content - XSS protected */}
-      {!isFlowAnswer && contentElement}
-
-      {/* Media content if present */}
-      {data.media && Array.isArray(data.media) && data.media.length > 0 && (
-        <MediaContent media={data.media as MediaItem[]} />
-      )}
-
-      {/* Technical content if present */}
-      {data.technicalSpecs && !isFlowTitle && !isFlowNode && !isFlowAnswer && (
-        <TechnicalContent 
-          technicalSpecs={data.technicalSpecs} 
-          type={data.type as string} 
-        />
-      )}
-    </div>
+      </CardContent>
+      
+      <NodeHandles 
+        connected={connected}
+        handleDisconnect={handleDisconnect}
+      />
+    </Card>
   );
 });
 

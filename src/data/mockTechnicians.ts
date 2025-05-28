@@ -1,76 +1,26 @@
 
-import { User } from "@/types/user";
-import { supabase } from "@/integrations/supabase/client";
-import { SupabaseIntegration } from "@/utils/supabaseIntegration";
+import { TechnicianProfile } from '@/types/technician-enhanced';
 
-// Real data fetching implementation
-export const getTechnicians = async (companyId?: string): Promise<User[]> => {
-  try {
-    console.log('Fetching technicians from database...');
-    
-    const result = await SupabaseIntegration.safeQuery(async () => {
-      let query = supabase
-        .from('technicians')
-        .select(`
-          id,
-          email,
-          role,
-          company_id,
-          status,
-          phone,
-          avatar_url,
-          name,
-          last_sign_in_at,
-          created_at,
-          updated_at
-        `)
-        .eq('status', 'active');
-      
-      if (companyId) {
-        query = query.eq('company_id', companyId);
-      }
-      
-      return await query;
-    });
-
-    if (!result.success) {
-      console.error('Failed to fetch technicians:', result.error);
-      return [];
-    }
-
-    // Transform database data to User type
-    const technicians: User[] = (result.data || []).map(tech => ({
-      id: tech.id,
-      name: tech.name || tech.email?.split('@')[0] || 'Unknown',
-      email: tech.email || '',
-      role: (tech.role as 'admin' | 'company' | 'tech') || 'tech',
-      companyId: tech.company_id || '',
-      status: tech.status || 'active',
-      avatarUrl: tech.avatar_url,
-      activeJobs: 0 // This would need to be calculated from repairs table
-    }));
-
-    console.log(`Successfully fetched ${technicians.length} technicians`);
-    return technicians;
-  } catch (error) {
-    console.error('Error fetching technicians:', error);
-    return [];
+export const mockTechnicians: TechnicianProfile[] = [
+  {
+    id: 'tech-1',
+    company_id: 'company-1',
+    email: 'john@example.com',
+    phone: '+1-555-0123',
+    role: 'technician',
+    status: 'active',
+    is_independent: false,
+    available_for_hire: true,
+    hourly_rate: 75,
+    last_sign_in_at: '2024-01-15T10:30:00Z',
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-01-15T10:30:00Z',
+    full_name: 'John Smith',
+    avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face'
   }
-};
+];
 
-// Real-time subscription for technicians
-export const subscribeTechniciansUpdates = (
-  companyId: string,
-  onUpdate: (technicians: User[]) => void
-) => {
-  console.log('Setting up real-time subscription for technicians...');
-  
-  return SupabaseIntegration.handleRealtimeSubscription(
-    'technicians',
-    async () => {
-      const updatedTechnicians = await getTechnicians(companyId);
-      onUpdate(updatedTechnicians);
-    },
-    'UPDATE'
-  );
-};
+export async function getTechnicians(): Promise<TechnicianProfile[]> {
+  await new Promise(resolve => setTimeout(resolve, 100));
+  return mockTechnicians;
+}

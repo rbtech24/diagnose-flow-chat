@@ -1,30 +1,8 @@
 
 import { WorkflowGrid } from './WorkflowGrid';
-import { Appliance } from '@/types/appliance';
-import { SavedWorkflow } from '@/utils/flow/types';
 import { toast } from '@/hooks/use-toast';
-
-interface WorkflowViewProps {
-  filteredAppliances: Appliance[];
-  workflows: SavedWorkflow[];
-  isReordering: boolean;
-  selectedFolder: string;
-  onEdit?: (index: number, name: string) => void;
-  onDelete?: (index: number) => void;
-  onToggleWorkflow?: (applianceIndex: number, symptomIndex: number) => void;
-  onMoveSymptom?: (applianceIndex: number, fromIndex: number, toIndex: number) => void;
-  onMoveAppliance?: (fromIndex: number, toIndex: number) => void;
-  onOpenWorkflowEditor?: (applianceName: string, symptomName?: string) => void;
-  onAddIssue?: (applianceName: string) => void;
-  onDeleteWorkflow?: (workflow: SavedWorkflow) => void;
-  onMoveWorkflow?: (fromIndex: number, toIndex: number) => void;
-  onToggleWorkflowActive?: (workflow: SavedWorkflow) => void;
-  onMoveWorkflowToFolder?: (workflow: SavedWorkflow, targetFolder: string) => Promise<boolean>;
-  isReadOnly?: boolean;
-  workflowsByFolder?: Record<string, SavedWorkflow[]>;
-  enableFolderView?: boolean;
-  enableDragDrop?: boolean;
-}
+import { WorkflowViewProps, SymptomCardColorFunction } from '@/types/workflow-props';
+import { ApplicationError } from '@/types/error';
 
 export function WorkflowView({
   filteredAppliances,
@@ -49,7 +27,7 @@ export function WorkflowView({
 }: WorkflowViewProps) {
   
   // Generate pastel colors for item cards
-  const getSymptomCardColor = (index: number) => {
+  const getSymptomCardColor: SymptomCardColorFunction = (index: number): string => {
     const colors = [
       'bg-blue-100 border-blue-200',
       'bg-green-100 border-green-200',
@@ -61,7 +39,7 @@ export function WorkflowView({
     return colors[index % colors.length];
   };
 
-  const handleOpenWorkflowEditor = (folder: string, name?: string) => {
+  const handleOpenWorkflowEditor = (folder: string, name?: string): void => {
     console.log("WorkflowView calling onOpenWorkflowEditor with:", folder, name);
     
     try {
@@ -69,23 +47,39 @@ export function WorkflowView({
         onOpenWorkflowEditor(folder, name);
       } else {
         console.warn("onOpenWorkflowEditor prop is not provided or is not a function");
+        const error: ApplicationError = {
+          message: "Workflow editor cannot be opened at this time.",
+          code: 'WORKFLOW_EDITOR_UNAVAILABLE',
+          timestamp: new Date()
+        };
+        
         toast({
           title: "Error",
-          description: "Workflow editor cannot be opened at this time.",
+          description: error.message,
           variant: "destructive"
         });
       }
     } catch (error) {
       console.error("Error opening workflow editor:", error);
+      
+      const applicationError: ApplicationError = {
+        message: "Failed to open workflow editor.",
+        code: 'WORKFLOW_EDITOR_ERROR',
+        timestamp: new Date()
+      };
+      
       toast({
         title: "Error",
-        description: "Failed to open workflow editor.",
+        description: applicationError.message,
         variant: "destructive"
       });
     }
   };
 
-  // Validate props
+  // Validate props with proper type checking
+  const validatedAppliances = Array.isArray(filteredAppliances) ? filteredAppliances : [];
+  const validatedWorkflows = Array.isArray(workflows) ? workflows : [];
+
   if (!Array.isArray(filteredAppliances)) {
     console.warn("filteredAppliances prop is not an array, defaulting to empty array");
   }
@@ -97,8 +91,8 @@ export function WorkflowView({
   return (
     <div className="mt-6">
       <WorkflowGrid
-        appliances={Array.isArray(filteredAppliances) ? filteredAppliances : []}
-        workflows={Array.isArray(workflows) ? workflows : []}
+        appliances={validatedAppliances}
+        workflows={validatedWorkflows}
         isReordering={isReordering}
         onEdit={onEdit || (() => {})}
         onDelete={onDelete || (() => {})}

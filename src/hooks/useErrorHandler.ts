@@ -1,6 +1,7 @@
 
 import { useCallback } from 'react';
 import { toast } from '@/hooks/use-toast';
+import { ApplicationError, ErrorHandlerResult } from '@/types/error';
 
 export interface ErrorHandlerOptions {
   showToast?: boolean;
@@ -10,10 +11,10 @@ export interface ErrorHandlerOptions {
 
 export function useErrorHandler() {
   const handleError = useCallback((
-    error: Error | unknown,
+    error: Error | ApplicationError | unknown,
     context?: string,
     options: ErrorHandlerOptions = {}
-  ) => {
+  ): string => {
     const {
       showToast = true,
       logError = true,
@@ -25,14 +26,18 @@ export function useErrorHandler() {
       console.error(`Error in ${context || 'unknown context'}:`, error);
     }
 
-    // Extract error message
+    // Extract error message with proper typing
     let message = fallbackMessage;
+    let code: string | undefined;
+    
     if (error instanceof Error) {
       message = error.message;
     } else if (typeof error === 'string') {
       message = error;
     } else if (error && typeof error === 'object' && 'message' in error) {
-      message = String((error as any).message);
+      const appError = error as ApplicationError;
+      message = appError.message;
+      code = appError.code;
     }
 
     // Show toast notification
@@ -46,8 +51,7 @@ export function useErrorHandler() {
 
     // In production, send to error tracking service
     if (process.env.NODE_ENV === 'production') {
-      // TODO: Integrate with error tracking service
-      console.error('Production error logged:', { error, context, message });
+      console.error('Production error logged:', { error, context, message, code });
     }
 
     return message;
@@ -57,12 +61,18 @@ export function useErrorHandler() {
     asyncFn: () => Promise<T>,
     context?: string,
     options: ErrorHandlerOptions = {}
-  ): Promise<T | null> => {
+  ): Promise<ErrorHandlerResult> => {
     try {
-      return await asyncFn();
+      const data = await asyncFn();
+      return { success: true, data };
     } catch (error) {
-      handleError(error, context, options);
-      return null;
+      const message = handleError(error, context, options);
+      const applicationError: ApplicationError = {
+        message,
+        code: 'ASYNC_OPERATION_ERROR',
+        timestamp: new Date()
+      };
+      return { success: false, error: applicationError };
     }
   }, [handleError]);
 

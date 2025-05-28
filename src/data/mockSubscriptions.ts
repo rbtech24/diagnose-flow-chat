@@ -1,92 +1,73 @@
 
-import { SubscriptionPlan, License, Payment } from "@/types/subscription";
-import { supabase } from "@/integrations/supabase/client";
-import { SupabaseIntegration } from "@/utils/supabaseIntegration";
+import { SubscriptionPlan, License, Payment } from '@/types/subscription-enhanced';
 
-// Real data fetching implementation for subscription plans
-export const getSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
-  try {
-    console.log('Fetching subscription plans from database...');
-    
-    const result = await SupabaseIntegration.safeQuery(async () => {
-      return await supabase
-        .from('subscription_plans')
-        .select('*')
-        .eq('is_active', true)
-        .order('price', { ascending: true });
-    });
-
-    if (!result.success) {
-      console.error('Failed to fetch subscription plans:', result.error);
-      return [];
-    }
-
-    console.log(`Successfully fetched ${result.data?.length || 0} subscription plans`);
-    return result.data || [];
-  } catch (error) {
-    console.error('Error fetching subscription plans:', error);
-    return [];
+export const mockSubscriptionPlans: SubscriptionPlan[] = [
+  {
+    id: 'plan-basic',
+    name: 'Basic',
+    description: 'Perfect for small repair shops',
+    price_monthly: 29.99,
+    price_yearly: 299.99,
+    features: {
+      workflows: true,
+      diagnostics: true,
+      basic_support: true
+    },
+    limits: {
+      technicians: 5,
+      admins: 2,
+      workflows: 50,
+      storage_gb: 10,
+      api_calls: 1000,
+      diagnostics_per_day: 100
+    },
+    is_active: true,
+    recommended: false,
+    trial_period: 14,
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-01-01T00:00:00Z'
   }
-};
+];
 
-// Real data fetching implementation for licenses
-export const getLicenses = async (companyId?: string): Promise<License[]> => {
-  try {
-    console.log('Fetching licenses from database...');
-    
-    const result = await SupabaseIntegration.safeQuery(async () => {
-      let query = supabase
-        .from('licenses')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (companyId) {
-        query = query.eq('company_id', companyId);
-      }
-      
-      return await query;
-    });
+export async function getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
+  await new Promise(resolve => setTimeout(resolve, 100));
+  return mockSubscriptionPlans;
+}
 
-    if (!result.success) {
-      console.error('Failed to fetch licenses:', result.error);
-      return [];
-    }
-
-    console.log(`Successfully fetched ${result.data?.length || 0} licenses`);
-    return result.data || [];
-  } catch (error) {
-    console.error('Error fetching licenses:', error);
-    return [];
+export const mockLicenses: License[] = [
+  {
+    id: 'license-1',
+    company_id: 'company-2',
+    plan_id: 'plan-basic',
+    plan_name: 'Basic Plan',
+    status: 'trial',
+    startDate: new Date('2024-01-01'),
+    trialEndsAt: new Date('2024-02-01'),
+    activeTechnicians: 3,
+    maxTechnicians: 5,
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01')
   }
-};
+];
 
-// Real data fetching implementation for payments
-export const getPayments = async (companyId?: string): Promise<Payment[]> => {
-  try {
-    console.log('Fetching payments from database...');
-    
-    const result = await SupabaseIntegration.safeQuery(async () => {
-      let query = supabase
-        .from('payments')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (companyId) {
-        query = query.eq('company_id', companyId);
-      }
-      
-      return await query;
-    });
+export async function getLicenses(companyId: string): Promise<License[]> {
+  await new Promise(resolve => setTimeout(resolve, 100));
+  return mockLicenses.filter(license => license.company_id === companyId);
+}
 
-    if (!result.success) {
-      console.error('Failed to fetch payments:', result.error);
-      return [];
-    }
-
-    console.log(`Successfully fetched ${result.data?.length || 0} payments`);
-    return result.data || [];
-  } catch (error) {
-    console.error('Error fetching payments:', error);
-    return [];
+export const mockPayments: Payment[] = [
+  {
+    id: 'payment-1',
+    license_id: 'license-1',
+    amount: 29.99,
+    currency: 'USD',
+    status: 'completed',
+    payment_date: new Date('2024-01-01'),
+    payment_method: 'credit_card'
   }
-};
+];
+
+export async function getPayments(): Promise<Payment[]> {
+  await new Promise(resolve => setTimeout(resolve, 100));
+  return mockPayments;
+}
