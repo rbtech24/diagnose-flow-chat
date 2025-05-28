@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CommunityPostDetail } from '@/components/community/CommunityPostDetail';
 import { CommunityPost, CommunityComment } from '@/types/community';
-import { getCommunityPosts, getCommunityComments } from '@/data/mockCommunity';
+import { getCommunityPosts } from '@/data/mockCommunity';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function CompanyCommunityPostDetail() {

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { CheckCircle, Wrench, Building2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { loginRateLimiter } from "@/utils/rateLimiter";
 import { emailSchema, passwordSchema } from "@/components/security/InputValidator";
 

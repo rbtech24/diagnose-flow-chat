@@ -17,7 +17,15 @@ export interface MediaItem {
   title?: string;
 }
 
-export interface NodeData {
+export interface Field {
+  id: string;
+  type: 'content' | 'media' | 'options';
+  content?: string;
+  media?: MediaItem[];
+  options?: string[];
+}
+
+export interface NodeData extends Record<string, unknown> {
   title?: string;
   content?: string;
   richInfo?: string;

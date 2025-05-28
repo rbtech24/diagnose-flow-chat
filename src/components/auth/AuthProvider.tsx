@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -49,12 +48,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       return {
         id: data.id,
-        name: data.name || authUser.email?.split('@')[0] || 'Unknown',
+        name: data.full_name || authUser.email?.split('@')[0] || 'Unknown',
         email: data.email || authUser.email || '',
         role: (data.role as 'admin' | 'company' | 'tech') || 'tech',
         companyId: data.company_id || '',
         status: data.status || 'active',
-        avatarUrl: data.avatar_url,
+        avatarUrl: authUser.user_metadata?.avatar_url,
         activeJobs: 0
       };
     } catch (error) {

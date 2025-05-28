@@ -6,7 +6,7 @@ const mockUser: User = {
   id: 'user-1',
   name: 'John Smith',
   email: 'john@example.com',
-  role: 'technician'
+  role: 'tech'
 };
 
 export const mockSupportTickets: SupportTicket[] = [
