@@ -50,15 +50,15 @@ export function useTraining() {
     const result = await handleAsyncError(async () => {
       setIsLoading(true);
       
-      // Fetch training modules
+      // Fetch training modules from database
       const modulesData = await fetchTrainingModules();
       setModules(modulesData);
       
-      // Fetch user progress with actual user ID
+      // Fetch user progress from database
       const progressData = await fetchUserTrainingProgress(currentUserId);
       setUserProgress(progressData);
       
-      // Fetch certification programs
+      // Fetch certification programs from database
       const certificationsData = await fetchCertificationPrograms();
       setCertifications(certificationsData);
       

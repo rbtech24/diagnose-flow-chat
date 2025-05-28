@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,13 +5,14 @@ import {
   Users, Building2, BarChart, ShieldCheck, 
   Wrench, FileText, MessageSquare,
   Clock, ArrowUp, ArrowDown, Play,
-  Activity, LifeBuoy, Lightbulb
+  Activity, LifeBuoy, Lightbulb, DollarSign
 } from "lucide-react";
 import { useWorkflows } from "@/hooks/useWorkflows";
 import { useUserManagementStore } from "@/store/userManagementStore";
 import { useActivityLogs } from "@/hooks/useActivityLogs";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function AdminDashboard() {
   // Get current date
@@ -45,10 +45,44 @@ export default function AdminDashboard() {
     loadLogs
   } = useActivityLogs();
 
+  // Platform revenue state
+  const [platformRevenue, setPlatformRevenue] = useState<number>(0);
+  const [isLoadingRevenue, setIsLoadingRevenue] = useState(true);
+
+  // Fetch platform revenue
+  const fetchPlatformRevenue = async () => {
+    try {
+      setIsLoadingRevenue(true);
+      
+      // Fetch all completed repairs across all companies
+      const { data: repairsData, error } = await supabase
+        .from('repairs')
+        .select('actual_cost')
+        .eq('status', 'completed')
+        .not('actual_cost', 'is', null);
+
+      if (error) {
+        console.error('Error fetching platform revenue:', error);
+        setPlatformRevenue(0);
+      } else {
+        const totalRevenue = repairsData?.reduce((sum, repair) => 
+          sum + (Number(repair.actual_cost) || 0), 0
+        ) || 0;
+        setPlatformRevenue(totalRevenue);
+      }
+    } catch (error) {
+      console.error('Error calculating platform revenue:', error);
+      setPlatformRevenue(0);
+    } finally {
+      setIsLoadingRevenue(false);
+    }
+  };
+
   useEffect(() => {
     fetchCompanies();
     fetchUsers();
     loadLogs('today'); // Load today's activity
+    fetchPlatformRevenue();
   }, [fetchCompanies, fetchUsers, loadLogs]);
 
   // Calculate active companies
@@ -189,8 +223,14 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center">
-              <BarChart className="h-4 w-4 text-amber-600 mr-2" />
-              <span className="text-2xl font-bold">-</span>
+              <DollarSign className="h-4 w-4 text-amber-600 mr-2" />
+              {isLoadingRevenue ? (
+                <Skeleton className="h-8 w-20" />
+              ) : (
+                <span className="text-2xl font-bold">
+                  ${platformRevenue.toLocaleString()}
+                </span>
+              )}
             </div>
           </CardContent>
         </Card>

@@ -52,7 +52,7 @@ export function useNotifications() {
         read: notification.read
       }));
 
-      // Convert settings to UI format
+      // Convert settings to UI format - use actual database settings
       const formattedSettings: NotificationSetting[] = [
         {
           id: 'email_notifications',

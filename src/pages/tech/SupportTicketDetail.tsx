@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,6 +39,7 @@ export default function SupportTicketDetail() {
   const [newResponse, setNewResponse] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [assignedTechnician, setAssignedTechnician] = useState<string>('');
 
   const fetchTicket = async () => {
     if (!id) return;
@@ -66,6 +66,21 @@ export default function SupportTicketDetail() {
         throw new Error('Ticket not found');
       }
 
+      // Fetch assigned technician name if available
+      let assignedToName = 'Unassigned';
+      if (ticketData.assigned_to) {
+        const { data: techData } = await supabase
+          .from('technicians')
+          .select('id, email, full_name')
+          .eq('id', ticketData.assigned_to)
+          .single();
+          
+        if (techData) {
+          assignedToName = techData.full_name || techData.email.split('@')[0];
+        }
+      }
+      setAssignedTechnician(assignedToName);
+
       // Fetch ticket responses separately
       const { data: responsesData, error: responsesError } = await supabase
         .from('support_ticket_messages')
@@ -76,7 +91,7 @@ export default function SupportTicketDetail() {
       const responses: TicketResponse[] = (responsesData || []).map((response: any) => ({
         id: response.id,
         content: response.content,
-        author: response.user_id === user.id ? 'You' : 'Support Team',
+        author: response.user_id === user.id ? 'You' : assignedToName,
         authorRole: response.user_id === user.id ? 'tech' as const : 'support' as const,
         createdAt: new Date(response.created_at)
       }));
@@ -88,10 +103,10 @@ export default function SupportTicketDetail() {
         description: ticketData.description,
         status: ticketData.status as SupportTicket['status'],
         priority: ticketData.priority as SupportTicket['priority'],
-        category: 'General', // Default category since it's not in the database schema
+        category: ticketData.category || 'General',
         createdAt: new Date(ticketData.created_at),
         updatedAt: new Date(ticketData.updated_at),
-        assignedTo: 'Support Team',
+        assignedTo: assignedToName,
         userId: ticketData.user_id,
         responses
       };
@@ -314,7 +329,7 @@ export default function SupportTicketDetail() {
               
               <div>
                 <label className="text-sm font-medium text-gray-500">Assigned To</label>
-                <p className="font-medium">{ticket.assignedTo || 'Unassigned'}</p>
+                <p className="font-medium">{assignedTechnician}</p>
               </div>
               
               <div className="flex items-center gap-2">
