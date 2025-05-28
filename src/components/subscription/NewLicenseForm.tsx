@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { License, SubscriptionPlan } from "@/types/subscription";
+import { License, SubscriptionPlan } from "@/types/subscription-enhanced";
 import { useSubscriptionStore } from "@/store/subscriptionStore";
 
 interface NewLicenseFormProps {
@@ -52,6 +52,7 @@ export function NewLicenseForm({
       plan_name: selectedPlan.name,
       status: 'trial',
       activeTechnicians: parseInt(activeTechnicians),
+      maxTechnicians: selectedPlan.limits.technicians,
       startDate: new Date(),
       trialEndsAt: trialEndDate,
       createdAt: new Date(),
