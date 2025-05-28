@@ -54,15 +54,7 @@ export default function TechSupportTicketDetail() {
       // Fetch ticket from database
       const { data: ticketData, error: ticketError } = await supabase
         .from('support_tickets')
-        .select(`
-          *,
-          ticket_responses (
-            id,
-            content,
-            author_id,
-            created_at
-          )
-        `)
+        .select('*')
         .eq('id', id)
         .single();
 
@@ -74,6 +66,21 @@ export default function TechSupportTicketDetail() {
         throw new Error('Ticket not found');
       }
 
+      // Fetch ticket responses separately
+      const { data: responsesData, error: responsesError } = await supabase
+        .from('support_ticket_messages')
+        .select('*')
+        .eq('ticket_id', id)
+        .order('created_at');
+
+      const responses: TicketResponse[] = (responsesData || []).map((response: any) => ({
+        id: response.id,
+        content: response.content,
+        author: response.user_id === user.id ? 'You' : 'Support Team',
+        authorRole: response.user_id === user.id ? 'tech' as const : 'support' as const,
+        createdAt: new Date(response.created_at)
+      }));
+
       // Format ticket data
       const formattedTicket: SupportTicket = {
         id: ticketData.id,
@@ -81,18 +88,12 @@ export default function TechSupportTicketDetail() {
         description: ticketData.description,
         status: ticketData.status as SupportTicket['status'],
         priority: ticketData.priority as SupportTicket['priority'],
-        category: ticketData.category || 'General',
+        category: 'General', // Default category since it's not in the database schema
         createdAt: new Date(ticketData.created_at),
         updatedAt: new Date(ticketData.updated_at),
-        assignedTo: ticketData.assigned_to || 'Support Team',
+        assignedTo: 'Support Team',
         userId: ticketData.user_id,
-        responses: (ticketData.ticket_responses || []).map((response: any) => ({
-          id: response.id,
-          content: response.content,
-          author: response.author_id === user.id ? 'You' : 'Support Team',
-          authorRole: response.author_id === user.id ? 'tech' as const : 'support' as const,
-          createdAt: new Date(response.created_at)
-        }))
+        responses
       };
       
       setTicket(formattedTicket);
@@ -118,11 +119,11 @@ export default function TechSupportTicketDetail() {
 
       // Insert new response
       const { data: responseData, error } = await supabase
-        .from('ticket_responses')
+        .from('support_ticket_messages')
         .insert({
           ticket_id: ticket.id,
           content: newResponse,
-          author_id: user.id
+          user_id: user.id
         })
         .select()
         .single();
