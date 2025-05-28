@@ -63,7 +63,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
   };
 
   // Function to render content safely with proper TypeScript typing
-  const renderContentElement = () => {
+  const renderContentElement = (): JSX.Element | null => {
     if (nodeContent && nodeContent.trim() !== '') {
       return (
         <div 
