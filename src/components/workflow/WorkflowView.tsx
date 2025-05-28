@@ -62,28 +62,43 @@ export function WorkflowView({
   };
 
   const handleOpenWorkflowEditor = (folder: string, name?: string) => {
-    if (onOpenWorkflowEditor) {
-      console.log("WorkflowView calling onOpenWorkflowEditor with:", folder, name);
-      
-      // Call the provided handler
-      if (typeof onOpenWorkflowEditor === 'function') {
-        // Prevent default event behavior if it exists
+    console.log("WorkflowView calling onOpenWorkflowEditor with:", folder, name);
+    
+    try {
+      if (onOpenWorkflowEditor && typeof onOpenWorkflowEditor === 'function') {
         onOpenWorkflowEditor(folder, name);
+      } else {
+        console.warn("onOpenWorkflowEditor prop is not provided or is not a function");
+        toast({
+          title: "Error",
+          description: "Workflow editor cannot be opened at this time.",
+          variant: "destructive"
+        });
       }
-    } else {
+    } catch (error) {
+      console.error("Error opening workflow editor:", error);
       toast({
         title: "Error",
-        description: "Workflow editor cannot be opened at this time.",
+        description: "Failed to open workflow editor.",
         variant: "destructive"
       });
     }
   };
 
+  // Validate props
+  if (!Array.isArray(filteredAppliances)) {
+    console.warn("filteredAppliances prop is not an array, defaulting to empty array");
+  }
+
+  if (!Array.isArray(workflows)) {
+    console.warn("workflows prop is not an array, defaulting to empty array");
+  }
+
   return (
     <div className="mt-6">
       <WorkflowGrid
-        appliances={filteredAppliances}
-        workflows={workflows}
+        appliances={Array.isArray(filteredAppliances) ? filteredAppliances : []}
+        workflows={Array.isArray(workflows) ? workflows : []}
         isReordering={isReordering}
         onEdit={onEdit || (() => {})}
         onDelete={onDelete || (() => {})}

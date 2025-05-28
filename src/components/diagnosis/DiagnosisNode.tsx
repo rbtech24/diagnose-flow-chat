@@ -6,15 +6,7 @@ import { NodeHandles } from './NodeHandles';
 import { MediaContent } from './MediaContent';
 import { TechnicalContent } from './TechnicalContent';
 import { MediaItem } from '@/types/node-config';
-
-// Utility function to sanitize HTML content
-const sanitizeHtml = (html: string): string => {
-  // Basic XSS protection - remove script tags and dangerous attributes
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/on\w+="[^"]*"/gi, '')
-    .replace(/javascript:/gi, '');
-};
+import { sanitizeHtml } from '@/components/security/InputValidator';
 
 const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
   // Handle different node types
@@ -67,8 +59,9 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
 
   // Memoize handle disconnect function
   const handleDisconnect = useMemo(() => (handleId: string) => {
+    console.log(`Disconnect handle: ${handleId} from node: ${id}`);
     // Handle disconnect functionality would go here
-  }, []);
+  }, [id]);
 
   // Memoize sanitized content and return JSX element or null
   const contentElement = useMemo(() => {
