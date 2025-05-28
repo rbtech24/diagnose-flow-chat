@@ -70,10 +70,15 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
     // Handle disconnect functionality would go here
   }, []);
 
-  // Memoize sanitized content to prevent XSS attacks
-  const sanitizedContent = useMemo(() => {
+  // Memoize sanitized content and return JSX element or null
+  const contentElement = useMemo((): JSX.Element | null => {
     if (!nodeContent || nodeContent.trim() === '') return null;
-    return sanitizeHtml(nodeContent);
+    const sanitizedContent = sanitizeHtml(nodeContent);
+    return (
+      <div className="text-xs mt-2 text-gray-600 max-h-[150px] overflow-auto">
+        <div dangerouslySetInnerHTML={{ __html: sanitizedContent }} />
+      </div>
+    );
   }, [nodeContent]);
 
   return (
@@ -148,11 +153,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
       </div>
 
       {/* Node Content - XSS protected */}
-      {!isFlowAnswer && sanitizedContent && (
-        <div className="text-xs mt-2 text-gray-600 max-h-[150px] overflow-auto">
-          <div dangerouslySetInnerHTML={{ __html: sanitizedContent }} />
-        </div>
-      )}
+      {!isFlowAnswer && contentElement}
 
       {/* Media content if present */}
       {data.media && Array.isArray(data.media) && data.media.length > 0 && (
