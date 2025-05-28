@@ -19,10 +19,17 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
   // Set node title based on node type and available data
   const nodeTitle = data.title || data.label || 'Node';
   
-  // Set node content based on node type and available data - properly typed as string
-  const nodeContent: string = typeof (data.richInfo || data.content) === 'string' 
-    ? (data.richInfo || data.content) 
-    : '';
+  // Set node content based on node type and available data - safely extract string content
+  const extractStringContent = (): string => {
+    const richInfo = data.richInfo;
+    const content = data.content;
+    
+    if (typeof richInfo === 'string') return richInfo;
+    if (typeof content === 'string') return content;
+    return '';
+  };
+  
+  const nodeContent = extractStringContent();
 
   // Set node class based on type
   let nodeClass = 'p-3 border rounded bg-white w-[200px]';
@@ -56,7 +63,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
   };
 
   // Function to render content safely with proper TypeScript typing
-  const renderContentElement = (): React.ReactNode => {
+  const renderContentElement = () => {
     if (nodeContent && nodeContent.trim() !== '') {
       return (
         <div 
@@ -140,7 +147,7 @@ const DiagnosisNode = memo(({ id, data, selected, type }: NodeProps) => {
       </div>
 
       {/* Node Content */}
-      {!isFlowAnswer && nodeContent ? renderContentElement() : null}
+      {!isFlowAnswer && nodeContent && renderContentElement()}
 
       {/* Media content if present */}
       {data.media && Array.isArray(data.media) && data.media.length > 0 && (
