@@ -1,116 +1,189 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
-import { SubscriptionPlanCard } from "@/components/subscription/SubscriptionPlanCard";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { SubscriptionPlanForm } from "@/components/subscription/SubscriptionPlanForm";
-import { SubscriptionPlan } from "@/types/subscription-consolidated";
-import { Plus, Package } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
 import { useSubscriptionStore } from "@/store/subscriptionStore";
+import { SubscriptionPlan } from "@/types/subscription-consolidated";
+import { Plus, Edit, Trash2, Users, DollarSign, Settings } from "lucide-react";
 
 export default function AdminSubscriptionPlans() {
-  const { plans, addPlan, updatePlan, togglePlanStatus } = useSubscriptionStore();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
-  const { toast } = useToast();
+  const { 
+    plans, 
+    fetchPlans, 
+    addPlan, 
+    updatePlan, 
+    togglePlanStatus,
+    isLoadingPlans 
+  } = useSubscriptionStore();
 
-  const handleCreatePlan = (plan: SubscriptionPlan) => {
-    // Add missing required fields for consistency
-    const planWithDates = {
-      ...plan,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    addPlan(planWithDates);
-    setIsDialogOpen(false);
-    setEditingPlan(null);
-    toast({
-      title: "Plan created",
-      description: `${plan.name} plan has been created successfully.`,
-    });
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    fetchPlans();
+  }, [fetchPlans]);
+
+  const handleCreatePlan = () => {
+    setSelectedPlan(null);
+    setIsEditing(false);
+    setIsFormOpen(true);
   };
 
   const handleEditPlan = (plan: SubscriptionPlan) => {
-    setEditingPlan(plan);
-    setIsDialogOpen(true);
+    setSelectedPlan(plan);
+    setIsEditing(true);
+    setIsFormOpen(true);
   };
 
-  const handleUpdatePlan = (updatedPlan: SubscriptionPlan) => {
-    // Add updated timestamp
-    const planWithUpdatedDate = {
-      ...updatedPlan,
-      updated_at: new Date().toISOString()
-    };
-    updatePlan(planWithUpdatedDate);
-    setIsDialogOpen(false);
-    setEditingPlan(null);
-    toast({
-      title: "Plan updated",
-      description: `${updatedPlan.name} plan has been updated successfully.`,
-    });
-  };
-
-  const handleTogglePlanStatus = (planId: string) => {
-    togglePlanStatus(planId);
-    
-    const plan = plans.find(p => p.id === planId);
-    if (plan) {
-      toast({
-        title: !plan.is_active ? "Plan activated" : "Plan deactivated",
-        description: `${plan.name} plan has been ${!plan.is_active ? "activated" : "deactivated"}.`,
-      });
+  const handleSavePlan = (planData: SubscriptionPlan) => {
+    if (isEditing && selectedPlan) {
+      updatePlan(planData);
+    } else {
+      addPlan(planData);
     }
+    setIsFormOpen(false);
+    setSelectedPlan(null);
   };
+
+  const handleToggleStatus = (planId: string) => {
+    togglePlanStatus(planId);
+  };
+
+  const handleCloseForm = () => {
+    setIsFormOpen(false);
+    setSelectedPlan(null);
+    setIsEditing(false);
+  };
+
+  if (isLoadingPlans) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-center py-12">
+          <p className="text-lg text-muted-foreground">Loading subscription plans...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Subscription Plans</h1>
-          <p className="text-gray-500">Create and manage subscription plans</p>
+          <p className="text-gray-500">Manage subscription plans and pricing</p>
         </div>
-        <Button onClick={() => { setEditingPlan(null); setIsDialogOpen(true); }}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add New Plan
+        <Button onClick={handleCreatePlan}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Plan
         </Button>
       </div>
 
-      <Separator className="my-6" />
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {plans.map((plan) => (
+          <Card key={plan.id} className={`relative ${plan.recommended ? 'ring-2 ring-blue-500' : ''}`}>
+            {plan.recommended && (
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <Badge className="bg-blue-500 text-white">Recommended</Badge>
+              </div>
+            )}
+            
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    {plan.name}
+                    <Switch
+                      checked={plan.is_active}
+                      onCheckedChange={() => handleToggleStatus(plan.id)}
+                    />
+                  </CardTitle>
+                  <CardDescription>{plan.description}</CardDescription>
+                </div>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleEditPlan(plan)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
 
-      {plans.length === 0 ? (
-        <div className="text-center py-16">
-          <Package className="mx-auto h-12 w-12 text-gray-400" />
-          <h2 className="mt-4 text-xl font-semibold">No Plans Created</h2>
-          <p className="mt-2 text-gray-500">Get started by creating your first subscription plan.</p>
-          <Button className="mt-4" onClick={() => { setEditingPlan(null); setIsDialogOpen(true); }}>
-            Create First Plan
-          </Button>
-        </div>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {plans.map((plan) => (
-            <SubscriptionPlanCard
-              key={plan.id}
-              plan={plan}
-              onEdit={() => handleEditPlan(plan)}
-              onToggleStatus={() => handleTogglePlanStatus(plan.id)}
-              isAdmin={true}
-            />
-          ))}
-        </div>
-      )}
+            <CardContent className="space-y-4">
+              <div className="flex justify-between">
+                <div>
+                  <div className="text-2xl font-bold">${plan.price_monthly}</div>
+                  <div className="text-sm text-gray-500">per month</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold">${plan.price_yearly}</div>
+                  <div className="text-sm text-gray-500">per year</div>
+                </div>
+              </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm">
+                    {plan.limits.technicians} technicians, {plan.limits.admins} admins
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm">
+                    {plan.limits.diagnostics_per_day} diagnostics/day
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Settings className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm">
+                    {plan.limits.storage_gb} GB storage
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <h4 className="text-sm font-medium mb-2">Features:</h4>
+                <div className="space-y-1">
+                  {plan.features && typeof plan.features === 'object' && 
+                    Object.entries(plan.features).slice(0, 3).map(([key, value]) => (
+                      <div key={key} className="text-xs text-gray-600">
+                        • {typeof value === 'string' ? value : key.replace(/_/g, ' ')}
+                      </div>
+                    ))
+                  }
+                  {plan.features && typeof plan.features === 'object' && 
+                    Object.keys(plan.features).length > 3 && (
+                      <div className="text-xs text-blue-600">
+                        +{Object.keys(plan.features).length - 3} more features
+                      </div>
+                    )
+                  }
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingPlan ? "Edit Plan" : "Create New Plan"}</DialogTitle>
+            <DialogTitle>
+              {isEditing ? "Edit Subscription Plan" : "Create New Subscription Plan"}
+            </DialogTitle>
           </DialogHeader>
           <SubscriptionPlanForm
-            initialData={editingPlan}
-            onSubmit={editingPlan ? handleUpdatePlan : handleCreatePlan}
-            onCancel={() => setIsDialogOpen(false)}
+            plan={selectedPlan}
+            onSave={handleSavePlan}
+            onCancel={handleCloseForm}
           />
         </DialogContent>
       </Dialog>

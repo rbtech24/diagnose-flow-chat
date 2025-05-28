@@ -66,6 +66,11 @@ export function PaymentForm({
     return v;
   };
 
+  // Convert features object to display array
+  const featuresArray = plan.features && typeof plan.features === 'object' 
+    ? Object.values(plan.features).filter(feature => typeof feature === 'string').slice(0, 3)
+    : [];
+
   return (
     <div className="space-y-6">
       <div className="bg-gray-50 p-4 rounded-lg">
@@ -97,14 +102,14 @@ export function PaymentForm({
             <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
             <span>{plan.limits.storage_gb} GB storage</span>
           </div>
-          {Array.isArray(plan.features) && plan.features.slice(0, 3).map((feature, index) => (
+          {featuresArray.map((feature, index) => (
             <div key={index} className="flex items-start text-sm">
               <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
               <span>{feature}</span>
             </div>
           ))}
-          {Array.isArray(plan.features) && plan.features.length > 3 && (
-            <div className="text-sm text-blue-600">+{plan.features.length - 3} more features</div>
+          {plan.features && typeof plan.features === 'object' && Object.keys(plan.features).length > 3 && (
+            <div className="text-sm text-blue-600">+{Object.keys(plan.features).length - 3} more features</div>
           )}
         </div>
       </div>
