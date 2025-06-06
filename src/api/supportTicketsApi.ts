@@ -1,17 +1,38 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { SupportTicket, SupportTicketMessage } from "@/types/support";
+import { ServerValidation } from "@/utils/validation/serverValidation";
+import { APIValidator } from "@/utils/validation/apiValidator";
+import { PaginationSchema, SearchSchema } from "@/utils/validation/schemas";
 
 /**
- * Fetch support tickets
+ * Fetch support tickets with validation
  * @param status Filter by ticket status (optional)
  * @param companyId Filter by company ID (optional)
+ * @param pagination Pagination parameters
  * @returns Array of support tickets
  */
 export async function fetchSupportTickets(
   status?: string, 
-  companyId?: string
-): Promise<SupportTicket[]> {
+  companyId?: string,
+  pagination?: unknown
+): Promise<{ tickets: SupportTicket[]; total: number; page: number; limit: number }> {
+  // Validate authentication
+  const { userId } = await ServerValidation.validateAuth();
+  
+  // Validate pagination parameters
+  const validatedPagination = pagination 
+    ? APIValidator.validateOrThrow(PaginationSchema, pagination, 'fetchSupportTickets.pagination')
+    : { page: 1, limit: 20, sortOrder: 'desc' as const };
+
+  // Validate company access if specified
+  if (companyId) {
+    await ServerValidation.validateCompanyAccess(userId, companyId);
+  }
+
+  // Validate rate limiting
+  await ServerValidation.validateRateLimit(userId, 'api_request');
+
   let query = supabase.from('support_tickets').select(`
     *,
     created_by_user:created_by_user_id(
@@ -20,36 +41,61 @@ export async function fetchSupportTickets(
       avatar_url,
       role
     )
-  `);
+  `, { count: 'exact' });
   
   // Apply filters if provided
-  if (status) {
+  if (status && status !== 'all') {
+    // Validate status value
+    const validStatuses = ['open', 'in_progress', 'resolved', 'closed'];
+    if (!validStatuses.includes(status)) {
+      throw new Error(`Invalid status filter. Must be one of: ${validStatuses.join(', ')}`);
+    }
     query = query.eq('status', status);
   }
   
   if (companyId) {
+    if (!APIValidator.isValidUUID(companyId)) {
+      throw new Error('Invalid company ID format');
+    }
     query = query.eq('company_id', companyId);
   }
   
-  // Order by created_at timestamp (newest first)
-  query = query.order('created_at', { ascending: false });
+  // Apply pagination
+  const offset = (validatedPagination.page - 1) * validatedPagination.limit;
+  query = query
+    .order('created_at', { ascending: validatedPagination.sortOrder === 'asc' })
+    .range(offset, offset + validatedPagination.limit - 1);
   
-  const { data, error } = await query;
+  const { data, error, count } = await query;
   
   if (error) {
     console.error('Error fetching support tickets:', error);
     throw error;
   }
   
-  return data as unknown as SupportTicket[];
+  return {
+    tickets: data as unknown as SupportTicket[],
+    total: count || 0,
+    page: validatedPagination.page,
+    limit: validatedPagination.limit
+  };
 }
 
 /**
- * Fetch a single support ticket by ID
- * @param ticketId Ticket ID
- * @returns Support ticket object
+ * Fetch a single support ticket by ID with validation
  */
 export async function fetchSupportTicketById(ticketId: string): Promise<SupportTicket> {
+  // Validate authentication
+  const { userId } = await ServerValidation.validateAuth();
+  
+  // Validate UUID format
+  if (!APIValidator.isValidUUID(ticketId)) {
+    throw new Error('Invalid ticket ID format');
+  }
+
+  // Validate rate limiting
+  await ServerValidation.validateRateLimit(userId, 'api_request');
+
   const { data, error } = await supabase
     .from('support_tickets')
     .select(`
@@ -68,16 +114,48 @@ export async function fetchSupportTicketById(ticketId: string): Promise<SupportT
     console.error(`Error fetching ticket ${ticketId}:`, error);
     throw error;
   }
+
+  if (!data) {
+    throw new Error('Ticket not found');
+  }
+
+  // Validate user has access to this ticket
+  const { data: userRole } = await supabase
+    .from('technicians')
+    .select('role, company_id')
+    .eq('id', userId)
+    .single();
+
+  const hasAccess = 
+    data.user_id === userId || // User owns the ticket
+    userRole?.role === 'admin' || // User is admin
+    (userRole?.company_id === data.company_id && ['company_admin'].includes(userRole.role)); // Company admin
+
+  if (!hasAccess) {
+    throw new Error('Access denied to this ticket');
+  }
   
   return data as unknown as SupportTicket;
 }
 
 /**
- * Fetch messages for a specific support ticket
- * @param ticketId Ticket ID
- * @returns Array of support ticket messages
+ * Fetch messages for a specific support ticket with validation
  */
 export async function fetchTicketMessages(ticketId: string): Promise<SupportTicketMessage[]> {
+  // Validate authentication
+  const { userId } = await ServerValidation.validateAuth();
+  
+  // Validate UUID format
+  if (!APIValidator.isValidUUID(ticketId)) {
+    throw new Error('Invalid ticket ID format');
+  }
+
+  // Validate rate limiting
+  await ServerValidation.validateRateLimit(userId, 'api_request');
+
+  // First verify user has access to the ticket
+  await fetchSupportTicketById(ticketId);
+
   const { data, error } = await supabase
     .from('support_ticket_messages')
     .select(`
@@ -101,35 +179,37 @@ export async function fetchTicketMessages(ticketId: string): Promise<SupportTick
 }
 
 /**
- * Create a new support ticket
- * @param ticketData Ticket data to create
- * @returns Created support ticket
+ * Create a new support ticket with validation
  */
-export async function createSupportTicket(ticketData: Partial<SupportTicket>): Promise<SupportTicket> {
-  // Make sure required fields are present
-  if (!ticketData.title || !ticketData.description) {
-    throw new Error('Missing required fields for ticket creation');
-  }
+export async function createSupportTicket(ticketData: unknown): Promise<SupportTicket> {
+  // Validate and sanitize input
+  const validatedData = await ServerValidation.validateCreateSupportTicket(ticketData);
+  
+  // Validate rate limiting
+  await ServerValidation.validateRateLimit(validatedData.userId, 'create_ticket');
 
-  // Get the current user's ID
-  const { data: { user } } = await supabase.auth.getUser();
-  const userId = user?.id;
-
-  if (!userId) {
-    throw new Error('No authenticated user found');
-  }
+  // Sanitize input to prevent XSS
+  const sanitizedData = APIValidator.sanitizeInput(validatedData);
 
   const { data, error } = await supabase
     .from('support_tickets')
     .insert({
-      title: ticketData.title,
-      description: ticketData.description,
-      priority: ticketData.priority || 'medium',
-      user_id: userId, 
-      created_by_user_id: userId, // Use this field for the relationship
-      company_id: ticketData.company_id
+      title: sanitizedData.title,
+      description: sanitizedData.description,
+      priority: sanitizedData.priority || 'medium',
+      user_id: sanitizedData.userId,
+      created_by_user_id: sanitizedData.createdByUserId,
+      company_id: sanitizedData.companyId
     })
-    .select()
+    .select(`
+      *,
+      created_by_user:created_by_user_id(
+        name,
+        email,
+        avatar_url,
+        role
+      )
+    `)
     .single();
   
   if (error) {
@@ -141,32 +221,34 @@ export async function createSupportTicket(ticketData: Partial<SupportTicket>): P
 }
 
 /**
- * Add a message to a support ticket
- * @param messageData Message data to add
- * @returns Created message
+ * Add a message to a support ticket with validation
  */
-export async function addTicketMessage(messageData: { content: string, ticket_id: string }): Promise<SupportTicketMessage> {
-  // Make sure required fields are present
-  if (!messageData.content || !messageData.ticket_id) {
-    throw new Error('Missing required fields for message creation');
-  }
+export async function addTicketMessage(messageData: unknown): Promise<SupportTicketMessage> {
+  // Validate and sanitize input
+  const validatedData = await ServerValidation.validateCreateTicketMessage(messageData);
+  
+  // Validate rate limiting
+  await ServerValidation.validateRateLimit(validatedData.user_id, 'send_message');
 
-  // Get the current user
-  const { data: { user } } = await supabase.auth.getUser();
-  const userId = user?.id;
-
-  if (!userId) {
-    throw new Error('No authenticated user found');
-  }
+  // Sanitize input to prevent XSS
+  const sanitizedData = APIValidator.sanitizeInput(validatedData);
 
   const { data, error } = await supabase
     .from('support_ticket_messages')
     .insert({
-      content: messageData.content,
-      ticket_id: messageData.ticket_id,
-      user_id: userId
+      content: sanitizedData.content,
+      ticket_id: sanitizedData.ticket_id,
+      user_id: sanitizedData.user_id
     })
-    .select()
+    .select(`
+      *,
+      sender:user_id(
+        name,
+        email,
+        avatar_url,
+        role
+      )
+    `)
     .single();
   
   if (error) {
@@ -178,20 +260,43 @@ export async function addTicketMessage(messageData: { content: string, ticket_id
 }
 
 /**
- * Update a support ticket
- * @param ticketId Ticket ID to update
- * @param updateData Data to update
- * @returns Updated ticket
+ * Update a support ticket with validation
  */
 export async function updateSupportTicket(
   ticketId: string, 
-  updateData: Partial<SupportTicket>
+  updateData: unknown
 ): Promise<SupportTicket> {
+  // Validate UUID format
+  if (!APIValidator.isValidUUID(ticketId)) {
+    throw new Error('Invalid ticket ID format');
+  }
+
+  // Validate and sanitize input
+  const validatedData = await ServerValidation.validateUpdateSupportTicket(ticketId, updateData);
+  
+  // Validate rate limiting
+  const { userId } = await ServerValidation.validateAuth();
+  await ServerValidation.validateRateLimit(userId, 'api_request');
+
+  // Sanitize input to prevent XSS
+  const sanitizedData = APIValidator.sanitizeInput(validatedData);
+
   const { data, error } = await supabase
     .from('support_tickets')
-    .update(updateData)
+    .update({
+      ...sanitizedData,
+      updated_at: new Date().toISOString()
+    })
     .eq('id', ticketId)
-    .select()
+    .select(`
+      *,
+      created_by_user:created_by_user_id(
+        name,
+        email,
+        avatar_url,
+        role
+      )
+    `)
     .single();
   
   if (error) {
@@ -200,4 +305,54 @@ export async function updateSupportTicket(
   }
   
   return data as SupportTicket;
+}
+
+/**
+ * Search support tickets with validation
+ */
+export async function searchSupportTickets(searchParams: unknown): Promise<SupportTicket[]> {
+  // Validate authentication
+  const { userId } = await ServerValidation.validateAuth();
+  
+  // Validate search parameters
+  const validatedParams = APIValidator.validateOrThrow(SearchSchema, searchParams, 'searchSupportTickets');
+  
+  // Validate rate limiting
+  await ServerValidation.validateRateLimit(userId, 'api_request');
+
+  // Sanitize search query
+  const sanitizedQuery = APIValidator.sanitizeInput(validatedParams.query);
+
+  let query = supabase
+    .from('support_tickets')
+    .select(`
+      *,
+      created_by_user:created_by_user_id(
+        name,
+        email,
+        avatar_url,
+        role
+      )
+    `)
+    .or(`title.ilike.%${sanitizedQuery}%,description.ilike.%${sanitizedQuery}%`)
+    .order('created_at', { ascending: false })
+    .limit(50); // Limit search results
+
+  // Apply additional filters if provided
+  if (validatedParams.filters) {
+    Object.entries(validatedParams.filters).forEach(([key, value]) => {
+      if (typeof value === 'string' && value.trim()) {
+        query = query.eq(key, value);
+      }
+    });
+  }
+
+  const { data, error } = await query;
+  
+  if (error) {
+    console.error('Error searching support tickets:', error);
+    throw error;
+  }
+  
+  return data as unknown as SupportTicket[];
 }

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -68,34 +67,13 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
     setIsLoading(true);
     setError(null);
     try {
-      let query = supabase
-        .from('support_tickets')
-        .select(`
-          *,
-          created_by_user:created_by_user_id(
-            name,
-            email,
-            avatar_url,
-            role
-          )
-        `)
-        .order('created_at', { ascending: false });
+      const result = await fetchSupportTickets(status, companyId, {
+        page: 1,
+        limit: 50,
+        sortOrder: 'desc'
+      });
 
-      if (status && status !== 'all') {
-        query = query.eq('status', status);
-      }
-
-      if (companyId) {
-        query = query.eq('company_id', companyId);
-      }
-
-      const { data, error: fetchError } = await query;
-
-      if (fetchError) {
-        throw new Error(`Failed to fetch tickets: ${fetchError.message}`);
-      }
-
-      const formattedTickets: SupportTicket[] = (data || []).map((ticket: any) => ({
+      const formattedTickets: SupportTicket[] = result.tickets.map((ticket: any) => ({
         id: ticket.id,
         title: ticket.title,
         description: ticket.description,
@@ -116,7 +94,8 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
 
       setTickets(formattedTickets);
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('An error occurred while fetching tickets'));
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred while fetching tickets';
+      setError(new Error(errorMessage));
     } finally {
       setIsLoading(false);
     }
@@ -124,25 +103,7 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
 
   const getTicketById = async (id: string): Promise<SupportTicket | null> => {
     try {
-      const { data, error } = await supabase
-        .from('support_tickets')
-        .select(`
-          *,
-          created_by_user:created_by_user_id(
-            name,
-            email,
-            avatar_url,
-            role
-          )
-        `)
-        .eq('id', id)
-        .single();
-
-      if (error) {
-        throw new Error(`Failed to fetch ticket: ${error.message}`);
-      }
-
-      if (!data) return null;
+      const data = await fetchSupportTicketById(id);
 
       return {
         id: data.id,
@@ -169,25 +130,9 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
 
   const getTicketMessages = async (ticketId: string): Promise<SupportTicketMessage[]> => {
     try {
-      const { data, error } = await supabase
-        .from('support_ticket_messages')
-        .select(`
-          *,
-          sender:user_id(
-            name,
-            email,
-            avatar_url,
-            role
-          )
-        `)
-        .eq('ticket_id', ticketId)
-        .order('created_at', { ascending: true });
+      const data = await fetchTicketMessages(ticketId);
 
-      if (error) {
-        throw new Error(`Failed to fetch messages: ${error.message}`);
-      }
-
-      return (data || []).map((message: any) => ({
+      return data.map((message: any) => ({
         id: message.id,
         ticketId: message.ticket_id,
         content: message.content,
@@ -205,34 +150,12 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
 
   const createTicket = async (ticketData: Partial<SupportTicket>): Promise<SupportTicket> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const { data, error } = await supabase
-        .from('support_tickets')
-        .insert({
-          title: ticketData.title,
-          description: ticketData.description,
-          priority: ticketData.priority || 'medium',
-          status: 'open',
-          user_id: user.id,
-          created_by_user_id: user.id,
-          company_id: ticketData.companyId
-        })
-        .select(`
-          *,
-          created_by_user:created_by_user_id(
-            name,
-            email,
-            avatar_url,
-            role
-          )
-        `)
-        .single();
-
-      if (error) {
-        throw new Error(`Failed to create ticket: ${error.message}`);
-      }
+      const data = await createSupportTicket({
+        title: ticketData.title,
+        description: ticketData.description,
+        priority: ticketData.priority || 'medium',
+        companyId: ticketData.companyId
+      });
 
       const newTicket: SupportTicket = {
         id: data.id,
@@ -261,30 +184,13 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
 
   const updateTicket = async (ticketId: string, updateData: Partial<SupportTicket>): Promise<SupportTicket> => {
     try {
-      const { data, error } = await supabase
-        .from('support_tickets')
-        .update({
-          title: updateData.title,
-          description: updateData.description,
-          status: updateData.status,
-          priority: updateData.priority,
-          assigned_to: updateData.assignedTo
-        })
-        .eq('id', ticketId)
-        .select(`
-          *,
-          created_by_user:created_by_user_id(
-            name,
-            email,
-            avatar_url,
-            role
-          )
-        `)
-        .single();
-
-      if (error) {
-        throw new Error(`Failed to update ticket: ${error.message}`);
-      }
+      const data = await updateSupportTicket(ticketId, {
+        title: updateData.title,
+        description: updateData.description,
+        status: updateData.status,
+        priority: updateData.priority,
+        assignedTo: updateData.assignedTo
+      });
 
       const updatedTicket: SupportTicket = {
         id: data.id,
@@ -319,30 +225,7 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
 
   const addMessage = async (messageData: { content: string; ticket_id: string }): Promise<SupportTicketMessage> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const { data, error } = await supabase
-        .from('support_ticket_messages')
-        .insert({
-          ticket_id: messageData.ticket_id,
-          content: messageData.content,
-          user_id: user.id
-        })
-        .select(`
-          *,
-          sender:user_id(
-            name,
-            email,
-            avatar_url,
-            role
-          )
-        `)
-        .single();
-
-      if (error) {
-        throw new Error(`Failed to add message: ${error.message}`);
-      }
+      const data = await addTicketMessage(messageData);
 
       return {
         id: data.id,
