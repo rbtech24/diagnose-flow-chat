@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,7 +31,7 @@ export default function AdminSupport() {
       
       // Fetch real data from the API
       const data = await fetchSupportTickets();
-      setTickets(data);
+      setTickets(data.tickets); // Extract tickets array from response
       setError(null);
     } catch (err) {
       console.error("Error fetching tickets:", err);

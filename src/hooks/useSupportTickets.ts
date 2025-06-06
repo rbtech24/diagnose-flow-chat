@@ -1,5 +1,13 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { 
+  fetchSupportTickets, 
+  fetchSupportTicketById, 
+  fetchTicketMessages, 
+  createSupportTicket, 
+  updateSupportTicket, 
+  addTicketMessage 
+} from '@/api/supportTicketsApi';
 
 export interface SupportTicket {
   id: string;

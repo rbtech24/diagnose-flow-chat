@@ -7,10 +7,6 @@ import { PaginationSchema, SearchSchema } from "@/utils/validation/schemas";
 
 /**
  * Fetch support tickets with validation
- * @param status Filter by ticket status (optional)
- * @param companyId Filter by company ID (optional)
- * @param pagination Pagination parameters
- * @returns Array of support tickets
  */
 export async function fetchSupportTickets(
   status?: string, 
@@ -34,13 +30,7 @@ export async function fetchSupportTickets(
   await ServerValidation.validateRateLimit(userId, 'api_request');
 
   let query = supabase.from('support_tickets').select(`
-    *,
-    created_by_user:created_by_user_id(
-      name,
-      email,
-      avatar_url,
-      role
-    )
+    *
   `, { count: 'exact' });
   
   // Apply filters if provided
@@ -73,8 +63,24 @@ export async function fetchSupportTickets(
     throw error;
   }
   
+  // Transform data to match SupportTicket interface
+  const tickets: SupportTicket[] = (data || []).map((ticket: any) => ({
+    id: ticket.id,
+    title: ticket.title,
+    description: ticket.description,
+    status: ticket.status,
+    priority: ticket.priority,
+    user_id: ticket.user_id,
+    created_by_user_id: ticket.created_by_user_id,
+    assigned_to: ticket.assigned_to,
+    company_id: ticket.company_id,
+    created_at: ticket.created_at,
+    updated_at: ticket.updated_at,
+    created_by_user: null // Will be populated separately if needed
+  }));
+  
   return {
-    tickets: data as unknown as SupportTicket[],
+    tickets,
     total: count || 0,
     page: validatedPagination.page,
     limit: validatedPagination.limit
@@ -98,15 +104,7 @@ export async function fetchSupportTicketById(ticketId: string): Promise<SupportT
 
   const { data, error } = await supabase
     .from('support_tickets')
-    .select(`
-      *,
-      created_by_user:created_by_user_id(
-        name,
-        email,
-        avatar_url,
-        role
-      )
-    `)
+    .select('*')
     .eq('id', ticketId)
     .single();
   
@@ -135,7 +133,20 @@ export async function fetchSupportTicketById(ticketId: string): Promise<SupportT
     throw new Error('Access denied to this ticket');
   }
   
-  return data as unknown as SupportTicket;
+  return {
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    status: data.status,
+    priority: data.priority,
+    user_id: data.user_id,
+    created_by_user_id: data.created_by_user_id,
+    assigned_to: data.assigned_to,
+    company_id: data.company_id,
+    created_at: data.created_at,
+    updated_at: data.updated_at,
+    created_by_user: null
+  };
 }
 
 /**
@@ -158,15 +169,7 @@ export async function fetchTicketMessages(ticketId: string): Promise<SupportTick
 
   const { data, error } = await supabase
     .from('support_ticket_messages')
-    .select(`
-      *,
-      sender:user_id(
-        name,
-        email,
-        avatar_url,
-        role
-      )
-    `)
+    .select('*')
     .eq('ticket_id', ticketId)
     .order('created_at');
   
@@ -175,7 +178,14 @@ export async function fetchTicketMessages(ticketId: string): Promise<SupportTick
     throw error;
   }
   
-  return data as unknown as SupportTicketMessage[];
+  return (data || []).map((message: any) => ({
+    id: message.id,
+    ticket_id: message.ticket_id,
+    content: message.content,
+    user_id: message.user_id,
+    created_at: message.created_at,
+    sender: null // Will be populated separately if needed
+  }));
 }
 
 /**
@@ -201,15 +211,7 @@ export async function createSupportTicket(ticketData: unknown): Promise<SupportT
       created_by_user_id: sanitizedData.createdByUserId,
       company_id: sanitizedData.companyId
     })
-    .select(`
-      *,
-      created_by_user:created_by_user_id(
-        name,
-        email,
-        avatar_url,
-        role
-      )
-    `)
+    .select('*')
     .single();
   
   if (error) {
@@ -217,7 +219,20 @@ export async function createSupportTicket(ticketData: unknown): Promise<SupportT
     throw error;
   }
   
-  return data as SupportTicket;
+  return {
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    status: data.status,
+    priority: data.priority,
+    user_id: data.user_id,
+    created_by_user_id: data.created_by_user_id,
+    assigned_to: data.assigned_to,
+    company_id: data.company_id,
+    created_at: data.created_at,
+    updated_at: data.updated_at,
+    created_by_user: null
+  };
 }
 
 /**
@@ -240,15 +255,7 @@ export async function addTicketMessage(messageData: unknown): Promise<SupportTic
       ticket_id: sanitizedData.ticket_id,
       user_id: sanitizedData.user_id
     })
-    .select(`
-      *,
-      sender:user_id(
-        name,
-        email,
-        avatar_url,
-        role
-      )
-    `)
+    .select('*')
     .single();
   
   if (error) {
@@ -256,7 +263,14 @@ export async function addTicketMessage(messageData: unknown): Promise<SupportTic
     throw error;
   }
   
-  return data as SupportTicketMessage;
+  return {
+    id: data.id,
+    ticket_id: data.ticket_id,
+    content: data.content,
+    user_id: data.user_id,
+    created_at: data.created_at,
+    sender: null
+  };
 }
 
 /**
@@ -288,15 +302,7 @@ export async function updateSupportTicket(
       updated_at: new Date().toISOString()
     })
     .eq('id', ticketId)
-    .select(`
-      *,
-      created_by_user:created_by_user_id(
-        name,
-        email,
-        avatar_url,
-        role
-      )
-    `)
+    .select('*')
     .single();
   
   if (error) {
@@ -304,7 +310,20 @@ export async function updateSupportTicket(
     throw error;
   }
   
-  return data as SupportTicket;
+  return {
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    status: data.status,
+    priority: data.priority,
+    user_id: data.user_id,
+    created_by_user_id: data.created_by_user_id,
+    assigned_to: data.assigned_to,
+    company_id: data.company_id,
+    created_at: data.created_at,
+    updated_at: data.updated_at,
+    created_by_user: null
+  };
 }
 
 /**
@@ -325,15 +344,7 @@ export async function searchSupportTickets(searchParams: unknown): Promise<Suppo
 
   let query = supabase
     .from('support_tickets')
-    .select(`
-      *,
-      created_by_user:created_by_user_id(
-        name,
-        email,
-        avatar_url,
-        role
-      )
-    `)
+    .select('*')
     .or(`title.ilike.%${sanitizedQuery}%,description.ilike.%${sanitizedQuery}%`)
     .order('created_at', { ascending: false })
     .limit(50); // Limit search results
@@ -354,5 +365,18 @@ export async function searchSupportTickets(searchParams: unknown): Promise<Suppo
     throw error;
   }
   
-  return data as unknown as SupportTicket[];
+  return (data || []).map((ticket: any) => ({
+    id: ticket.id,
+    title: ticket.title,
+    description: ticket.description,
+    status: ticket.status,
+    priority: ticket.priority,
+    user_id: ticket.user_id,
+    created_by_user_id: ticket.created_by_user_id,
+    assigned_to: ticket.assigned_to,
+    company_id: ticket.company_id,
+    created_at: ticket.created_at,
+    updated_at: ticket.updated_at,
+    created_by_user: null
+  }));
 }

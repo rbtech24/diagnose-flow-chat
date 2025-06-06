@@ -190,17 +190,3 @@ export class APIValidator {
     return true;
   }
 }
-
-export class APIError extends Error {
-  public code: string;
-  public status: number;
-  public details?: any;
-
-  constructor(error: { message: string; code?: string; status?: number; details?: any }) {
-    super(error.message);
-    this.name = 'APIError';
-    this.code = error.code || 'UNKNOWN_ERROR';
-    this.status = error.status || 500;
-    this.details = error.details;
-  }
-}
