@@ -1,4 +1,3 @@
-
 import { configService } from './configService';
 
 export interface PerformanceMetric {
@@ -8,7 +7,7 @@ export interface PerformanceMetric {
   unit: string;
   timestamp: Date;
   category: 'page_load' | 'api_response' | 'bundle_size' | 'memory_usage' | 'user_interaction';
-  metadata?: Record<string, any>;
+  metadata?: { [key: string]: any };
 }
 
 export interface PerformanceThreshold {
@@ -82,7 +81,7 @@ class PerformanceMonitoringService {
     value: number,
     category: PerformanceMetric['category'],
     unit: string = 'ms',
-    metadata?: Record<string, any>
+    metadata?: { [key: string]: any }
   ): string {
     const metric: PerformanceMetric = {
       id: this.generateId(),
@@ -341,99 +340,6 @@ class PerformanceMonitoringService {
       this.observer.disconnect();
       this.observer = undefined;
     }
-  }
-
-  getCoreWebVitals(): Promise<PerformanceMetric[]> {
-    return new Promise((resolve) => {
-      const vitals: PerformanceMetric[] = [];
-
-      // First Contentful Paint
-      const fcp = performance.getEntriesByName('first-contentful-paint')[0];
-      if (fcp) {
-        vitals.push({
-          id: this.generateId(),
-          name: 'first_contentful_paint',
-          value: fcp.startTime,
-          unit: 'ms',
-          timestamp: new Date(),
-          category: 'page_load'
-        });
-      }
-
-      // Largest Contentful Paint
-      if ('PerformanceObserver' in window) {
-        const lcpObserver = new PerformanceObserver((list) => {
-          const entries = list.getEntries();
-          const lcp = entries[entries.length - 1];
-          
-          vitals.push({
-            id: this.generateId(),
-            name: 'largest_contentful_paint',
-            value: lcp.startTime,
-            unit: 'ms',
-            timestamp: new Date(),
-            category: 'page_load'
-          });
-          
-          lcpObserver.disconnect();
-          resolve(vitals);
-        });
-        
-        lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
-      } else {
-        resolve(vitals);
-      }
-    });
-  }
-
-  getMetrics(filters?: {
-    category?: PerformanceMetric['category'];
-    timeRange?: { start: Date; end: Date };
-    limit?: number;
-  }): PerformanceMetric[] {
-    let metrics = [...this.metrics];
-
-    if (filters?.category) {
-      metrics = metrics.filter(m => m.category === filters.category);
-    }
-
-    if (filters?.timeRange) {
-      metrics = metrics.filter(m => 
-        m.timestamp >= filters.timeRange!.start && 
-        m.timestamp <= filters.timeRange!.end
-      );
-    }
-
-    if (filters?.limit) {
-      metrics = metrics.slice(-filters.limit);
-    }
-
-    return metrics;
-  }
-
-  getPerformanceSummary(): {
-    averagePageLoad: number;
-    averageApiResponse: number;
-    memoryUsage: number;
-    totalMetrics: number;
-    warnings: number;
-    criticals: number;
-  } {
-    const pageLoadMetrics = this.metrics.filter(m => m.category === 'page_load');
-    const apiMetrics = this.metrics.filter(m => m.category === 'api_response');
-    const memoryMetrics = this.metrics.filter(m => m.category === 'memory_usage');
-
-    const warnings = this.metrics.filter(m => this.isAboveThreshold(m, 'warning')).length;
-    const criticals = this.metrics.filter(m => this.isAboveThreshold(m, 'critical')).length;
-
-    return {
-      averagePageLoad: this.calculateAverage(pageLoadMetrics),
-      averageApiResponse: this.calculateAverage(apiMetrics),
-      memoryUsage: memoryMetrics.length > 0 ? memoryMetrics[memoryMetrics.length - 1].value : 0,
-      totalMetrics: this.metrics.length,
-      warnings,
-      criticals
-    };
   }
 }
 

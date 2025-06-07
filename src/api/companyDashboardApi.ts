@@ -97,7 +97,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
 };
 
 function mapActivityTypeToRecentActivity(activityType: string): RecentActivity['type'] {
-  const typeMap: Record<string, RecentActivity['type']> = {
+  const typeMap: { [key: string]: RecentActivity['type'] } = {
     'repair_completed': 'repair_completed',
     'job_completed': 'repair_completed',
     'repair_started': 'job_started',
@@ -128,7 +128,7 @@ function formatTimeAgo(date: Date): string {
 }
 
 function getActivityIcon(activityType: string): string {
-  const iconMap: Record<string, string> = {
+  const iconMap: { [key: string]: string } = {
     'repair_completed': 'CheckSquare',
     'job_completed': 'CheckSquare',
     'repair_started': 'Clock',
