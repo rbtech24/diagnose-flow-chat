@@ -116,10 +116,9 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
         )}
         
         {nodeContent && (
-          <div 
-            className="text-sm text-gray-700 mb-2"
-            dangerouslySetInnerHTML={{ __html: nodeContent }}
-          />
+          <div className="text-sm text-gray-700 mb-2">
+            {nodeContent}
+          </div>
         )}
         
         {nodeData.media && nodeData.media.length > 0 && (

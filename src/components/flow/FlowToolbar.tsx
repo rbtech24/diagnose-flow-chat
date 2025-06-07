@@ -2,7 +2,7 @@
 import { Button } from '../ui/button';
 import { SaveWorkflowDialog } from './SaveWorkflowDialog';
 import { handleSaveWorkflow } from '@/utils/flow';
-import { Download, Upload, Plus, Copy, Clipboard, Search, Link2, Save } from 'lucide-react';
+import { Download, Upload, Plus, Copy, Clipboard, Search, Link2, Save, Trash } from 'lucide-react';
 import { useFlowState } from '@/hooks/useFlowState';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -18,6 +18,7 @@ interface FlowToolbarProps {
   onImportClick: () => void;
   onCopySelected: () => void;
   onPaste: () => void;
+  onDeleteSelected: () => void;
   appliances: string[];
   onApplyNodeChanges?: () => void;
   currentWorkflow?: SavedWorkflow;
@@ -29,6 +30,7 @@ export function FlowToolbar({
   onImportClick,
   onCopySelected,
   onPaste,
+  onDeleteSelected,
   appliances,
   onApplyNodeChanges,
   currentWorkflow
@@ -52,7 +54,7 @@ export function FlowToolbar({
   return (
     <div className="absolute top-0 left-0 right-0 z-10 bg-background border-b pointer-events-auto">
       <div className="flex items-center justify-between p-4 gap-6">
-        {/* Left section - Primary Actions (aligned left with proper spacing) */}
+        {/* Left section - Primary Actions */}
         <div className="flex items-center gap-4">
           <Button 
             variant="default"
@@ -91,7 +93,7 @@ export function FlowToolbar({
           </Button>
         </div>
 
-        {/* Center section - Search (flexible width to take available space) */}
+        {/* Center section - Search */}
         <div className="flex-1 max-w-md mx-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -103,7 +105,7 @@ export function FlowToolbar({
           </div>
         </div>
 
-        {/* Right section - Secondary Actions (aligned right with proper spacing) */}
+        {/* Right section - Secondary Actions */}
         <div className="flex items-center gap-4">
           {/* Clipboard Actions Group */}
           <div className="flex items-center gap-2">
@@ -125,6 +127,16 @@ export function FlowToolbar({
             >
               <Clipboard className="w-4 h-4" />
               Paste
+            </Button>
+
+            <Button 
+              variant="destructive"
+              size="sm"
+              className="flex items-center gap-2"
+              onClick={onDeleteSelected}
+            >
+              <Trash className="w-4 h-4" />
+              Delete
             </Button>
             
             <Button 

@@ -72,6 +72,7 @@ export default function FlowEditor({
   const {
     handleCopySelected,
     handlePaste,
+    handleDeleteSelected,
     handleQuickSaveClick,
     handleAddNode,
   } = useFlowActions(
@@ -222,6 +223,7 @@ export default function FlowEditor({
       onFileInputClick={handleFileInputClick}
       onCopySelected={handleCopySelected}
       onPaste={handlePaste}
+      onDeleteSelected={handleDeleteSelected}
       appliances={appliances}
       onApplyNodeChanges={handleApplyNodeChanges}
     />

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface SupportTicket {
@@ -25,28 +24,6 @@ export interface SupportTicketMessage {
   sender: any;
 }
 
-interface TicketRecord {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  priority: string;
-  user_id: string;
-  created_by_user_id: string;
-  assigned_to?: string;
-  company_id?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface MessageRecord {
-  id: string;
-  ticket_id: string;
-  content: string;
-  user_id: string;
-  created_at: string;
-}
-
 function isValidUUID(uuid: string): boolean {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(uuid);
@@ -60,9 +37,6 @@ function sanitizeString(input: string): string {
     .replace(/on\w+\s*=/gi, '');
 }
 
-function sanitizeInput(input: Record<string, any>): Record<string, any>;
-function sanitizeInput(input: string): string;
-function sanitizeInput(input: any[]): any[];
 function sanitizeInput(input: any): any {
   if (typeof input === 'string') {
     return sanitizeString(input);

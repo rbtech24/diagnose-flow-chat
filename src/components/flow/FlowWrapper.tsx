@@ -29,6 +29,7 @@ interface FlowWrapperProps {
   onImportClick: () => void;
   onCopySelected: () => void;
   onPaste: () => void;
+  onDeleteSelected: () => void;
   appliances: string[];
   onApplyNodeChanges?: () => void;
   currentWorkflow?: SavedWorkflow;
@@ -47,6 +48,7 @@ export function FlowWrapper({
   onImportClick,
   onCopySelected,
   onPaste,
+  onDeleteSelected,
   appliances,
   onApplyNodeChanges,
   currentWorkflow,
@@ -82,6 +84,7 @@ export function FlowWrapper({
           onImportClick={onImportClick}
           onCopySelected={onCopySelected}
           onPaste={onPaste}
+          onDeleteSelected={onDeleteSelected}
           appliances={appliances}
           onApplyNodeChanges={onApplyNodeChanges}
           currentWorkflow={currentWorkflow}

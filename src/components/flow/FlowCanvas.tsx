@@ -16,6 +16,7 @@ interface FlowCanvasProps {
   onImportClick: () => void;
   onCopySelected: () => void;
   onPaste: () => void;
+  onDeleteSelected: () => void;
   appliances: string[];
   onApplyNodeChanges?: () => void;
   currentWorkflow?: SavedWorkflow;
@@ -34,6 +35,7 @@ export function FlowCanvas({
   onImportClick,
   onCopySelected,
   onPaste,
+  onDeleteSelected,
   appliances,
   onApplyNodeChanges,
   currentWorkflow,
@@ -52,6 +54,7 @@ export function FlowCanvas({
       onImportClick={onImportClick}
       onCopySelected={onCopySelected}
       onPaste={onPaste}
+      onDeleteSelected={onDeleteSelected}
       appliances={appliances}
       onApplyNodeChanges={onApplyNodeChanges}
       currentWorkflow={currentWorkflow}

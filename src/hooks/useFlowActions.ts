@@ -5,6 +5,7 @@ import { toast } from './use-toast';
 import { addToHistory } from '@/utils/workflowHistory';
 import { handleQuickSave } from '@/utils/flow';
 import { SavedWorkflow } from '@/utils/flow/types';
+import { useNodeDeletion } from './useNodeDeletion';
 
 export function useFlowActions(
   nodes: Node[],
@@ -20,6 +21,16 @@ export function useFlowActions(
   currentWorkflow?: SavedWorkflow
 ) {
   const { getViewport } = useReactFlow();
+
+  const { handleDeleteSelected } = useNodeDeletion(
+    nodes,
+    edges,
+    nodeCounter,
+    setNodes,
+    setEdges,
+    setHistory,
+    history
+  );
 
   const handleConnect = useCallback(
     (params: Connection) => {
@@ -160,6 +171,7 @@ export function useFlowActions(
     handleConnect,
     handleCopySelected,
     handlePaste,
+    handleDeleteSelected,
     handleQuickSaveClick,
     handleAddNode,
   };

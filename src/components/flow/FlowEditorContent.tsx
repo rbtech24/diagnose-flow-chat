@@ -23,6 +23,7 @@ interface FlowEditorContentProps {
   onFileInputClick: () => void;
   onCopySelected: () => void;
   onPaste: () => void;
+  onDeleteSelected: () => void;
   appliances: string[];
   onApplyNodeChanges?: () => void;
 }
@@ -44,6 +45,7 @@ export function FlowEditorContent({
   onFileInputClick,
   onCopySelected,
   onPaste,
+  onDeleteSelected,
   appliances,
   onApplyNodeChanges,
 }: FlowEditorContentProps) {
@@ -71,6 +73,7 @@ export function FlowEditorContent({
         onImportClick={onFileInputClick}
         onCopySelected={onCopySelected}
         onPaste={onPaste}
+        onDeleteSelected={onDeleteSelected}
         appliances={appliances}
         onApplyNodeChanges={onApplyNodeChanges}
         currentWorkflow={currentWorkflow}
