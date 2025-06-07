@@ -48,7 +48,7 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
       };
     }
 
-    const repairs = (repairsData as RepairData[]) || [];
+    const repairs = repairsData as RepairData[] || [];
     const activeJobs = repairs.filter((r) => r.status === 'in_progress').length;
     const completedJobs = repairs.filter((r) => r.status === 'completed').length;
     const revenue = repairs
@@ -95,7 +95,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    const activities: RecentActivity[] = (activityData as ActivityData[]).map((activity) => ({
+    const activities: RecentActivity[] = activityData.map((activity: ActivityData) => ({
       id: activity.id || `activity-${Date.now()}`,
       type: mapActivityTypeToRecentActivity(activity.activity_type || 'unknown'),
       description: activity.description || 'Activity recorded',
