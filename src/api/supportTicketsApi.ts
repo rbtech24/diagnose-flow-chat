@@ -59,33 +59,18 @@ function sanitizeString(input: string): string {
     .replace(/on\w+\s*=/gi, '');
 }
 
-function sanitizeInput(input: string | Record<string, string> | string[]): string | Record<string, string> | string[] {
-  if (typeof input === 'string') {
-    return sanitizeString(input);
-  }
-  
-  if (Array.isArray(input)) {
-    return input.map(item => {
-      if (typeof item === 'string') {
-        return sanitizeString(item);
-      }
-      return item;
-    });
-  }
-  
-  if (input && typeof input === 'object' && input !== null) {
-    const sanitized: Record<string, string> = {};
-    for (const [key, value] of Object.entries(input)) {
-      if (typeof value === 'string') {
-        sanitized[key] = sanitizeString(value);
-      } else {
-        sanitized[key] = value as string;
-      }
+// Simplified sanitization to avoid deep type instantiation
+function sanitizeTicketData(data: { [key: string]: any }): { [key: string]: string } {
+  const result: { [key: string]: string } = {};
+  Object.keys(data).forEach(key => {
+    const value = data[key];
+    if (typeof value === 'string') {
+      result[key] = sanitizeString(value);
+    } else if (value != null) {
+      result[key] = String(value);
     }
-    return sanitized;
-  }
-  
-  return input;
+  });
+  return result;
 }
 
 function validateStatus(status: string): SupportTicket['status'] {
@@ -235,7 +220,7 @@ export async function createSupportTicket(ticketData: {
     throw new Error('Description is required');
   }
 
-  const sanitizedData = sanitizeInput(ticketData) as typeof ticketData;
+  const sanitizedData = sanitizeTicketData(ticketData);
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) {
@@ -294,7 +279,7 @@ export async function addTicketMessage(messageData: {
     throw new Error('User not authenticated');
   }
 
-  const sanitizedData = sanitizeInput(messageData) as typeof messageData;
+  const sanitizedData = sanitizeTicketData(messageData) as typeof messageData;
 
   const { data, error } = await supabase
     .from('support_ticket_messages')
@@ -335,7 +320,7 @@ export async function updateSupportTicket(
     throw new Error('Invalid ticket ID format');
   }
 
-  const sanitizedData = sanitizeInput(updateData) as typeof updateData;
+  const sanitizedData = sanitizeTicketData(updateData);
 
   const { data, error } = await supabase
     .from('support_tickets')
@@ -383,9 +368,9 @@ export async function searchSupportTickets(searchParams: {
     .limit(50);
 
   if (searchParams.filters) {
-    const filters = sanitizeInput(searchParams.filters) as Record<string, string>;
+    const filters = sanitizeTicketData(searchParams.filters);
     Object.entries(filters).forEach(([key, value]) => {
-      if (typeof value === 'string' && value.trim()) {
+      if (value && value.trim()) {
         query = query.eq(key, value);
       }
     });

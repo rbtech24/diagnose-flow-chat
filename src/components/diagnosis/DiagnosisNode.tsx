@@ -112,11 +112,13 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
         <div className="mt-2">
           <div className="text-xs text-gray-600 mb-1">Options:</div>
           <ul className="text-xs text-gray-600 list-disc list-inside">
-            {nodeData.options.map((option, index) => (
-              <li key={index}>
-                {typeof option === 'string' ? option : String(option || '')}
-              </li>
-            ))}
+            {nodeData.options.map((option, index) => {
+              // Ensure we return a valid ReactNode for each option
+              const optionText = typeof option === 'string' ? option : String(option || '');
+              return (
+                <li key={index}>{optionText}</li>
+              );
+            })}
           </ul>
         </div>
       );

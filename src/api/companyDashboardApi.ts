@@ -39,16 +39,18 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     const activeJobs = repairs.filter((r) => r.status === 'in_progress').length;
     const completedJobs = repairs.filter((r) => r.status === 'completed').length;
     
-    // Calculate revenue with simple approach
+    // Calculate revenue with explicit typing to avoid deep instantiation
     let revenue = 0;
-    repairs.forEach((repair) => {
+    for (let i = 0; i < repairs.length; i++) {
+      const repair = repairs[i];
       if (repair.status === 'completed' && repair.actual_cost) {
-        const cost = Number(repair.actual_cost);
-        if (!isNaN(cost)) {
-          revenue += cost;
+        const costValue = repair.actual_cost;
+        const numericCost = typeof costValue === 'string' ? parseFloat(costValue) : Number(costValue);
+        if (!isNaN(numericCost)) {
+          revenue += numericCost;
         }
       }
-    });
+    }
       
     const completionRate = repairs.length > 0 
       ? Math.round((completedJobs / repairs.length) * 100) 
