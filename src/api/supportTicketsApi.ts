@@ -5,6 +5,21 @@ import { ServerValidation } from "@/utils/validation/serverValidation";
 import { APIValidator } from "@/utils/validation/apiValidator";
 import { PaginationSchema, SearchSchema } from "@/utils/validation/schemas";
 
+// Helper functions for type casting
+function validateStatus(status: string): SupportTicket['status'] {
+  const validStatuses: SupportTicket['status'][] = ['open', 'in_progress', 'resolved', 'closed'];
+  return validStatuses.includes(status as SupportTicket['status']) 
+    ? (status as SupportTicket['status']) 
+    : 'open';
+}
+
+function validatePriority(priority: string): SupportTicket['priority'] {
+  const validPriorities: SupportTicket['priority'][] = ['low', 'medium', 'high', 'critical'];
+  return validPriorities.includes(priority as SupportTicket['priority']) 
+    ? (priority as SupportTicket['priority']) 
+    : 'medium';
+}
+
 /**
  * Fetch support tickets with validation
  */
@@ -68,8 +83,8 @@ export async function fetchSupportTickets(
     id: ticket.id,
     title: ticket.title,
     description: ticket.description,
-    status: ticket.status,
-    priority: ticket.priority,
+    status: validateStatus(ticket.status),
+    priority: validatePriority(ticket.priority),
     user_id: ticket.user_id,
     created_by_user_id: ticket.created_by_user_id,
     assigned_to: ticket.assigned_to,
@@ -137,8 +152,8 @@ export async function fetchSupportTicketById(ticketId: string): Promise<SupportT
     id: data.id,
     title: data.title,
     description: data.description,
-    status: data.status,
-    priority: data.priority,
+    status: validateStatus(data.status),
+    priority: validatePriority(data.priority),
     user_id: data.user_id,
     created_by_user_id: data.created_by_user_id,
     assigned_to: data.assigned_to,
@@ -223,8 +238,8 @@ export async function createSupportTicket(ticketData: unknown): Promise<SupportT
     id: data.id,
     title: data.title,
     description: data.description,
-    status: data.status,
-    priority: data.priority,
+    status: validateStatus(data.status),
+    priority: validatePriority(data.priority),
     user_id: data.user_id,
     created_by_user_id: data.created_by_user_id,
     assigned_to: data.assigned_to,
@@ -314,8 +329,8 @@ export async function updateSupportTicket(
     id: data.id,
     title: data.title,
     description: data.description,
-    status: data.status,
-    priority: data.priority,
+    status: validateStatus(data.status),
+    priority: validatePriority(data.priority),
     user_id: data.user_id,
     created_by_user_id: data.created_by_user_id,
     assigned_to: data.assigned_to,
@@ -369,8 +384,8 @@ export async function searchSupportTickets(searchParams: unknown): Promise<Suppo
     id: ticket.id,
     title: ticket.title,
     description: ticket.description,
-    status: ticket.status,
-    priority: ticket.priority,
+    status: validateStatus(ticket.status),
+    priority: validatePriority(ticket.priority),
     user_id: ticket.user_id,
     created_by_user_id: ticket.created_by_user_id,
     assigned_to: ticket.assigned_to,

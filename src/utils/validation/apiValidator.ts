@@ -1,6 +1,4 @@
-
 import { z } from 'zod';
-import { APIError } from '@/utils/apiErrorHandler';
 
 export interface ValidationResult<T> {
   success: boolean;
@@ -12,6 +10,30 @@ export interface ValidationError {
   field: string;
   message: string;
   code: string;
+}
+
+export class APIError extends Error {
+  public readonly code: string;
+  public readonly status: number;
+  public readonly details?: any;
+
+  constructor({
+    message,
+    code,
+    status,
+    details
+  }: {
+    message: string;
+    code: string;
+    status: number;
+    details?: any;
+  }) {
+    super(message);
+    this.name = 'APIError';
+    this.code = code;
+    this.status = status;
+    this.details = details;
+  }
 }
 
 export class APIValidator {
