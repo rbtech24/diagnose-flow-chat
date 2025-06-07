@@ -53,60 +53,76 @@ export function FlowToolbar({
 
   return (
     <div className="absolute top-0 left-0 right-0 z-10 bg-background border-b pointer-events-auto">
-      <div className="flex items-center justify-between p-4 gap-6">
-        {/* Left section - Primary Actions */}
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="default"
-            size="sm" 
-            className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-            onClick={onAddNode}
-          >
-            <Plus className="w-4 h-4" />
-            Add Step
-          </Button>
-
-          {onApplyNodeChanges && (
+      <div className="flex flex-col gap-3 p-4">
+        {/* First Row - Primary Actions and Search */}
+        <div className="flex items-center justify-between gap-6">
+          {/* Left section - Primary Actions */}
+          <div className="flex items-center gap-4">
             <Button 
-              variant="secondary"
-              size="sm"
-              className="flex items-center gap-2"
-              onClick={onApplyNodeChanges}
+              variant="default"
+              size="sm" 
+              className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+              onClick={onAddNode}
             >
-              <Save className="w-4 h-4" />
-              Apply Changes
+              <Plus className="w-4 h-4" />
+              Add Step
             </Button>
-          )}
 
-          <Separator orientation="vertical" className="h-6" />
+            {onApplyNodeChanges && (
+              <Button 
+                variant="secondary"
+                size="sm"
+                className="flex items-center gap-2"
+                onClick={onApplyNodeChanges}
+              >
+                <Save className="w-4 h-4" />
+                Apply Changes
+              </Button>
+            )}
 
-          <SaveWorkflowDialog onSave={onSave} currentWorkflow={currentWorkflow} />
+            <Separator orientation="vertical" className="h-6" />
 
-          <Button 
-            variant="secondary" 
-            size="sm"
-            className="flex items-center gap-2" 
-            onClick={onImportClick}
-          >
-            <Upload className="w-4 h-4" />
-            Import
-          </Button>
-        </div>
+            <SaveWorkflowDialog onSave={onSave} currentWorkflow={currentWorkflow} />
 
-        {/* Center section - Search */}
-        <div className="flex-1 max-w-md mx-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search..."
-              className="pl-10 h-9"
-            />
+            <Button 
+              variant="secondary" 
+              size="sm"
+              className="flex items-center gap-2" 
+              onClick={onImportClick}
+            >
+              <Upload className="w-4 h-4" />
+              Import
+            </Button>
+          </div>
+
+          {/* Center section - Search */}
+          <div className="flex-1 max-w-md mx-6">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search..."
+                className="pl-10 h-9"
+              />
+            </div>
+          </div>
+
+          {/* Right section - Navigation */}
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="default"
+              size="sm"
+              className="flex items-center gap-2 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white"
+              onClick={handleGoToWorkflows}
+            >
+              <Link2 className="w-4 h-4" />
+              Workflows
+            </Button>
           </div>
         </div>
 
-        {/* Right section - Secondary Actions */}
-        <div className="flex items-center gap-4">
+        {/* Second Row - Secondary Actions */}
+        <div className="flex items-center justify-center gap-4">
           {/* Clipboard Actions Group */}
           <div className="flex items-center gap-2">
             <Button 
@@ -151,19 +167,6 @@ export function FlowToolbar({
               Export
             </Button>
           </div>
-
-          <Separator orientation="vertical" className="h-6" />
-
-          {/* Navigation */}
-          <Button 
-            variant="default"
-            size="sm"
-            className="flex items-center gap-2 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white"
-            onClick={handleGoToWorkflows}
-          >
-            <Link2 className="w-4 h-4" />
-            Workflows
-          </Button>
         </div>
       </div>
 
