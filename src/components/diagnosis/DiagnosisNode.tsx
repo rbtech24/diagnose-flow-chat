@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { NodeHandles } from './NodeHandles';
 import { MediaContent } from './MediaContent';
 import { TechnicalContent } from './TechnicalContent';
+import { WarningIcon } from './WarningIcons';
 import { NodeData, TechnicalSpecs } from '@/types/node-config';
 import { ApplicationError } from '@/types/error';
 
@@ -48,6 +49,14 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
     };
   }, [nodeData.technicalSpecs]);
 
+  // Parse warning configuration
+  const warningConfig = useMemo(() => {
+    if (nodeData.warning && typeof nodeData.warning === 'object') {
+      return nodeData.warning;
+    }
+    return undefined;
+  }, [nodeData.warning]);
+
   // Safely handle connections with proper typing
   const connected = useMemo(() => {
     return {
@@ -72,18 +81,33 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
     }
   };
 
-  // Type-safe node type determination
+  // Type-safe node type determination with visual indicators
   const getNodeTypeColor = (type?: string): string => {
     switch (type) {
+      case 'start': return 'bg-green-50 border-green-400 border-2';
       case 'question': return 'bg-blue-50 border-blue-200';
-      case 'test': return 'bg-green-50 border-green-200';
-      case 'solution': return 'bg-purple-50 border-purple-200';
-      case 'measurement': return 'bg-yellow-50 border-yellow-200';
+      case 'action': return 'bg-purple-50 border-purple-200';
+      case 'test': return 'bg-yellow-50 border-yellow-200';
+      case 'solution': return 'bg-red-50 border-red-200';
+      case 'measurement': return 'bg-orange-50 border-orange-200';
       default: return 'bg-gray-50 border-gray-200';
     }
   };
 
-  const cardClassName = `min-w-[200px] max-w-[300px] ${getNodeTypeColor(nodeData.type)}`;
+  const getNodeShape = (type?: string): string => {
+    switch (type) {
+      case 'start': return 'rounded-full';
+      case 'solution': return 'rounded-none';
+      default: return 'rounded-lg';
+    }
+  };
+
+  // Don't render start nodes visually (they're workflow metadata)
+  if (nodeData.type === 'start') {
+    return null;
+  }
+
+  const cardClassName = `min-w-[200px] max-w-[300px] ${getNodeTypeColor(nodeData.type)} ${getNodeShape(nodeData.type)}`;
 
   return (
     <Card className={cardClassName}>
@@ -97,10 +121,10 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium">
-            {nodeData.title || 'Untitled Node'}
+            {nodeData.title || 'Untitled Step'}
           </CardTitle>
           {nodeData.type && (
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-xs capitalize">
               {nodeData.type}
             </Badge>
           )}
@@ -108,6 +132,14 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
       </CardHeader>
       
       <CardContent className="pt-0">
+        {warningConfig && (
+          <WarningIcon 
+            type={warningConfig.type}
+            includeLicenseText={warningConfig.includeLicenseText}
+            className="mb-3"
+          />
+        )}
+        
         {nodeContent && (
           <div 
             className="text-sm text-gray-700 mb-2"
@@ -126,10 +158,21 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
           />
         )}
         
-        {(nodeData.yes || nodeData.no) && (
+        {(nodeData.yes || nodeData.no) && nodeData.type === 'question' && (
           <div className="mt-2 text-xs text-gray-600">
             <div>Yes: {nodeData.yes || 'Continue'}</div>
             <div>No: {nodeData.no || 'Stop'}</div>
+          </div>
+        )}
+
+        {nodeData.options && nodeData.options.length > 0 && nodeData.type === 'question' && (
+          <div className="mt-2">
+            <div className="text-xs text-gray-600 mb-1">Options:</div>
+            <ul className="text-xs text-gray-600 list-disc list-inside">
+              {nodeData.options.map((option, index) => (
+                <li key={index}>{option}</li>
+              ))}
+            </ul>
           </div>
         )}
       </CardContent>

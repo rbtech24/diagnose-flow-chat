@@ -1,30 +1,41 @@
 
-import { Field, TechnicalSpecs } from '@/types/node-config';
-import { NodeTypeSelect } from './NodeTypeSelect';
-import { NodeFields } from './NodeFields';
-import { TechnicalSpecsPanel } from './TechnicalSpecs';
-import { Label } from '../ui/label';
-import { Input } from '../ui/input';
-import { Card } from '../ui/card';
-import { Button } from '../ui/button';
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { NodeData, Field, TechnicalSpecs, NodeType } from '@/types/node-config';
+import { WarningSelector } from '@/components/diagnosis/WarningIcons';
 
 interface NodeConfigFormProps {
-  nodeType: string;
+  nodeType: NodeType;
   label: string;
   fields: Field[];
   showTechnicalFields: boolean;
   technicalSpecs: TechnicalSpecs;
-  onNodeTypeChange: (value: string) => void;
-  onLabelChange: (value: string) => void;
+  onNodeTypeChange: (type: NodeType) => void;
+  onLabelChange: (label: string) => void;
   onFieldsChange: (fields: Field[]) => void;
   onTechnicalSpecsChange: (specs: TechnicalSpecs) => void;
-  onAddField: (type: Field['type']) => void;
-  onRemoveField: (id: string) => void;
-  onMoveField: (dragIndex: number, hoverIndex: number) => void;
+  onAddField: () => void;
+  onRemoveField: (index: number) => void;
+  onMoveField: (index: number, direction: 'up' | 'down') => void;
   onReset: () => void;
   onApply: () => void;
-  hasValidationErrors?: boolean;
+  hasValidationErrors: boolean;
 }
+
+const nodeTypeOptions: { value: NodeType; label: string; description: string }[] = [
+  { value: 'start', label: 'Start', description: 'Starting point of workflow (hidden from users)' },
+  { value: 'question', label: 'Question', description: 'Decision point with Yes/No or multiple choice' },
+  { value: 'action', label: 'Action', description: 'Instruction step with single "Next" button' },
+  { value: 'test', label: 'Test', description: 'Measurement or testing step' },
+  { value: 'measurement', label: 'Measurement', description: 'Technical measurement with specifications' },
+  { value: 'solution', label: 'Solution', description: 'Final solution or outcome' }
+];
 
 export function NodeConfigForm({
   nodeType,
@@ -43,80 +54,257 @@ export function NodeConfigForm({
   onApply,
   hasValidationErrors
 }: NodeConfigFormProps) {
-  // Ensure fields is always an array
-  const safeFields = Array.isArray(fields) ? fields : [];
   
-  // Helper function to safely get field content
-  const getFieldContent = () => {
-    return safeFields
-      .filter(f => f.type === 'content')
-      .map(f => f.content)
-      .filter(Boolean)
-      .join('\n\n');
+  const handleWarningChange = (type: any, includeLicenseText: boolean = false) => {
+    const updatedFields = fields.map(field => {
+      if (field.id === 'warning') {
+        return {
+          ...field,
+          content: type ? JSON.stringify({ type, includeLicenseText }) : undefined
+        };
+      }
+      return field;
+    });
+    
+    // Add warning field if it doesn't exist and we're setting a warning
+    if (type && !fields.find(f => f.id === 'warning')) {
+      updatedFields.push({
+        id: 'warning',
+        type: 'content',
+        content: JSON.stringify({ type, includeLicenseText })
+      });
+    }
+    
+    onFieldsChange(updatedFields);
   };
 
-  // Helper function to safely get field media
-  const getFieldMedia = () => {
-    return safeFields
-      .filter(f => f.type === 'media')
-      .flatMap(f => f.media || []);
+  const getCurrentWarning = () => {
+    const warningField = fields.find(f => f.id === 'warning');
+    if (warningField?.content) {
+      try {
+        return JSON.parse(warningField.content);
+      } catch {
+        return undefined;
+      }
+    }
+    return undefined;
   };
 
-  // Helper function to safely get field options 
-  const getFieldOptions = () => {
-    const optionsField = safeFields.find(f => f.type === 'options');
-    return optionsField?.options || [];
-  };
+  const currentWarning = getCurrentWarning();
 
   return (
     <div className="space-y-6">
-      <NodeTypeSelect 
-        value={nodeType} 
-        onChange={onNodeTypeChange}
-      />
-
+      {/* Node Type Selection */}
       <div className="space-y-2">
-        <Label>Label</Label>
-        <Input 
-          placeholder="Enter node label" 
+        <Label htmlFor="nodeType">Step Type</Label>
+        <Select value={nodeType} onValueChange={onNodeTypeChange}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select step type" />
+          </SelectTrigger>
+          <SelectContent>
+            {nodeTypeOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                <div>
+                  <div className="font-medium">{option.label}</div>
+                  <div className="text-xs text-muted-foreground">{option.description}</div>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Node Label */}
+      <div className="space-y-2">
+        <Label htmlFor="label">Step Title</Label>
+        <Input
+          id="label"
           value={label}
           onChange={(e) => onLabelChange(e.target.value)}
+          placeholder="Enter step title"
         />
       </div>
 
-      <NodeFields 
-        fields={safeFields}
-        onFieldsChange={onFieldsChange}
-        onAddField={onAddField}
-        onRemoveField={onRemoveField}
-        onMoveField={onMoveField}
-      />
+      {/* Warning Configuration */}
+      {nodeType !== 'start' && (
+        <WarningSelector
+          value={currentWarning?.type}
+          onChange={(type) => handleWarningChange(type, currentWarning?.includeLicenseText || false)}
+          includeLicenseText={currentWarning?.includeLicenseText || false}
+          onLicenseTextChange={(include) => handleWarningChange(currentWarning?.type, include)}
+        />
+      )}
 
-      <TechnicalSpecsPanel 
-        nodeType={nodeType}
-        value={technicalSpecs}
-        onChange={onTechnicalSpecsChange}
-      />
+      {/* Fields Configuration */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Label>Content Fields</Label>
+          <Button variant="outline" size="sm" onClick={onAddField}>
+            <Plus className="h-4 w-4 mr-1" />
+            Add Field
+          </Button>
+        </div>
 
-      <Card className="p-4 bg-gray-50">
-        <Label className="mb-2 block">JSON Preview</Label>
-        <pre className="text-xs overflow-x-auto">
-          {JSON.stringify({
-            type: nodeType,
-            label,
-            content: getFieldContent(),
-            media: getFieldMedia(),
-            options: getFieldOptions(),
-            technicalSpecs: showTechnicalFields ? technicalSpecs : undefined
-          }, null, 2)}
-        </pre>
-      </Card>
+        {fields.map((field, index) => (
+          <div key={field.id} className="border rounded-lg p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <Badge variant="secondary">Field {index + 1}</Badge>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onMoveField(index, 'up')}
+                  disabled={index === 0}
+                >
+                  <ChevronUp className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onMoveField(index, 'down')}
+                  disabled={index === fields.length - 1}
+                >
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onRemoveField(index)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
 
-      <div className="flex justify-end gap-2">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label>Field Type</Label>
+                <Select
+                  value={field.type}
+                  onValueChange={(value) => {
+                    const updatedFields = [...fields];
+                    updatedFields[index] = { ...field, type: value as any };
+                    onFieldsChange(updatedFields);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="content">Instructions</SelectItem>
+                    <SelectItem value="media">Media</SelectItem>
+                    <SelectItem value="options">Options</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {field.type === 'content' && (
+              <div>
+                <Label>Instructions</Label>
+                <Textarea
+                  value={field.content || ''}
+                  onChange={(e) => {
+                    const updatedFields = [...fields];
+                    updatedFields[index] = { ...field, content: e.target.value };
+                    onFieldsChange(updatedFields);
+                  }}
+                  placeholder="Enter step instructions..."
+                  rows={4}
+                />
+              </div>
+            )}
+
+            {field.type === 'options' && (nodeType === 'question' || nodeType === 'test') && (
+              <div>
+                <Label>Options (one per line)</Label>
+                <Textarea
+                  value={field.options?.join('\n') || ''}
+                  onChange={(e) => {
+                    const updatedFields = [...fields];
+                    updatedFields[index] = { 
+                      ...field, 
+                      options: e.target.value.split('\n').filter(opt => opt.trim()) 
+                    };
+                    onFieldsChange(updatedFields);
+                  }}
+                  placeholder="Enter options, one per line..."
+                  rows={3}
+                />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Technical Specifications */}
+      {showTechnicalFields && (
+        <div className="space-y-4 border-t pt-4">
+          <Label>Technical Specifications</Label>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Min Value</Label>
+              <Input
+                type="number"
+                value={technicalSpecs.range.min}
+                onChange={(e) => onTechnicalSpecsChange({
+                  ...technicalSpecs,
+                  range: { ...technicalSpecs.range, min: Number(e.target.value) }
+                })}
+              />
+            </div>
+            <div>
+              <Label>Max Value</Label>
+              <Input
+                type="number"
+                value={technicalSpecs.range.max}
+                onChange={(e) => onTechnicalSpecsChange({
+                  ...technicalSpecs,
+                  range: { ...technicalSpecs.range, max: Number(e.target.value) }
+                })}
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label>Test Points</Label>
+            <Input
+              value={technicalSpecs.testPoints || ''}
+              onChange={(e) => onTechnicalSpecsChange({
+                ...technicalSpecs,
+                testPoints: e.target.value
+              })}
+              placeholder="Enter test points..."
+            />
+          </div>
+
+          <div>
+            <Label>Measurement Points</Label>
+            <Input
+              value={technicalSpecs.measurementPoints || ''}
+              onChange={(e) => onTechnicalSpecsChange({
+                ...technicalSpecs,
+                measurementPoints: e.target.value
+              })}
+              placeholder="Enter measurement points..."
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Action Buttons */}
+      <div className="flex justify-between pt-4 border-t">
         <Button variant="outline" onClick={onReset}>
           Reset
         </Button>
-        <Button onClick={onApply}>Apply Changes</Button>
+        <Button 
+          onClick={onApply} 
+          disabled={hasValidationErrors}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          Apply Changes
+        </Button>
       </div>
     </div>
   );

@@ -4,8 +4,6 @@ import { toast } from '@/hooks/use-toast';
 import { handleSaveWorkflow, handleImportWorkflow } from '@/utils/flow';
 import { addToHistory } from '@/utils/workflowHistory';
 import { Node } from '@xyflow/react';
-import { useNavigate } from 'react-router-dom';
-import { useUserRole } from '@/hooks/useUserRole';
 
 interface UseFileHandlingProps {
   nodes: Node[];
@@ -36,71 +34,6 @@ export function useFileHandling({
   history,
   setHistory,
 }: UseFileHandlingProps) {
-  const navigate = useNavigate();
-  const { userRole, isLoading: roleLoading } = useUserRole();
-
-  // Enhanced navigation logic with edge case handling
-  const getNavigationPath = useCallback(() => {
-    // Handle loading state
-    if (roleLoading) {
-      return '/';
-    }
-
-    // Handle unknown or undefined roles
-    if (!userRole) {
-      console.warn('User role is undefined, defaulting to root path');
-      return '/';
-    }
-
-    // Define role-based navigation paths
-    const rolePaths: Record<string, string> = {
-      admin: '/admin/workflows',
-      company: '/workflows',
-      tech: '/workflows',
-      user: '/workflows', // fallback for generic user role
-    };
-
-    // Return appropriate path or fallback
-    const path = rolePaths[userRole];
-    if (!path) {
-      console.warn(`Unknown user role: ${userRole}, using default path`);
-      return '/workflows';
-    }
-
-    return path;
-  }, [userRole, roleLoading]);
-
-  // Enhanced retry mechanism for save operations
-  const executeWithRetry = useCallback(async <T>(
-    operation: () => Promise<T>,
-    maxRetries: number = 3,
-    delayMs: number = 1000
-  ): Promise<T> => {
-    let lastError: Error;
-    
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        return await operation();
-      } catch (error) {
-        lastError = error as Error;
-        console.warn(`Attempt ${attempt} failed:`, error);
-
-        if (attempt < maxRetries) {
-          // Exponential backoff
-          const delay = delayMs * Math.pow(2, attempt - 1);
-          await new Promise(resolve => setTimeout(resolve, delay));
-          
-          toast({
-            title: "Retrying Operation",
-            description: `Attempt ${attempt} failed, retrying in ${delay}ms...`,
-            variant: "default"
-          });
-        }
-      }
-    }
-
-    throw lastError!;
-  }, []);
 
   // Enhanced workflow validation
   const validateWorkflow = useCallback((data: any): WorkflowValidationResult => {
@@ -144,37 +77,6 @@ export function useFileHandling({
       });
     }
 
-    // Validate edges structure
-    if (data.edges && Array.isArray(data.edges)) {
-      data.edges.forEach((edge: any, index: number) => {
-        if (!edge.id) {
-          errors.push(`Edge at index ${index}: Missing required 'id' field`);
-        }
-        if (!edge.source) {
-          errors.push(`Edge at index ${index}: Missing required 'source' field`);
-        }
-        if (!edge.target) {
-          errors.push(`Edge at index ${index}: Missing required 'target' field`);
-        }
-      });
-    }
-
-    // Check for potential security issues
-    const jsonString = JSON.stringify(data);
-    if (jsonString.includes('<script>') || jsonString.includes('javascript:')) {
-      errors.push('Security warning: Workflow contains potentially dangerous content');
-    }
-
-    // Size validation
-    if (jsonString.length > 5 * 1024 * 1024) { // 5MB limit
-      warnings.push('Large workflow file detected (>5MB), may impact performance');
-    }
-
-    // Node count validation
-    if (data.nodes && data.nodes.length > 1000) {
-      warnings.push('Large number of nodes detected (>1000), may impact performance');
-    }
-
     return {
       isValid: errors.length === 0,
       errors,
@@ -182,33 +84,20 @@ export function useFileHandling({
     };
   }, []);
 
-  // Enhanced save function with retry mechanism
+  // Enhanced save function - now stays in workflow instead of navigating away
   const handleSave = useCallback(async (name: string, folder: string, appliance: string) => {
     try {
       console.log('Saving workflow with:', {name, folder, appliance, nodes, edges});
       
-      const workflow = await executeWithRetry(async () => {
-        return await handleSaveWorkflow(nodes, edges, nodeCounter, name, folder, appliance, '');
-      });
+      const workflow = await handleSaveWorkflow(nodes, edges, nodeCounter, name, folder, appliance, '');
       
       if (workflow) {
+        // Show success popup instead of navigating away
         toast({
-          title: "Workflow Saved",
-          description: `Successfully saved "${name}" to folder "${folder}"`
+          title: "Workflow Saved Successfully!",
+          description: `"${name}" has been saved to "${folder}" folder.`,
+          duration: 3000,
         });
-        
-        // Enhanced navigation with error handling
-        try {
-          const navigationPath = getNavigationPath();
-          navigate(navigationPath, { replace: false });
-        } catch (navError) {
-          console.error('Navigation error:', navError);
-          toast({
-            title: "Navigation Warning",
-            description: "Workflow saved but navigation failed. Please manually navigate to workflows.",
-            variant: "destructive"
-          });
-        }
       }
       return Promise.resolve();
     } catch (error) {
@@ -221,7 +110,7 @@ export function useFileHandling({
       });
       return Promise.reject(error);
     }
-  }, [nodes, edges, nodeCounter, navigate, getNavigationPath, executeWithRetry]);
+  }, [nodes, edges, nodeCounter]);
 
   // Enhanced file import with comprehensive validation
   const handleFileImport = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -290,10 +179,7 @@ export function useFileHandling({
         });
       }
 
-      // Import with retry mechanism
-      await executeWithRetry(async () => {
-        await handleImportWorkflow(file, setNodes, setEdges, setNodeCounter);
-      });
+      await handleImportWorkflow(file, setNodes, setEdges, setNodeCounter);
 
       const newState = { nodes, edges, nodeCounter };
       setHistory(addToHistory(history, newState));
@@ -315,7 +201,7 @@ export function useFileHandling({
       setIsLoading(false);
       event.target.value = '';
     }
-  }, [nodes, edges, nodeCounter, setNodes, setEdges, setNodeCounter, setIsLoading, history, setHistory, validateWorkflow, executeWithRetry]);
+  }, [nodes, edges, nodeCounter, setNodes, setEdges, setNodeCounter, setIsLoading, history, setHistory, validateWorkflow]);
 
   const handleFileInputClick = useCallback(() => {
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -328,6 +214,6 @@ export function useFileHandling({
     handleSave,
     handleFileImport,
     handleFileInputClick,
-    validateWorkflow, // Expose validation function for external use
+    validateWorkflow,
   };
 }

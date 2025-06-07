@@ -25,6 +25,15 @@ export interface Field {
   options?: string[];
 }
 
+export type WarningType = 'electric' | 'water' | 'fire';
+
+export interface WarningConfig {
+  type: WarningType;
+  includeLicenseText: boolean;
+}
+
+export type NodeType = 'question' | 'solution' | 'test' | 'measurement' | 'start' | 'action';
+
 export interface NodeData extends Record<string, unknown> {
   title?: string;
   content?: string;
@@ -33,8 +42,13 @@ export interface NodeData extends Record<string, unknown> {
   yes?: string;
   no?: string;
   options?: string[];
-  type?: string;
+  type?: NodeType;
   media?: MediaItem[];
+  warning?: WarningConfig;
+  linkToWorkflow?: {
+    workflowName: string;
+    stepId?: string;
+  };
 }
 
 export interface NodeConfigProps {

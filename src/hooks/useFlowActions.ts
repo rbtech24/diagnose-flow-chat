@@ -5,8 +5,6 @@ import { toast } from './use-toast';
 import { addToHistory } from '@/utils/workflowHistory';
 import { handleQuickSave } from '@/utils/flow';
 import { SavedWorkflow } from '@/utils/flow/types';
-import { useNavigate } from 'react-router-dom';
-import { useUserRole } from '@/hooks/useUserRole';
 
 export function useFlowActions(
   nodes: Node[],
@@ -22,9 +20,6 @@ export function useFlowActions(
   currentWorkflow?: SavedWorkflow
 ) {
   const { getViewport } = useReactFlow();
-  const navigate = useNavigate();
-  const { userRole } = useUserRole();
-  const isAdmin = userRole === 'admin';
 
   const handleConnect = useCallback(
     (params: Connection) => {
@@ -108,10 +103,6 @@ export function useFlowActions(
         title: "Workflow Saved",
         description: "Your changes have been saved successfully."
       });
-      
-      // Navigate back to workflows page after successful save
-      const basePath = isAdmin ? '/admin/workflows' : '/workflows';
-      navigate(basePath);
     } catch (error) {
       toast({
         title: "Save Failed",
@@ -119,22 +110,28 @@ export function useFlowActions(
         variant: "destructive"
       });
     }
-  }, [nodes, edges, nodeCounter, currentWorkflow, isAdmin, navigate]);
+  }, [nodes, edges, nodeCounter, currentWorkflow]);
 
   const handleAddNode = useCallback(() => {
+    const viewport = getViewport();
+    
+    // Calculate center of current viewport
+    const centerX = -viewport.x + (window.innerWidth / 2) / viewport.zoom;
+    const centerY = -viewport.y + (window.innerHeight / 2) / viewport.zoom;
+    
     const newNodeId = `node-${nodeCounter}`;
     const newNode = {
       id: newNodeId,
       type: 'diagnosis',
       position: {
-        x: window.innerWidth / 2 - 75,
-        y: window.innerHeight / 2 - 75,
+        x: centerX - 150, // Offset to center the node (node width is ~300px)
+        y: centerY - 75,  // Offset to center the node (node height is ~150px)
       },
       data: {
-        label: `Node ${nodeCounter}`,
+        label: `Step ${nodeCounter}`,
         type: 'question',
         nodeId: `N${String(nodeCounter).padStart(3, '0')}`,
-        content: 'Enter your question or instruction here',
+        content: 'Enter your instructions here',
         options: ['Yes', 'No'],
         media: [],
         technicalSpecs: {
@@ -154,10 +151,10 @@ export function useFlowActions(
     setHistory(addToHistory(history, newState));
 
     toast({
-      title: "Node Added",
-      description: "New node has been added to the workflow."
+      title: "Step Added",
+      description: "New step has been added to the center of your current view."
     });
-  }, [nodes, edges, nodeCounter, setNodes, setNodeCounter, setHistory, history]);
+  }, [nodes, edges, nodeCounter, setNodes, setNodeCounter, setHistory, history, getViewport]);
 
   return {
     handleConnect,
