@@ -47,7 +47,7 @@ function sanitizeInput(input: any): any {
   }
   
   if (input && typeof input === 'object') {
-    const sanitized: { [key: string]: any } = {};
+    const sanitized: Record<string, any> = {};
     Object.keys(input).forEach(key => {
       sanitized[key] = sanitizeInput(input[key]);
     });
@@ -58,14 +58,14 @@ function sanitizeInput(input: any): any {
 }
 
 function validateStatus(status: string): SupportTicket['status'] {
-  const validStatuses: SupportTicket['status'][] = ['open', 'in_progress', 'resolved', 'closed'];
+  const validStatuses: Array<SupportTicket['status']> = ['open', 'in_progress', 'resolved', 'closed'];
   return validStatuses.includes(status as SupportTicket['status']) 
     ? (status as SupportTicket['status']) 
     : 'open';
 }
 
 function validatePriority(priority: string): SupportTicket['priority'] {
-  const validPriorities: SupportTicket['priority'][] = ['low', 'medium', 'high', 'critical'];
+  const validPriorities: Array<SupportTicket['priority']> = ['low', 'medium', 'high', 'critical'];
   return validPriorities.includes(priority as SupportTicket['priority']) 
     ? (priority as SupportTicket['priority']) 
     : 'medium';
@@ -339,7 +339,7 @@ export async function updateSupportTicket(
 
 export async function searchSupportTickets(searchParams: {
   query: string;
-  filters?: { [key: string]: any };
+  filters?: Record<string, any>;
 }): Promise<SupportTicket[]> {
   if (!searchParams.query?.trim()) {
     throw new Error('Search query is required');

@@ -35,11 +35,11 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
       };
     }
 
-    const activeJobs = repairsData?.filter(r => r.status === 'in_progress').length || 0;
-    const completedJobs = repairsData?.filter(r => r.status === 'completed').length || 0;
+    const activeJobs = repairsData?.filter((r: any) => r.status === 'in_progress').length || 0;
+    const completedJobs = repairsData?.filter((r: any) => r.status === 'completed').length || 0;
     const revenue = repairsData
-      ?.filter(r => r.status === 'completed' && r.actual_cost)
-      .reduce((sum, r) => sum + (Number(r.actual_cost) || 0), 0) || 0;
+      ?.filter((r: any) => r.status === 'completed' && r.actual_cost)
+      .reduce((sum: number, r: any) => sum + (Number(r.actual_cost) || 0), 0) || 0;
     const completionRate = repairsData && repairsData.length > 0 
       ? Math.round((completedJobs / repairsData.length) * 100) 
       : 0;
@@ -81,7 +81,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    const activities: RecentActivity[] = activityData.map((activity) => ({
+    const activities: RecentActivity[] = activityData.map((activity: any) => ({
       id: activity.id || `activity-${Date.now()}`,
       type: mapActivityTypeToRecentActivity(activity.activity_type || 'unknown'),
       description: activity.description || 'Activity recorded',
@@ -97,18 +97,22 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
 };
 
 function mapActivityTypeToRecentActivity(activityType: string): RecentActivity['type'] {
-  const typeMap = new Map<string, RecentActivity['type']>([
-    ['repair_completed', 'repair_completed'],
-    ['job_completed', 'repair_completed'],
-    ['repair_started', 'job_started'],
-    ['job_started', 'job_started'],
-    ['parts_ordered', 'parts_needed'],
-    ['parts_needed', 'parts_needed'],
-    ['job_scheduled', 'job_scheduled'],
-    ['appointment_scheduled', 'job_scheduled']
-  ]);
-  
-  return typeMap.get(activityType) || 'job_started';
+  switch (activityType) {
+    case 'repair_completed':
+    case 'job_completed':
+      return 'repair_completed';
+    case 'repair_started':
+    case 'job_started':
+      return 'job_started';
+    case 'parts_ordered':
+    case 'parts_needed':
+      return 'parts_needed';
+    case 'job_scheduled':
+    case 'appointment_scheduled':
+      return 'job_scheduled';
+    default:
+      return 'job_started';
+  }
 }
 
 function formatTimeAgo(date: Date): string {
@@ -128,16 +132,20 @@ function formatTimeAgo(date: Date): string {
 }
 
 function getActivityIcon(activityType: string): string {
-  const iconMap = new Map<string, string>([
-    ['repair_completed', 'CheckSquare'],
-    ['job_completed', 'CheckSquare'],
-    ['repair_started', 'Clock'],
-    ['job_started', 'Clock'],
-    ['parts_ordered', 'AlertCircle'],
-    ['parts_needed', 'AlertCircle'],
-    ['job_scheduled', 'Calendar'],
-    ['appointment_scheduled', 'Calendar']
-  ]);
-  
-  return iconMap.get(activityType) || 'Activity';
+  switch (activityType) {
+    case 'repair_completed':
+    case 'job_completed':
+      return 'CheckSquare';
+    case 'repair_started':
+    case 'job_started':
+      return 'Clock';
+    case 'parts_ordered':
+    case 'parts_needed':
+      return 'AlertCircle';
+    case 'job_scheduled':
+    case 'appointment_scheduled':
+      return 'Calendar';
+    default:
+      return 'Activity';
+  }
 }

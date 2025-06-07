@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { TechnicalSpecs } from '@/types/node-config';
+import { TechnicalSpecs, NodeType } from '@/types/node-config';
 import { toast } from '@/hooks/use-toast';
 import { useNodeFields } from './hooks/useNodeFields';
 import { useNodeValidation } from './hooks/useNodeValidation';
@@ -12,7 +12,7 @@ interface UseNodeConfigProps {
 }
 
 export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
-  const [nodeType, setNodeType] = useState('question');
+  const [nodeType, setNodeType] = useState<NodeType>('question');
   const [label, setLabel] = useState('');
   const [showTechnicalFields, setShowTechnicalFields] = useState(false);
   const [technicalSpecs, setTechnicalSpecs] = useState<TechnicalSpecs>({
@@ -29,7 +29,7 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
   useEffect(() => {
     if (node) {
       console.log('Initializing node config with data:', node.data);
-      setNodeType(node.data.type || 'question');
+      setNodeType((node.data.type || 'question') as NodeType);
       setLabel(node.data.label || '');
       initializeFields(node.data);
       setShowTechnicalFields(['voltage-check', 'resistance-check', 'inspection'].includes(node.data.type));
@@ -43,9 +43,28 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
     }
   }, [node?.id, node?.data, initializeFields]);
 
-  const handleNodeTypeChange = (value: string) => {
+  const handleNodeTypeChange = (value: NodeType) => {
     setNodeType(value);
     setShowTechnicalFields(['voltage-check', 'resistance-check', 'inspection'].includes(value));
+  };
+
+  // Wrapper functions to match the expected API
+  const handleAddField = () => {
+    addField();
+  };
+
+  const handleRemoveField = (index: number) => {
+    const fieldToRemove = fields[index];
+    if (fieldToRemove) {
+      removeField(fieldToRemove.id);
+    }
+  };
+
+  const handleMoveField = (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex >= 0 && targetIndex < fields.length) {
+      moveField(index, targetIndex);
+    }
   };
 
   const handleApplyChanges = () => {
@@ -77,7 +96,7 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
 
   const handleReset = () => {
     if (!node) return;
-    setNodeType(node.data.type);
+    setNodeType(node.data.type as NodeType);
     setLabel(node.data.label);
     initializeFields(node.data);
   };
@@ -93,9 +112,9 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
     setLabel,
     setFields,
     setTechnicalSpecs,
-    addField,
-    removeField,
-    moveField,
+    addField: handleAddField,
+    removeField: handleRemoveField,
+    moveField: handleMoveField,
     handleReset,
     handleApplyChanges
   };
