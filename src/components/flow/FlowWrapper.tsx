@@ -69,6 +69,11 @@ export function FlowWrapper({
         minZoom={0.2}
         maxZoom={4}
         defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+        style={{ 
+          backgroundColor: '#f9fafb',
+          '--xy-edge-stroke-default': '#22c55e',
+          '--xy-edge-stroke-width-default': '2px'
+        } as React.CSSProperties}
       >
         <FlowBackground />
         <FlowToolbar
