@@ -115,13 +115,14 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
         type="target"
         position={Position.Top}
         id="target"
-        className="w-3 h-3 border-2 bg-gray-300"
+        className="w-3 h-3 border-2 bg-gray-300 !border-gray-400"
+        style={{ background: '#d1d5db' }}
       />
       
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium">
-            {nodeData.title || 'Untitled Step'}
+            {nodeData.title || nodeData.label || 'Untitled Step'}
           </CardTitle>
           {nodeData.type && (
             <Badge variant="secondary" className="text-xs capitalize">
@@ -177,9 +178,20 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
         )}
       </CardContent>
       
-      <NodeHandles 
-        connected={connected}
-        handleDisconnect={handleDisconnect}
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="source"
+        className="w-3 h-3 border-2 bg-gray-300 !border-gray-400"
+        style={{ background: '#d1d5db' }}
+      />
+      
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="right"
+        className="w-3 h-3 border-2 bg-gray-300 !border-gray-400"
+        style={{ background: '#d1d5db' }}
       />
     </Card>
   );

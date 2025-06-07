@@ -52,32 +52,37 @@ export function FlowWrapper({
   currentWorkflow,
 }: FlowWrapperProps) {
   return (
-    <ReactFlow
-      nodes={nodes}
-      edges={edges}
-      onNodesChange={onNodesChange}
-      onEdgesChange={onEdgesChange}
-      onConnect={onConnect}
-      onNodeClick={onNodeClick}
-      nodeTypes={nodeTypes}
-      defaultEdgeOptions={defaultEdgeOptions}
-      snapToGrid={snapToGrid}
-      snapGrid={[15, 15]}
-      fitView
-      className="bg-gray-50"
-    >
-      <FlowBackground />
-      <FlowToolbar
-        onAddNode={onAddNode}
-        onSave={onSave}
-        onImportClick={onImportClick}
-        onCopySelected={onCopySelected}
-        onPaste={onPaste}
-        appliances={appliances}
-        onApplyNodeChanges={onApplyNodeChanges}
-        currentWorkflow={currentWorkflow}
-      />
-    </ReactFlow>
+    <div className="w-full h-full">
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        onNodeClick={onNodeClick}
+        nodeTypes={nodeTypes}
+        defaultEdgeOptions={defaultEdgeOptions}
+        snapToGrid={snapToGrid}
+        snapGrid={[15, 15]}
+        fitView
+        className="bg-gray-50"
+        minZoom={0.2}
+        maxZoom={4}
+        defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+      >
+        <FlowBackground />
+        <FlowToolbar
+          onAddNode={onAddNode}
+          onSave={onSave}
+          onImportClick={onImportClick}
+          onCopySelected={onCopySelected}
+          onPaste={onPaste}
+          appliances={appliances}
+          onApplyNodeChanges={onApplyNodeChanges}
+          currentWorkflow={currentWorkflow}
+        />
+      </ReactFlow>
+    </div>
   );
 }
 
