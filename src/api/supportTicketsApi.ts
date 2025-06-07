@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface SupportTicket {
@@ -24,30 +25,6 @@ export interface SupportTicketMessage {
   sender: any;
 }
 
-// Simplified database record interfaces to avoid deep type instantiation
-interface TicketRecord {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  priority: string;
-  user_id: string;
-  created_by_user_id: string;
-  assigned_to?: string;
-  company_id?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface MessageRecord {
-  id: string;
-  ticket_id: string;
-  content: string;
-  user_id: string;
-  created_at: string;
-}
-
-// Simple validation functions
 function isValidUUID(uuid: string): boolean {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(uuid);
@@ -95,34 +72,6 @@ function validatePriority(priority: string): SupportTicket['priority'] {
     : 'medium';
 }
 
-function mapTicketRecord(ticket: TicketRecord): SupportTicket {
-  return {
-    id: ticket.id,
-    title: ticket.title,
-    description: ticket.description,
-    status: validateStatus(ticket.status),
-    priority: validatePriority(ticket.priority),
-    user_id: ticket.user_id,
-    created_by_user_id: ticket.created_by_user_id,
-    assigned_to: ticket.assigned_to,
-    company_id: ticket.company_id,
-    created_at: ticket.created_at,
-    updated_at: ticket.updated_at,
-    created_by_user: null
-  };
-}
-
-function mapMessageRecord(message: MessageRecord): SupportTicketMessage {
-  return {
-    id: message.id,
-    ticket_id: message.ticket_id,
-    content: message.content,
-    user_id: message.user_id,
-    created_at: message.created_at,
-    sender: null
-  };
-}
-
 export async function fetchSupportTickets(
   status?: string, 
   companyId?: string,
@@ -157,7 +106,20 @@ export async function fetchSupportTickets(
     throw error;
   }
   
-  const tickets: SupportTicket[] = (data || []).map((ticket: TicketRecord) => mapTicketRecord(ticket));
+  const tickets: SupportTicket[] = (data || []).map((ticket: any) => ({
+    id: ticket.id,
+    title: ticket.title,
+    description: ticket.description,
+    status: validateStatus(ticket.status),
+    priority: validatePriority(ticket.priority),
+    user_id: ticket.user_id,
+    created_by_user_id: ticket.created_by_user_id,
+    assigned_to: ticket.assigned_to,
+    company_id: ticket.company_id,
+    created_at: ticket.created_at,
+    updated_at: ticket.updated_at,
+    created_by_user: null
+  }));
   
   return {
     tickets,
@@ -187,7 +149,20 @@ export async function fetchSupportTicketById(ticketId: string): Promise<SupportT
     throw new Error('Ticket not found');
   }
   
-  return mapTicketRecord(data as TicketRecord);
+  return {
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    status: validateStatus(data.status),
+    priority: validatePriority(data.priority),
+    user_id: data.user_id,
+    created_by_user_id: data.created_by_user_id,
+    assigned_to: data.assigned_to,
+    company_id: data.company_id,
+    created_at: data.created_at,
+    updated_at: data.updated_at,
+    created_by_user: null
+  };
 }
 
 export async function fetchTicketMessages(ticketId: string): Promise<SupportTicketMessage[]> {
@@ -206,7 +181,14 @@ export async function fetchTicketMessages(ticketId: string): Promise<SupportTick
     throw error;
   }
   
-  return (data || []).map((message: MessageRecord) => mapMessageRecord(message));
+  return (data || []).map((message: any) => ({
+    id: message.id,
+    ticket_id: message.ticket_id,
+    content: message.content,
+    user_id: message.user_id,
+    created_at: message.created_at,
+    sender: null
+  }));
 }
 
 export async function createSupportTicket(ticketData: {
@@ -248,7 +230,20 @@ export async function createSupportTicket(ticketData: {
     throw error;
   }
   
-  return mapTicketRecord(data as TicketRecord);
+  return {
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    status: validateStatus(data.status),
+    priority: validatePriority(data.priority),
+    user_id: data.user_id,
+    created_by_user_id: data.created_by_user_id,
+    assigned_to: data.assigned_to,
+    company_id: data.company_id,
+    created_at: data.created_at,
+    updated_at: data.updated_at,
+    created_by_user: null
+  };
 }
 
 export async function addTicketMessage(messageData: {
@@ -286,7 +281,14 @@ export async function addTicketMessage(messageData: {
     throw error;
   }
   
-  return mapMessageRecord(data as MessageRecord);
+  return {
+    id: data.id,
+    ticket_id: data.ticket_id,
+    content: data.content,
+    user_id: data.user_id,
+    created_at: data.created_at,
+    sender: null
+  };
 }
 
 export async function updateSupportTicket(
@@ -320,7 +322,20 @@ export async function updateSupportTicket(
     throw error;
   }
   
-  return mapTicketRecord(data as TicketRecord);
+  return {
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    status: validateStatus(data.status),
+    priority: validatePriority(data.priority),
+    user_id: data.user_id,
+    created_by_user_id: data.created_by_user_id,
+    assigned_to: data.assigned_to,
+    company_id: data.company_id,
+    created_at: data.created_at,
+    updated_at: data.updated_at,
+    created_by_user: null
+  };
 }
 
 export async function searchSupportTickets(searchParams: {
@@ -355,5 +370,18 @@ export async function searchSupportTickets(searchParams: {
     throw error;
   }
   
-  return (data || []).map((ticket: TicketRecord) => mapTicketRecord(ticket));
+  return (data || []).map((ticket: any) => ({
+    id: ticket.id,
+    title: ticket.title,
+    description: ticket.description,
+    status: validateStatus(ticket.status),
+    priority: validatePriority(ticket.priority),
+    user_id: ticket.user_id,
+    created_by_user_id: ticket.created_by_user_id,
+    assigned_to: ticket.assigned_to,
+    company_id: ticket.company_id,
+    created_at: ticket.created_at,
+    updated_at: ticket.updated_at,
+    created_by_user: null
+  }));
 }
