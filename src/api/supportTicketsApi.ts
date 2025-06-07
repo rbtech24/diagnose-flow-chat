@@ -37,10 +37,7 @@ function sanitizeString(input: string): string {
     .replace(/on\w+\s*=/gi, '');
 }
 
-type SanitizableValue = string | number | boolean | null | undefined;
-type SanitizableObject = { [key: string]: SanitizableValue | SanitizableValue[] | SanitizableObject };
-
-function sanitizeInput(input: SanitizableValue | SanitizableValue[] | SanitizableObject): any {
+function sanitizeInput(input: any): any {
   if (typeof input === 'string') {
     return sanitizeString(input);
   }
@@ -52,7 +49,7 @@ function sanitizeInput(input: SanitizableValue | SanitizableValue[] | Sanitizabl
   if (input && typeof input === 'object') {
     const sanitized: Record<string, any> = {};
     Object.keys(input).forEach(key => {
-      sanitized[key] = sanitizeInput((input as SanitizableObject)[key]);
+      sanitized[key] = sanitizeInput(input[key]);
     });
     return sanitized;
   }
@@ -108,7 +105,7 @@ export async function fetchSupportTickets(
     throw error;
   }
   
-  const tickets: SupportTicket[] = (data || []).map((ticket: any) => ({
+  const ticketList: SupportTicket[] = (data || []).map((ticket: any) => ({
     id: ticket.id,
     title: ticket.title,
     description: ticket.description,
@@ -124,7 +121,7 @@ export async function fetchSupportTickets(
   }));
   
   return {
-    tickets,
+    tickets: ticketList,
     total: count || 0,
     page,
     limit

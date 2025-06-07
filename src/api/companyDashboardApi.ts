@@ -81,13 +81,15 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    return activityData.map((activity) => ({
+    const activities: RecentActivity[] = activityData.map((activity) => ({
       id: activity.id || `activity-${Date.now()}`,
       type: mapActivityTypeToRecentActivity(activity.activity_type || 'unknown'),
       description: activity.description || 'Activity recorded',
       time: formatTimeAgo(new Date(activity.created_at || new Date())),
       icon: getActivityIcon(activity.activity_type || 'unknown')
     }));
+
+    return activities;
   } catch (error) {
     console.error('Error in fetchRecentActivity:', error);
     return [];
