@@ -12,6 +12,12 @@ interface DiagnosisNodeProps extends NodeProps {
   data: NodeData;
 }
 
+interface FieldItem {
+  id: string;
+  type: string;
+  content?: string;
+}
+
 const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
   const nodeData = data as NodeData;
   
@@ -54,15 +60,17 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
       return nodeData.warning;
     }
     
-    // Check if there's a field with warning content
-    const fields = nodeData.fields || [];
-    const warningField = fields.find((field: any) => field.id === 'warning' || field.type === 'warning');
-    
-    if (warningField && warningField.content) {
-      try {
-        return JSON.parse(warningField.content);
-      } catch {
-        return undefined;
+    // Check if there's a field with warning content - type-safe approach
+    if (nodeData.fields && Array.isArray(nodeData.fields)) {
+      const fields = nodeData.fields as FieldItem[];
+      const warningField = fields.find((field: FieldItem) => field.id === 'warning' || field.type === 'warning');
+      
+      if (warningField && warningField.content) {
+        try {
+          return JSON.parse(warningField.content);
+        } catch {
+          return undefined;
+        }
       }
     }
     

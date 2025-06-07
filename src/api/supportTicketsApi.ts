@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface SupportTicket {
@@ -60,19 +59,30 @@ function sanitizeString(input: string): string {
     .replace(/on\w+\s*=/gi, '');
 }
 
-function sanitizeInput(input: any): any {
+// Simplified sanitizeInput to avoid deep type recursion
+function sanitizeInput(input: string | Record<string, unknown> | unknown[]): string | Record<string, unknown> | unknown[] {
   if (typeof input === 'string') {
     return sanitizeString(input);
   }
   
   if (Array.isArray(input)) {
-    return input.map(item => sanitizeInput(item));
+    return input.map(item => {
+      if (typeof item === 'string') {
+        return sanitizeString(item);
+      }
+      return item;
+    });
   }
   
   if (input && typeof input === 'object' && input !== null) {
-    const sanitized: any = {};
-    Object.keys(input).forEach(key => {
-      sanitized[key] = sanitizeInput(input[key]);
+    const sanitized: Record<string, unknown> = {};
+    Object.keys(input as Record<string, unknown>).forEach(key => {
+      const value = (input as Record<string, unknown>)[key];
+      if (typeof value === 'string') {
+        sanitized[key] = sanitizeString(value);
+      } else {
+        sanitized[key] = value;
+      }
     });
     return sanitized;
   }

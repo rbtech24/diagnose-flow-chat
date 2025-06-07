@@ -38,12 +38,16 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     const activeJobs = repairs.filter((r) => r.status === 'in_progress').length;
     const completedJobs = repairs.filter((r) => r.status === 'completed').length;
     
-    const revenue = repairs
-      .filter((r) => r.status === 'completed' && r.actual_cost)
-      .reduce((sum, r) => {
-        const cost = Number(r.actual_cost) || 0;
-        return sum + cost;
-      }, 0);
+    // Simplified revenue calculation to avoid deep type instantiation
+    let revenue = 0;
+    for (const repair of repairs) {
+      if (repair.status === 'completed' && repair.actual_cost) {
+        const cost = Number(repair.actual_cost);
+        if (!isNaN(cost)) {
+          revenue += cost;
+        }
+      }
+    }
       
     const completionRate = repairs.length > 0 
       ? Math.round((completedJobs / repairs.length) * 100) 
