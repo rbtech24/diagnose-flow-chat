@@ -5,6 +5,28 @@ import { ServerValidation } from "@/utils/validation/serverValidation";
 import { APIValidator } from "@/utils/validation/apiValidator";
 import { PaginationSchema, SearchSchema } from "@/utils/validation/schemas";
 
+interface DatabaseTicket {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  user_id: string;
+  created_by_user_id: string;
+  assigned_to?: string;
+  company_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface DatabaseMessage {
+  id: string;
+  ticket_id: string;
+  content: string;
+  user_id: string;
+  created_at: string;
+}
+
 // Helper functions for type casting
 function validateStatus(status: string): SupportTicket['status'] {
   const validStatuses: SupportTicket['status'][] = ['open', 'in_progress', 'resolved', 'closed'];
@@ -18,6 +40,34 @@ function validatePriority(priority: string): SupportTicket['priority'] {
   return validPriorities.includes(priority as SupportTicket['priority']) 
     ? (priority as SupportTicket['priority']) 
     : 'medium';
+}
+
+function transformTicket(ticket: DatabaseTicket): SupportTicket {
+  return {
+    id: ticket.id,
+    title: ticket.title,
+    description: ticket.description,
+    status: validateStatus(ticket.status),
+    priority: validatePriority(ticket.priority),
+    user_id: ticket.user_id,
+    created_by_user_id: ticket.created_by_user_id,
+    assigned_to: ticket.assigned_to,
+    company_id: ticket.company_id,
+    created_at: ticket.created_at,
+    updated_at: ticket.updated_at,
+    created_by_user: null
+  };
+}
+
+function transformMessage(message: DatabaseMessage): SupportTicketMessage {
+  return {
+    id: message.id,
+    ticket_id: message.ticket_id,
+    content: message.content,
+    user_id: message.user_id,
+    created_at: message.created_at,
+    sender: null
+  };
 }
 
 /**
@@ -79,20 +129,7 @@ export async function fetchSupportTickets(
   }
   
   // Transform data to match SupportTicket interface
-  const tickets: SupportTicket[] = (data || []).map((ticket: any) => ({
-    id: ticket.id,
-    title: ticket.title,
-    description: ticket.description,
-    status: validateStatus(ticket.status),
-    priority: validatePriority(ticket.priority),
-    user_id: ticket.user_id,
-    created_by_user_id: ticket.created_by_user_id,
-    assigned_to: ticket.assigned_to,
-    company_id: ticket.company_id,
-    created_at: ticket.created_at,
-    updated_at: ticket.updated_at,
-    created_by_user: null // Will be populated separately if needed
-  }));
+  const tickets: SupportTicket[] = (data || []).map(transformTicket);
   
   return {
     tickets,
@@ -148,20 +185,7 @@ export async function fetchSupportTicketById(ticketId: string): Promise<SupportT
     throw new Error('Access denied to this ticket');
   }
   
-  return {
-    id: data.id,
-    title: data.title,
-    description: data.description,
-    status: validateStatus(data.status),
-    priority: validatePriority(data.priority),
-    user_id: data.user_id,
-    created_by_user_id: data.created_by_user_id,
-    assigned_to: data.assigned_to,
-    company_id: data.company_id,
-    created_at: data.created_at,
-    updated_at: data.updated_at,
-    created_by_user: null
-  };
+  return transformTicket(data);
 }
 
 /**
@@ -193,14 +217,7 @@ export async function fetchTicketMessages(ticketId: string): Promise<SupportTick
     throw error;
   }
   
-  return (data || []).map((message: any) => ({
-    id: message.id,
-    ticket_id: message.ticket_id,
-    content: message.content,
-    user_id: message.user_id,
-    created_at: message.created_at,
-    sender: null // Will be populated separately if needed
-  }));
+  return (data || []).map(transformMessage);
 }
 
 /**
@@ -234,20 +251,7 @@ export async function createSupportTicket(ticketData: unknown): Promise<SupportT
     throw error;
   }
   
-  return {
-    id: data.id,
-    title: data.title,
-    description: data.description,
-    status: validateStatus(data.status),
-    priority: validatePriority(data.priority),
-    user_id: data.user_id,
-    created_by_user_id: data.created_by_user_id,
-    assigned_to: data.assigned_to,
-    company_id: data.company_id,
-    created_at: data.created_at,
-    updated_at: data.updated_at,
-    created_by_user: null
-  };
+  return transformTicket(data);
 }
 
 /**
@@ -278,14 +282,7 @@ export async function addTicketMessage(messageData: unknown): Promise<SupportTic
     throw error;
   }
   
-  return {
-    id: data.id,
-    ticket_id: data.ticket_id,
-    content: data.content,
-    user_id: data.user_id,
-    created_at: data.created_at,
-    sender: null
-  };
+  return transformMessage(data);
 }
 
 /**
@@ -325,20 +322,7 @@ export async function updateSupportTicket(
     throw error;
   }
   
-  return {
-    id: data.id,
-    title: data.title,
-    description: data.description,
-    status: validateStatus(data.status),
-    priority: validatePriority(data.priority),
-    user_id: data.user_id,
-    created_by_user_id: data.created_by_user_id,
-    assigned_to: data.assigned_to,
-    company_id: data.company_id,
-    created_at: data.created_at,
-    updated_at: data.updated_at,
-    created_by_user: null
-  };
+  return transformTicket(data);
 }
 
 /**
@@ -380,18 +364,5 @@ export async function searchSupportTickets(searchParams: unknown): Promise<Suppo
     throw error;
   }
   
-  return (data || []).map((ticket: any) => ({
-    id: ticket.id,
-    title: ticket.title,
-    description: ticket.description,
-    status: validateStatus(ticket.status),
-    priority: validatePriority(ticket.priority),
-    user_id: ticket.user_id,
-    created_by_user_id: ticket.created_by_user_id,
-    assigned_to: ticket.assigned_to,
-    company_id: ticket.company_id,
-    created_at: ticket.created_at,
-    updated_at: ticket.updated_at,
-    created_by_user: null
-  }));
+  return (data || []).map(transformTicket);
 }
