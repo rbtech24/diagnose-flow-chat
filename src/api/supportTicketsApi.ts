@@ -1,30 +1,31 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SupportTicket, SupportTicketMessage } from "@/types/support";
 
-interface DatabaseTicket {
+export interface SupportTicket {
   id: string;
   title: string;
   description: string;
-  status: string;
-  priority: string;
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  priority: 'low' | 'medium' | 'high' | 'critical';
   user_id: string;
   created_by_user_id: string;
   assigned_to?: string;
   company_id?: string;
   created_at: string;
   updated_at: string;
+  created_by_user: any;
 }
 
-interface DatabaseMessage {
+export interface SupportTicketMessage {
   id: string;
   ticket_id: string;
   content: string;
   user_id: string;
   created_at: string;
+  sender: any;
 }
 
-// Simple validation functions without complex type inference
+// Simple validation functions
 function isValidUUID(uuid: string): boolean {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(uuid);
@@ -58,7 +59,6 @@ function sanitizeInput(input: any): any {
   return input;
 }
 
-// Helper functions for type casting
 function validateStatus(status: string): SupportTicket['status'] {
   const validStatuses: SupportTicket['status'][] = ['open', 'in_progress', 'resolved', 'closed'];
   return validStatuses.includes(status as SupportTicket['status']) 
@@ -73,53 +73,17 @@ function validatePriority(priority: string): SupportTicket['priority'] {
     : 'medium';
 }
 
-function transformTicket(ticket: DatabaseTicket): SupportTicket {
-  return {
-    id: ticket.id,
-    title: ticket.title,
-    description: ticket.description,
-    status: validateStatus(ticket.status),
-    priority: validatePriority(ticket.priority),
-    user_id: ticket.user_id,
-    created_by_user_id: ticket.created_by_user_id,
-    assigned_to: ticket.assigned_to,
-    company_id: ticket.company_id,
-    created_at: ticket.created_at,
-    updated_at: ticket.updated_at,
-    created_by_user: null
-  };
-}
-
-function transformMessage(message: DatabaseMessage): SupportTicketMessage {
-  return {
-    id: message.id,
-    ticket_id: message.ticket_id,
-    content: message.content,
-    user_id: message.user_id,
-    created_at: message.created_at,
-    sender: null
-  };
-}
-
-/**
- * Fetch support tickets with basic validation
- */
 export async function fetchSupportTickets(
   status?: string, 
   companyId?: string,
   pagination?: { page?: number; limit?: number; sortOrder?: 'asc' | 'desc' }
 ): Promise<{ tickets: SupportTicket[]; total: number; page: number; limit: number }> {
-  
-  // Basic pagination defaults
   const page = pagination?.page || 1;
   const limit = Math.min(pagination?.limit || 20, 100);
   const sortOrder = pagination?.sortOrder || 'desc';
 
-  let query = supabase.from('support_tickets').select(`
-    *
-  `, { count: 'exact' });
+  let query = supabase.from('support_tickets').select('*', { count: 'exact' });
   
-  // Apply filters if provided
   if (status && status !== 'all') {
     const validStatuses = ['open', 'in_progress', 'resolved', 'closed'];
     if (validStatuses.includes(status)) {
@@ -131,7 +95,6 @@ export async function fetchSupportTickets(
     query = query.eq('company_id', companyId);
   }
   
-  // Apply pagination
   const offset = (page - 1) * limit;
   query = query
     .order('created_at', { ascending: sortOrder === 'asc' })
@@ -144,8 +107,20 @@ export async function fetchSupportTickets(
     throw error;
   }
   
-  // Transform data to match SupportTicket interface
-  const tickets: SupportTicket[] = (data || []).map(transformTicket);
+  const tickets: SupportTicket[] = (data || []).map((ticket: any) => ({
+    id: ticket.id,
+    title: ticket.title,
+    description: ticket.description,
+    status: validateStatus(ticket.status),
+    priority: validatePriority(ticket.priority),
+    user_id: ticket.user_id,
+    created_by_user_id: ticket.created_by_user_id,
+    assigned_to: ticket.assigned_to,
+    company_id: ticket.company_id,
+    created_at: ticket.created_at,
+    updated_at: ticket.updated_at,
+    created_by_user: null
+  }));
   
   return {
     tickets,
@@ -155,9 +130,6 @@ export async function fetchSupportTickets(
   };
 }
 
-/**
- * Fetch a single support ticket by ID
- */
 export async function fetchSupportTicketById(ticketId: string): Promise<SupportTicket> {
   if (!isValidUUID(ticketId)) {
     throw new Error('Invalid ticket ID format');
@@ -178,12 +150,22 @@ export async function fetchSupportTicketById(ticketId: string): Promise<SupportT
     throw new Error('Ticket not found');
   }
   
-  return transformTicket(data);
+  return {
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    status: validateStatus(data.status),
+    priority: validatePriority(data.priority),
+    user_id: data.user_id,
+    created_by_user_id: data.created_by_user_id,
+    assigned_to: data.assigned_to,
+    company_id: data.company_id,
+    created_at: data.created_at,
+    updated_at: data.updated_at,
+    created_by_user: null
+  };
 }
 
-/**
- * Fetch messages for a specific support ticket
- */
 export async function fetchTicketMessages(ticketId: string): Promise<SupportTicketMessage[]> {
   if (!isValidUUID(ticketId)) {
     throw new Error('Invalid ticket ID format');
@@ -200,20 +182,22 @@ export async function fetchTicketMessages(ticketId: string): Promise<SupportTick
     throw error;
   }
   
-  return (data || []).map(transformMessage);
+  return (data || []).map((message: any) => ({
+    id: message.id,
+    ticket_id: message.ticket_id,
+    content: message.content,
+    user_id: message.user_id,
+    created_at: message.created_at,
+    sender: null
+  }));
 }
 
-/**
- * Create a new support ticket
- */
 export async function createSupportTicket(ticketData: {
   title: string;
   description: string;
   priority?: string;
   companyId?: string;
 }): Promise<SupportTicket> {
-  
-  // Basic validation
   if (!ticketData.title?.trim()) {
     throw new Error('Title is required');
   }
@@ -222,10 +206,7 @@ export async function createSupportTicket(ticketData: {
     throw new Error('Description is required');
   }
 
-  // Sanitize input
   const sanitizedData = sanitizeInput(ticketData);
-
-  // Get current user
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) {
@@ -250,17 +231,26 @@ export async function createSupportTicket(ticketData: {
     throw error;
   }
   
-  return transformTicket(data);
+  return {
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    status: validateStatus(data.status),
+    priority: validatePriority(data.priority),
+    user_id: data.user_id,
+    created_by_user_id: data.created_by_user_id,
+    assigned_to: data.assigned_to,
+    company_id: data.company_id,
+    created_at: data.created_at,
+    updated_at: data.updated_at,
+    created_by_user: null
+  };
 }
 
-/**
- * Add a message to a support ticket
- */
 export async function addTicketMessage(messageData: {
   content: string;
   ticket_id: string;
 }): Promise<SupportTicketMessage> {
-  
   if (!messageData.content?.trim()) {
     throw new Error('Message content is required');
   }
@@ -269,14 +259,12 @@ export async function addTicketMessage(messageData: {
     throw new Error('Invalid ticket ID format');
   }
 
-  // Get current user
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) {
     throw new Error('User not authenticated');
   }
 
-  // Sanitize input
   const sanitizedData = sanitizeInput(messageData);
 
   const { data, error } = await supabase
@@ -294,12 +282,16 @@ export async function addTicketMessage(messageData: {
     throw error;
   }
   
-  return transformMessage(data);
+  return {
+    id: data.id,
+    ticket_id: data.ticket_id,
+    content: data.content,
+    user_id: data.user_id,
+    created_at: data.created_at,
+    sender: null
+  };
 }
 
-/**
- * Update a support ticket
- */
 export async function updateSupportTicket(
   ticketId: string, 
   updateData: {
@@ -310,12 +302,10 @@ export async function updateSupportTicket(
     assignedTo?: string;
   }
 ): Promise<SupportTicket> {
-  
   if (!isValidUUID(ticketId)) {
     throw new Error('Invalid ticket ID format');
   }
 
-  // Sanitize input
   const sanitizedData = sanitizeInput(updateData);
 
   const { data, error } = await supabase
@@ -333,22 +323,30 @@ export async function updateSupportTicket(
     throw error;
   }
   
-  return transformTicket(data);
+  return {
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    status: validateStatus(data.status),
+    priority: validatePriority(data.priority),
+    user_id: data.user_id,
+    created_by_user_id: data.created_by_user_id,
+    assigned_to: data.assigned_to,
+    company_id: data.company_id,
+    created_at: data.created_at,
+    updated_at: data.updated_at,
+    created_by_user: null
+  };
 }
 
-/**
- * Search support tickets
- */
 export async function searchSupportTickets(searchParams: {
   query: string;
   filters?: Record<string, any>;
 }): Promise<SupportTicket[]> {
-  
   if (!searchParams.query?.trim()) {
     throw new Error('Search query is required');
   }
 
-  // Sanitize search query
   const sanitizedQuery = sanitizeString(searchParams.query);
 
   let query = supabase
@@ -358,7 +356,6 @@ export async function searchSupportTickets(searchParams: {
     .order('created_at', { ascending: false })
     .limit(50);
 
-  // Apply additional filters if provided
   if (searchParams.filters) {
     Object.entries(searchParams.filters).forEach(([key, value]) => {
       if (typeof value === 'string' && value.trim()) {
@@ -374,5 +371,18 @@ export async function searchSupportTickets(searchParams: {
     throw error;
   }
   
-  return (data || []).map(transformTicket);
+  return (data || []).map((ticket: any) => ({
+    id: ticket.id,
+    title: ticket.title,
+    description: ticket.description,
+    status: validateStatus(ticket.status),
+    priority: validatePriority(ticket.priority),
+    user_id: ticket.user_id,
+    created_by_user_id: ticket.created_by_user_id,
+    assigned_to: ticket.assigned_to,
+    company_id: ticket.company_id,
+    created_at: ticket.created_at,
+    updated_at: ticket.updated_at,
+    created_by_user: null
+  }));
 }
