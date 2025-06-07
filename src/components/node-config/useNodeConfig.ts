@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { TechnicalSpecs, NodeType } from '@/types/node-config';
+import { TechnicalSpecs, NodeType, Field } from '@/types/node-config';
 import { toast } from '@/hooks/use-toast';
 import { useNodeFields } from './hooks/useNodeFields';
 import { useNodeValidation } from './hooks/useNodeValidation';
@@ -48,25 +48,6 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
     setShowTechnicalFields(['voltage-check', 'resistance-check', 'inspection'].includes(value));
   };
 
-  // Wrapper functions to match the expected API
-  const handleAddField = () => {
-    addField('content'); // Provide default field type
-  };
-
-  const handleRemoveField = (index: number) => {
-    const fieldToRemove = fields[index];
-    if (fieldToRemove) {
-      removeField(fieldToRemove.id);
-    }
-  };
-
-  const handleMoveField = (index: number, direction: 'up' | 'down') => {
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex >= 0 && targetIndex < fields.length) {
-      moveField(index, targetIndex);
-    }
-  };
-
   const handleApplyChanges = () => {
     if (!node) return;
     
@@ -112,9 +93,9 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
     setLabel,
     setFields,
     setTechnicalSpecs,
-    addField: handleAddField,
-    removeField: handleRemoveField,
-    moveField: handleMoveField,
+    addField: (type: Field['type']) => addField(type),
+    removeField: (id: string) => removeField(id),
+    moveField: (dragIndex: number, hoverIndex: number) => moveField(dragIndex, hoverIndex),
     handleReset,
     handleApplyChanges
   };
