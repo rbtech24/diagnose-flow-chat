@@ -16,6 +16,19 @@ export interface RecentActivity {
   icon: string;
 }
 
+type RepairRecord = {
+  status: string;
+  actual_cost: number | null;
+  completed_at: string | null;
+};
+
+type ActivityRecord = {
+  id: string;
+  activity_type: string;
+  description: string;
+  created_at: string;
+};
+
 export const fetchDashboardStats = async (companyId: string): Promise<DashboardStats> => {
   console.log('Fetching dashboard stats for company:', companyId);
   
@@ -35,13 +48,14 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
       };
     }
 
-    const activeJobs = repairsData?.filter((r: any) => r.status === 'in_progress').length || 0;
-    const completedJobs = repairsData?.filter((r: any) => r.status === 'completed').length || 0;
-    const revenue = repairsData
-      ?.filter((r: any) => r.status === 'completed' && r.actual_cost)
-      .reduce((sum: number, r: any) => sum + (Number(r.actual_cost) || 0), 0) || 0;
-    const completionRate = repairsData && repairsData.length > 0 
-      ? Math.round((completedJobs / repairsData.length) * 100) 
+    const repairs = repairsData as RepairRecord[] || [];
+    const activeJobs = repairs.filter((r) => r.status === 'in_progress').length;
+    const completedJobs = repairs.filter((r) => r.status === 'completed').length;
+    const revenue = repairs
+      .filter((r) => r.status === 'completed' && r.actual_cost)
+      .reduce((sum, r) => sum + (Number(r.actual_cost) || 0), 0);
+    const completionRate = repairs.length > 0 
+      ? Math.round((completedJobs / repairs.length) * 100) 
       : 0;
 
     return {
@@ -81,7 +95,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    const activities: RecentActivity[] = activityData.map((activity: any) => ({
+    const activities: RecentActivity[] = (activityData as ActivityRecord[]).map((activity) => ({
       id: activity.id || `activity-${Date.now()}`,
       type: mapActivityTypeToRecentActivity(activity.activity_type || 'unknown'),
       description: activity.description || 'Activity recorded',

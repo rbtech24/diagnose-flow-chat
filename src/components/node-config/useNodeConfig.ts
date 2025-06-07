@@ -50,7 +50,7 @@ export function useNodeConfig({ node, onUpdate }: UseNodeConfigProps) {
 
   // Wrapper functions to match the expected API
   const handleAddField = () => {
-    addField();
+    addField('content'); // Provide default field type
   };
 
   const handleRemoveField = (index: number) => {
