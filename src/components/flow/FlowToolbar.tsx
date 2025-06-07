@@ -10,6 +10,7 @@ import { Input } from '../ui/input';
 import { SavedWorkflow } from '@/utils/flow/types';
 import { useUserRole } from '@/hooks/useUserRole';
 import { toast } from '@/hooks/use-toast';
+import { Separator } from '../ui/separator';
 
 interface FlowToolbarProps {
   onAddNode: () => void;
@@ -49,106 +50,109 @@ export function FlowToolbar({
   }, [isAdmin, navigate]);
 
   return (
-    <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-background border-b pointer-events-auto">
-      {/* Left side - Primary Actions */}
-      <div className="flex items-center gap-3">
-        <Button 
-          variant="default"
-          size="sm" 
-          className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-          onClick={onAddNode}
-        >
-          <Plus className="w-4 h-4" />
-          Add Step
-        </Button>
-
-        {onApplyNodeChanges && (
+    <div className="absolute top-0 left-0 right-0 z-10 bg-background border-b pointer-events-auto">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-2 lg:p-4 gap-3">
+        {/* Left side - Primary Actions */}
+        <div className="flex flex-wrap items-center gap-2 lg:gap-3 w-full lg:w-auto">
           <Button 
-            variant="secondary"
-            size="sm"
-            className="flex items-center gap-2"
-            onClick={onApplyNodeChanges}
+            variant="default"
+            size="sm" 
+            className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+            onClick={onAddNode}
           >
-            <Save className="w-4 h-4" />
-            Apply Changes
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Add Step</span>
           </Button>
-        )}
 
-        <div className="h-6 w-px bg-gray-200 mx-2" />
+          {onApplyNodeChanges && (
+            <Button 
+              variant="secondary"
+              size="sm"
+              className="flex items-center gap-2"
+              onClick={onApplyNodeChanges}
+            >
+              <Save className="w-4 h-4" />
+              <span className="hidden sm:inline">Apply Changes</span>
+            </Button>
+          )}
 
-        <SaveWorkflowDialog onSave={onSave} currentWorkflow={currentWorkflow} />
+          <Separator orientation="vertical" className="h-6 hidden lg:block" />
 
-        <Button 
-          variant="secondary" 
-          size="sm"
-          className="flex items-center gap-2" 
-          onClick={onImportClick}
-        >
-          <Upload className="w-4 h-4" />
-          Import
-        </Button>
-      </div>
+          <SaveWorkflowDialog onSave={onSave} currentWorkflow={currentWorkflow} />
 
-      {/* Right side - Secondary Actions and Navigation */}
-      <div className="flex items-center gap-3">
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Search nodes..."
-            size={32}
-            className="h-8 w-[180px] pl-8"
-          />
+          <Button 
+            variant="secondary" 
+            size="sm"
+            className="flex items-center gap-2" 
+            onClick={onImportClick}
+          >
+            <Upload className="w-4 h-4" />
+            <span className="hidden sm:inline">Import</span>
+          </Button>
         </div>
 
-        <div className="h-6 w-px bg-gray-200 mx-1" />
+        {/* Right side - Secondary Actions and Navigation */}
+        <div className="flex flex-wrap items-center gap-2 lg:gap-3 w-full lg:w-auto justify-end">
+          {/* Search - responsive width */}
+          <div className="relative flex-1 lg:flex-none min-w-[120px] max-w-[200px]">
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search..."
+              className="h-8 pl-8 text-sm"
+            />
+          </div>
 
-        {/* Clipboard Actions */}
-        <Button 
-          variant="secondary"
-          size="sm"
-          className="flex items-center gap-2"
-          onClick={onCopySelected}
-        >
-          <Copy className="w-4 h-4" />
-          Copy
-        </Button>
-        
-        <Button 
-          variant="secondary"
-          size="sm"
-          className="flex items-center gap-2"
-          onClick={onPaste}
-        >
-          <Clipboard className="w-4 h-4" />
-          Paste
-        </Button>
-        
-        <Button 
-          variant="secondary"
-          size="sm"
-          className="flex items-center gap-2"
-          onClick={() => {
-            handleSaveWorkflow(nodes, edges, nodeCounter, 'Exported Workflow', 'export', 'export', '');
-          }}
-        >
-          <Download className="w-4 h-4" />
-          Export
-        </Button>
+          <Separator orientation="vertical" className="h-6 hidden lg:block" />
 
-        <div className="h-6 w-px bg-gray-200 mx-1" />
+          {/* Clipboard Actions */}
+          <div className="flex items-center gap-1 lg:gap-2">
+            <Button 
+              variant="secondary"
+              size="sm"
+              className="flex items-center gap-1 lg:gap-2 px-2 lg:px-3"
+              onClick={onCopySelected}
+            >
+              <Copy className="w-4 h-4" />
+              <span className="hidden md:inline">Copy</span>
+            </Button>
+            
+            <Button 
+              variant="secondary"
+              size="sm"
+              className="flex items-center gap-1 lg:gap-2 px-2 lg:px-3"
+              onClick={onPaste}
+            >
+              <Clipboard className="w-4 h-4" />
+              <span className="hidden md:inline">Paste</span>
+            </Button>
+            
+            <Button 
+              variant="secondary"
+              size="sm"
+              className="flex items-center gap-1 lg:gap-2 px-2 lg:px-3"
+              onClick={() => {
+                handleSaveWorkflow(nodes, edges, nodeCounter, 'Exported Workflow', 'export', 'export', '');
+              }}
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden md:inline">Export</span>
+            </Button>
+          </div>
 
-        {/* Navigation */}
-        <Button 
-          variant="default"
-          size="sm"
-          className="flex items-center gap-2 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white"
-          onClick={handleGoToWorkflows}
-        >
-          <Link2 className="w-4 h-4" />
-          Workflows
-        </Button>
+          <Separator orientation="vertical" className="h-6 hidden lg:block" />
+
+          {/* Navigation */}
+          <Button 
+            variant="default"
+            size="sm"
+            className="flex items-center gap-2 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white"
+            onClick={handleGoToWorkflows}
+          >
+            <Link2 className="w-4 h-4" />
+            <span className="hidden sm:inline">Workflows</span>
+          </Button>
+        </div>
       </div>
 
       <input

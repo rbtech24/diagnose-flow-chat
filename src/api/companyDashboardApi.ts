@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DashboardStats {
@@ -48,12 +47,12 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
       };
     }
 
-    const repairs: RepairData[] = repairsData || [];
-    const activeJobs = repairs.filter((r) => r.status === 'in_progress').length;
-    const completedJobs = repairs.filter((r) => r.status === 'completed').length;
+    const repairs = repairsData || [];
+    const activeJobs = repairs.filter((r: any) => r.status === 'in_progress').length;
+    const completedJobs = repairs.filter((r: any) => r.status === 'completed').length;
     const revenue = repairs
-      .filter((r) => r.status === 'completed' && r.actual_cost)
-      .reduce((sum, r) => sum + (Number(r.actual_cost) || 0), 0);
+      .filter((r: any) => r.status === 'completed' && r.actual_cost)
+      .reduce((sum: number, r: any) => sum + (Number(r.actual_cost) || 0), 0);
     const completionRate = repairs.length > 0 
       ? Math.round((completedJobs / repairs.length) * 100) 
       : 0;
@@ -95,7 +94,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    const activities: RecentActivity[] = activityData.map((activity: ActivityData) => ({
+    const activities: RecentActivity[] = activityData.map((activity: any) => ({
       id: activity.id || `activity-${Date.now()}`,
       type: mapActivityTypeToRecentActivity(activity.activity_type || 'unknown'),
       description: activity.description || 'Activity recorded',

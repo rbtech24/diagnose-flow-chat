@@ -64,11 +64,11 @@ export function FlowWrapper({
         defaultEdgeOptions={defaultEdgeOptions}
         snapToGrid={snapToGrid}
         snapGrid={[15, 15]}
-        fitView
+        fitView={false}
         className="bg-gray-50"
-        minZoom={0.2}
-        maxZoom={4}
-        defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+        minZoom={0.3}
+        maxZoom={2}
+        defaultViewport={{ x: 100, y: 100, zoom: 0.8 }}
         style={{ 
           backgroundColor: '#f9fafb',
           '--xy-edge-stroke-default': '#22c55e',
