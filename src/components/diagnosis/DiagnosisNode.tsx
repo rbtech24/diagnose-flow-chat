@@ -3,12 +3,10 @@ import React, { memo, useMemo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { NodeHandles } from './NodeHandles';
 import { MediaContent } from './MediaContent';
 import { TechnicalContent } from './TechnicalContent';
 import { WarningIcon } from './WarningIcons';
 import { NodeData, TechnicalSpecs } from '@/types/node-config';
-import { ApplicationError } from '@/types/error';
 
 interface DiagnosisNodeProps extends NodeProps {
   data: NodeData;
@@ -56,30 +54,6 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
     }
     return undefined;
   }, [nodeData.warning]);
-
-  // Safely handle connections with proper typing
-  const connected = useMemo(() => {
-    return {
-      top: { isConnected: false, isNoOutcome: false },
-      right: { isConnected: false, isNoOutcome: false },
-      bottom: { isConnected: false, isNoOutcome: false },
-      left: { isConnected: false, isNoOutcome: false }
-    };
-  }, []);
-
-  const handleDisconnect = (handleId: string): void => {
-    try {
-      console.log(`Disconnecting handle: ${handleId} from node: ${id}`);
-      // Implementation for disconnecting handles
-    } catch (error) {
-      const applicationError: ApplicationError = {
-        message: `Failed to disconnect handle: ${handleId}`,
-        code: 'HANDLE_DISCONNECT_ERROR',
-        timestamp: new Date()
-      };
-      console.error('Handle disconnect error:', applicationError);
-    }
-  };
 
   // Type-safe node type determination with visual indicators
   const getNodeTypeColor = (type?: string): string => {

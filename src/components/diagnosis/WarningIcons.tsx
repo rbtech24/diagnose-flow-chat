@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { AlertTriangle, Zap, Droplet, Flame } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export type WarningType = 'electric' | 'water' | 'fire';
 
@@ -90,25 +91,23 @@ export function WarningSelector({
   return (
     <div className="space-y-3">
       <label className="text-sm font-medium">Warning Type</label>
-      <div className="grid grid-cols-1 gap-2">
-        <button
-          type="button"
-          onClick={() => onChange(undefined)}
-          className={`p-2 text-left border rounded ${!value ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
-        >
-          No Warning
-        </button>
-        {(['electric', 'water', 'fire'] as WarningType[]).map((type) => (
-          <button
-            key={type}
-            type="button"
-            onClick={() => onChange(type)}
-            className={`p-2 text-left border rounded capitalize ${value === type ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
-          >
-            {type} Warning
-          </button>
-        ))}
-      </div>
+      <Select value={value || 'none'} onValueChange={(selectedValue) => {
+        if (selectedValue === 'none') {
+          onChange(undefined);
+        } else {
+          onChange(selectedValue as WarningType);
+        }
+      }}>
+        <SelectTrigger>
+          <SelectValue placeholder="Select warning type" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="none">No Warning</SelectItem>
+          <SelectItem value="electric">Electric Warning</SelectItem>
+          <SelectItem value="water">Water Warning</SelectItem>
+          <SelectItem value="fire">Fire Warning</SelectItem>
+        </SelectContent>
+      </Select>
       
       {value && onLicenseTextChange && (
         <div className="flex items-center gap-2">
