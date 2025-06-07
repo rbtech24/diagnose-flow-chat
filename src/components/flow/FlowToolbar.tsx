@@ -49,8 +49,9 @@ export function FlowToolbar({
   }, [isAdmin, navigate]);
 
   return (
-    <div className="absolute top-0 left-0 right-0 z-10 flex items-center gap-3 p-4 bg-background border-b pointer-events-auto">
-      <div className="pointer-events-auto">
+    <div className="absolute top-0 left-0 right-0 z-10 flex items-center gap-4 p-4 bg-background border-b pointer-events-auto">
+      {/* Primary Actions Group */}
+      <div className="flex items-center gap-3 pointer-events-auto">
         <Button 
           variant="default"
           size="sm" 
@@ -60,10 +61,8 @@ export function FlowToolbar({
           <Plus className="w-4 h-4" />
           Add Step
         </Button>
-      </div>
 
-      {onApplyNodeChanges && (
-        <div className="pointer-events-auto">
+        {onApplyNodeChanges && (
           <Button 
             variant="secondary"
             size="sm"
@@ -73,14 +72,13 @@ export function FlowToolbar({
             <Save className="w-4 h-4" />
             Apply Changes
           </Button>
-        </div>
-      )}
-
-      <div className="pointer-events-auto">
-        <SaveWorkflowDialog onSave={onSave} currentWorkflow={currentWorkflow} />
+        )}
       </div>
 
-      <div className="pointer-events-auto">
+      {/* Save and Import Group */}
+      <div className="flex items-center gap-3 pointer-events-auto border-l border-gray-200 pl-4">
+        <SaveWorkflowDialog onSave={onSave} currentWorkflow={currentWorkflow} />
+
         <Button 
           variant="secondary" 
           size="sm"
@@ -92,36 +90,41 @@ export function FlowToolbar({
         </Button>
       </div>
 
-      <div className="flex items-center gap-2 pointer-events-auto">
+      {/* Clipboard and Export Group */}
+      <div className="flex items-center gap-2 pointer-events-auto border-l border-gray-200 pl-4">
         <Button 
           variant="secondary"
-          size="icon"
-          className="h-8 w-8"
+          size="sm"
+          className="flex items-center gap-2"
           onClick={onCopySelected}
         >
           <Copy className="w-4 h-4" />
+          Copy
         </Button>
         <Button 
           variant="secondary"
-          size="icon"
-          className="h-8 w-8"
+          size="sm"
+          className="flex items-center gap-2"
           onClick={onPaste}
         >
           <Clipboard className="w-4 h-4" />
+          Paste
         </Button>
         <Button 
           variant="secondary"
-          size="icon"
-          className="h-8 w-8"
+          size="sm"
+          className="flex items-center gap-2"
           onClick={() => {
             handleSaveWorkflow(nodes, edges, nodeCounter, 'Exported Workflow', 'export', 'export', '');
           }}
         >
           <Download className="w-4 h-4" />
+          Export
         </Button>
       </div>
 
-      <div className="pointer-events-auto">
+      {/* Navigation Group */}
+      <div className="pointer-events-auto border-l border-gray-200 pl-4">
         <Button 
           variant="default"
           size="sm"
@@ -133,8 +136,10 @@ export function FlowToolbar({
         </Button>
       </div>
 
+      {/* Spacer */}
       <div className="flex-1" />
 
+      {/* Search Group */}
       <div className="relative pointer-events-auto">
         <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
