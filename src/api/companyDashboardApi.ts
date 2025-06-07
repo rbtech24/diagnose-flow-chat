@@ -95,22 +95,18 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
 };
 
 function mapActivityTypeToRecentActivity(activityType: string): RecentActivity['type'] {
-  switch (activityType) {
-    case 'repair_completed':
-    case 'job_completed':
-      return 'repair_completed';
-    case 'repair_started':
-    case 'job_started':
-      return 'job_started';
-    case 'parts_ordered':
-    case 'parts_needed':
-      return 'parts_needed';
-    case 'job_scheduled':
-    case 'appointment_scheduled':
-      return 'job_scheduled';
-    default:
-      return 'job_started';
-  }
+  const typeMap: Record<string, RecentActivity['type']> = {
+    'repair_completed': 'repair_completed',
+    'job_completed': 'repair_completed',
+    'repair_started': 'job_started',
+    'job_started': 'job_started',
+    'parts_ordered': 'parts_needed',
+    'parts_needed': 'parts_needed',
+    'job_scheduled': 'job_scheduled',
+    'appointment_scheduled': 'job_scheduled'
+  };
+  
+  return typeMap[activityType] || 'job_started';
 }
 
 function formatTimeAgo(date: Date): string {
@@ -130,20 +126,16 @@ function formatTimeAgo(date: Date): string {
 }
 
 function getActivityIcon(activityType: string): string {
-  switch (activityType) {
-    case 'repair_completed':
-    case 'job_completed':
-      return 'CheckSquare';
-    case 'repair_started':
-    case 'job_started':
-      return 'Clock';
-    case 'parts_ordered':
-    case 'parts_needed':
-      return 'AlertCircle';
-    case 'job_scheduled':
-    case 'appointment_scheduled':
-      return 'Calendar';
-    default:
-      return 'Activity';
-  }
+  const iconMap: Record<string, string> = {
+    'repair_completed': 'CheckSquare',
+    'job_completed': 'CheckSquare',
+    'repair_started': 'Clock',
+    'job_started': 'Clock',
+    'parts_ordered': 'AlertCircle',
+    'parts_needed': 'AlertCircle',
+    'job_scheduled': 'Calendar',
+    'appointment_scheduled': 'Calendar'
+  };
+  
+  return iconMap[activityType] || 'Activity';
 }
