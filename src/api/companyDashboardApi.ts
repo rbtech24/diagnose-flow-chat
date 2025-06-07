@@ -38,14 +38,11 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     const activeJobs = repairs.filter((r) => r.status === 'in_progress').length;
     const completedJobs = repairs.filter((r) => r.status === 'completed').length;
     
-    // Fix type issue by being more explicit about the cost calculation
     const revenue = repairs
       .filter((r) => r.status === 'completed' && r.actual_cost)
       .reduce((sum, r) => {
-        const costValue = r.actual_cost;
-        const cost = typeof costValue === 'number' ? costValue : 
-                    typeof costValue === 'string' ? parseFloat(costValue) : 0;
-        return sum + (isNaN(cost) ? 0 : cost);
+        const cost = Number(r.actual_cost) || 0;
+        return sum + cost;
       }, 0);
       
     const completionRate = repairs.length > 0 

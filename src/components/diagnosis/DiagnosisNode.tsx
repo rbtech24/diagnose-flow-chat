@@ -47,13 +47,27 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
     };
   }, [nodeData.technicalSpecs]);
 
-  // Parse warning configuration
+  // Parse warning configuration - look for warning in any field
   const warningConfig = useMemo(() => {
+    // Check if warning is in the main data
     if (nodeData.warning && typeof nodeData.warning === 'object') {
       return nodeData.warning;
     }
+    
+    // Check if there's a field with warning content
+    const fields = nodeData.fields || [];
+    const warningField = fields.find((field: any) => field.id === 'warning' || field.type === 'warning');
+    
+    if (warningField && warningField.content) {
+      try {
+        return JSON.parse(warningField.content);
+      } catch {
+        return undefined;
+      }
+    }
+    
     return undefined;
-  }, [nodeData.warning]);
+  }, [nodeData.warning, nodeData.fields]);
 
   // Type-safe node type determination with visual indicators
   const getNodeTypeColor = (type?: string): string => {
