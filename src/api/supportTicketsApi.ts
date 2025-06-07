@@ -59,7 +59,7 @@ function sanitizeString(input: string): string {
     .replace(/on\w+\s*=/gi, '');
 }
 
-function sanitizeInput(input: any): any {
+function sanitizeInput(input: string | Record<string, string> | string[]): string | Record<string, string> | string[] {
   if (typeof input === 'string') {
     return sanitizeString(input);
   }
@@ -74,12 +74,12 @@ function sanitizeInput(input: any): any {
   }
   
   if (input && typeof input === 'object' && input !== null) {
-    const sanitized: Record<string, any> = {};
+    const sanitized: Record<string, string> = {};
     for (const [key, value] of Object.entries(input)) {
       if (typeof value === 'string') {
         sanitized[key] = sanitizeString(value);
       } else {
-        sanitized[key] = value;
+        sanitized[key] = value as string;
       }
     }
     return sanitized;
@@ -367,7 +367,7 @@ export async function updateSupportTicket(
 
 export async function searchSupportTickets(searchParams: {
   query: string;
-  filters?: unknown;
+  filters?: Record<string, string>;
 }): Promise<SupportTicket[]> {
   if (!searchParams.query?.trim()) {
     throw new Error('Search query is required');
@@ -383,7 +383,7 @@ export async function searchSupportTickets(searchParams: {
     .limit(50);
 
   if (searchParams.filters) {
-    const filters = sanitizeInput(searchParams.filters) as Record<string, unknown>;
+    const filters = sanitizeInput(searchParams.filters) as Record<string, string>;
     Object.entries(filters).forEach(([key, value]) => {
       if (typeof value === 'string' && value.trim()) {
         query = query.eq(key, value);

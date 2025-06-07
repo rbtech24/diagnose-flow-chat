@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DashboardStats {
@@ -38,10 +39,16 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     const activeJobs = repairs.filter((r) => r.status === 'in_progress').length;
     const completedJobs = repairs.filter((r) => r.status === 'completed').length;
     
-    // Calculate revenue with proper type handling
-    const revenue = repairs
-      .filter((r) => r.status === 'completed' && r.actual_cost)
-      .reduce((sum, r) => sum + (Number(r.actual_cost) || 0), 0);
+    // Calculate revenue with simple approach
+    let revenue = 0;
+    repairs.forEach((repair) => {
+      if (repair.status === 'completed' && repair.actual_cost) {
+        const cost = Number(repair.actual_cost);
+        if (!isNaN(cost)) {
+          revenue += cost;
+        }
+      }
+    });
       
     const completionRate = repairs.length > 0 
       ? Math.round((completedJobs / repairs.length) * 100) 
