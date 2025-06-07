@@ -6,6 +6,10 @@ export interface ErrorContext {
   userId?: string;
   companyId?: string;
   metadata?: Record<string, any>;
+  type?: string;
+  endpoint?: string;
+  status?: number;
+  attempts?: number;
 }
 
 export interface ErrorLog {

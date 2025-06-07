@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface FileUploadResult {
@@ -20,6 +19,17 @@ export interface UploadOptions {
   allowedTypes?: string[];
   maxSize?: number;
   generateUniqueName?: boolean;
+}
+
+// Helper function to safely convert JSON to Record<string, any>
+function safeJsonToRecord(json: any): Record<string, any> {
+  if (json === null || json === undefined) {
+    return {};
+  }
+  if (typeof json === 'object' && !Array.isArray(json)) {
+    return json as Record<string, any>;
+  }
+  return {};
 }
 
 class FileUploadService {
@@ -123,7 +133,7 @@ class FileUploadService {
         mimeType: file.type,
         size: file.size,
         bucket: bucket,
-        metadata: options.metadata
+        metadata: safeJsonToRecord(fileRecord.metadata)
       };
 
     } catch (error) {
@@ -219,7 +229,7 @@ class FileUploadService {
       mimeType: data.mime_type,
       size: data.size,
       bucket: data.bucket,
-      metadata: data.metadata || {}
+      metadata: safeJsonToRecord(data.metadata)
     };
   }
 
@@ -273,7 +283,7 @@ class FileUploadService {
       mimeType: record.mime_type,
       size: record.size,
       bucket: record.bucket,
-      metadata: record.metadata || {}
+      metadata: safeJsonToRecord(record.metadata)
     }));
 
     return {

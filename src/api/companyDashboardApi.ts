@@ -16,7 +16,8 @@ export interface RecentActivity {
   icon: string;
 }
 
-interface ActivityData {
+// Simplified interface to avoid deep type instantiation
+interface ActivityRecord {
   id: string;
   activity_type: string;
   description: string;
@@ -88,7 +89,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    return activityData.map((activity: ActivityData) => ({
+    return activityData.map((activity: ActivityRecord) => ({
       id: activity.id || `activity-${Date.now()}`,
       type: mapActivityTypeToRecentActivity(activity.activity_type || 'unknown'),
       description: activity.description || 'Activity recorded',
