@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface SupportTicket {
@@ -24,28 +25,6 @@ export interface SupportTicketMessage {
   sender: any;
 }
 
-type TicketRecord = {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  priority: string;
-  user_id: string;
-  created_by_user_id: string;
-  assigned_to: string | null;
-  company_id: string | null;
-  created_at: string;
-  updated_at: string;
-};
-
-type MessageRecord = {
-  id: string;
-  ticket_id: string;
-  content: string;
-  user_id: string;
-  created_at: string;
-};
-
 function isValidUUID(uuid: string): boolean {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(uuid);
@@ -59,9 +38,6 @@ function sanitizeString(input: string): string {
     .replace(/on\w+\s*=/gi, '');
 }
 
-function sanitizeInput(input: Record<string, any>): Record<string, any>;
-function sanitizeInput(input: string): string;
-function sanitizeInput(input: any[]): any[];
 function sanitizeInput(input: any): any {
   if (typeof input === 'string') {
     return sanitizeString(input);
@@ -72,7 +48,7 @@ function sanitizeInput(input: any): any {
   }
   
   if (input && typeof input === 'object') {
-    const sanitized: Record<string, any> = {};
+    const sanitized: any = {};
     Object.keys(input).forEach(key => {
       sanitized[key] = sanitizeInput(input[key]);
     });
@@ -130,7 +106,7 @@ export async function fetchSupportTickets(
     throw error;
   }
   
-  const ticketList: SupportTicket[] = (data as TicketRecord[] || []).map((ticket) => ({
+  const ticketList: SupportTicket[] = (data || []).map((ticket: any) => ({
     id: ticket.id,
     title: ticket.title,
     description: ticket.description,
@@ -173,20 +149,18 @@ export async function fetchSupportTicketById(ticketId: string): Promise<SupportT
     throw new Error('Ticket not found');
   }
   
-  const ticket = data as TicketRecord;
-  
   return {
-    id: ticket.id,
-    title: ticket.title,
-    description: ticket.description,
-    status: validateStatus(ticket.status),
-    priority: validatePriority(ticket.priority),
-    user_id: ticket.user_id,
-    created_by_user_id: ticket.created_by_user_id,
-    assigned_to: ticket.assigned_to || undefined,
-    company_id: ticket.company_id || undefined,
-    created_at: ticket.created_at,
-    updated_at: ticket.updated_at,
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    status: validateStatus(data.status),
+    priority: validatePriority(data.priority),
+    user_id: data.user_id,
+    created_by_user_id: data.created_by_user_id,
+    assigned_to: data.assigned_to || undefined,
+    company_id: data.company_id || undefined,
+    created_at: data.created_at,
+    updated_at: data.updated_at,
     created_by_user: null
   };
 }
@@ -207,7 +181,7 @@ export async function fetchTicketMessages(ticketId: string): Promise<SupportTick
     throw error;
   }
   
-  return (data as MessageRecord[] || []).map((message) => ({
+  return (data || []).map((message: any) => ({
     id: message.id,
     ticket_id: message.ticket_id,
     content: message.content,
@@ -256,20 +230,18 @@ export async function createSupportTicket(ticketData: {
     throw error;
   }
   
-  const ticket = data as TicketRecord;
-  
   return {
-    id: ticket.id,
-    title: ticket.title,
-    description: ticket.description,
-    status: validateStatus(ticket.status),
-    priority: validatePriority(ticket.priority),
-    user_id: ticket.user_id,
-    created_by_user_id: ticket.created_by_user_id,
-    assigned_to: ticket.assigned_to || undefined,
-    company_id: ticket.company_id || undefined,
-    created_at: ticket.created_at,
-    updated_at: ticket.updated_at,
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    status: validateStatus(data.status),
+    priority: validatePriority(data.priority),
+    user_id: data.user_id,
+    created_by_user_id: data.created_by_user_id,
+    assigned_to: data.assigned_to || undefined,
+    company_id: data.company_id || undefined,
+    created_at: data.created_at,
+    updated_at: data.updated_at,
     created_by_user: null
   };
 }
@@ -309,14 +281,12 @@ export async function addTicketMessage(messageData: {
     throw error;
   }
   
-  const message = data as MessageRecord;
-  
   return {
-    id: message.id,
-    ticket_id: message.ticket_id,
-    content: message.content,
-    user_id: message.user_id,
-    created_at: message.created_at,
+    id: data.id,
+    ticket_id: data.ticket_id,
+    content: data.content,
+    user_id: data.user_id,
+    created_at: data.created_at,
     sender: null
   };
 }
@@ -352,27 +322,25 @@ export async function updateSupportTicket(
     throw error;
   }
   
-  const ticket = data as TicketRecord;
-  
   return {
-    id: ticket.id,
-    title: ticket.title,
-    description: ticket.description,
-    status: validateStatus(ticket.status),
-    priority: validatePriority(ticket.priority),
-    user_id: ticket.user_id,
-    created_by_user_id: ticket.created_by_user_id,
-    assigned_to: ticket.assigned_to || undefined,
-    company_id: ticket.company_id || undefined,
-    created_at: ticket.created_at,
-    updated_at: ticket.updated_at,
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    status: validateStatus(data.status),
+    priority: validatePriority(data.priority),
+    user_id: data.user_id,
+    created_by_user_id: data.created_by_user_id,
+    assigned_to: data.assigned_to || undefined,
+    company_id: data.company_id || undefined,
+    created_at: data.created_at,
+    updated_at: data.updated_at,
     created_by_user: null
   };
 }
 
 export async function searchSupportTickets(searchParams: {
   query: string;
-  filters?: Record<string, any>;
+  filters?: any;
 }): Promise<SupportTicket[]> {
   if (!searchParams.query?.trim()) {
     throw new Error('Search query is required');
@@ -402,7 +370,7 @@ export async function searchSupportTickets(searchParams: {
     throw error;
   }
   
-  return (data as TicketRecord[] || []).map((ticket) => ({
+  return (data || []).map((ticket: any) => ({
     id: ticket.id,
     title: ticket.title,
     description: ticket.description,
