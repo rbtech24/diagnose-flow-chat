@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface SupportTicket {
@@ -38,7 +37,7 @@ function sanitizeString(input: string): string {
     .replace(/on\w+\s*=/gi, '');
 }
 
-function sanitizeInput(input: unknown): unknown {
+function sanitizeInput(input: any): any {
   if (typeof input === 'string') {
     return sanitizeString(input);
   }
@@ -48,9 +47,9 @@ function sanitizeInput(input: unknown): unknown {
   }
   
   if (input && typeof input === 'object') {
-    const sanitized: Record<string, unknown> = {};
-    Object.keys(input as Record<string, unknown>).forEach(key => {
-      sanitized[key] = sanitizeInput((input as Record<string, unknown>)[key]);
+    const sanitized: any = {};
+    Object.keys(input).forEach(key => {
+      sanitized[key] = sanitizeInput(input[key]);
     });
     return sanitized;
   }
@@ -205,7 +204,7 @@ export async function createSupportTicket(ticketData: {
     throw new Error('Description is required');
   }
 
-  const sanitizedData = sanitizeInput(ticketData);
+  const sanitizedData = sanitizeInput(ticketData) as typeof ticketData;
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) {
@@ -264,7 +263,7 @@ export async function addTicketMessage(messageData: {
     throw new Error('User not authenticated');
   }
 
-  const sanitizedData = sanitizeInput(messageData);
+  const sanitizedData = sanitizeInput(messageData) as typeof messageData;
 
   const { data, error } = await supabase
     .from('support_ticket_messages')
@@ -305,14 +304,11 @@ export async function updateSupportTicket(
     throw new Error('Invalid ticket ID format');
   }
 
-  const sanitizedData = sanitizeInput(updateData);
+  const sanitizedData = sanitizeInput(updateData) as typeof updateData;
 
   const { data, error } = await supabase
     .from('support_tickets')
-    .update({
-      ...sanitizedData,
-      updated_at: new Date().toISOString()
-    })
+    .update(sanitizedData)
     .eq('id', ticketId)
     .select('*')
     .single();
@@ -356,7 +352,8 @@ export async function searchSupportTickets(searchParams: {
     .limit(50);
 
   if (searchParams.filters) {
-    Object.entries(searchParams.filters).forEach(([key, value]) => {
+    const filters = sanitizeInput(searchParams.filters) as any;
+    Object.entries(filters).forEach(([key, value]) => {
       if (typeof value === 'string' && value.trim()) {
         query = query.eq(key, value);
       }

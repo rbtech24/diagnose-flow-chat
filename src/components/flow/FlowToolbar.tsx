@@ -49,9 +49,9 @@ export function FlowToolbar({
   }, [isAdmin, navigate]);
 
   return (
-    <div className="absolute top-0 left-0 right-0 z-10 flex items-center gap-4 p-4 bg-background border-b pointer-events-auto">
-      {/* Primary Actions Group */}
-      <div className="flex items-center gap-3 pointer-events-auto">
+    <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-background border-b pointer-events-auto">
+      {/* Left side - Primary Actions */}
+      <div className="flex items-center gap-3">
         <Button 
           variant="default"
           size="sm" 
@@ -73,10 +73,9 @@ export function FlowToolbar({
             Apply Changes
           </Button>
         )}
-      </div>
 
-      {/* Save and Import Group */}
-      <div className="flex items-center gap-3 pointer-events-auto border-l border-gray-200 pl-4">
+        <div className="h-6 w-px bg-gray-200 mx-2" />
+
         <SaveWorkflowDialog onSave={onSave} currentWorkflow={currentWorkflow} />
 
         <Button 
@@ -90,8 +89,22 @@ export function FlowToolbar({
         </Button>
       </div>
 
-      {/* Clipboard and Export Group */}
-      <div className="flex items-center gap-2 pointer-events-auto border-l border-gray-200 pl-4">
+      {/* Right side - Secondary Actions and Navigation */}
+      <div className="flex items-center gap-3">
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search nodes..."
+            size={32}
+            className="h-8 w-[180px] pl-8"
+          />
+        </div>
+
+        <div className="h-6 w-px bg-gray-200 mx-1" />
+
+        {/* Clipboard Actions */}
         <Button 
           variant="secondary"
           size="sm"
@@ -101,6 +114,7 @@ export function FlowToolbar({
           <Copy className="w-4 h-4" />
           Copy
         </Button>
+        
         <Button 
           variant="secondary"
           size="sm"
@@ -110,6 +124,7 @@ export function FlowToolbar({
           <Clipboard className="w-4 h-4" />
           Paste
         </Button>
+        
         <Button 
           variant="secondary"
           size="sm"
@@ -121,10 +136,10 @@ export function FlowToolbar({
           <Download className="w-4 h-4" />
           Export
         </Button>
-      </div>
 
-      {/* Navigation Group */}
-      <div className="pointer-events-auto border-l border-gray-200 pl-4">
+        <div className="h-6 w-px bg-gray-200 mx-1" />
+
+        {/* Navigation */}
         <Button 
           variant="default"
           size="sm"
@@ -134,20 +149,6 @@ export function FlowToolbar({
           <Link2 className="w-4 h-4" />
           Workflows
         </Button>
-      </div>
-
-      {/* Spacer */}
-      <div className="flex-1" />
-
-      {/* Search Group */}
-      <div className="relative pointer-events-auto">
-        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          type="text"
-          placeholder="Search nodes..."
-          size={32}
-          className="h-8 w-[200px] pl-8"
-        />
       </div>
 
       <input

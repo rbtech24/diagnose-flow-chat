@@ -1,4 +1,3 @@
-
 import React, { memo, useMemo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -145,7 +144,7 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
             <div className="text-xs text-gray-600 mb-1">Options:</div>
             <ul className="text-xs text-gray-600 list-disc list-inside">
               {nodeData.options.map((option, index) => (
-                <li key={index}>{typeof option === 'string' ? option : String(option)}</li>
+                <li key={index}>{String(option)}</li>
               ))}
             </ul>
           </div>
