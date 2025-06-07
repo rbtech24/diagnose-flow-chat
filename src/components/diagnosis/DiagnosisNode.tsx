@@ -83,6 +83,25 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
 
   const cardClassName = `min-w-[200px] max-w-[300px] ${getNodeTypeColor(nodeData.type)} ${getNodeShape(nodeData.type)}`;
 
+  // Type-safe options rendering
+  const renderOptions = () => {
+    if (nodeData.options && nodeData.options.length > 0 && nodeData.type === 'question') {
+      return (
+        <div className="mt-2">
+          <div className="text-xs text-gray-600 mb-1">Options:</div>
+          <ul className="text-xs text-gray-600 list-disc list-inside">
+            {nodeData.options.map((option, index) => (
+              <li key={index}>
+                {typeof option === 'string' ? option : String(option)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <Card className={cardClassName}>
       <Handle
@@ -139,16 +158,7 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
           </div>
         )}
 
-        {nodeData.options && nodeData.options.length > 0 && nodeData.type === 'question' && (
-          <div className="mt-2">
-            <div className="text-xs text-gray-600 mb-1">Options:</div>
-            <ul className="text-xs text-gray-600 list-disc list-inside">
-              {nodeData.options.map((option, index) => (
-                <li key={index}>{typeof option === 'string' ? option : String(option)}</li>
-              ))}
-            </ul>
-          </div>
-        )}
+        {renderOptions()}
       </CardContent>
       
       <Handle
