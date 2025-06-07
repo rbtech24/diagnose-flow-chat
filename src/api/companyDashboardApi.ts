@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DashboardStats {
@@ -38,12 +37,17 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     const repairs = repairsData || [];
     const activeJobs = repairs.filter((r) => r.status === 'in_progress').length;
     const completedJobs = repairs.filter((r) => r.status === 'completed').length;
+    
+    // Fix type issue by being more explicit about the cost calculation
     const revenue = repairs
       .filter((r) => r.status === 'completed' && r.actual_cost)
       .reduce((sum, r) => {
-        const cost = parseFloat(String(r.actual_cost)) || 0;
-        return sum + cost;
+        const costValue = r.actual_cost;
+        const cost = typeof costValue === 'number' ? costValue : 
+                    typeof costValue === 'string' ? parseFloat(costValue) : 0;
+        return sum + (isNaN(cost) ? 0 : cost);
       }, 0);
+      
     const completionRate = repairs.length > 0 
       ? Math.round((completedJobs / repairs.length) * 100) 
       : 0;

@@ -59,7 +59,8 @@ function sanitizeString(input: string): string {
     .replace(/on\w+\s*=/gi, '');
 }
 
-function sanitizeInput(input: any): any {
+// Simplified sanitizeInput to avoid deep type recursion
+function sanitizeInput(input: unknown): unknown {
   if (typeof input === 'string') {
     return sanitizeString(input);
   }
@@ -68,10 +69,10 @@ function sanitizeInput(input: any): any {
     return input.map(item => sanitizeInput(item));
   }
   
-  if (input && typeof input === 'object') {
-    const sanitized: any = {};
-    Object.keys(input).forEach(key => {
-      sanitized[key] = sanitizeInput(input[key]);
+  if (input && typeof input === 'object' && input !== null) {
+    const sanitized: Record<string, unknown> = {};
+    Object.keys(input as Record<string, unknown>).forEach(key => {
+      sanitized[key] = sanitizeInput((input as Record<string, unknown>)[key]);
     });
     return sanitized;
   }
@@ -358,7 +359,7 @@ export async function updateSupportTicket(
 
 export async function searchSupportTickets(searchParams: {
   query: string;
-  filters?: any;
+  filters?: unknown;
 }): Promise<SupportTicket[]> {
   if (!searchParams.query?.trim()) {
     throw new Error('Search query is required');
@@ -374,7 +375,7 @@ export async function searchSupportTickets(searchParams: {
     .limit(50);
 
   if (searchParams.filters) {
-    const filters = sanitizeInput(searchParams.filters) as any;
+    const filters = sanitizeInput(searchParams.filters) as Record<string, unknown>;
     Object.entries(filters).forEach(([key, value]) => {
       if (typeof value === 'string' && value.trim()) {
         query = query.eq(key, value);
