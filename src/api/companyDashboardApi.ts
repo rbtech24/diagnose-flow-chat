@@ -49,11 +49,11 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     }
 
     const repairs = repairsData || [];
-    const activeJobs = repairs.filter((r: RepairRecord) => r.status === 'in_progress').length;
-    const completedJobs = repairs.filter((r: RepairRecord) => r.status === 'completed').length;
+    const activeJobs = repairs.filter((r) => r.status === 'in_progress').length;
+    const completedJobs = repairs.filter((r) => r.status === 'completed').length;
     const revenue = repairs
-      .filter((r: RepairRecord) => r.status === 'completed' && r.actual_cost)
-      .reduce((sum: number, r: RepairRecord) => sum + (Number(r.actual_cost) || 0), 0);
+      .filter((r) => r.status === 'completed' && r.actual_cost)
+      .reduce((sum, r) => sum + (Number(r.actual_cost) || 0), 0);
     const completionRate = repairs.length > 0 
       ? Math.round((completedJobs / repairs.length) * 100) 
       : 0;
@@ -95,7 +95,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    const activities: RecentActivity[] = activityData.map((activity: ActivityRecord) => ({
+    const activities: RecentActivity[] = activityData.map((activity) => ({
       id: activity.id || `activity-${Date.now()}`,
       type: mapActivityTypeToRecentActivity(activity.activity_type || 'unknown'),
       description: activity.description || 'Activity recorded',

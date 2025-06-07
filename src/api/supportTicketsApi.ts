@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface SupportTicket {
@@ -59,6 +60,9 @@ function sanitizeString(input: string): string {
     .replace(/on\w+\s*=/gi, '');
 }
 
+function sanitizeInput(input: Record<string, any>): Record<string, any>;
+function sanitizeInput(input: string): string;
+function sanitizeInput(input: any[]): any[];
 function sanitizeInput(input: any): any {
   if (typeof input === 'string') {
     return sanitizeString(input);
@@ -69,7 +73,7 @@ function sanitizeInput(input: any): any {
   }
   
   if (input && typeof input === 'object') {
-    const sanitized: any = {};
+    const sanitized: Record<string, any> = {};
     Object.keys(input).forEach(key => {
       sanitized[key] = sanitizeInput(input[key]);
     });
@@ -127,7 +131,7 @@ export async function fetchSupportTickets(
     throw error;
   }
   
-  const ticketList: SupportTicket[] = (data || []).map((ticket: TicketRecord) => ({
+  const ticketList: SupportTicket[] = (data || []).map((ticket) => ({
     id: ticket.id,
     title: ticket.title,
     description: ticket.description,

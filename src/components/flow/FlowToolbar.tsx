@@ -51,9 +51,9 @@ export function FlowToolbar({
 
   return (
     <div className="absolute top-0 left-0 right-0 z-10 bg-background border-b pointer-events-auto">
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-2 lg:p-4 gap-3">
-        {/* Left side - Primary Actions */}
-        <div className="flex flex-wrap items-center gap-2 lg:gap-3 w-full lg:w-auto">
+      <div className="flex items-center justify-between p-4 gap-6">
+        {/* Left section - Primary Actions (aligned left with proper spacing) */}
+        <div className="flex items-center gap-4">
           <Button 
             variant="default"
             size="sm" 
@@ -61,7 +61,7 @@ export function FlowToolbar({
             onClick={onAddNode}
           >
             <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Add Step</span>
+            Add Step
           </Button>
 
           {onApplyNodeChanges && (
@@ -72,11 +72,11 @@ export function FlowToolbar({
               onClick={onApplyNodeChanges}
             >
               <Save className="w-4 h-4" />
-              <span className="hidden sm:inline">Apply Changes</span>
+              Apply Changes
             </Button>
           )}
 
-          <Separator orientation="vertical" className="h-6 hidden lg:block" />
+          <Separator orientation="vertical" className="h-6" />
 
           <SaveWorkflowDialog onSave={onSave} currentWorkflow={currentWorkflow} />
 
@@ -87,60 +87,60 @@ export function FlowToolbar({
             onClick={onImportClick}
           >
             <Upload className="w-4 h-4" />
-            <span className="hidden sm:inline">Import</span>
+            Import
           </Button>
         </div>
 
-        {/* Right side - Secondary Actions and Navigation */}
-        <div className="flex flex-wrap items-center gap-2 lg:gap-3 w-full lg:w-auto justify-end">
-          {/* Search - responsive width */}
-          <div className="relative flex-1 lg:flex-none min-w-[120px] max-w-[200px]">
-            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        {/* Center section - Search (flexible width to take available space) */}
+        <div className="flex-1 max-w-md mx-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               type="text"
               placeholder="Search..."
-              className="h-8 pl-8 text-sm"
+              className="pl-10 h-9"
             />
           </div>
+        </div>
 
-          <Separator orientation="vertical" className="h-6 hidden lg:block" />
-
-          {/* Clipboard Actions */}
-          <div className="flex items-center gap-1 lg:gap-2">
+        {/* Right section - Secondary Actions (aligned right with proper spacing) */}
+        <div className="flex items-center gap-4">
+          {/* Clipboard Actions Group */}
+          <div className="flex items-center gap-2">
             <Button 
               variant="secondary"
               size="sm"
-              className="flex items-center gap-1 lg:gap-2 px-2 lg:px-3"
+              className="flex items-center gap-2"
               onClick={onCopySelected}
             >
               <Copy className="w-4 h-4" />
-              <span className="hidden md:inline">Copy</span>
+              Copy
             </Button>
             
             <Button 
               variant="secondary"
               size="sm"
-              className="flex items-center gap-1 lg:gap-2 px-2 lg:px-3"
+              className="flex items-center gap-2"
               onClick={onPaste}
             >
               <Clipboard className="w-4 h-4" />
-              <span className="hidden md:inline">Paste</span>
+              Paste
             </Button>
             
             <Button 
               variant="secondary"
               size="sm"
-              className="flex items-center gap-1 lg:gap-2 px-2 lg:px-3"
+              className="flex items-center gap-2"
               onClick={() => {
                 handleSaveWorkflow(nodes, edges, nodeCounter, 'Exported Workflow', 'export', 'export', '');
               }}
             >
               <Download className="w-4 h-4" />
-              <span className="hidden md:inline">Export</span>
+              Export
             </Button>
           </div>
 
-          <Separator orientation="vertical" className="h-6 hidden lg:block" />
+          <Separator orientation="vertical" className="h-6" />
 
           {/* Navigation */}
           <Button 
@@ -150,7 +150,7 @@ export function FlowToolbar({
             onClick={handleGoToWorkflows}
           >
             <Link2 className="w-4 h-4" />
-            <span className="hidden sm:inline">Workflows</span>
+            Workflows
           </Button>
         </div>
       </div>
