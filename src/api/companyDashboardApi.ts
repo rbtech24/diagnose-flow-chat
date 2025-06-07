@@ -97,18 +97,18 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
 };
 
 function mapActivityTypeToRecentActivity(activityType: string): RecentActivity['type'] {
-  const typeMap: Record<string, RecentActivity['type']> = {
-    'repair_completed': 'repair_completed',
-    'job_completed': 'repair_completed',
-    'repair_started': 'job_started',
-    'job_started': 'job_started',
-    'parts_ordered': 'parts_needed',
-    'parts_needed': 'parts_needed',
-    'job_scheduled': 'job_scheduled',
-    'appointment_scheduled': 'job_scheduled'
-  };
+  const typeMap = new Map<string, RecentActivity['type']>([
+    ['repair_completed', 'repair_completed'],
+    ['job_completed', 'repair_completed'],
+    ['repair_started', 'job_started'],
+    ['job_started', 'job_started'],
+    ['parts_ordered', 'parts_needed'],
+    ['parts_needed', 'parts_needed'],
+    ['job_scheduled', 'job_scheduled'],
+    ['appointment_scheduled', 'job_scheduled']
+  ]);
   
-  return typeMap[activityType] || 'job_started';
+  return typeMap.get(activityType) || 'job_started';
 }
 
 function formatTimeAgo(date: Date): string {
@@ -128,16 +128,16 @@ function formatTimeAgo(date: Date): string {
 }
 
 function getActivityIcon(activityType: string): string {
-  const iconMap: Record<string, string> = {
-    'repair_completed': 'CheckSquare',
-    'job_completed': 'CheckSquare',
-    'repair_started': 'Clock',
-    'job_started': 'Clock',
-    'parts_ordered': 'AlertCircle',
-    'parts_needed': 'AlertCircle',
-    'job_scheduled': 'Calendar',
-    'appointment_scheduled': 'Calendar'
-  };
+  const iconMap = new Map<string, string>([
+    ['repair_completed', 'CheckSquare'],
+    ['job_completed', 'CheckSquare'],
+    ['repair_started', 'Clock'],
+    ['job_started', 'Clock'],
+    ['parts_ordered', 'AlertCircle'],
+    ['parts_needed', 'AlertCircle'],
+    ['job_scheduled', 'Calendar'],
+    ['appointment_scheduled', 'Calendar']
+  ]);
   
-  return iconMap[activityType] || 'Activity';
+  return iconMap.get(activityType) || 'Activity';
 }
