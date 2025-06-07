@@ -55,9 +55,9 @@ export function FlowToolbar({
     <div className="absolute top-0 left-0 right-0 z-10 bg-background border-b pointer-events-auto">
       <div className="flex flex-col gap-3 p-4">
         {/* First Row - Primary Actions and Search */}
-        <div className="flex items-center justify-between gap-6">
+        <div className="flex items-center justify-between w-full">
           {/* Left section - Primary Actions */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <Button 
               variant="default"
               size="sm" 
@@ -96,7 +96,7 @@ export function FlowToolbar({
           </div>
 
           {/* Center section - Search */}
-          <div className="flex-1 max-w-md mx-6">
+          <div className="flex-1 max-w-md mx-8">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -108,7 +108,7 @@ export function FlowToolbar({
           </div>
 
           {/* Right section - Navigation */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center">
             <Button 
               variant="default"
               size="sm"
@@ -121,14 +121,13 @@ export function FlowToolbar({
           </div>
         </div>
 
-        {/* Second Row - Secondary Actions */}
-        <div className="flex items-center justify-center gap-4">
-          {/* Clipboard Actions Group */}
-          <div className="flex items-center gap-2">
+        {/* Second Row - Secondary Actions with Even Spacing */}
+        <div className="flex items-center justify-center w-full">
+          <div className="flex items-center justify-evenly w-full max-w-2xl gap-3">
             <Button 
               variant="secondary"
               size="sm"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 min-w-[100px]"
               onClick={onCopySelected}
             >
               <Copy className="w-4 h-4" />
@@ -138,7 +137,7 @@ export function FlowToolbar({
             <Button 
               variant="secondary"
               size="sm"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 min-w-[100px]"
               onClick={onPaste}
             >
               <Clipboard className="w-4 h-4" />
@@ -148,7 +147,7 @@ export function FlowToolbar({
             <Button 
               variant="destructive"
               size="sm"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 min-w-[100px]"
               onClick={onDeleteSelected}
             >
               <Trash className="w-4 h-4" />
@@ -158,7 +157,7 @@ export function FlowToolbar({
             <Button 
               variant="secondary"
               size="sm"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 min-w-[100px]"
               onClick={() => {
                 handleSaveWorkflow(nodes, edges, nodeCounter, 'Exported Workflow', 'export', 'export', '');
               }}
