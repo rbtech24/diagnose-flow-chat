@@ -48,7 +48,7 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
       };
     }
 
-    const repairs = repairsData as RepairData[] || [];
+    const repairs = (repairsData as RepairData[]) || [];
     const activeJobs = repairs.filter((r) => r.status === 'in_progress').length;
     const completedJobs = repairs.filter((r) => r.status === 'completed').length;
     const revenue = repairs
