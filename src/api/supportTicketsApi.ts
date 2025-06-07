@@ -47,7 +47,7 @@ function sanitizeInput(input: any): any {
   }
   
   if (input && typeof input === 'object') {
-    const sanitized: { [key: string]: any } = {};
+    const sanitized: Record<string, any> = {};
     Object.keys(input).forEach(key => {
       sanitized[key] = sanitizeInput(input[key]);
     });
@@ -339,7 +339,7 @@ export async function updateSupportTicket(
 
 export async function searchSupportTickets(searchParams: {
   query: string;
-  filters?: { [key: string]: any };
+  filters?: Record<string, any>;
 }): Promise<SupportTicket[]> {
   if (!searchParams.query?.trim()) {
     throw new Error('Search query is required');
