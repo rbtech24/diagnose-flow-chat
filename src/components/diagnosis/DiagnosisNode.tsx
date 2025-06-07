@@ -92,7 +92,7 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
           <ul className="text-xs text-gray-600 list-disc list-inside">
             {nodeData.options.map((option, index) => (
               <li key={index}>
-                {typeof option === 'string' ? option : String(option)}
+                {String(option)}
               </li>
             ))}
           </ul>

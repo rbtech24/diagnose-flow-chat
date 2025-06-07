@@ -30,11 +30,6 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
     }
   }, [field, onFieldChange]);
 
-  // Debug log to monitor field changes
-  useEffect(() => {
-    console.log("MediaField current field state:", field);
-  }, [field]);
-
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) {
@@ -180,7 +175,7 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
   console.log("Rendering MediaField with media:", field.media);
 
   return (
-    <div className="space-y-4 p-4 border rounded-lg bg-white">
+    <div className="space-y-4">
       <Label className="text-sm font-medium text-gray-700">
         Media Content
       </Label>
@@ -237,7 +232,7 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
       </div>
       
       {/* Media input options */}
-      <div className="space-y-4 border-t pt-4">
+      <div className="space-y-4">
         <div>
           <Label className="text-sm font-medium mb-2 block flex items-center gap-2">
             <FileImage className="w-4 h-4" />

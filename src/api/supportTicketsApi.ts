@@ -59,21 +59,24 @@ function sanitizeString(input: string): string {
     .replace(/on\w+\s*=/gi, '');
 }
 
-function sanitizeInput(input: Record<string, any>): Record<string, any> {
-  const sanitized: Record<string, any> = {};
-  Object.keys(input).forEach(key => {
-    const value = input[key];
-    if (typeof value === 'string') {
-      sanitized[key] = sanitizeString(value);
-    } else if (Array.isArray(value)) {
-      sanitized[key] = value.map(item => 
-        typeof item === 'string' ? sanitizeString(item) : item
-      );
-    } else {
-      sanitized[key] = value;
-    }
-  });
-  return sanitized;
+function sanitizeInput(input: any): any {
+  if (typeof input === 'string') {
+    return sanitizeString(input);
+  }
+  
+  if (Array.isArray(input)) {
+    return input.map(item => sanitizeInput(item));
+  }
+  
+  if (input && typeof input === 'object') {
+    const sanitized: any = {};
+    Object.keys(input).forEach(key => {
+      sanitized[key] = sanitizeInput(input[key]);
+    });
+    return sanitized;
+  }
+  
+  return input;
 }
 
 function validateStatus(status: string): SupportTicket['status'] {

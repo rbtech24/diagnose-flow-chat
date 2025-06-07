@@ -41,7 +41,7 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     const revenue = repairs
       .filter((r) => r.status === 'completed' && r.actual_cost)
       .reduce((sum, r) => {
-        const cost = typeof r.actual_cost === 'number' ? r.actual_cost : parseFloat(String(r.actual_cost)) || 0;
+        const cost = parseFloat(String(r.actual_cost)) || 0;
         return sum + cost;
       }, 0);
     const completionRate = repairs.length > 0 

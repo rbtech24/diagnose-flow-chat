@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 import { NodeData, Field, TechnicalSpecs, NodeType } from '@/types/node-config';
 import { WarningSelector } from '@/components/diagnosis/WarningIcons';
+import { NodeFields } from './NodeFields';
 
 interface NodeConfigFormProps {
   nodeType: NodeType;
@@ -20,9 +21,9 @@ interface NodeConfigFormProps {
   onLabelChange: (label: string) => void;
   onFieldsChange: (fields: Field[]) => void;
   onTechnicalSpecsChange: (specs: TechnicalSpecs) => void;
-  onAddField: () => void;
-  onRemoveField: (index: number) => void;
-  onMoveField: (index: number, direction: 'up' | 'down') => void;
+  onAddField: (type: Field['type']) => void;
+  onRemoveField: (id: string) => void;
+  onMoveField: (dragIndex: number, hoverIndex: number) => void;
   onReset: () => void;
   onApply: () => void;
   hasValidationErrors: boolean;
@@ -135,107 +136,14 @@ export function NodeConfigForm({
         />
       )}
 
-      {/* Fields Configuration */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Label>Content Fields</Label>
-          <Button variant="outline" size="sm" onClick={onAddField}>
-            <Plus className="h-4 w-4 mr-1" />
-            Add Field
-          </Button>
-        </div>
-
-        {fields.map((field, index) => (
-          <div key={field.id} className="border rounded-lg p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <Badge variant="secondary">Field {index + 1}</Badge>
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onMoveField(index, 'up')}
-                  disabled={index === 0}
-                >
-                  <ChevronUp className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onMoveField(index, 'down')}
-                  disabled={index === fields.length - 1}
-                >
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onRemoveField(index)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label>Field Type</Label>
-                <Select
-                  value={field.type}
-                  onValueChange={(value) => {
-                    const updatedFields = [...fields];
-                    updatedFields[index] = { ...field, type: value as any };
-                    onFieldsChange(updatedFields);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="content">Instructions</SelectItem>
-                    <SelectItem value="media">Media</SelectItem>
-                    <SelectItem value="options">Options</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {field.type === 'content' && (
-              <div>
-                <Label>Instructions</Label>
-                <Textarea
-                  value={field.content || ''}
-                  onChange={(e) => {
-                    const updatedFields = [...fields];
-                    updatedFields[index] = { ...field, content: e.target.value };
-                    onFieldsChange(updatedFields);
-                  }}
-                  placeholder="Enter step instructions..."
-                  rows={4}
-                />
-              </div>
-            )}
-
-            {field.type === 'options' && (nodeType === 'question' || nodeType === 'test') && (
-              <div>
-                <Label>Options (one per line)</Label>
-                <Textarea
-                  value={field.options?.join('\n') || ''}
-                  onChange={(e) => {
-                    const updatedFields = [...fields];
-                    updatedFields[index] = { 
-                      ...field, 
-                      options: e.target.value.split('\n').filter(opt => opt.trim()) 
-                    };
-                    onFieldsChange(updatedFields);
-                  }}
-                  placeholder="Enter options, one per line..."
-                  rows={3}
-                />
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+      {/* Fields Configuration using NodeFields component */}
+      <NodeFields
+        fields={fields}
+        onFieldsChange={onFieldsChange}
+        onAddField={onAddField}
+        onRemoveField={onRemoveField}
+        onMoveField={onMoveField}
+      />
 
       {/* Technical Specifications */}
       {showTechnicalFields && (
