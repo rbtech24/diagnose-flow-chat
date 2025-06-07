@@ -177,77 +177,72 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
     });
   };
 
-  // Helper function to get media type icon
-  const getMediaIcon = (type: string) => {
-    switch (type) {
-      case 'image':
-        return <FileImage className="w-6 h-6 text-blue-500" />;
-      case 'video':
-        return <FileVideo className="w-6 h-6 text-red-500" />;
-      case 'pdf':
-        return <FileText className="w-6 h-6 text-green-500" />;
-      default:
-        return null;
-    }
-  };
-
   console.log("Rendering MediaField with media:", field.media);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4 p-4 border rounded-lg bg-white">
       <Label className="text-sm font-medium text-gray-700">
-        Images, Videos or PDFs
+        Media Content
       </Label>
       
       {/* Display current media */}
-      <div className="flex flex-wrap gap-2">
-        {Array.isArray(field.media) && field.media.length > 0 ? (
-          field.media.map((item, i) => (
-            <div key={i} className="relative group border border-gray-200 rounded p-1 bg-gray-50">
-              {item.type === 'image' ? (
-                <img 
-                  src={item.url} 
-                  alt="Reference image" 
-                  className="w-20 h-20 object-cover rounded-lg" 
-                />
-              ) : item.type === 'video' ? (
-                <div className="w-40 h-24 relative">
-                  <iframe 
+      <div className="space-y-2">
+        <Label className="text-xs text-gray-500">Current Media ({Array.isArray(field.media) ? field.media.length : 0} items)</Label>
+        <div className="flex flex-wrap gap-2 min-h-[60px] p-2 border border-dashed border-gray-300 rounded-lg">
+          {Array.isArray(field.media) && field.media.length > 0 ? (
+            field.media.map((item, i) => (
+              <div key={i} className="relative group border border-gray-200 rounded p-1 bg-gray-50">
+                {item.type === 'image' ? (
+                  <img 
                     src={item.url} 
-                    className="w-full h-full rounded-lg" 
-                    title="Video preview"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
+                    alt="Reference image" 
+                    className="w-20 h-20 object-cover rounded-lg" 
                   />
-                  <div className="absolute top-0 left-0 bg-black/30 text-white px-1 text-xs rounded">
-                    Video
+                ) : item.type === 'video' ? (
+                  <div className="w-40 h-24 relative">
+                    <iframe 
+                      src={item.url} 
+                      className="w-full h-full rounded-lg" 
+                      title="Video preview"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                    <div className="absolute top-0 left-0 bg-black/30 text-white px-1 text-xs rounded">
+                      Video
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="w-40 h-24 bg-gray-100 rounded-lg flex flex-col items-center justify-center p-2">
-                  <FileText className="w-10 h-10 text-green-600" />
-                  <div className="text-xs text-center mt-1 text-gray-600 truncate w-full">
-                    PDF Document
+                ) : (
+                  <div className="w-40 h-24 bg-gray-100 rounded-lg flex flex-col items-center justify-center p-2">
+                    <FileText className="w-10 h-10 text-green-600" />
+                    <div className="text-xs text-center mt-1 text-gray-600 truncate w-full">
+                      PDF Document
+                    </div>
                   </div>
-                </div>
-              )}
-              <button
-                className="absolute top-1 right-1 bg-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:shadow-md"
-                onClick={() => removeMedia(i)}
-                aria-label="Remove"
-              >
-                <X className="w-3 h-3" />
-              </button>
+                )}
+                <button
+                  className="absolute top-1 right-1 bg-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:shadow-md"
+                  onClick={() => removeMedia(i)}
+                  aria-label="Remove"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))
+          ) : (
+            <div className="flex items-center justify-center w-full text-sm text-gray-500 italic">
+              No media added yet. Use the options below to add media.
             </div>
-          ))
-        ) : (
-          <div className="text-sm text-gray-500 italic">No media added yet</div>
-        )}
+          )}
+        </div>
       </div>
       
-      <div className="space-y-3">
+      {/* Media input options */}
+      <div className="space-y-4 border-t pt-4">
         <div>
-          <Label className="text-xs text-gray-500 mb-1 block">Upload files</Label>
+          <Label className="text-sm font-medium mb-2 block flex items-center gap-2">
+            <FileImage className="w-4 h-4" />
+            Upload Files
+          </Label>
           <Input 
             type="file" 
             accept="image/*,.pdf" 
@@ -259,7 +254,10 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
         </div>
         
         <div>
-          <Label className="text-xs text-gray-500 mb-1 block">Video URL</Label>
+          <Label className="text-sm font-medium mb-2 block flex items-center gap-2">
+            <FileVideo className="w-4 h-4" />
+            Video URL
+          </Label>
           <div className="flex gap-2">
             <Input
               type="url"
@@ -280,7 +278,10 @@ export function MediaField({ field, onFieldChange }: MediaFieldProps) {
         </div>
 
         <div>
-          <Label className="text-xs text-gray-500 mb-1 block">PDF URL</Label>
+          <Label className="text-sm font-medium mb-2 block flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            PDF URL
+          </Label>
           <div className="flex gap-2">
             <Input
               type="url"

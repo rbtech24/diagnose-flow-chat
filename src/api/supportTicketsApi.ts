@@ -24,6 +24,28 @@ export interface SupportTicketMessage {
   sender: any;
 }
 
+interface MessageRecord {
+  id: string;
+  ticket_id: string;
+  content: string;
+  user_id: string;
+  created_at: string;
+}
+
+interface TicketRecord {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  user_id: string;
+  created_by_user_id: string;
+  assigned_to?: string;
+  company_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 function isValidUUID(uuid: string): boolean {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(uuid);
