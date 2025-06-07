@@ -24,6 +24,28 @@ export interface SupportTicketMessage {
   sender: any;
 }
 
+interface TicketRecord {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  user_id: string;
+  created_by_user_id: string;
+  assigned_to?: string;
+  company_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface MessageRecord {
+  id: string;
+  ticket_id: string;
+  content: string;
+  user_id: string;
+  created_at: string;
+}
+
 function isValidUUID(uuid: string): boolean {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(uuid);
@@ -105,7 +127,7 @@ export async function fetchSupportTickets(
     throw error;
   }
   
-  const ticketList: SupportTicket[] = (data || []).map((ticket: any) => ({
+  const ticketList: SupportTicket[] = (data || []).map((ticket: TicketRecord) => ({
     id: ticket.id,
     title: ticket.title,
     description: ticket.description,
@@ -180,7 +202,7 @@ export async function fetchTicketMessages(ticketId: string): Promise<SupportTick
     throw error;
   }
   
-  return (data || []).map((message: any) => ({
+  return (data || []).map((message: MessageRecord) => ({
     id: message.id,
     ticket_id: message.ticket_id,
     content: message.content,
@@ -367,7 +389,7 @@ export async function searchSupportTickets(searchParams: {
     throw error;
   }
   
-  return (data || []).map((ticket: any) => ({
+  return (data || []).map((ticket: TicketRecord) => ({
     id: ticket.id,
     title: ticket.title,
     description: ticket.description,

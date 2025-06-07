@@ -2,83 +2,97 @@
 import { useState, useCallback } from 'react';
 import { Field } from '@/types/node-config';
 
-export function useNodeFields(initialData: any) {
+export function useNodeFields(initialData?: any) {
   const [fields, setFields] = useState<Field[]>([]);
 
-  const initializeFields = useCallback((data: any) => {
-    console.log("Initializing fields with data:", data);
+  const initializeFields = useCallback((nodeData?: any) => {
+    console.log('Initializing fields with nodeData:', nodeData);
+    
+    if (!nodeData) {
+      // Create a default content field if no data
+      setFields([{
+        id: `field-${Date.now()}`,
+        type: 'content',
+        content: ''
+      }]);
+      return;
+    }
+
     const initialFields: Field[] = [];
-    
-    if (data.content) {
-      const contentBlocks = Array.isArray(data.content) 
-        ? data.content 
-        : typeof data.content === 'string'
-          ? data.content.split('\n\n').filter(Boolean)
-          : [];
-          
-      contentBlocks.forEach((content: string, index: number) => {
-        initialFields.push({
-          id: `content-${index + 1}`,
-          type: 'content',
-          content: content.trim()
-        });
-      });
-    }
-    
-    if (data.media && data.media.length > 0) {
-      console.log("Initializing media fields with:", data.media);
-      data.media.forEach((media: any, index: number) => {
-        initialFields.push({
-          id: `media-${index + 1}`,
-          type: 'media',
-          media: Array.isArray(media) ? media : [media]
-        });
-      });
-    }
-    
-    if (data.options && data.options.length > 0) {
+
+    // Add content field if there's content
+    if (nodeData.content || nodeData.richInfo) {
       initialFields.push({
-        id: 'options-1',
-        type: 'options',
-        options: data.options
+        id: `content-${Date.now()}`,
+        type: 'content',
+        content: nodeData.content || nodeData.richInfo || ''
       });
     }
-    
-    console.log("Initialized fields:", initialFields);
-    setFields(initialFields.length > 0 ? initialFields : [{ id: 'content-1', type: 'content', content: '' }]);
+
+    // Add media field if there's media
+    if (nodeData.media && Array.isArray(nodeData.media) && nodeData.media.length > 0) {
+      initialFields.push({
+        id: `media-${Date.now()}`,
+        type: 'media',
+        media: nodeData.media
+      });
+    }
+
+    // Add options field if there are options
+    if (nodeData.options && Array.isArray(nodeData.options) && nodeData.options.length > 0) {
+      initialFields.push({
+        id: `options-${Date.now()}`,
+        type: 'options',
+        options: nodeData.options
+      });
+    }
+
+    // If no fields were created, add a default content field
+    if (initialFields.length === 0) {
+      initialFields.push({
+        id: `field-${Date.now()}`,
+        type: 'content',
+        content: ''
+      });
+    }
+
+    console.log('Initialized fields:', initialFields);
+    setFields(initialFields);
   }, []);
 
   const addField = useCallback((type: Field['type']) => {
-    const newId = `${type}-${fields.filter(f => f.type === type).length + 1}`;
-    const newField = { 
-      id: newId, 
-      type,
-      ...(type === 'options' && { options: [] }),
-      ...(type === 'media' && { media: [] }),
-      ...(type === 'content' && { content: '' })
-    };
+    console.log('Adding new field of type:', type);
     
-    console.log("Adding new field:", newField);
-    setFields(prevFields => [...prevFields, newField]);
-  }, [fields]);
+    const newField: Field = {
+      id: `${type}-${Date.now()}`,
+      type,
+      ...(type === 'content' && { content: '' }),
+      ...(type === 'media' && { media: [] }),
+      ...(type === 'options' && { options: [] })
+    };
 
-  const removeField = useCallback((id: string) => {
-    console.log("Removing field with id:", id);
-    setFields(prevFields => prevFields.filter(f => f.id !== id));
+    console.log('Created new field:', newField);
+    setFields(prev => [...prev, newField]);
+  }, []);
+
+  const removeField = useCallback((fieldId: string) => {
+    console.log('Removing field with ID:', fieldId);
+    setFields(prev => {
+      const filtered = prev.filter(field => field.id !== fieldId);
+      console.log('Fields after removal:', filtered);
+      return filtered;
+    });
   }, []);
 
   const moveField = useCallback((dragIndex: number, hoverIndex: number) => {
-    if (hoverIndex < 0 || hoverIndex >= fields.length) return;
-    
-    console.log(`Moving field from index ${dragIndex} to ${hoverIndex}`);
-    setFields(prevFields => {
-      const newFields = [...prevFields];
-      const dragField = newFields[dragIndex];
+    setFields(prev => {
+      const newFields = [...prev];
+      const draggedField = newFields[dragIndex];
       newFields.splice(dragIndex, 1);
-      newFields.splice(hoverIndex, 0, dragField);
+      newFields.splice(hoverIndex, 0, draggedField);
       return newFields;
     });
-  }, [fields.length]);
+  }, []);
 
   return {
     fields,

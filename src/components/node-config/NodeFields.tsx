@@ -24,6 +24,7 @@ export function NodeFields({
   onMoveField 
 }: NodeFieldsProps) {
   const handleFieldChange = (updatedField: Field) => {
+    console.log('Field changed:', updatedField);
     onFieldsChange(fields.map(field => 
       field.id === updatedField.id ? updatedField : field
     ));
@@ -49,6 +50,7 @@ export function NodeFields({
   };
 
   const handleAddField = (type: Field['type']) => {
+    console.log('Adding field of type:', type);
     onAddField(type);
     
     // Confirmation toast
@@ -59,6 +61,8 @@ export function NodeFields({
   };
 
   const renderField = (field: Field, index: number) => {
+    console.log('Rendering field:', field);
+    
     const fieldContent = (() => {
       switch (field.type) {
         case 'content':
@@ -68,7 +72,8 @@ export function NodeFields({
         case 'options':
           return <OptionsField field={field} onFieldChange={handleFieldChange} />;
         default:
-          return null;
+          console.warn('Unknown field type:', field.type);
+          return <div className="text-red-500">Unknown field type: {field.type}</div>;
       }
     })();
 
@@ -118,8 +123,9 @@ export function NodeFields({
       </div>
       
       <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
-        {fields.map((field, index) => renderField(field, index))}
-        {fields.length === 0 && (
+        {fields.length > 0 ? (
+          fields.map((field, index) => renderField(field, index))
+        ) : (
           <div className="text-center py-8 text-gray-500">
             No fields added yet. Use the buttons above to add fields.
           </div>
