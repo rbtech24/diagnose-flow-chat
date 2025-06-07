@@ -59,8 +59,7 @@ function sanitizeString(input: string): string {
     .replace(/on\w+\s*=/gi, '');
 }
 
-// Simplified sanitizeInput to avoid deep type recursion
-function sanitizeInput(input: string | Record<string, unknown> | unknown[]): string | Record<string, unknown> | unknown[] {
+function sanitizeInput(input: any): any {
   if (typeof input === 'string') {
     return sanitizeString(input);
   }
@@ -75,15 +74,14 @@ function sanitizeInput(input: string | Record<string, unknown> | unknown[]): str
   }
   
   if (input && typeof input === 'object' && input !== null) {
-    const sanitized: Record<string, unknown> = {};
-    Object.keys(input as Record<string, unknown>).forEach(key => {
-      const value = (input as Record<string, unknown>)[key];
+    const sanitized: Record<string, any> = {};
+    for (const [key, value] of Object.entries(input)) {
       if (typeof value === 'string') {
         sanitized[key] = sanitizeString(value);
       } else {
         sanitized[key] = value;
       }
-    });
+    }
     return sanitized;
   }
   
