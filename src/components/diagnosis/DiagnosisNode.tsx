@@ -104,10 +104,20 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
 
   return (
     <Card className={cardClassName}>
+      {/* Target handle - top */}
       <Handle
         type="target"
         position={Position.Top}
         id="target"
+        className="w-3 h-3 border-2 bg-gray-300 !border-gray-400"
+        style={{ background: '#d1d5db' }}
+      />
+      
+      {/* Target handle - left */}
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="left-target"
         className="w-3 h-3 border-2 bg-gray-300 !border-gray-400"
         style={{ background: '#d1d5db' }}
       />
@@ -161,6 +171,7 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
         {renderOptions()}
       </CardContent>
       
+      {/* Source handles */}
       <Handle
         type="source"
         position={Position.Bottom}
