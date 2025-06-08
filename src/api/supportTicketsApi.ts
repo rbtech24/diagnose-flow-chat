@@ -59,17 +59,21 @@ function sanitizeString(input: string): string {
     .replace(/on\w+\s*=/gi, '');
 }
 
-// Simplified sanitization to avoid deep type instantiation
-function sanitizeTicketData(data: { [key: string]: any }): { [key: string]: string } {
-  const result: { [key: string]: string } = {};
-  Object.keys(data).forEach(key => {
-    const value = data[key];
-    if (typeof value === 'string') {
-      result[key] = sanitizeString(value);
-    } else if (value != null) {
-      result[key] = String(value);
+// Simple sanitization function to avoid deep type recursion
+function sanitizeTicketData(data: Record<string, any>): Record<string, string> {
+  const result: Record<string, string> = {};
+  
+  for (const key in data) {
+    if (data.hasOwnProperty(key)) {
+      const value = data[key];
+      if (typeof value === 'string') {
+        result[key] = sanitizeString(value);
+      } else if (value != null) {
+        result[key] = String(value);
+      }
     }
-  });
+  }
+  
   return result;
 }
 
@@ -279,7 +283,7 @@ export async function addTicketMessage(messageData: {
     throw new Error('User not authenticated');
   }
 
-  const sanitizedData = sanitizeTicketData(messageData) as typeof messageData;
+  const sanitizedData = sanitizeTicketData(messageData);
 
   const { data, error } = await supabase
     .from('support_ticket_messages')
@@ -369,11 +373,15 @@ export async function searchSupportTickets(searchParams: {
 
   if (searchParams.filters) {
     const filters = sanitizeTicketData(searchParams.filters);
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value && value.trim()) {
-        query = query.eq(key, value);
+    // Simple iteration to avoid complex object operations
+    for (const key in filters) {
+      if (filters.hasOwnProperty(key)) {
+        const value = filters[key];
+        if (value && value.trim()) {
+          query = query.eq(key, value);
+        }
       }
-    });
+    }
   }
 
   const { data, error } = await query;

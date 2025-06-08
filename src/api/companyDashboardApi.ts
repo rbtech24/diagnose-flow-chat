@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DashboardStats {
@@ -35,19 +34,24 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
       };
     }
 
+    // Use simple array operations to avoid deep type instantiation
     const repairs = repairsData || [];
-    const activeJobs = repairs.filter((r) => r.status === 'in_progress').length;
-    const completedJobs = repairs.filter((r) => r.status === 'completed').length;
-    
-    // Calculate revenue with explicit typing to avoid deep instantiation
+    let activeJobs = 0;
+    let completedJobs = 0;
     let revenue = 0;
-    for (let i = 0; i < repairs.length; i++) {
-      const repair = repairs[i];
-      if (repair.status === 'completed' && repair.actual_cost) {
-        const costValue = repair.actual_cost;
-        const numericCost = typeof costValue === 'string' ? parseFloat(costValue) : Number(costValue);
-        if (!isNaN(numericCost)) {
-          revenue += numericCost;
+
+    // Manual loop to avoid complex array method chaining
+    for (const repair of repairs) {
+      if (repair.status === 'in_progress') {
+        activeJobs++;
+      }
+      if (repair.status === 'completed') {
+        completedJobs++;
+        if (repair.actual_cost) {
+          const cost = Number(repair.actual_cost);
+          if (!isNaN(cost)) {
+            revenue += cost;
+          }
         }
       }
     }
