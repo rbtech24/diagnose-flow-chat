@@ -25,15 +25,7 @@ export interface SupportTicketMessage {
   sender: any;
 }
 
-interface MessageRecord {
-  id: string;
-  ticket_id: string;
-  content: string;
-  user_id: string;
-  created_at: string;
-}
-
-interface TicketRecord {
+interface SimpleTicket {
   id: string;
   title: string;
   description: string;
@@ -45,6 +37,14 @@ interface TicketRecord {
   company_id?: string;
   created_at: string;
   updated_at: string;
+}
+
+interface SimpleMessage {
+  id: string;
+  ticket_id: string;
+  content: string;
+  user_id: string;
+  created_at: string;
 }
 
 function isValidUUID(uuid: string): boolean {
@@ -60,24 +60,6 @@ function sanitizeString(input: string): string {
     .replace(/on\w+\s*=/gi, '');
 }
 
-// Simple sanitization function to avoid deep type recursion
-function sanitizeTicketData(data: Record<string, any>): Record<string, string> {
-  const result: Record<string, string> = {};
-  
-  for (const key in data) {
-    if (data.hasOwnProperty(key)) {
-      const value = data[key];
-      if (typeof value === 'string') {
-        result[key] = sanitizeString(value);
-      } else if (value != null) {
-        result[key] = String(value);
-      }
-    }
-  }
-  
-  return result;
-}
-
 function validateStatus(status: string): SupportTicket['status'] {
   const validStatuses: Array<SupportTicket['status']> = ['open', 'in_progress', 'resolved', 'closed'];
   return validStatuses.includes(status as SupportTicket['status']) 
@@ -90,6 +72,34 @@ function validatePriority(priority: string): SupportTicket['priority'] {
   return validPriorities.includes(priority as SupportTicket['priority']) 
     ? (priority as SupportTicket['priority']) 
     : 'medium';
+}
+
+function convertToSupportTicket(ticket: SimpleTicket): SupportTicket {
+  return {
+    id: ticket.id,
+    title: ticket.title,
+    description: ticket.description,
+    status: validateStatus(ticket.status),
+    priority: validatePriority(ticket.priority),
+    user_id: ticket.user_id,
+    created_by_user_id: ticket.created_by_user_id,
+    assigned_to: ticket.assigned_to || undefined,
+    company_id: ticket.company_id || undefined,
+    created_at: ticket.created_at,
+    updated_at: ticket.updated_at,
+    created_by_user: null
+  };
+}
+
+function convertToSupportTicketMessage(message: SimpleMessage): SupportTicketMessage {
+  return {
+    id: message.id,
+    ticket_id: message.ticket_id,
+    content: message.content,
+    user_id: message.user_id,
+    created_at: message.created_at,
+    sender: null
+  };
 }
 
 export async function fetchSupportTickets(
@@ -126,28 +136,16 @@ export async function fetchSupportTickets(
     throw error;
   }
   
-  const ticketList: SupportTicket[] = [];
-  const rawData = data || [];
+  // Cast to simple type and convert
+  const rawTickets = (data || []) as SimpleTicket[];
+  const tickets: SupportTicket[] = [];
   
-  for (const ticket of rawData) {
-    ticketList.push({
-      id: ticket.id,
-      title: ticket.title,
-      description: ticket.description,
-      status: validateStatus(ticket.status),
-      priority: validatePriority(ticket.priority),
-      user_id: ticket.user_id,
-      created_by_user_id: ticket.created_by_user_id,
-      assigned_to: ticket.assigned_to || undefined,
-      company_id: ticket.company_id || undefined,
-      created_at: ticket.created_at,
-      updated_at: ticket.updated_at,
-      created_by_user: null
-    });
-  }
+  rawTickets.forEach((ticket: SimpleTicket) => {
+    tickets.push(convertToSupportTicket(ticket));
+  });
   
   return {
-    tickets: ticketList,
+    tickets,
     total: count || 0,
     page,
     limit
@@ -174,20 +172,7 @@ export async function fetchSupportTicketById(ticketId: string): Promise<SupportT
     throw new Error('Ticket not found');
   }
   
-  return {
-    id: data.id,
-    title: data.title,
-    description: data.description,
-    status: validateStatus(data.status),
-    priority: validatePriority(data.priority),
-    user_id: data.user_id,
-    created_by_user_id: data.created_by_user_id,
-    assigned_to: data.assigned_to || undefined,
-    company_id: data.company_id || undefined,
-    created_at: data.created_at,
-    updated_at: data.updated_at,
-    created_by_user: null
-  };
+  return convertToSupportTicket(data as SimpleTicket);
 }
 
 export async function fetchTicketMessages(ticketId: string): Promise<SupportTicketMessage[]> {
@@ -206,19 +191,13 @@ export async function fetchTicketMessages(ticketId: string): Promise<SupportTick
     throw error;
   }
   
+  // Cast to simple type and convert
+  const rawMessages = (data || []) as SimpleMessage[];
   const messages: SupportTicketMessage[] = [];
-  const rawData = data || [];
   
-  for (const message of rawData) {
-    messages.push({
-      id: message.id,
-      ticket_id: message.ticket_id,
-      content: message.content,
-      user_id: message.user_id,
-      created_at: message.created_at,
-      sender: null
-    });
-  }
+  rawMessages.forEach((message: SimpleMessage) => {
+    messages.push(convertToSupportTicketMessage(message));
+  });
   
   return messages;
 }
@@ -237,7 +216,6 @@ export async function createSupportTicket(ticketData: {
     throw new Error('Description is required');
   }
 
-  const sanitizedData = sanitizeTicketData(ticketData);
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) {
@@ -247,12 +225,12 @@ export async function createSupportTicket(ticketData: {
   const { data, error } = await supabase
     .from('support_tickets')
     .insert({
-      title: sanitizedData.title,
-      description: sanitizedData.description,
-      priority: sanitizedData.priority || 'medium',
+      title: sanitizeString(ticketData.title),
+      description: sanitizeString(ticketData.description),
+      priority: ticketData.priority || 'medium',
       user_id: user.id,
       created_by_user_id: user.id,
-      company_id: sanitizedData.companyId
+      company_id: ticketData.companyId
     })
     .select('*')
     .single();
@@ -262,20 +240,7 @@ export async function createSupportTicket(ticketData: {
     throw error;
   }
   
-  return {
-    id: data.id,
-    title: data.title,
-    description: data.description,
-    status: validateStatus(data.status),
-    priority: validatePriority(data.priority),
-    user_id: data.user_id,
-    created_by_user_id: data.created_by_user_id,
-    assigned_to: data.assigned_to || undefined,
-    company_id: data.company_id || undefined,
-    created_at: data.created_at,
-    updated_at: data.updated_at,
-    created_by_user: null
-  };
+  return convertToSupportTicket(data as SimpleTicket);
 }
 
 export async function addTicketMessage(messageData: {
@@ -296,13 +261,11 @@ export async function addTicketMessage(messageData: {
     throw new Error('User not authenticated');
   }
 
-  const sanitizedData = sanitizeTicketData(messageData);
-
   const { data, error } = await supabase
     .from('support_ticket_messages')
     .insert({
-      content: sanitizedData.content,
-      ticket_id: sanitizedData.ticket_id,
+      content: sanitizeString(messageData.content),
+      ticket_id: messageData.ticket_id,
       user_id: user.id
     })
     .select('*')
@@ -313,14 +276,7 @@ export async function addTicketMessage(messageData: {
     throw error;
   }
   
-  return {
-    id: data.id,
-    ticket_id: data.ticket_id,
-    content: data.content,
-    user_id: data.user_id,
-    created_at: data.created_at,
-    sender: null
-  };
+  return convertToSupportTicketMessage(data as SimpleMessage);
 }
 
 export async function updateSupportTicket(
@@ -337,11 +293,17 @@ export async function updateSupportTicket(
     throw new Error('Invalid ticket ID format');
   }
 
-  const sanitizedData = sanitizeTicketData(updateData);
+  const cleanData: Record<string, string> = {};
+  
+  if (updateData.title) cleanData.title = sanitizeString(updateData.title);
+  if (updateData.description) cleanData.description = sanitizeString(updateData.description);
+  if (updateData.status) cleanData.status = updateData.status;
+  if (updateData.priority) cleanData.priority = updateData.priority;
+  if (updateData.assignedTo) cleanData.assigned_to = updateData.assignedTo;
 
   const { data, error } = await supabase
     .from('support_tickets')
-    .update(sanitizedData)
+    .update(cleanData)
     .eq('id', ticketId)
     .select('*')
     .single();
@@ -351,20 +313,7 @@ export async function updateSupportTicket(
     throw error;
   }
   
-  return {
-    id: data.id,
-    title: data.title,
-    description: data.description,
-    status: validateStatus(data.status),
-    priority: validatePriority(data.priority),
-    user_id: data.user_id,
-    created_by_user_id: data.created_by_user_id,
-    assigned_to: data.assigned_to || undefined,
-    company_id: data.company_id || undefined,
-    created_at: data.created_at,
-    updated_at: data.updated_at,
-    created_by_user: null
-  };
+  return convertToSupportTicket(data as SimpleTicket);
 }
 
 export async function searchSupportTickets(searchParams: {
@@ -385,16 +334,11 @@ export async function searchSupportTickets(searchParams: {
     .limit(50);
 
   if (searchParams.filters) {
-    const filters = sanitizeTicketData(searchParams.filters);
-    // Simple iteration to avoid complex object operations
-    for (const key in filters) {
-      if (filters.hasOwnProperty(key)) {
-        const value = filters[key];
-        if (value && value.trim()) {
-          query = query.eq(key, value);
-        }
+    Object.entries(searchParams.filters).forEach(([key, value]) => {
+      if (value && value.trim()) {
+        query = query.eq(key, sanitizeString(value));
       }
-    }
+    });
   }
 
   const { data, error } = await query;
@@ -404,25 +348,13 @@ export async function searchSupportTickets(searchParams: {
     throw error;
   }
   
+  // Cast to simple type and convert
+  const rawTickets = (data || []) as SimpleTicket[];
   const tickets: SupportTicket[] = [];
-  const rawData = data || [];
   
-  for (const ticket of rawData) {
-    tickets.push({
-      id: ticket.id,
-      title: ticket.title,
-      description: ticket.description,
-      status: validateStatus(ticket.status),
-      priority: validatePriority(ticket.priority),
-      user_id: ticket.user_id,
-      created_by_user_id: ticket.created_by_user_id,
-      assigned_to: ticket.assigned_to || undefined,
-      company_id: ticket.company_id || undefined,
-      created_at: ticket.created_at,
-      updated_at: ticket.updated_at,
-      created_by_user: null
-    });
-  }
+  rawTickets.forEach((ticket: SimpleTicket) => {
+    tickets.push(convertToSupportTicket(ticket));
+  });
   
   return tickets;
 }

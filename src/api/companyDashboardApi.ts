@@ -16,6 +16,19 @@ export interface RecentActivity {
   icon: string;
 }
 
+interface SimpleRepair {
+  status: string;
+  actual_cost: string | number | null;
+  completed_at: string | null;
+}
+
+interface SimpleActivity {
+  id: string;
+  activity_type: string;
+  description: string;
+  created_at: string;
+}
+
 export const fetchDashboardStats = async (companyId: string): Promise<DashboardStats> => {
   console.log('Fetching dashboard stats for company:', companyId);
   
@@ -35,14 +48,14 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
       };
     }
 
-    // Use simple array operations to avoid deep type instantiation
-    const repairs = repairsData || [];
+    // Cast to simple type to avoid deep type inference
+    const repairs = (repairsData || []) as SimpleRepair[];
     let activeJobs = 0;
     let completedJobs = 0;
     let revenue = 0;
 
-    // Manual loop to avoid complex array method chaining
-    for (const repair of repairs) {
+    // Process each repair with explicit typing
+    repairs.forEach((repair: SimpleRepair) => {
       if (repair.status === 'in_progress') {
         activeJobs++;
       }
@@ -55,7 +68,7 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
           }
         }
       }
-    }
+    });
       
     const completionRate = repairs.length > 0 
       ? Math.round((completedJobs / repairs.length) * 100) 
@@ -98,18 +111,21 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    const activities: RecentActivity[] = [];
-    for (const activity of activityData) {
-      activities.push({
+    // Cast to simple type to avoid deep type inference
+    const activities = activityData as SimpleActivity[];
+    const result: RecentActivity[] = [];
+
+    activities.forEach((activity: SimpleActivity) => {
+      result.push({
         id: activity.id || `activity-${Date.now()}`,
         type: mapActivityTypeToRecentActivity(activity.activity_type || 'unknown'),
         description: activity.description || 'Activity recorded',
         time: formatTimeAgo(new Date(activity.created_at || new Date())),
         icon: getActivityIcon(activity.activity_type || 'unknown')
       });
-    }
+    });
 
-    return activities;
+    return result;
   } catch (error) {
     console.error('Error in fetchRecentActivity:', error);
     return [];
