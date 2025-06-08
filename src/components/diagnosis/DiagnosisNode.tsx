@@ -105,16 +105,16 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
 
   const cardClassName = `min-w-[200px] max-w-[300px] ${getNodeTypeColor(nodeData.type)} ${getNodeShape(nodeData.type)}`;
 
-  // Type-safe options rendering with explicit type conversion
-  const renderOptions = (): React.ReactNode => {
+  // Type-safe options rendering with string conversion
+  const renderOptions = (): JSX.Element | null => {
     if (nodeData.options && nodeData.options.length > 0 && nodeData.type === 'question') {
       return (
         <div className="mt-2">
           <div className="text-xs text-gray-600 mb-1">Options:</div>
           <ul className="text-xs text-gray-600 list-disc list-inside">
             {nodeData.options.map((option, index) => {
-              // Explicit type conversion to ensure valid ReactNode
-              const optionText: string = typeof option === 'string' ? option : String(option || '');
+              // Convert to string safely
+              const optionText = String(option || '');
               return (
                 <li key={index}>{optionText}</li>
               );

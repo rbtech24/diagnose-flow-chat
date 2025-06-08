@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface SupportTicket {
@@ -125,20 +126,25 @@ export async function fetchSupportTickets(
     throw error;
   }
   
-  const ticketList: SupportTicket[] = (data || []).map((ticket) => ({
-    id: ticket.id,
-    title: ticket.title,
-    description: ticket.description,
-    status: validateStatus(ticket.status),
-    priority: validatePriority(ticket.priority),
-    user_id: ticket.user_id,
-    created_by_user_id: ticket.created_by_user_id,
-    assigned_to: ticket.assigned_to || undefined,
-    company_id: ticket.company_id || undefined,
-    created_at: ticket.created_at,
-    updated_at: ticket.updated_at,
-    created_by_user: null
-  }));
+  const ticketList: SupportTicket[] = [];
+  const rawData = data || [];
+  
+  for (const ticket of rawData) {
+    ticketList.push({
+      id: ticket.id,
+      title: ticket.title,
+      description: ticket.description,
+      status: validateStatus(ticket.status),
+      priority: validatePriority(ticket.priority),
+      user_id: ticket.user_id,
+      created_by_user_id: ticket.created_by_user_id,
+      assigned_to: ticket.assigned_to || undefined,
+      company_id: ticket.company_id || undefined,
+      created_at: ticket.created_at,
+      updated_at: ticket.updated_at,
+      created_by_user: null
+    });
+  }
   
   return {
     tickets: ticketList,
@@ -200,14 +206,21 @@ export async function fetchTicketMessages(ticketId: string): Promise<SupportTick
     throw error;
   }
   
-  return (data || []).map((message: MessageRecord) => ({
-    id: message.id,
-    ticket_id: message.ticket_id,
-    content: message.content,
-    user_id: message.user_id,
-    created_at: message.created_at,
-    sender: null
-  }));
+  const messages: SupportTicketMessage[] = [];
+  const rawData = data || [];
+  
+  for (const message of rawData) {
+    messages.push({
+      id: message.id,
+      ticket_id: message.ticket_id,
+      content: message.content,
+      user_id: message.user_id,
+      created_at: message.created_at,
+      sender: null
+    });
+  }
+  
+  return messages;
 }
 
 export async function createSupportTicket(ticketData: {
@@ -391,18 +404,25 @@ export async function searchSupportTickets(searchParams: {
     throw error;
   }
   
-  return (data || []).map((ticket: TicketRecord) => ({
-    id: ticket.id,
-    title: ticket.title,
-    description: ticket.description,
-    status: validateStatus(ticket.status),
-    priority: validatePriority(ticket.priority),
-    user_id: ticket.user_id,
-    created_by_user_id: ticket.created_by_user_id,
-    assigned_to: ticket.assigned_to || undefined,
-    company_id: ticket.company_id || undefined,
-    created_at: ticket.created_at,
-    updated_at: ticket.updated_at,
-    created_by_user: null
-  }));
+  const tickets: SupportTicket[] = [];
+  const rawData = data || [];
+  
+  for (const ticket of rawData) {
+    tickets.push({
+      id: ticket.id,
+      title: ticket.title,
+      description: ticket.description,
+      status: validateStatus(ticket.status),
+      priority: validatePriority(ticket.priority),
+      user_id: ticket.user_id,
+      created_by_user_id: ticket.created_by_user_id,
+      assigned_to: ticket.assigned_to || undefined,
+      company_id: ticket.company_id || undefined,
+      created_at: ticket.created_at,
+      updated_at: ticket.updated_at,
+      created_by_user: null
+    });
+  }
+  
+  return tickets;
 }

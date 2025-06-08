@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DashboardStats {
@@ -97,13 +98,16 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    const activities: RecentActivity[] = activityData.map((activity) => ({
-      id: activity.id || `activity-${Date.now()}`,
-      type: mapActivityTypeToRecentActivity(activity.activity_type || 'unknown'),
-      description: activity.description || 'Activity recorded',
-      time: formatTimeAgo(new Date(activity.created_at || new Date())),
-      icon: getActivityIcon(activity.activity_type || 'unknown')
-    }));
+    const activities: RecentActivity[] = [];
+    for (const activity of activityData) {
+      activities.push({
+        id: activity.id || `activity-${Date.now()}`,
+        type: mapActivityTypeToRecentActivity(activity.activity_type || 'unknown'),
+        description: activity.description || 'Activity recorded',
+        time: formatTimeAgo(new Date(activity.created_at || new Date())),
+        icon: getActivityIcon(activity.activity_type || 'unknown')
+      });
+    }
 
     return activities;
   } catch (error) {
