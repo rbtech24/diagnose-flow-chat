@@ -1,4 +1,3 @@
-
 import React, { memo, useMemo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -98,14 +97,7 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
     }
   };
 
-  // Don't render start nodes visually (they're workflow metadata)
-  if (nodeData.type === 'start') {
-    return null;
-  }
-
-  const cardClassName = `min-w-[200px] max-w-[300px] ${getNodeTypeColor(nodeData.type)} ${getNodeShape(nodeData.type)}`;
-
-  // Type-safe options rendering with explicit string conversion
+  // Explicitly type the return value to fix TypeScript error
   const renderOptions = (): React.ReactNode => {
     if (nodeData.options && nodeData.options.length > 0 && nodeData.type === 'question') {
       return (
@@ -113,7 +105,6 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
           <div className="text-xs text-gray-600 mb-1">Options:</div>
           <ul className="text-xs text-gray-600 list-disc list-inside">
             {nodeData.options.map((option, index) => {
-              // Ensure option is converted to string safely
               const optionText = option != null ? String(option) : '';
               return (
                 <li key={index}>{optionText}</li>
@@ -125,6 +116,13 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
     }
     return null;
   };
+
+  // Don't render start nodes visually (they're workflow metadata)
+  if (nodeData.type === 'start') {
+    return null;
+  }
+
+  const cardClassName = `min-w-[200px] max-w-[300px] ${getNodeTypeColor(nodeData.type)} ${getNodeShape(nodeData.type)}`;
 
   return (
     <Card className={cardClassName}>

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface SupportTicket {
@@ -136,13 +135,13 @@ export async function fetchSupportTickets(
     throw error;
   }
   
-  // Cast to simple type and convert
+  // Cast to simple type and convert using for loop to avoid deep type instantiation
   const rawTickets = (data || []) as SimpleTicket[];
   const tickets: SupportTicket[] = [];
   
-  rawTickets.forEach((ticket: SimpleTicket) => {
-    tickets.push(convertToSupportTicket(ticket));
-  });
+  for (let i = 0; i < rawTickets.length; i++) {
+    tickets.push(convertToSupportTicket(rawTickets[i]));
+  }
   
   return {
     tickets,
@@ -191,13 +190,13 @@ export async function fetchTicketMessages(ticketId: string): Promise<SupportTick
     throw error;
   }
   
-  // Cast to simple type and convert
+  // Cast to simple type and convert using for loop
   const rawMessages = (data || []) as SimpleMessage[];
   const messages: SupportTicketMessage[] = [];
   
-  rawMessages.forEach((message: SimpleMessage) => {
-    messages.push(convertToSupportTicketMessage(message));
-  });
+  for (let i = 0; i < rawMessages.length; i++) {
+    messages.push(convertToSupportTicketMessage(rawMessages[i]));
+  }
   
   return messages;
 }
@@ -348,13 +347,13 @@ export async function searchSupportTickets(searchParams: {
     throw error;
   }
   
-  // Cast to simple type and convert
+  // Cast to simple type and convert using for loop
   const rawTickets = (data || []) as SimpleTicket[];
   const tickets: SupportTicket[] = [];
   
-  rawTickets.forEach((ticket: SimpleTicket) => {
-    tickets.push(convertToSupportTicket(ticket));
-  });
+  for (let i = 0; i < rawTickets.length; i++) {
+    tickets.push(convertToSupportTicket(rawTickets[i]));
+  }
   
   return tickets;
 }
