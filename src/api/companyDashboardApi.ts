@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DashboardStats {
@@ -13,19 +14,6 @@ export interface RecentActivity {
   description: string;
   time: string;
   icon: string;
-}
-
-interface SimpleRepair {
-  status: string;
-  actual_cost: string | number | null;
-  completed_at: string | null;
-}
-
-interface SimpleActivity {
-  id: string;
-  activity_type: string;
-  description: string;
-  created_at: string;
 }
 
 export const fetchDashboardStats = async (companyId: string): Promise<DashboardStats> => {
@@ -47,21 +35,27 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
       };
     }
 
-    // Cast to simple type to avoid deep type inference
-    const repairs = (repairsData || []) as SimpleRepair[];
+    if (!repairsData || repairsData.length === 0) {
+      return {
+        activeJobs: 0,
+        completedJobs: 0,
+        revenue: 0,
+        completionRate: 0
+      };
+    }
+
     let activeJobs = 0;
     let completedJobs = 0;
     let revenue = 0;
 
-    // Use simple for loop instead of forEach to avoid deep type instantiation
-    for (let i = 0; i < repairs.length; i++) {
-      const repair = repairs[i];
-      if (repair.status === 'in_progress') {
+    // Process repairs with basic iteration to avoid type issues
+    for (const repair of repairsData) {
+      if (repair?.status === 'in_progress') {
         activeJobs++;
       }
-      if (repair.status === 'completed') {
+      if (repair?.status === 'completed') {
         completedJobs++;
-        if (repair.actual_cost) {
+        if (repair?.actual_cost) {
           const cost = Number(repair.actual_cost);
           if (!isNaN(cost)) {
             revenue += cost;
@@ -70,8 +64,8 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
       }
     }
       
-    const completionRate = repairs.length > 0 
-      ? Math.round((completedJobs / repairs.length) * 100) 
+    const completionRate = repairsData.length > 0 
+      ? Math.round((completedJobs / repairsData.length) * 100) 
       : 0;
 
     return {
@@ -111,20 +105,19 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    // Cast to simple type to avoid deep type inference
-    const activities = activityData as SimpleActivity[];
     const result: RecentActivity[] = [];
 
-    // Use simple for loop instead of forEach to avoid deep type instantiation
-    for (let i = 0; i < activities.length; i++) {
-      const activity = activities[i];
-      result.push({
-        id: activity.id || `activity-${Date.now()}`,
-        type: mapActivityTypeToRecentActivity(activity.activity_type || 'unknown'),
-        description: activity.description || 'Activity recorded',
-        time: formatTimeAgo(new Date(activity.created_at || new Date())),
-        icon: getActivityIcon(activity.activity_type || 'unknown')
-      });
+    // Process activities with basic iteration
+    for (const activity of activityData) {
+      if (activity) {
+        result.push({
+          id: activity.id || `activity-${Date.now()}`,
+          type: mapActivityTypeToRecentActivity(activity.activity_type || 'unknown'),
+          description: activity.description || 'Activity recorded',
+          time: formatTimeAgo(new Date(activity.created_at || new Date())),
+          icon: getActivityIcon(activity.activity_type || 'unknown')
+        });
+      }
     }
 
     return result;

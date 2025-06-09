@@ -1,3 +1,4 @@
+
 import React, { memo, useMemo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,12 +10,6 @@ import { NodeData, TechnicalSpecs } from '@/types/node-config';
 
 interface DiagnosisNodeProps extends NodeProps {
   data: NodeData;
-}
-
-interface FieldItem {
-  id: string;
-  type: string;
-  content?: string;
 }
 
 const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
@@ -61,8 +56,7 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
     
     // Check if there's a field with warning content - type-safe approach
     if (nodeData.fields && Array.isArray(nodeData.fields)) {
-      const fields = nodeData.fields as FieldItem[];
-      const warningField = fields.find((field: FieldItem) => field.id === 'warning' || field.type === 'warning');
+      const warningField = nodeData.fields.find((field: any) => field.id === 'warning' || field.type === 'warning');
       
       if (warningField && warningField.content) {
         try {
@@ -97,14 +91,14 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
     }
   };
 
-  // Explicitly type the return value to fix TypeScript error
-  const renderOptions = (): React.ReactNode => {
+  // Render options with proper type handling
+  const renderOptions = () => {
     if (nodeData.options && nodeData.options.length > 0 && nodeData.type === 'question') {
       return (
         <div className="mt-2">
           <div className="text-xs text-gray-600 mb-1">Options:</div>
           <ul className="text-xs text-gray-600 list-disc list-inside">
-            {nodeData.options.map((option, index) => {
+            {nodeData.options.map((option: any, index: number) => {
               const optionText = option != null ? String(option) : '';
               return (
                 <li key={index}>{optionText}</li>

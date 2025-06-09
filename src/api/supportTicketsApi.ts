@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface SupportTicket {
@@ -22,28 +23,6 @@ export interface SupportTicketMessage {
   user_id: string;
   created_at: string;
   sender: any;
-}
-
-interface SimpleTicket {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  priority: string;
-  user_id: string;
-  created_by_user_id: string;
-  assigned_to?: string;
-  company_id?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface SimpleMessage {
-  id: string;
-  ticket_id: string;
-  content: string;
-  user_id: string;
-  created_at: string;
 }
 
 function isValidUUID(uuid: string): boolean {
@@ -73,7 +52,7 @@ function validatePriority(priority: string): SupportTicket['priority'] {
     : 'medium';
 }
 
-function convertToSupportTicket(ticket: SimpleTicket): SupportTicket {
+function convertToSupportTicket(ticket: any): SupportTicket {
   return {
     id: ticket.id,
     title: ticket.title,
@@ -90,7 +69,7 @@ function convertToSupportTicket(ticket: SimpleTicket): SupportTicket {
   };
 }
 
-function convertToSupportTicketMessage(message: SimpleMessage): SupportTicketMessage {
+function convertToSupportTicketMessage(message: any): SupportTicketMessage {
   return {
     id: message.id,
     ticket_id: message.ticket_id,
@@ -135,12 +114,12 @@ export async function fetchSupportTickets(
     throw error;
   }
   
-  // Cast to simple type and convert using for loop to avoid deep type instantiation
-  const rawTickets = (data || []) as SimpleTicket[];
   const tickets: SupportTicket[] = [];
   
-  for (let i = 0; i < rawTickets.length; i++) {
-    tickets.push(convertToSupportTicket(rawTickets[i]));
+  if (data) {
+    for (const rawTicket of data) {
+      tickets.push(convertToSupportTicket(rawTicket));
+    }
   }
   
   return {
@@ -171,7 +150,7 @@ export async function fetchSupportTicketById(ticketId: string): Promise<SupportT
     throw new Error('Ticket not found');
   }
   
-  return convertToSupportTicket(data as SimpleTicket);
+  return convertToSupportTicket(data);
 }
 
 export async function fetchTicketMessages(ticketId: string): Promise<SupportTicketMessage[]> {
@@ -190,12 +169,12 @@ export async function fetchTicketMessages(ticketId: string): Promise<SupportTick
     throw error;
   }
   
-  // Cast to simple type and convert using for loop
-  const rawMessages = (data || []) as SimpleMessage[];
   const messages: SupportTicketMessage[] = [];
   
-  for (let i = 0; i < rawMessages.length; i++) {
-    messages.push(convertToSupportTicketMessage(rawMessages[i]));
+  if (data) {
+    for (const rawMessage of data) {
+      messages.push(convertToSupportTicketMessage(rawMessage));
+    }
   }
   
   return messages;
@@ -239,7 +218,7 @@ export async function createSupportTicket(ticketData: {
     throw error;
   }
   
-  return convertToSupportTicket(data as SimpleTicket);
+  return convertToSupportTicket(data);
 }
 
 export async function addTicketMessage(messageData: {
@@ -275,7 +254,7 @@ export async function addTicketMessage(messageData: {
     throw error;
   }
   
-  return convertToSupportTicketMessage(data as SimpleMessage);
+  return convertToSupportTicketMessage(data);
 }
 
 export async function updateSupportTicket(
@@ -312,7 +291,7 @@ export async function updateSupportTicket(
     throw error;
   }
   
-  return convertToSupportTicket(data as SimpleTicket);
+  return convertToSupportTicket(data);
 }
 
 export async function searchSupportTickets(searchParams: {
@@ -347,12 +326,12 @@ export async function searchSupportTickets(searchParams: {
     throw error;
   }
   
-  // Cast to simple type and convert using for loop
-  const rawTickets = (data || []) as SimpleTicket[];
   const tickets: SupportTicket[] = [];
   
-  for (let i = 0; i < rawTickets.length; i++) {
-    tickets.push(convertToSupportTicket(rawTickets[i]));
+  if (data) {
+    for (const rawTicket of data) {
+      tickets.push(convertToSupportTicket(rawTicket));
+    }
   }
   
   return tickets;
