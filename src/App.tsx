@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,9 +16,9 @@ import ResetPassword from "./pages/ResetPassword";
 import DevLogin from "./pages/DevLogin";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
-import AdminDashboard from "./pages/admin/Dashboard";
-import CompanyDashboard from "./pages/company/Dashboard";
-import TechDashboard from "./pages/tech/Dashboard";
+import Admin from "./pages/Admin";
+import Company from "./pages/Company";
+import Tech from "./pages/Tech";
 
 const queryClient = new QueryClient();
 
@@ -46,24 +45,24 @@ function App() {
                   <Route 
                     path="/admin" 
                     element={
-                      <RouteGuard allowedRoles={['admin']}>
-                        <AdminDashboard />
+                      <RouteGuard roles={['admin']}>
+                        <Admin />
                       </RouteGuard>
                     } 
                   />
                   <Route 
                     path="/company" 
                     element={
-                      <RouteGuard allowedRoles={['company']}>
-                        <CompanyDashboard />
+                      <RouteGuard roles={['company']}>
+                        <Company />
                       </RouteGuard>
                     } 
                   />
                   <Route 
                     path="/tech" 
                     element={
-                      <RouteGuard allowedRoles={['tech']}>
-                        <TechDashboard />
+                      <RouteGuard roles={['tech']}>
+                        <Tech />
                       </RouteGuard>
                     } 
                   />
