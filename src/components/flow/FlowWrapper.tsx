@@ -12,7 +12,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import { DiagnosisNode } from '@/components/diagnosis/DiagnosisNode';
+import DiagnosisNode from '@/components/diagnosis/DiagnosisNode';
 import { FlowToolbar } from './FlowToolbar';
 import { FlowControls } from './enhanced/FlowControls';
 import { FlowMinimap } from './enhanced/FlowMinimap';
