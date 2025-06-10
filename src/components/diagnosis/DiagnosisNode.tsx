@@ -286,61 +286,34 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
   const renderWarning = () => {
     let warningConfig: any = null;
     
-    // First check if there's a warning field in the fields array
+    // Look for warning field in the fields array
     if (data.fields && Array.isArray(data.fields)) {
-      const warningField = data.fields.find(field => field.id === 'warning' && field.content);
-      if (warningField?.content) {
-        try {
-          warningConfig = typeof warningField.content === 'string' ? 
-            JSON.parse(warningField.content) : warningField.content;
-        } catch (error) {
-          console.log('Failed to parse warning field content:', error);
-        }
-      }
-    }
-    
-    // Fall back to checking the warning property directly
-    if (!warningConfig && data.warning) {
-      try {
-        warningConfig = typeof data.warning === 'string' ? JSON.parse(data.warning) : data.warning;
-      } catch (error) {
-        // If parsing fails, treat as plain text warning
-        return (
-          <div className="mt-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
-            <div className="flex items-start gap-1">
-              <AlertTriangle className="w-3 h-3 mt-0.5" />
-              <span>{data.warning}</span>
-            </div>
-          </div>
-        );
-      }
-    }
-    
-    // Check other possible warning sources in the data
-    if (!warningConfig) {
-      const possibleWarningKeys = Object.keys(data).filter(key => key.toLowerCase().includes('warning'));
-      
-      for (const key of possibleWarningKeys) {
-        const value = data[key];
-        if (typeof value === 'string') {
+      const warningField = data.fields.find(field => field.id === 'warning');
+      if (warningField) {
+        console.log('Found warning field:', warningField);
+        
+        // Check if content exists and try to parse it
+        if (warningField.content) {
           try {
-            const parsed = JSON.parse(value);
-            if (parsed && typeof parsed === 'object' && parsed.type) {
-              warningConfig = parsed;
-              break;
+            // Handle case where content is already an object
+            if (typeof warningField.content === 'object') {
+              warningConfig = warningField.content;
+            } else if (typeof warningField.content === 'string') {
+              // Try to parse as JSON
+              warningConfig = JSON.parse(warningField.content);
             }
+            console.log('Parsed warning config:', warningConfig);
           } catch (error) {
-            // Continue to next key
+            console.log('Failed to parse warning content:', error);
+            console.log('Raw content:', warningField.content);
           }
-        } else if (value && typeof value === 'object' && 'type' in value) {
-          warningConfig = value;
-          break;
         }
       }
     }
     
-    // If we found a valid warning config, render the WarningIcon component
+    // If we found a valid warning config with a type, render the WarningIcon
     if (warningConfig && warningConfig.type) {
+      console.log('Rendering WarningIcon with config:', warningConfig);
       return (
         <div className="mt-3">
           <WarningIcon 
@@ -352,6 +325,8 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
       );
     }
 
+    // If no warning config found, don't render anything
+    console.log('No valid warning config found');
     return null;
   };
 
