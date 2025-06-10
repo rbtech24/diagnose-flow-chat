@@ -91,8 +91,8 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
     }
   };
 
-  // Render options with proper type handling
-  const renderOptions = () => {
+  // Render options with proper type handling - explicitly typed as ReactNode
+  const renderOptions = (): React.ReactNode => {
     if (nodeData.options && nodeData.options.length > 0 && nodeData.type === 'question') {
       return (
         <div className="mt-2">

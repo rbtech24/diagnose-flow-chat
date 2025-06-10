@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface SupportTicket {
@@ -299,11 +300,13 @@ export async function searchSupportTickets(searchParams: {
     .limit(50);
 
   if (searchParams.filters) {
-    Object.entries(searchParams.filters).forEach(([key, value]) => {
+    const filterEntries = Object.entries(searchParams.filters);
+    for (let i = 0; i < filterEntries.length; i++) {
+      const [key, value] = filterEntries[i];
       if (value && value.trim()) {
         query = query.eq(key, sanitizeString(value));
       }
-    });
+    }
   }
 
   const { data, error } = await query;

@@ -48,7 +48,8 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     let completedJobs = 0;
     let revenue = 0;
 
-    repairsData.forEach(repair => {
+    for (let i = 0; i < repairsData.length; i++) {
+      const repair = repairsData[i];
       if (repair?.status === 'in_progress') {
         activeJobs++;
       }
@@ -61,7 +62,7 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
           }
         }
       }
-    });
+    }
       
     const completionRate = repairsData.length > 0 
       ? Math.round((completedJobs / repairsData.length) * 100) 
@@ -104,13 +105,19 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    return activityData.map(activity => ({
-      id: activity.id || `activity-${Date.now()}`,
-      type: mapActivityTypeToRecentActivity(activity.activity_type || 'unknown'),
-      description: activity.description || 'Activity recorded',
-      time: formatTimeAgo(new Date(activity.created_at || new Date())),
-      icon: getActivityIcon(activity.activity_type || 'unknown')
-    }));
+    const results: RecentActivity[] = [];
+    for (let i = 0; i < activityData.length; i++) {
+      const activity = activityData[i];
+      results.push({
+        id: activity.id || `activity-${Date.now()}`,
+        type: mapActivityTypeToRecentActivity(activity.activity_type || 'unknown'),
+        description: activity.description || 'Activity recorded',
+        time: formatTimeAgo(new Date(activity.created_at || new Date())),
+        icon: getActivityIcon(activity.activity_type || 'unknown')
+      });
+    }
+
+    return results;
   } catch (error) {
     console.error('Error in fetchRecentActivity:', error);
     return [];
