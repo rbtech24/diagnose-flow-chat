@@ -1,69 +1,25 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useUserManagementStore } from '@/store/userManagementStore';
-import { useNavigate } from 'react-router-dom';
-import { User } from '@/types/user';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 
 export function DevAuthBypass() {
-  const { setCurrentUser } = useUserManagementStore();
-  const navigate = useNavigate();
-
-  const createDevUser = (role: 'admin' | 'company' | 'tech', name: string): User => ({
-    id: `dev-${role}-${Date.now()}`,
-    name,
-    email: `dev-${role}@example.com`,
-    role,
-    companyId: role === 'tech' ? 'company-1' : undefined,
-    status: 'active',
-    avatarUrl: 'https://i.pravatar.cc/300',
-    activeJobs: role === 'tech' ? 3 : 0
-  });
-
-  const loginAsDev = (role: 'admin' | 'company' | 'tech') => {
-    const names = {
-      admin: 'Dev Admin',
-      company: 'Dev Company Manager',
-      tech: 'Dev Technician'
-    };
-    
-    const devUser = createDevUser(role, names[role]);
-    setCurrentUser(devUser);
-    localStorage.setItem('currentUser', JSON.stringify(devUser));
-    navigate(`/${role}`);
-  };
-
   return (
-    <Card className="w-full max-w-md mx-auto mt-8">
+    <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>Development Authentication</CardTitle>
+        <CardTitle>Authentication Required</CardTitle>
         <CardDescription>
-          Quick login for development purposes
+          This component has been disabled. Please use the proper login flow.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3">
-        <Button 
-          onClick={() => loginAsDev('tech')} 
-          className="w-full"
-          variant="default"
-        >
-          Login as Tech User
-        </Button>
-        <Button 
-          onClick={() => loginAsDev('company')} 
-          className="w-full"
-          variant="outline"
-        >
-          Login as Company User
-        </Button>
-        <Button 
-          onClick={() => loginAsDev('admin')} 
-          className="w-full"
-          variant="outline"
-        >
-          Login as Admin User
-        </Button>
+      <CardContent>
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Demo user bypass has been removed. Please use the login page with proper Supabase authentication.
+          </AlertDescription>
+        </Alert>
       </CardContent>
     </Card>
   );
