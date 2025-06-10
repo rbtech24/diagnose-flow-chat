@@ -6,8 +6,10 @@ import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   user: User | null;
+  session: any | null; // Added session property
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
+  signUp: (email: string, password: string, userData?: any) => Promise<boolean>; // Added signUp method
   isLoading: boolean;
   isSessionValid: () => boolean;
   getSessionTimeRemaining: () => number;
@@ -44,6 +46,7 @@ const DEMO_USERS = [
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<any | null>(null); // Added session state
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -56,7 +59,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (savedUser && sessionExpiry) {
       const expiry = parseInt(sessionExpiry);
       if (Date.now() < expiry) {
-        setUser(JSON.parse(savedUser));
+        const userData = JSON.parse(savedUser);
+        setUser(userData);
+        // Create a mock session object
+        setSession({
+          user: userData,
+          expires_at: expiry,
+          access_token: 'demo_token'
+        });
       } else {
         localStorage.removeItem('demo_user');
         localStorage.removeItem('demo_session_expiry');
@@ -84,6 +94,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Set session expiry to 8 hours from now
       const sessionExpiry = Date.now() + (8 * 60 * 60 * 1000);
+      const mockSession = {
+        user: user,
+        expires_at: sessionExpiry,
+        access_token: 'demo_token'
+      };
+      
+      setSession(mockSession);
       localStorage.setItem('demo_user', JSON.stringify(user));
       localStorage.setItem('demo_session_expiry', sessionExpiry.toString());
       
@@ -105,8 +122,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signUp = async (email: string, password: string, userData?: any): Promise<boolean> => {
+    console.log('Demo sign up attempt for:', email);
+    
+    // For demo purposes, we'll simulate a successful signup
+    // In a real app, this would create a new user account
+    toast({
+      title: "Demo Sign Up",
+      description: "Sign up successful! In a real app, this would create your account.",
+    });
+    
+    return true;
+  };
+
   const logout = async (): Promise<void> => {
     setUser(null);
+    setSession(null);
     localStorage.removeItem('demo_user');
     localStorage.removeItem('demo_session_expiry');
     navigate('/login');
@@ -127,8 +158,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider value={{
       user,
+      session,
       login,
       logout,
+      signUp,
       isLoading,
       isSessionValid,
       getSessionTimeRemaining
