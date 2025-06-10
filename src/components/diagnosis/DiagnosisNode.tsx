@@ -18,6 +18,7 @@ import {
   Video
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { WarningIcon } from './WarningIcons';
 
 export type NodeType = 
   | 'start' 
@@ -164,8 +165,12 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
               alt={mediaItem.description || 'Node media'} 
               className="w-full h-32 object-cover"
               onError={(e) => {
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.nextElementSibling!.style.display = 'flex';
+                const target = e.currentTarget as HTMLImageElement;
+                const nextSibling = target.nextElementSibling as HTMLElement;
+                target.style.display = 'none';
+                if (nextSibling) {
+                  nextSibling.style.display = 'flex';
+                }
               }}
             />
             <div className="hidden items-center justify-center h-32 bg-gray-100 text-gray-500">
@@ -181,8 +186,12 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
               className="w-full h-32 object-cover" 
               controls
               onError={(e) => {
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.nextElementSibling!.style.display = 'flex';
+                const target = e.currentTarget as HTMLVideoElement;
+                const nextSibling = target.nextElementSibling as HTMLElement;
+                target.style.display = 'none';
+                if (nextSibling) {
+                  nextSibling.style.display = 'flex';
+                }
               }}
             />
             <div className="hidden items-center justify-center h-32 bg-gray-100 text-gray-500">
@@ -266,6 +275,37 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
         )}
       </div>
     );
+  };
+
+  const renderWarning = () => {
+    if (!data.warning) return null;
+
+    try {
+      const warningConfig = JSON.parse(data.warning);
+      if (warningConfig.type) {
+        return (
+          <div className="mt-3">
+            <WarningIcon 
+              type={warningConfig.type}
+              includeLicenseText={warningConfig.includeLicenseText || false}
+              className="text-xs"
+            />
+          </div>
+        );
+      }
+    } catch (error) {
+      // Fallback for simple string warnings
+      return (
+        <div className="mt-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
+          <div className="flex items-start gap-1">
+            <AlertTriangle className="w-3 h-3 mt-0.5" />
+            <span>{data.warning}</span>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -370,15 +410,7 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
         {renderOptions()}
         {renderMedia()}
         {renderTechnicalInfo()}
-        
-        {data.warning && (
-          <div className="mt-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
-            <div className="flex items-start gap-1">
-              <AlertTriangle className="w-3 h-3 mt-0.5" />
-              <span>{data.warning}</span>
-            </div>
-          </div>
-        )}
+        {renderWarning()}
 
         {data.metadata?.tags?.length && (
           <div className="mt-3 flex flex-wrap gap-1">
