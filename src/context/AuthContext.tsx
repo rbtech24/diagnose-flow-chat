@@ -2,7 +2,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@/types/user';
 import { useToast } from '@/components/ui/use-toast';
-import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   user: User | null;
@@ -49,7 +48,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<any | null>(null); // Added session state
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   useEffect(() => {
     // Check for existing session
@@ -104,12 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('demo_user', JSON.stringify(user));
       localStorage.setItem('demo_session_expiry', sessionExpiry.toString());
       
-      console.log('Login successful, redirecting to:', `/${user.role}`);
-      
-      // Navigate to the appropriate dashboard
-      setTimeout(() => {
-        navigate(`/${user.role}`);
-      }, 100);
+      console.log('Login successful for user role:', user.role);
       
       return true;
     } else {
@@ -140,7 +133,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSession(null);
     localStorage.removeItem('demo_user');
     localStorage.removeItem('demo_session_expiry');
-    navigate('/login');
   };
 
   const isSessionValid = (): boolean => {

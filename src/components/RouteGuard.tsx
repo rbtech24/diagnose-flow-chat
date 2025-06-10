@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
 interface RouteGuardProps {
@@ -10,6 +10,14 @@ interface RouteGuardProps {
 
 export const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
   const { user, isLoading } = useAuth();
+  const navigate = useNavigate();
+
+  // Handle logout navigation
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate('/dev-login');
+    }
+  }, [user, isLoading, navigate]);
 
   if (isLoading) {
     return <div>Loading...</div>;

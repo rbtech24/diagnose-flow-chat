@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -13,7 +13,7 @@ export default function DevLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -22,6 +22,14 @@ export default function DevLogin() {
     { role: 'Company', email: 'company@repairautopilot.com', password: 'CompanyAdmin123!' },
     { role: 'Tech', email: 'tech@repairautopilot.com', password: 'TechUser123!' }
   ];
+
+  // Handle navigation after successful login
+  useEffect(() => {
+    if (user) {
+      console.log('User logged in, redirecting to:', `/${user.role}`);
+      navigate(`/${user.role}`);
+    }
+  }, [user, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +42,7 @@ export default function DevLogin() {
           title: "Login successful",
           description: "Redirecting to dashboard...",
         });
-        // AuthContext will handle navigation based on user role
+        // Navigation will be handled by useEffect when user state updates
       }
     } catch (error) {
       toast({
@@ -59,6 +67,7 @@ export default function DevLogin() {
           title: "Login successful",
           description: "Redirecting to dashboard...",
         });
+        // Navigation will be handled by useEffect when user state updates
       }
     } catch (error) {
       toast({
