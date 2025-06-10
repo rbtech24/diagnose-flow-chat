@@ -16,6 +16,19 @@ export interface RecentActivity {
   icon: string;
 }
 
+interface DatabaseRepair {
+  status?: string;
+  actual_cost?: number | string;
+  completed_at?: string;
+}
+
+interface DatabaseActivity {
+  id?: string;
+  activity_type?: string;
+  description?: string;
+  created_at?: string;
+}
+
 export const fetchDashboardStats = async (companyId: string): Promise<DashboardStats> => {
   console.log('Fetching dashboard stats for company:', companyId);
   
@@ -48,8 +61,8 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     let completedJobs = 0;
     let revenue = 0;
 
-    // Process repairs data safely
-    repairsData.forEach(repair => {
+    // Process repairs data safely with proper typing
+    (repairsData as DatabaseRepair[]).forEach(repair => {
       if (repair?.status === 'in_progress') {
         activeJobs++;
       }
@@ -105,8 +118,8 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    // Convert to RecentActivity format
-    return rawData.map((item, index) => ({
+    // Convert to RecentActivity format with proper typing
+    return (rawData as DatabaseActivity[]).map((item, index) => ({
       id: item?.id || `activity-${Date.now()}-${index}`,
       type: mapActivityTypeToRecentActivity(item?.activity_type || 'unknown'),
       description: item?.description || 'Activity recorded',
