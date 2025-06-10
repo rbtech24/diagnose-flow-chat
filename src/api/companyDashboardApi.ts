@@ -16,6 +16,14 @@ export interface RecentActivity {
   icon: string;
 }
 
+// Simple interface to avoid deep type instantiation
+interface SimpleActivityData {
+  id: string;
+  activity_type: string;
+  description: string;
+  created_at: string;
+}
+
 export const fetchDashboardStats = async (companyId: string): Promise<DashboardStats> => {
   console.log('Fetching dashboard stats for company:', companyId);
   
@@ -95,7 +103,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
   console.log('Fetching recent activity for company:', companyId);
   
   try {
-    const { data: activityData, error } = await supabase
+    const { data: rawData, error } = await supabase
       .from("user_activity_logs")
       .select("id, activity_type, description, created_at")
       .eq("company_id", companyId)
@@ -107,21 +115,32 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    if (!activityData || activityData.length === 0) {
+    if (!rawData || rawData.length === 0) {
       return [];
     }
 
-    // Process activity data with explicit typing and simple iteration
+    // Convert raw data to simple interface to break type chain
+    const activityData: SimpleActivityData[] = [];
+    for (let i = 0; i < rawData.length; i++) {
+      const item = rawData[i];
+      activityData.push({
+        id: item?.id || `activity-${Date.now()}-${i}`,
+        activity_type: item?.activity_type || 'unknown',
+        description: item?.description || 'Activity recorded',
+        created_at: item?.created_at || new Date().toISOString()
+      });
+    }
+
+    // Process simple activity data
     const results: RecentActivity[] = [];
-    
     for (let i = 0; i < activityData.length; i++) {
-      const activity = activityData[i] as any;
+      const activity = activityData[i];
       results.push({
-        id: activity.id || `activity-${Date.now()}-${i}`,
-        type: mapActivityTypeToRecentActivity(activity.activity_type || 'unknown'),
-        description: activity.description || 'Activity recorded',
-        time: formatTimeAgo(new Date(activity.created_at || new Date())),
-        icon: getActivityIcon(activity.activity_type || 'unknown')
+        id: activity.id,
+        type: mapActivityTypeToRecentActivity(activity.activity_type),
+        description: activity.description,
+        time: formatTimeAgo(new Date(activity.created_at)),
+        icon: getActivityIcon(activity.activity_type)
       });
     }
 

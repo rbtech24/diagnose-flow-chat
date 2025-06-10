@@ -91,22 +91,17 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
     }
   };
 
-  // Render options with explicit return type and simple iteration
-  const renderOptions = (): React.ReactElement | null => {
+  // Render options with proper ReactNode handling
+  const renderOptions = (): React.ReactNode => {
     if (nodeData.options && nodeData.options.length > 0 && nodeData.type === 'question') {
-      const optionItems: React.ReactElement[] = [];
-      
-      for (let i = 0; i < nodeData.options.length; i++) {
-        const option = nodeData.options[i];
-        const optionText = option != null ? String(option) : '';
-        optionItems.push(<li key={i}>{optionText}</li>);
-      }
-
       return (
         <div className="mt-2">
           <div className="text-xs text-gray-600 mb-1">Options:</div>
           <ul className="text-xs text-gray-600 list-disc list-inside">
-            {optionItems}
+            {nodeData.options.map((option, index) => {
+              const optionText = option != null ? String(option) : '';
+              return <li key={index}>{optionText}</li>;
+            })}
           </ul>
         </div>
       );
