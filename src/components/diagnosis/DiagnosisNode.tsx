@@ -1,206 +1,275 @@
 
-import React, { memo, useMemo } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MediaContent } from './MediaContent';
-import { TechnicalContent } from './TechnicalContent';
-import { WarningIcon } from './WarningIcons';
-import { NodeData, TechnicalSpecs } from '@/types/node-config';
+import { Button } from '@/components/ui/button';
+import { 
+  Camera, 
+  FileText, 
+  AlertTriangle, 
+  CheckCircle, 
+  HelpCircle, 
+  Play,
+  Pause,
+  Clock,
+  Settings
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-interface DiagnosisNodeProps extends NodeProps {
-  data: NodeData;
+export type NodeType = 
+  | 'start' 
+  | 'question' 
+  | 'instruction' 
+  | 'condition' 
+  | 'end' 
+  | 'media' 
+  | 'decision' 
+  | 'warning'
+  | 'info';
+
+export interface DiagnosisNodeData {
+  id: string;
+  type: NodeType;
+  title: string;
+  content: string;
+  options?: Array<{
+    id: string;
+    label: string;
+    value: string;
+    nextNodeId?: string;
+  }>;
+  media?: {
+    type: 'image' | 'video' | 'pdf';
+    url: string;
+    description?: string;
+  };
+  timeEstimate?: number;
+  required?: boolean;
+  warning?: string;
+  technicalSpecs?: {
+    tools?: string[];
+    skills?: string[];
+    safetyWarnings?: string[];
+  };
+  validation?: {
+    required: boolean;
+    pattern?: string;
+    message?: string;
+  };
+  metadata?: {
+    category?: string;
+    difficulty?: 'easy' | 'medium' | 'hard';
+    tags?: string[];
+  };
 }
 
-const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
-  const nodeData = data as NodeData;
-  
-  // Properly type the node content with error handling
-  const nodeContent = useMemo((): string => {
-    try {
-      if (typeof nodeData.content === 'string') {
-        return nodeData.content;
-      }
-      if (typeof nodeData.richInfo === 'string') {
-        return nodeData.richInfo;
-      }
-      return '';
-    } catch (error) {
-      console.error('Error processing node content:', error);
-      return '';
-    }
-  }, [nodeData.content, nodeData.richInfo]);
+interface DiagnosisNodeProps extends NodeProps {
+  data: DiagnosisNodeData;
+  isActive?: boolean;
+  isCompleted?: boolean;
+  onNodeAction?: (nodeId: string, action: string, data?: any) => void;
+}
 
-  // Type-safe technical specs with default values
-  const technicalSpecs = useMemo((): TechnicalSpecs => {
-    if (nodeData.technicalSpecs && typeof nodeData.technicalSpecs === 'object') {
-      return {
-        range: nodeData.technicalSpecs.range || { min: 0, max: 0 },
-        testPoints: nodeData.technicalSpecs.testPoints,
-        value: nodeData.technicalSpecs.value,
-        measurementPoints: nodeData.technicalSpecs.measurementPoints,
-        points: nodeData.technicalSpecs.points
-      };
-    }
-    return {
-      range: { min: 0, max: 0 }
-    };
-  }, [nodeData.technicalSpecs]);
+const nodeIcons = {
+  start: Play,
+  question: HelpCircle,
+  instruction: FileText,
+  condition: AlertTriangle,
+  end: CheckCircle,
+  media: Camera,
+  decision: Settings,
+  warning: AlertTriangle,
+  info: FileText
+};
 
-  // Parse warning configuration - look for warning in any field
-  const warningConfig = useMemo(() => {
-    // Check if warning is in the main data
-    if (nodeData.warning && typeof nodeData.warning === 'object') {
-      return nodeData.warning;
-    }
-    
-    // Check if there's a field with warning content - type-safe approach
-    if (nodeData.fields && Array.isArray(nodeData.fields)) {
-      const warningField = nodeData.fields.find((field: any) => field.id === 'warning' || field.type === 'warning');
-      
-      if (warningField && warningField.content) {
-        try {
-          return JSON.parse(warningField.content);
-        } catch {
-          return undefined;
-        }
-      }
-    }
-    
-    return undefined;
-  }, [nodeData.warning, nodeData.fields]);
+const nodeColors = {
+  start: 'border-green-500 bg-green-50',
+  question: 'border-blue-500 bg-blue-50',
+  instruction: 'border-yellow-500 bg-yellow-50',
+  condition: 'border-orange-500 bg-orange-50',
+  end: 'border-green-600 bg-green-100',
+  media: 'border-purple-500 bg-purple-50',
+  decision: 'border-indigo-500 bg-indigo-50',
+  warning: 'border-red-500 bg-red-50',
+  info: 'border-gray-500 bg-gray-50'
+};
 
-  // Type-safe node type determination with visual indicators
-  const getNodeTypeColor = (type?: string): string => {
-    switch (type) {
-      case 'start': return 'bg-green-50 border-green-400 border-2';
-      case 'question': return 'bg-blue-50 border-blue-200';
-      case 'action': return 'bg-purple-50 border-purple-200';
-      case 'test': return 'bg-yellow-50 border-yellow-200';
-      case 'solution': return 'bg-red-50 border-red-200';
-      case 'measurement': return 'bg-orange-50 border-orange-200';
-      default: return 'bg-gray-50 border-gray-200';
-    }
+const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
+  id,
+  data,
+  isActive = false,
+  isCompleted = false,
+  onNodeAction,
+  selected
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [userInput, setUserInput] = useState('');
+
+  const IconComponent = nodeIcons[data.type] || FileText;
+  const nodeColorClass = nodeColors[data.type] || nodeColors.info;
+
+  const handleAction = useCallback((action: string, actionData?: any) => {
+    onNodeAction?.(data.id, action, actionData);
+  }, [data.id, onNodeAction]);
+
+  const renderContent = () => {
+    if (!data.content) return null;
+
+    return (
+      <div className="text-sm text-gray-600 mt-2">
+        {typeof data.content === 'string' ? data.content : String(data.content)}
+      </div>
+    );
   };
 
-  const getNodeShape = (type?: string): string => {
-    switch (type) {
-      case 'start': return 'rounded-full';
-      case 'solution': return 'rounded-none';
-      default: return 'rounded-lg';
-    }
+  const renderOptions = () => {
+    if (!data.options?.length) return null;
+
+    return (
+      <div className="mt-3 space-y-2">
+        {data.options.map((option) => (
+          <Button
+            key={option.id}
+            variant="outline"
+            size="sm"
+            className="w-full justify-start text-left"
+            onClick={() => handleAction('selectOption', option)}
+          >
+            {option.label}
+          </Button>
+        ))}
+      </div>
+    );
   };
 
-  // Render options with proper ReactNode typing
-  const renderOptions = (): React.ReactNode => {
-    if (nodeData.options && nodeData.options.length > 0 && nodeData.type === 'question') {
-      return (
-        <div className="mt-2">
-          <div className="text-xs text-gray-600 mb-1">Options:</div>
-          <ul className="text-xs text-gray-600 list-disc list-inside">
-            {nodeData.options.map((option, index) => {
-              // Ensure proper string conversion for React rendering
-              const optionText = typeof option === 'string' ? option : String(option || '');
-              return <li key={index}>{optionText}</li>;
-            })}
-          </ul>
+  const renderMedia = () => {
+    if (!data.media) return null;
+
+    return (
+      <div className="mt-3 p-2 border rounded bg-gray-50">
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <Camera className="w-4 h-4" />
+          <span>{data.media.type.toUpperCase()}</span>
         </div>
-      );
-    }
-    return null;
+        {data.media.description && (
+          <p className="text-xs text-gray-500 mt-1">{data.media.description}</p>
+        )}
+      </div>
+    );
   };
 
-  // Don't render start nodes visually (they're workflow metadata)
-  if (nodeData.type === 'start') {
-    return null;
-  }
+  const renderTechnicalInfo = () => {
+    if (!data.technicalSpecs && !data.timeEstimate) return null;
 
-  const cardClassName = `min-w-[200px] max-w-[300px] ${getNodeTypeColor(nodeData.type)} ${getNodeShape(nodeData.type)}`;
+    return (
+      <div className="mt-3 space-y-2">
+        {data.timeEstimate && (
+          <div className="flex items-center gap-1 text-xs text-gray-500">
+            <Clock className="w-3 h-3" />
+            <span>{data.timeEstimate} min</span>
+          </div>
+        )}
+        
+        {data.technicalSpecs?.tools?.length && (
+          <div className="text-xs">
+            <span className="font-medium">Tools: </span>
+            <span className="text-gray-600">
+              {data.technicalSpecs.tools.join(', ')}
+            </span>
+          </div>
+        )}
+
+        {data.technicalSpecs?.safetyWarnings?.length && (
+          <div className="flex items-start gap-1 text-xs text-red-600">
+            <AlertTriangle className="w-3 h-3 mt-0.5" />
+            <div>
+              {data.technicalSpecs.safetyWarnings.map((warning, index) => (
+                <div key={index}>{warning}</div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
-    <Card className={cardClassName}>
-      {/* Target handle - top */}
-      <Handle
-        type="target"
-        position={Position.Top}
-        id="target"
-        className="w-3 h-3 border-2 bg-gray-300 !border-gray-400"
-        style={{ background: '#d1d5db' }}
-      />
-      
-      {/* Target handle - left */}
-      <Handle
-        type="target"
-        position={Position.Left}
-        id="left-target"
-        className="w-3 h-3 border-2 bg-gray-300 !border-gray-400"
-        style={{ background: '#d1d5db' }}
+    <Card 
+      className={cn(
+        'min-w-[250px] transition-all duration-200',
+        nodeColorClass,
+        isActive && 'ring-2 ring-blue-400 shadow-lg',
+        isCompleted && 'opacity-75',
+        selected && 'ring-2 ring-gray-400'
+      )}
+    >
+      <Handle 
+        type="target" 
+        position={Position.Top} 
+        className="w-3 h-3 bg-gray-400"
       />
       
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium">
-            {nodeData.title || nodeData.label || 'Untitled Step'}
-          </CardTitle>
-          {nodeData.type && (
-            <Badge variant="secondary" className="text-xs capitalize">
-              {nodeData.type}
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            <IconComponent className="w-4 h-4" />
+            <h3 className="font-medium text-sm">{data.title}</h3>
+          </div>
+          
+          <div className="flex items-center gap-1">
+            {data.required && (
+              <Badge variant="destructive" className="text-xs px-1 py-0">
+                Required
+              </Badge>
+            )}
+            
+            {data.metadata?.difficulty && (
+              <Badge 
+                variant={data.metadata.difficulty === 'hard' ? 'destructive' : 'secondary'}
+                className="text-xs px-1 py-0"
+              >
+                {data.metadata.difficulty}
+              </Badge>
+            )}
+            
+            {isCompleted && (
+              <CheckCircle className="w-4 h-4 text-green-600" />
+            )}
+          </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="pt-0">
-        {warningConfig && (
-          <WarningIcon 
-            type={warningConfig.type}
-            includeLicenseText={warningConfig.includeLicenseText}
-            className="mb-3"
-          />
-        )}
+        {renderContent()}
+        {renderOptions()}
+        {renderMedia()}
+        {renderTechnicalInfo()}
         
-        {nodeContent && (
-          <div className="text-sm text-gray-700 mb-2">
-            {nodeContent}
-          </div>
-        )}
-        
-        {nodeData.media && nodeData.media.length > 0 && (
-          <MediaContent media={nodeData.media} />
-        )}
-        
-        {nodeData.technicalSpecs && (
-          <TechnicalContent 
-            technicalSpecs={technicalSpecs} 
-            type={nodeData.type || ''} 
-          />
-        )}
-        
-        {(nodeData.yes || nodeData.no) && nodeData.type === 'question' && (
-          <div className="mt-2 text-xs text-gray-600">
-            <div>Yes: {String(nodeData.yes || 'Continue')}</div>
-            <div>No: {String(nodeData.no || 'Stop')}</div>
+        {data.warning && (
+          <div className="mt-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
+            <div className="flex items-start gap-1">
+              <AlertTriangle className="w-3 h-3 mt-0.5" />
+              <span>{data.warning}</span>
+            </div>
           </div>
         )}
 
-        {renderOptions()}
+        {data.metadata?.tags?.length && (
+          <div className="mt-3 flex flex-wrap gap-1">
+            {data.metadata.tags.map((tag) => (
+              <Badge key={tag} variant="outline" className="text-xs px-1 py-0">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
       </CardContent>
-      
-      {/* Source handles */}
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        id="source"
-        className="w-3 h-3 border-2 bg-gray-300 !border-gray-400"
-        style={{ background: '#d1d5db' }}
-      />
-      
-      <Handle
-        type="source"
-        position={Position.Right}
-        id="right"
-        className="w-3 h-3 border-2 bg-gray-300 !border-gray-400"
-        style={{ background: '#d1d5db' }}
+
+      <Handle 
+        type="source" 
+        position={Position.Bottom} 
+        className="w-3 h-3 bg-gray-400"
       />
     </Card>
   );

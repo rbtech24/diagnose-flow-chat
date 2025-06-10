@@ -112,7 +112,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       const icon = getActivityIcon(item.activity_type || 'unknown');
       
       return {
-        id: activityId,
+        id: String(activityId),
         type: activityType,
         description: description,
         time: time,

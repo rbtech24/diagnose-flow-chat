@@ -39,5 +39,19 @@ export function useErrorHandler() {
     }
   };
 
-  return { handleError };
+  const handleAsyncError = async <T>(
+    asyncFn: () => Promise<T>,
+    context: string,
+    options: ErrorOptions = { showToast: true }
+  ): Promise<{ success: boolean; data?: T; error?: string }> => {
+    try {
+      const data = await asyncFn();
+      return { success: true, data };
+    } catch (error) {
+      handleError(error, context, options);
+      return { success: false, error: error?.message || "An error occurred" };
+    }
+  };
+
+  return { handleError, handleAsyncError };
 }
