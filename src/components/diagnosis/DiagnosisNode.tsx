@@ -62,13 +62,17 @@ export interface DiagnosisNodeData {
     difficulty?: 'easy' | 'medium' | 'hard';
     tags?: string[];
   };
+  [key: string]: unknown; // Add index signature to make it compatible with Record<string, unknown>
 }
 
-interface DiagnosisNodeProps extends NodeProps {
+// Remove the extends NodeProps to avoid the type conflict
+interface DiagnosisNodeProps {
+  id: string;
   data: DiagnosisNodeData;
   isActive?: boolean;
   isCompleted?: boolean;
   onNodeAction?: (nodeId: string, action: string, data?: any) => void;
+  selected?: boolean;
 }
 
 const nodeIcons = {
