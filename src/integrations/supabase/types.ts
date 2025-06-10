@@ -5385,15 +5385,46 @@ export type Database = {
     Views: {
       technician_details: {
         Row: {
-          avatar: string | null
+          available_for_hire: boolean | null
           company_id: string | null
           created_at: string | null
           email: string | null
+          hourly_rate: number | null
           id: string | null
-          name: string | null
+          is_independent: boolean | null
+          last_sign_in_at: string | null
+          phone: string | null
           role: string | null
           status: string | null
           updated_at: string | null
+        }
+        Insert: {
+          available_for_hire?: boolean | null
+          company_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          hourly_rate?: number | null
+          id?: string | null
+          is_independent?: boolean | null
+          last_sign_in_at?: string | null
+          phone?: string | null
+          role?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          available_for_hire?: boolean | null
+          company_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          hourly_rate?: number | null
+          id?: string | null
+          is_independent?: boolean | null
+          last_sign_in_at?: string | null
+          phone?: string | null
+          role?: string | null
+          status?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -5499,6 +5530,15 @@ export type Database = {
       get_company_subscription_tier: {
         Args: { company_id: string }
         Returns: string
+      }
+      get_current_user_info: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          email: string
+          created_at: string
+          last_sign_in_at: string
+        }[]
       }
       get_file_preview: {
         Args: { p_mime_type: string; p_file_size: number }
