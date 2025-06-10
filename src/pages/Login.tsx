@@ -185,13 +185,8 @@ export default function Login() {
           {/* Right Side - Login Form */}
           <div className="flex items-center justify-center py-8 lg:py-12">
             <div className="w-full max-w-md mx-auto">
-              {/* Large Logo Above Form */}
+              {/* Welcome Back Title (no logo) */}
               <div className="text-center mb-8">
-                <img 
-                  src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
-                  alt="Repair Auto Pilot" 
-                  className="h-24 mx-auto mb-4"
-                />
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
                   Welcome Back
                 </h1>
