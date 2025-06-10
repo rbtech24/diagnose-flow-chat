@@ -278,29 +278,59 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
   };
 
   const renderWarning = () => {
-    if (!data.warning) return null;
-
-    try {
-      const warningConfig = JSON.parse(data.warning);
-      if (warningConfig.type) {
+    // Check multiple possible sources of warning data
+    let warningConfig = null;
+    
+    // First check if there's a warning property directly
+    if (data.warning) {
+      try {
+        warningConfig = typeof data.warning === 'string' ? JSON.parse(data.warning) : data.warning;
+      } catch (error) {
+        // If parsing fails, treat as plain text warning
         return (
-          <div className="mt-3">
-            <WarningIcon 
-              type={warningConfig.type}
-              includeLicenseText={warningConfig.includeLicenseText || false}
-              className="text-xs scale-75 origin-top-left"
-            />
+          <div className="mt-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
+            <div className="flex items-start gap-1">
+              <AlertTriangle className="w-3 h-3 mt-0.5" />
+              <span>{data.warning}</span>
+            </div>
           </div>
         );
       }
-    } catch (error) {
-      // Fallback for simple string warnings
+    }
+    
+    // Also check other possible warning sources in the data
+    if (!warningConfig) {
+      // Check for warning in other data properties
+      const possibleWarningKeys = Object.keys(data).filter(key => key.toLowerCase().includes('warning'));
+      
+      for (const key of possibleWarningKeys) {
+        const value = data[key];
+        if (typeof value === 'string') {
+          try {
+            const parsed = JSON.parse(value);
+            if (parsed.type) {
+              warningConfig = parsed;
+              break;
+            }
+          } catch (error) {
+            // Continue to next key
+          }
+        } else if (value && typeof value === 'object' && value.type) {
+          warningConfig = value;
+          break;
+        }
+      }
+    }
+    
+    // If we found a valid warning config, render the WarningIcon component
+    if (warningConfig && warningConfig.type) {
       return (
-        <div className="mt-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
-          <div className="flex items-start gap-1">
-            <AlertTriangle className="w-3 h-3 mt-0.5" />
-            <span>{data.warning}</span>
-          </div>
+        <div className="mt-3">
+          <WarningIcon 
+            type={warningConfig.type}
+            includeLicenseText={warningConfig.includeLicenseText || false}
+            className="text-xs scale-75 origin-top-left"
+          />
         </div>
       );
     }
