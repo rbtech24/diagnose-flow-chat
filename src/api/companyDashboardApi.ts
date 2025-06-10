@@ -105,17 +105,12 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
     }
 
     const activities: RecentActivity[] = rawData.map((item) => {
-      const activityId = item.id || `activity-${Math.random()}`;
-      const activityType = item.activity_type || 'unknown';
-      const activityDescription = item.description || 'Activity recorded';
-      const activityTime = item.created_at || new Date().toISOString();
-      
       return {
-        id: String(activityId),
-        type: mapActivityTypeToRecentActivity(activityType),
-        description: activityDescription,
-        time: formatTimeAgo(new Date(activityTime)),
-        icon: getActivityIcon(activityType)
+        id: String(item.id || `activity-${Math.random()}`),
+        type: mapActivityTypeToRecentActivity(item.activity_type || 'unknown'),
+        description: item.description || 'Activity recorded',
+        time: formatTimeAgo(new Date(item.created_at || new Date().toISOString())),
+        icon: getActivityIcon(item.activity_type || 'unknown')
       };
     });
 

@@ -1,3 +1,4 @@
+
 import {
   createBrowserRouter,
   RouterProvider,
@@ -77,14 +78,6 @@ import DevLogin from "./pages/DevLogin";
 
 const router = createBrowserRouter([
   {
-    path: "/workflow-editor",
-    element: <WorkflowEditor />
-  },
-  {
-    path: "/workflows",
-    element: <Workflows />
-  },
-  {
     path: "/",
     element: <Index />
   },
@@ -151,6 +144,22 @@ const router = createBrowserRouter([
   {
     path: "/updates",
     element: <Updates />
+  },
+  {
+    path: "/workflow-editor",
+    element: (
+      <RouteGuard allowedRoles={['admin', 'company']}>
+        <WorkflowEditor />
+      </RouteGuard>
+    )
+  },
+  {
+    path: "/workflows",
+    element: (
+      <RouteGuard allowedRoles={['admin', 'company']}>
+        <Workflows />
+      </RouteGuard>
+    )
   },
   {
     path: "/company",
