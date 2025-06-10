@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -135,9 +134,6 @@ export default function Login() {
                     alt="Repair Auto Pilot" 
                     className="h-16 mx-auto mb-6"
                   />
-                  <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                    Welcome Back!
-                  </h2>
                   <p className="text-lg text-gray-600 mb-8">
                     Continue streamlining your repair operations with powerful management tools
                   </p>

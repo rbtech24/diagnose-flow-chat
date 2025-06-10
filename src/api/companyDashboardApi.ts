@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DashboardStats {
@@ -119,7 +118,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
   }
 };
 
-function mapActivityTypeToRecentActivity(activityType: string): RecentActivity['type'] {
+function mapActivityTypeToRecentActivity(activityType: string): 'repair_completed' | 'job_started' | 'parts_needed' | 'job_scheduled' {
   switch (activityType) {
     case 'repair_completed':
     case 'job_completed':
