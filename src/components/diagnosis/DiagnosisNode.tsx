@@ -1,3 +1,4 @@
+
 import React, { memo, useCallback, useState } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -12,7 +13,9 @@ import {
   Play,
   Pause,
   Clock,
-  Settings
+  Settings,
+  File,
+  Video
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -42,7 +45,11 @@ export interface DiagnosisNodeData {
     type: 'image' | 'video' | 'pdf';
     url: string;
     description?: string;
-  };
+  } | Array<{
+    type: 'image' | 'video' | 'pdf';
+    url: string;
+    description?: string;
+  }>;
   timeEstimate?: number;
   required?: boolean;
   warning?: string;
@@ -61,10 +68,9 @@ export interface DiagnosisNodeData {
     difficulty?: 'easy' | 'medium' | 'hard';
     tags?: string[];
   };
-  [key: string]: unknown; // Add index signature to make it compatible with Record<string, unknown>
+  [key: string]: unknown;
 }
 
-// Remove the extends NodeProps to avoid the type conflict
 interface DiagnosisNodeProps {
   id: string;
   data: DiagnosisNodeData;
@@ -146,22 +152,83 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
     );
   };
 
+  const renderMediaItem = (mediaItem: { type: 'image' | 'video' | 'pdf'; url: string; description?: string }, index: number) => {
+    const mediaType = mediaItem.type || 'unknown';
+    
+    return (
+      <div key={index} className="mt-2 border rounded-md overflow-hidden bg-white">
+        {mediaType === 'image' && (
+          <div>
+            <img 
+              src={mediaItem.url} 
+              alt={mediaItem.description || 'Node media'} 
+              className="w-full h-32 object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextElementSibling!.style.display = 'flex';
+              }}
+            />
+            <div className="hidden items-center justify-center h-32 bg-gray-100 text-gray-500">
+              <Camera className="w-8 h-8" />
+            </div>
+          </div>
+        )}
+        
+        {mediaType === 'video' && (
+          <div>
+            <video 
+              src={mediaItem.url} 
+              className="w-full h-32 object-cover" 
+              controls
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextElementSibling!.style.display = 'flex';
+              }}
+            />
+            <div className="hidden items-center justify-center h-32 bg-gray-100 text-gray-500">
+              <Video className="w-8 h-8" />
+            </div>
+          </div>
+        )}
+        
+        {mediaType === 'pdf' && (
+          <div className="p-3 flex items-center gap-2 bg-gray-50">
+            <File className="w-5 h-5 text-red-600" />
+            <a 
+              href={mediaItem.url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-sm text-blue-600 hover:underline flex-1 truncate"
+            >
+              {mediaItem.description || 'View PDF Document'}
+            </a>
+          </div>
+        )}
+        
+        {mediaItem.description && mediaType !== 'pdf' && (
+          <div className="p-2 text-xs text-gray-600 bg-gray-50">
+            {mediaItem.description}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderMedia = () => {
     if (!data.media) return null;
 
-    // Safely handle media type with fallback
-    const mediaType = data.media.type || 'unknown';
-    const mediaTypeDisplay = typeof mediaType === 'string' ? mediaType.toUpperCase() : 'MEDIA';
+    // Handle both single media object and array of media objects
+    const mediaItems = Array.isArray(data.media) ? data.media : [data.media];
+    
+    if (mediaItems.length === 0) return null;
 
     return (
-      <div className="mt-3 p-2 border rounded bg-gray-50">
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Camera className="w-4 h-4" />
-          <span>{mediaTypeDisplay}</span>
+      <div className="mt-3">
+        <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+          <Camera className="w-3 h-3" />
+          <span>Media ({mediaItems.length})</span>
         </div>
-        {data.media.description && (
-          <p className="text-xs text-gray-500 mt-1">{data.media.description}</p>
-        )}
+        {mediaItems.map((item, index) => renderMediaItem(item, index))}
       </div>
     );
   };
@@ -204,17 +271,68 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
   return (
     <Card 
       className={cn(
-        'min-w-[250px] transition-all duration-200',
+        'min-w-[250px] max-w-[300px] transition-all duration-200 relative',
         nodeColorClass,
         isActive && 'ring-2 ring-blue-400 shadow-lg',
         isCompleted && 'opacity-75',
         selected && 'ring-2 ring-gray-400'
       )}
     >
+      {/* Handles on all 4 sides */}
       <Handle 
         type="target" 
         position={Position.Top} 
-        className="w-3 h-3 bg-gray-400"
+        id="top"
+        className="w-3 h-3 bg-gray-400 hover:bg-blue-500 transition-colors"
+      />
+      <Handle 
+        type="source" 
+        position={Position.Top} 
+        id="top-source"
+        className="w-3 h-3 bg-gray-400 hover:bg-blue-500 transition-colors"
+        style={{ left: '75%' }}
+      />
+      
+      <Handle 
+        type="target" 
+        position={Position.Right} 
+        id="right"
+        className="w-3 h-3 bg-gray-400 hover:bg-blue-500 transition-colors"
+      />
+      <Handle 
+        type="source" 
+        position={Position.Right} 
+        id="right-source"
+        className="w-3 h-3 bg-gray-400 hover:bg-blue-500 transition-colors"
+        style={{ top: '75%' }}
+      />
+      
+      <Handle 
+        type="target" 
+        position={Position.Bottom} 
+        id="bottom"
+        className="w-3 h-3 bg-gray-400 hover:bg-blue-500 transition-colors"
+      />
+      <Handle 
+        type="source" 
+        position={Position.Bottom} 
+        id="bottom-source"
+        className="w-3 h-3 bg-gray-400 hover:bg-blue-500 transition-colors"
+        style={{ left: '75%' }}
+      />
+      
+      <Handle 
+        type="target" 
+        position={Position.Left} 
+        id="left"
+        className="w-3 h-3 bg-gray-400 hover:bg-blue-500 transition-colors"
+      />
+      <Handle 
+        type="source" 
+        position={Position.Left} 
+        id="left-source"
+        className="w-3 h-3 bg-gray-400 hover:bg-blue-500 transition-colors"
+        style={{ top: '75%' }}
       />
       
       <CardHeader className="pb-2">
@@ -272,12 +390,6 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
           </div>
         )}
       </CardContent>
-
-      <Handle 
-        type="source" 
-        position={Position.Bottom} 
-        className="w-3 h-3 bg-gray-400"
-      />
     </Card>
   );
 });
