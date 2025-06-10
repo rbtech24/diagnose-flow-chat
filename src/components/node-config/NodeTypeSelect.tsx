@@ -25,10 +25,20 @@ export function NodeTypeSelect({ value, onChange }: NodeTypeSelectProps) {
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
+          {/* Basic Node Types */}
           <SelectItem value="question">Yes/No Question</SelectItem>
           <SelectItem value="choice">Multiple Choice</SelectItem>
           <SelectItem value="workflow">Link to Workflow</SelectItem>
           <SelectItem value="result">Result/End</SelectItem>
+          
+          {/* Enhanced Node Types */}
+          <SelectItem value="decision-tree">Decision Tree</SelectItem>
+          <SelectItem value="data-form">Data Collection Form</SelectItem>
+          <SelectItem value="equipment-test">Equipment Test</SelectItem>
+          <SelectItem value="photo-capture">Photo Capture</SelectItem>
+          <SelectItem value="multi-branch">Multi-Branch Logic</SelectItem>
+          <SelectItem value="data-collection">Data Collection</SelectItem>
+          <SelectItem value="procedure-step">Procedure Step</SelectItem>
         </SelectContent>
       </Select>
     </div>

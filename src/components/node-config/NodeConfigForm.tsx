@@ -1,61 +1,37 @@
-
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { NodeData, Field, TechnicalSpecs } from '@/types/node-config';
-import { EnhancedNodeType, EnhancedNodeData } from '@/types/enhanced-node-config';
-import { WarningSelector } from '@/components/diagnosis/WarningIcons';
+import { NodeTypeSelect } from './NodeTypeSelect';
 import { NodeFields } from './NodeFields';
-import { DecisionTreeConfig } from './enhanced/DecisionTreeConfig';
-import { DataFormConfig } from './enhanced/DataFormConfig';
-import { EquipmentTestConfig } from './enhanced/EquipmentTestConfig';
-import { PhotoCaptureConfig } from './enhanced/PhotoCaptureConfig';
+import { TechnicalSpecs } from './TechnicalSpecs';
+import { EnhancedNodeConfig } from './enhanced/EnhancedNodeConfig';
+import { DiagnosticTemplates } from './enhanced/DiagnosticTemplates';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Separator } from '../ui/separator';
+import { Badge } from '../ui/badge';
+import { RotateCcw, Check, FileTemplate } from 'lucide-react';
+import { Field, TechnicalSpecs as TechnicalSpecsType } from '@/types/node-config';
+import { EnhancedNodeData, EnhancedNodeType } from '@/types/enhanced-node-config';
 
 interface NodeConfigFormProps {
-  nodeType: EnhancedNodeType;
+  nodeType: string;
   label: string;
   fields: Field[];
   showTechnicalFields: boolean;
-  technicalSpecs: TechnicalSpecs;
-  onNodeTypeChange: (type: EnhancedNodeType) => void;
-  onLabelChange: (label: string) => void;
+  technicalSpecs: TechnicalSpecsType;
+  onNodeTypeChange: (value: string) => void;
+  onLabelChange: (value: string) => void;
   onFieldsChange: (fields: Field[]) => void;
-  onTechnicalSpecsChange: (specs: TechnicalSpecs) => void;
+  onTechnicalSpecsChange: (specs: TechnicalSpecsType) => void;
   onAddField: (type: Field['type']) => void;
   onRemoveField: (id: string) => void;
   onMoveField: (dragIndex: number, hoverIndex: number) => void;
   onReset: () => void;
   onApply: () => void;
   hasValidationErrors: boolean;
-  nodeData?: EnhancedNodeData;
-  onNodeDataChange?: (data: EnhancedNodeData) => void;
 }
-
-const nodeTypeOptions: { value: EnhancedNodeType; label: string; description: string; category: string }[] = [
-  // Basic Types
-  { value: 'start', label: 'Start', description: 'Starting point of workflow', category: 'Basic' },
-  { value: 'question', label: 'Question', description: 'Yes/No or multiple choice decision', category: 'Basic' },
-  { value: 'action', label: 'Action', description: 'Instruction step with single "Next" button', category: 'Basic' },
-  { value: 'solution', label: 'Solution', description: 'Final solution or outcome', category: 'Basic' },
-  
-  // Testing & Measurement
-  { value: 'test', label: 'Test', description: 'General testing step', category: 'Testing' },
-  { value: 'measurement', label: 'Measurement', description: 'Technical measurement with specifications', category: 'Testing' },
-  { value: 'equipment-test', label: 'Equipment Test', description: 'Specialized equipment testing procedure', category: 'Testing' },
-  
-  // Advanced Decision Making
-  { value: 'decision-tree', label: 'Decision Tree', description: 'Multi-branch decision with complex logic', category: 'Advanced' },
-  { value: 'multi-branch', label: 'Multi-Branch', description: 'Multiple parallel paths', category: 'Advanced' },
-  
-  // Data Collection
-  { value: 'data-form', label: 'Data Collection', description: 'Form for collecting structured data', category: 'Data' },
-  { value: 'photo-capture', label: 'Photo Capture', description: 'Capture photos with guidelines', category: 'Data' },
-  
-  // Procedures
-  { value: 'procedure-step', label: 'Procedure Step', description: 'Detailed procedural instruction', category: 'Procedures' }
-];
 
 export function NodeConfigForm({
   nodeType,
@@ -72,193 +48,146 @@ export function NodeConfigForm({
   onMoveField,
   onReset,
   onApply,
-  hasValidationErrors,
-  nodeData,
-  onNodeDataChange
+  hasValidationErrors
 }: NodeConfigFormProps) {
-  
-  const handleWarningChange = (type: any, includeLicenseText: boolean = false) => {
-    const updatedFields = fields.map(field => {
-      if (field.id === 'warning') {
-        return {
-          ...field,
-          content: type ? JSON.stringify({ type, includeLicenseText }) : undefined
-        };
-      }
-      return field;
-    });
+  const isEnhancedNodeType = [
+    'decision-tree',
+    'data-form', 
+    'equipment-test',
+    'photo-capture',
+    'multi-branch',
+    'data-collection',
+    'procedure-step'
+  ].includes(nodeType);
+
+  const handleTemplateApply = (templateData: EnhancedNodeData) => {
+    // Apply template data to the current node
+    onNodeTypeChange(templateData.type || 'question');
+    onLabelChange(templateData.title || templateData.label || '');
     
-    // Add warning field if it doesn't exist and we're setting a warning
-    if (type && !fields.find(f => f.id === 'warning')) {
-      updatedFields.push({
-        id: 'warning',
+    // Convert template data to the expected format
+    const convertedFields: Field[] = [];
+    if (templateData.content) {
+      convertedFields.push({
+        id: 'content-1',
         type: 'content',
-        content: JSON.stringify({ type, includeLicenseText })
+        content: templateData.content
       });
     }
-    
-    onFieldsChange(updatedFields);
+    onFieldsChange(convertedFields);
   };
-
-  const getCurrentWarning = () => {
-    const warningField = fields.find(f => f.id === 'warning');
-    if (warningField?.content) {
-      try {
-        return JSON.parse(warningField.content);
-      } catch {
-        return undefined;
-      }
-    }
-    return undefined;
-  };
-
-  const currentWarning = getCurrentWarning();
-
-  const renderEnhancedConfiguration = () => {
-    if (!nodeData || !onNodeDataChange) return null;
-
-    switch (nodeType) {
-      case 'decision-tree':
-        return <DecisionTreeConfig nodeData={nodeData} onChange={onNodeDataChange} />;
-      case 'data-form':
-      case 'data-collection':
-        return <DataFormConfig nodeData={nodeData} onChange={onNodeDataChange} />;
-      case 'equipment-test':
-        return <EquipmentTestConfig nodeData={nodeData} onChange={onNodeDataChange} />;
-      case 'photo-capture':
-        return <PhotoCaptureConfig nodeData={nodeData} onChange={onNodeDataChange} />;
-      default:
-        return null;
-    }
-  };
-
-  const groupedOptions = nodeTypeOptions.reduce((acc, option) => {
-    if (!acc[option.category]) acc[option.category] = [];
-    acc[option.category].push(option);
-    return acc;
-  }, {} as Record<string, typeof nodeTypeOptions>);
 
   return (
     <div className="space-y-6">
-      {/* Node Type Selection */}
-      <div className="space-y-2">
-        <Label htmlFor="nodeType">Step Type</Label>
-        <Select value={nodeType} onValueChange={onNodeTypeChange}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select step type" />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(groupedOptions).map(([category, options]) => (
-              <div key={category}>
-                <div className="px-2 py-1 text-xs font-medium text-muted-foreground border-b">
-                  {category}
-                </div>
-                {options.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    <div>
-                      <div className="font-medium">{option.label}</div>
-                      <div className="text-xs text-muted-foreground">{option.description}</div>
-                    </div>
-                  </SelectItem>
-                ))}
+      <Tabs defaultValue="basic" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="basic">Basic</TabsTrigger>
+          <TabsTrigger value="enhanced">Enhanced</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="basic" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Basic Configuration</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <NodeTypeSelect value={nodeType} onChange={onNodeTypeChange} />
+              
+              <div className="space-y-2">
+                <Label htmlFor="node-label">Node Label</Label>
+                <Input
+                  id="node-label"
+                  value={label}
+                  onChange={(e) => onLabelChange(e.target.value)}
+                  placeholder="Enter node label"
+                />
               </div>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
 
-      {/* Node Label */}
-      <div className="space-y-2">
-        <Label htmlFor="label">Step Title</Label>
-        <Input
-          id="label"
-          value={label}
-          onChange={(e) => onLabelChange(e.target.value)}
-          placeholder="Enter step title"
-        />
-      </div>
+              {isEnhancedNodeType && (
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">Enhanced Node Type</Badge>
+                  <span className="text-sm text-gray-600">
+                    Configure in Enhanced tab
+                  </span>
+                </div>
+              )}
 
-      {/* Warning Configuration - Hide for start nodes */}
-      {nodeType !== 'start' && (
-        <WarningSelector
-          value={currentWarning?.type}
-          onChange={(type) => handleWarningChange(type, currentWarning?.includeLicenseText || false)}
-          includeLicenseText={currentWarning?.includeLicenseText || false}
-          onLicenseTextChange={(include) => handleWarningChange(currentWarning?.type, include)}
-        />
-      )}
+              {!isEnhancedNodeType && (
+                <>
+                  <Separator />
+                  <NodeFields
+                    fields={fields}
+                    onFieldsChange={onFieldsChange}
+                    onAddField={onAddField}
+                    onRemoveField={onRemoveField}
+                    onMoveField={onMoveField}
+                  />
+                </>
+              )}
 
-      {/* Enhanced Node Configuration */}
-      {renderEnhancedConfiguration()}
+              {showTechnicalFields && (
+                <>
+                  <Separator />
+                  <TechnicalSpecs
+                    specs={technicalSpecs}
+                    onChange={onTechnicalSpecsChange}
+                  />
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* Standard Fields Configuration */}
-      <NodeFields
-        fields={fields}
-        onFieldsChange={onFieldsChange}
-        onAddField={onAddField}
-        onRemoveField={onRemoveField}
-        onMoveField={onMoveField}
-      />
-
-      {/* Technical Specifications */}
-      {showTechnicalFields && (
-        <div className="space-y-4 border-t pt-4">
-          <Label>Technical Specifications</Label>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Min Value</Label>
-              <Input
-                type="number"
-                value={technicalSpecs.range.min}
-                onChange={(e) => onTechnicalSpecsChange({
-                  ...technicalSpecs,
-                  range: { ...technicalSpecs.range, min: Number(e.target.value) }
-                })}
-              />
-            </div>
-            <div>
-              <Label>Max Value</Label>
-              <Input
-                type="number"
-                value={technicalSpecs.range.max}
-                onChange={(e) => onTechnicalSpecsChange({
-                  ...technicalSpecs,
-                  range: { ...technicalSpecs.range, max: Number(e.target.value) }
-                })}
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label>Test Points</Label>
-            <Input
-              value={technicalSpecs.testPoints || ''}
-              onChange={(e) => onTechnicalSpecsChange({
-                ...technicalSpecs,
-                testPoints: e.target.value
-              })}
-              placeholder="Enter test points..."
+        <TabsContent value="enhanced" className="space-y-4">
+          {isEnhancedNodeType ? (
+            <EnhancedNodeConfig 
+              nodeData={{ 
+                type: nodeType as EnhancedNodeType, 
+                title: label,
+                label 
+              }} 
+              onChange={(data) => {
+                // Handle enhanced node data changes
+                if (data.title !== label) {
+                  onLabelChange(data.title || data.label || '');
+                }
+              }} 
             />
-          </div>
+          ) : (
+            <Card>
+              <CardContent className="p-6 text-center">
+                <p className="text-gray-500 mb-4">
+                  Enhanced configuration is only available for enhanced node types.
+                </p>
+                <p className="text-sm text-gray-400">
+                  Select an enhanced node type in the Basic tab to access advanced features.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
 
-          <div>
-            <Label>Measurement Points</Label>
-            <Input
-              value={technicalSpecs.measurementPoints || ''}
-              onChange={(e) => onTechnicalSpecsChange({
-                ...technicalSpecs,
-                measurementPoints: e.target.value
-              })}
-              placeholder="Enter measurement points..."
-            />
-          </div>
-        </div>
-      )}
+        <TabsContent value="templates" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileTemplate className="w-4 h-4" />
+                Diagnostic Templates
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DiagnosticTemplates onApplyTemplate={handleTemplateApply} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
-      {/* Action Buttons */}
-      <div className="flex justify-between pt-4 border-t">
+      <Separator />
+
+      <div className="flex justify-between">
         <Button variant="outline" onClick={onReset}>
+          <RotateCcw className="w-4 h-4 mr-2" />
           Reset
         </Button>
         <Button 
@@ -266,6 +195,7 @@ export function NodeConfigForm({
           disabled={hasValidationErrors}
           className="bg-blue-600 hover:bg-blue-700"
         >
+          <Check className="w-4 h-4 mr-2" />
           Apply Changes
         </Button>
       </div>
