@@ -15,7 +15,8 @@ import {
   Clock,
   Settings,
   File,
-  Video
+  Video,
+  ArrowRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { WarningIcon } from './WarningIcons';
@@ -29,7 +30,8 @@ export type NodeType =
   | 'media' 
   | 'decision' 
   | 'warning'
-  | 'info';
+  | 'info'
+  | 'action';
 
 export interface DiagnosisNodeData {
   id: string;
@@ -75,6 +77,10 @@ export interface DiagnosisNodeData {
     content?: string;
     [key: string]: unknown;
   }>;
+  linkToWorkflow?: {
+    workflowName: string;
+    stepId?: string;
+  };
   [key: string]: unknown;
 }
 
@@ -96,19 +102,34 @@ const nodeIcons = {
   media: Camera,
   decision: Settings,
   warning: AlertTriangle,
-  info: FileText
+  info: FileText,
+  action: ArrowRight
 };
 
 const nodeColors = {
-  start: 'border-green-500 bg-green-50',
-  question: 'border-blue-500 bg-blue-50',
-  instruction: 'border-yellow-500 bg-yellow-50',
-  condition: 'border-orange-500 bg-orange-50',
-  end: 'border-green-600 bg-green-100',
-  media: 'border-purple-500 bg-purple-50',
-  decision: 'border-indigo-500 bg-indigo-50',
-  warning: 'border-red-500 bg-red-50',
-  info: 'border-gray-500 bg-gray-50'
+  start: 'border-green-600 bg-gradient-to-br from-green-50 to-green-100',
+  question: 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100',
+  instruction: 'border-yellow-500 bg-gradient-to-br from-yellow-50 to-yellow-100',
+  condition: 'border-orange-500 bg-gradient-to-br from-orange-50 to-orange-100',
+  end: 'border-green-600 bg-gradient-to-br from-green-100 to-green-200',
+  media: 'border-purple-500 bg-gradient-to-br from-purple-50 to-purple-100',
+  decision: 'border-indigo-500 bg-gradient-to-br from-indigo-50 to-indigo-100',
+  warning: 'border-red-500 bg-gradient-to-br from-red-50 to-red-100',
+  info: 'border-gray-500 bg-gradient-to-br from-gray-50 to-gray-100',
+  action: 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-emerald-100'
+};
+
+const nodeShapes = {
+  start: 'rounded-full',
+  question: 'rounded-lg',
+  instruction: 'rounded-md',
+  condition: 'rounded-lg',
+  end: 'rounded-full',
+  media: 'rounded-xl',
+  decision: 'rounded-lg',
+  warning: 'rounded-lg',
+  info: 'rounded-md',
+  action: 'rounded-xl'
 };
 
 const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
@@ -120,10 +141,10 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
   selected
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [userInput, setUserInput] = useState('');
 
   const IconComponent = nodeIcons[data.type] || FileText;
   const nodeColorClass = nodeColors[data.type] || nodeColors.info;
+  const nodeShapeClass = nodeShapes[data.type] || 'rounded-lg';
 
   const handleAction = useCallback((action: string, actionData?: any) => {
     onNodeAction?.(data.id, action, actionData);
@@ -133,20 +154,16 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
   const isWarningContent = (content: any) => {
     if (!content) return false;
     
-    // If it's already an object, check if it has warning properties
     if (typeof content === 'object' && content.type && 
         ['electric', 'water', 'fire'].includes(content.type)) {
-      console.log('Found warning object:', content);
       return true;
     }
     
-    // If it's a string, try to parse it
     if (typeof content === 'string') {
       try {
         const parsed = JSON.parse(content);
         if (parsed && typeof parsed === 'object' && parsed.type && 
             ['electric', 'water', 'fire'].includes(parsed.type)) {
-          console.log('Found warning JSON string:', content, 'parsed to:', parsed);
           return true;
         }
       } catch {
@@ -159,20 +176,15 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
 
   // Helper function to get warning config from fields
   const getWarningConfig = () => {
-    console.log('Getting warning config from data:', data);
-    
     if (data.fields && Array.isArray(data.fields)) {
       const warningField = data.fields.find(field => field.id === 'warning');
-      console.log('Found warning field:', warningField);
       
       if (warningField?.content) {
         try {
           if (typeof warningField.content === 'object') {
-            console.log('Warning field content is object:', warningField.content);
             return warningField.content;
           } else if (typeof warningField.content === 'string') {
             const parsed = JSON.parse(warningField.content);
-            console.log('Parsed warning field content:', parsed);
             return parsed;
           }
         } catch (error) {
@@ -184,34 +196,21 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
   };
 
   const renderContent = () => {
-    console.log('Rendering content for node:', data.id, 'data.content:', data.content);
-    
     // Get regular content, filtering out warning content
     let content = data.content;
     
     // If the main content is warning JSON, don't display it here
     if (content && isWarningContent(content)) {
-      console.log('Main content is warning JSON, filtering it out');
       content = null;
     }
     
     // Check fields for non-warning content
     let fieldContent = '';
     if (data.fields && Array.isArray(data.fields)) {
-      console.log('Processing fields:', data.fields);
-      
       const contentFields = data.fields.filter(field => {
-        const isNotWarning = field.id !== 'warning';
-        const isContentType = field.type === 'content';
-        const hasContent = field.content;
-        const notWarningContent = !isWarningContent(field.content);
-        
-        console.log(`Field ${field.id}: isNotWarning=${isNotWarning}, isContentType=${isContentType}, hasContent=${hasContent}, notWarningContent=${notWarningContent}`);
-        
-        return isNotWarning && isContentType && hasContent && notWarningContent;
+        return field.id !== 'warning' && field.type === 'content' && 
+               field.content && !isWarningContent(field.content);
       });
-      
-      console.log('Filtered content fields:', contentFields);
       
       fieldContent = contentFields
         .map(field => field.content)
@@ -220,7 +219,6 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
     }
     
     const finalContent = content || fieldContent;
-    console.log('Final content to display:', finalContent);
     
     if (!finalContent) return null;
 
@@ -324,7 +322,6 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
   const renderMedia = () => {
     if (!data.media) return null;
 
-    // Handle both single media object and array of media objects
     const mediaItems = Array.isArray(data.media) ? data.media : [data.media];
     
     if (mediaItems.length === 0) return null;
@@ -376,8 +373,6 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
   };
 
   const renderWarning = () => {
-    console.log('Rendering warning for node:', data.id);
-    
     const warningConfig = getWarningConfig();
     
     // Also check if main content is warning JSON
@@ -391,7 +386,6 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
         }
         
         if (parsed && parsed.type) {
-          console.log('Found warning in main content:', parsed);
           return (
             <div className="mt-3">
               <WarningIcon 
@@ -407,9 +401,7 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
       }
     }
     
-    // If we found a valid warning config with a type, render the WarningIcon
     if (warningConfig && warningConfig.type) {
-      console.log('Rendering WarningIcon with config:', warningConfig);
       return (
         <div className="mt-3">
           <WarningIcon 
@@ -421,16 +413,20 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
       );
     }
 
-    // If no warning config found, don't render anything
-    console.log('No valid warning config found');
     return null;
   };
+
+  // Special styling for start nodes
+  const isStartNode = data.type === 'start';
+  const startNodeStyle = isStartNode ? 'ring-4 ring-green-300 ring-opacity-50' : '';
 
   return (
     <Card 
       className={cn(
         'min-w-[250px] max-w-[300px] transition-all duration-200 relative',
         nodeColorClass,
+        nodeShapeClass,
+        startNodeStyle,
         isActive && 'ring-2 ring-blue-400 shadow-lg',
         isCompleted && 'opacity-75',
         selected && 'ring-2 ring-gray-400'
@@ -498,6 +494,11 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
           <div className="flex items-center gap-2">
             <IconComponent className="w-4 h-4" />
             <h3 className="font-medium text-sm">{data.title}</h3>
+            {isStartNode && (
+              <Badge variant="secondary" className="text-xs px-1 py-0 bg-green-200 text-green-800">
+                START
+              </Badge>
+            )}
           </div>
           
           <div className="flex items-center gap-1">
@@ -524,11 +525,11 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
       </CardHeader>
 
       <CardContent className="pt-0">
+        {renderWarning()}
         {renderContent()}
         {renderOptions()}
         {renderMedia()}
         {renderTechnicalInfo()}
-        {renderWarning()}
 
         {data.metadata?.tags?.length && (
           <div className="mt-3 flex flex-wrap gap-1">

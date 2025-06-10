@@ -126,9 +126,9 @@ export function useFlowActions(
   const handleAddNode = useCallback(() => {
     const viewport = getViewport();
     
-    // Calculate center of current viewport
-    const centerX = -viewport.x + (window.innerWidth / 2) / viewport.zoom;
-    const centerY = -viewport.y + (window.innerHeight / 2) / viewport.zoom;
+    // Calculate center of current viewport with zoom taken into account
+    const centerX = (-viewport.x + window.innerWidth / 2) / viewport.zoom;
+    const centerY = (-viewport.y + window.innerHeight / 2) / viewport.zoom;
     
     const newNodeId = `node-${nodeCounter}`;
     const newNode = {

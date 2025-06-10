@@ -84,7 +84,7 @@ export function useFileHandling({
     };
   }, []);
 
-  // Enhanced save function - now stays in workflow instead of navigating away
+  // Enhanced save function - now shows success popup and stays in workflow
   const handleSave = useCallback(async (name: string, folder: string, appliance: string) => {
     try {
       console.log('Saving workflow with:', {name, folder, appliance, nodes, edges});
@@ -92,11 +92,11 @@ export function useFileHandling({
       const workflow = await handleSaveWorkflow(nodes, edges, nodeCounter, name, folder, appliance, '');
       
       if (workflow) {
-        // Show success popup instead of navigating away
+        // Show prominent success popup
         toast({
-          title: "Workflow Saved Successfully!",
-          description: `"${name}" has been saved to "${folder}" folder.`,
-          duration: 3000,
+          title: "✅ Workflow Saved Successfully!",
+          description: `"${name}" has been saved to the "${folder}" folder. You can continue editing or navigate away when ready.`,
+          duration: 5000,
         });
       }
       return Promise.resolve();

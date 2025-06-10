@@ -30,7 +30,7 @@ interface NodeConfigFormProps {
 }
 
 const nodeTypeOptions: { value: NodeType; label: string; description: string }[] = [
-  { value: 'start', label: 'Start', description: 'Starting point of workflow (hidden from users)' },
+  { value: 'start', label: 'Start', description: 'Starting point of workflow (limited to 1 per workflow)' },
   { value: 'question', label: 'Question', description: 'Decision point with Yes/No or multiple choice' },
   { value: 'action', label: 'Action', description: 'Instruction step with single "Next" button' },
   { value: 'test', label: 'Test', description: 'Measurement or testing step' },
@@ -126,7 +126,7 @@ export function NodeConfigForm({
         />
       </div>
 
-      {/* Warning Configuration */}
+      {/* Warning Configuration - Hide for start nodes */}
       {nodeType !== 'start' && (
         <WarningSelector
           value={currentWarning?.type}
