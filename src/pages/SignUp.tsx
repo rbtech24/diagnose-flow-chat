@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -169,20 +168,26 @@ export default function SignUp() {
           {/* Right Side - Sign Up Form */}
           <div className="flex items-center justify-center py-8 lg:py-12">
             <div className="w-full max-w-md mx-auto">
+              {/* Large Logo Above Form */}
+              <div className="text-center mb-8">
+                <img 
+                  src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
+                  alt="Repair Auto Pilot" 
+                  className="h-24 mx-auto mb-4"
+                />
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                  Create Your Account
+                </h1>
+                <p className="text-gray-600 text-lg mt-2">
+                  Start your transformation journey today
+                </p>
+              </div>
+
               <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
-                <CardHeader className="space-y-1 text-center pb-8">
-                  <div className="lg:hidden mb-4">
-                    <img 
-                      src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
-                      alt="Repair Auto Pilot" 
-                      className="h-16 mx-auto"
-                    />
-                  </div>
-                  <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-                    Create Your Account
-                  </CardTitle>
+                <CardHeader className="space-y-1 text-center pb-6">
+                  <CardTitle className="text-2xl font-bold">Get Started</CardTitle>
                   <CardDescription className="text-lg text-gray-600">
-                    Start your transformation journey today
+                    Choose your account type to begin
                   </CardDescription>
                   
                   {/* Account Type Selector */}

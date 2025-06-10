@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -189,18 +188,26 @@ export default function Login() {
           {/* Right Side - Login Form */}
           <div className="flex items-center justify-center py-8 lg:py-12">
             <div className="w-full max-w-md mx-auto">
-              <Card className="shadow-2xl">
-                <CardHeader className="space-y-1 text-center">
-                  <div className="lg:hidden mb-3">
-                    <img 
-                      src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
-                      alt="Repair Auto Pilot" 
-                      className="h-16 mx-auto"
-                    />
-                  </div>
-                  <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+              {/* Large Logo Above Form */}
+              <div className="text-center mb-8">
+                <img 
+                  src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
+                  alt="Repair Auto Pilot" 
+                  className="h-24 mx-auto mb-4"
+                />
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                  Welcome Back
+                </h1>
+                <p className="text-gray-600 text-lg mt-2">
+                  Sign in to continue your journey
+                </p>
+              </div>
+
+              <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
+                <CardHeader className="space-y-1 text-center pb-6">
+                  <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
                   <CardDescription>
-                    Sign in to your account to continue
+                    Enter your credentials to access your account
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -292,7 +299,7 @@ export default function Login() {
               </Card>
 
               {/* Mobile Benefits Content */}
-              <div className="lg:hidden mt-8 bg-white rounded-xl shadow-lg p-6">
+              <div className="lg:hidden mt-8 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg p-6">
                 <div className="text-center mb-4">
                   <h3 className="font-bold text-gray-900 mb-2">Welcome Back!</h3>
                   <p className="text-sm text-gray-600">Continue your repair journey</p>
