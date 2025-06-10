@@ -73,16 +73,11 @@ import TechNewCommunityPost from "./pages/tech/NewCommunityPost";
 import TechNewFeatureRequest from "./pages/tech/NewFeatureRequest";
 import TechSupportTicketDetail from "./pages/tech/SupportTicketDetail";
 import { RouteGuard } from "./components/RouteGuard";
-import DevLogin from "./pages/DevLogin";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <Index />
-  },
-  {
-    path: "/dev-login",
-    element: <DevLogin />
   },
   {
     path: "/login",

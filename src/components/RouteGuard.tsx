@@ -15,7 +15,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }
   // Handle logout navigation
   useEffect(() => {
     if (!isLoading && !user) {
-      navigate('/dev-login');
+      navigate('/login');
     }
   }, [user, isLoading, navigate]);
 
@@ -24,7 +24,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }
   }
 
   if (!user) {
-    return <Navigate to="/dev-login" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
