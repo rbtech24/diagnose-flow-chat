@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DashboardStats {
@@ -110,21 +111,19 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    // Process activity data with explicit typing
-    const activities = activityData as Array<{
-      id?: string;
-      activity_type?: string;
-      description?: string;
-      created_at?: string;
-    }>;
-
-    const results: RecentActivity[] = activities.map((activity) => ({
-      id: activity.id || `activity-${Date.now()}`,
-      type: mapActivityTypeToRecentActivity(activity.activity_type || 'unknown'),
-      description: activity.description || 'Activity recorded',
-      time: formatTimeAgo(new Date(activity.created_at || new Date())),
-      icon: getActivityIcon(activity.activity_type || 'unknown')
-    }));
+    // Process activity data with explicit typing and simple iteration
+    const results: RecentActivity[] = [];
+    
+    for (let i = 0; i < activityData.length; i++) {
+      const activity = activityData[i] as any;
+      results.push({
+        id: activity.id || `activity-${Date.now()}-${i}`,
+        type: mapActivityTypeToRecentActivity(activity.activity_type || 'unknown'),
+        description: activity.description || 'Activity recorded',
+        time: formatTimeAgo(new Date(activity.created_at || new Date())),
+        icon: getActivityIcon(activity.activity_type || 'unknown')
+      });
+    }
 
     return results;
   } catch (error) {

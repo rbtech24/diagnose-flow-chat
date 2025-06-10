@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface SupportTicket {
@@ -299,13 +300,16 @@ export async function searchSupportTickets(searchParams: {
     .limit(50);
 
   if (searchParams.filters) {
-    // Use simple iteration to avoid deep type instantiation
-    const filterKeys = Object.keys(searchParams.filters);
-    for (const key of filterKeys) {
-      const value = searchParams.filters[key];
-      if (value && value.trim()) {
-        query = query.eq(key, sanitizeString(value));
-      }
+    // Simple manual iteration to avoid deep type recursion
+    const filters = searchParams.filters;
+    if (filters.status && filters.status.trim()) {
+      query = query.eq('status', sanitizeString(filters.status));
+    }
+    if (filters.priority && filters.priority.trim()) {
+      query = query.eq('priority', sanitizeString(filters.priority));
+    }
+    if (filters.company_id && filters.company_id.trim()) {
+      query = query.eq('company_id', sanitizeString(filters.company_id));
     }
   }
 
