@@ -163,7 +163,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/company",
-    element: <CompanyLayout />,
+    element: (
+      <RouteGuard allowedRoles={['company']}>
+        <CompanyLayout />
+      </RouteGuard>
+    ),
     children: [
       { index: true, element: <Dashboard /> },
       { path: "dashboard", element: <Dashboard /> },
@@ -206,7 +210,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/admin",
-    element: <AdminLayout />,
+    element: (
+      <RouteGuard allowedRoles={['admin']}>
+        <AdminLayout />
+      </RouteGuard>
+    ),
     children: [
       { index: true, element: <AdminDashboard /> },
       { path: "dashboard", element: <AdminDashboard /> },
@@ -230,8 +238,8 @@ const router = createBrowserRouter([
       { path: "companies/:id", element: <CompanyDetail /> },
       { path: "workflows", element: <AdminWorkflows /> },
       { path: "workflow-editor", element: <WorkflowEditor /> },
-      { path: "/admin/admin-accounts", element: <AdminAccounts /> },
-      { path: "/admin/api-keys", element: <ApiKeys /> },
+      { path: "admin-accounts", element: <AdminAccounts /> },
+      { path: "api-keys", element: <ApiKeys /> },
       { path: "activity", element: <ActivityPage /> },
     ]
   },
