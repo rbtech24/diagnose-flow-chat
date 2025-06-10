@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DashboardStats {
@@ -104,12 +105,18 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
     }
 
     const activities: RecentActivity[] = rawData.map((item, index) => {
+      const activityId = item.id ? String(item.id) : `activity-${index}-${Date.now()}`;
+      const activityType = mapActivityTypeToRecentActivity(item.activity_type || 'unknown');
+      const description = item.description || 'Activity recorded';
+      const time = formatTimeAgo(new Date(item.created_at || new Date().toISOString()));
+      const icon = getActivityIcon(item.activity_type || 'unknown');
+
       return {
-        id: item.id ? String(item.id) : `activity-${index}-${Date.now()}`,
-        type: mapActivityTypeToRecentActivity(item.activity_type || 'unknown'),
-        description: item.description || 'Activity recorded',
-        time: formatTimeAgo(new Date(item.created_at || new Date().toISOString())),
-        icon: getActivityIcon(item.activity_type || 'unknown')
+        id: activityId,
+        type: activityType,
+        description: description,
+        time: time,
+        icon: icon
       };
     });
 
