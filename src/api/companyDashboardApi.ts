@@ -16,14 +16,6 @@ export interface RecentActivity {
   icon: string;
 }
 
-// Simple interface to avoid deep type instantiation
-interface SimpleActivityData {
-  id: string;
-  activity_type: string;
-  description: string;
-  created_at: string;
-}
-
 export const fetchDashboardStats = async (companyId: string): Promise<DashboardStats> => {
   console.log('Fetching dashboard stats for company:', companyId);
   
@@ -57,13 +49,7 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     let revenue = 0;
 
     // Process repairs data with explicit typing to avoid deep instantiation
-    const repairs = repairsData as Array<{
-      status?: string;
-      actual_cost?: number | string;
-      completed_at?: string;
-    }>;
-
-    for (const repair of repairs) {
+    for (const repair of repairsData) {
       if (repair?.status === 'in_progress') {
         activeJobs++;
       }
@@ -78,8 +64,8 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
       }
     }
       
-    const completionRate = repairs.length > 0 
-      ? Math.round((completedJobs / repairs.length) * 100) 
+    const completionRate = repairsData.length > 0 
+      ? Math.round((completedJobs / repairsData.length) * 100) 
       : 0;
 
     return {
@@ -120,27 +106,15 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
     }
 
     // Convert raw data to simple interface to break type chain
-    const activityData: SimpleActivityData[] = [];
+    const results: RecentActivity[] = [];
     for (let i = 0; i < rawData.length; i++) {
       const item = rawData[i];
-      activityData.push({
-        id: item?.id || `activity-${Date.now()}-${i}`,
-        activity_type: item?.activity_type || 'unknown',
-        description: item?.description || 'Activity recorded',
-        created_at: item?.created_at || new Date().toISOString()
-      });
-    }
-
-    // Process simple activity data
-    const results: RecentActivity[] = [];
-    for (let i = 0; i < activityData.length; i++) {
-      const activity = activityData[i];
       results.push({
-        id: activity.id,
-        type: mapActivityTypeToRecentActivity(activity.activity_type),
-        description: activity.description,
-        time: formatTimeAgo(new Date(activity.created_at)),
-        icon: getActivityIcon(activity.activity_type)
+        id: item?.id || `activity-${Date.now()}-${i}`,
+        type: mapActivityTypeToRecentActivity(item?.activity_type || 'unknown'),
+        description: item?.description || 'Activity recorded',
+        time: formatTimeAgo(new Date(item?.created_at || new Date().toISOString())),
+        icon: getActivityIcon(item?.activity_type || 'unknown')
       });
     }
 
