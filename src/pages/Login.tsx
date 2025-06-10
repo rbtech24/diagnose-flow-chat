@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { loginRateLimiter } from "@/utils/rateLimiter";
 import { emailSchema, passwordSchema } from "@/components/security/InputValidator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, AlertTriangle } from "lucide-react";
+import { DemoUserSetup } from "@/components/auth/DemoUserSetup";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -19,6 +21,7 @@ export default function Login() {
   const [passwordError, setPasswordError] = useState("");
   const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
   const [lockoutTime, setLockoutTime] = useState<number | null>(null);
+  const [showDemoSetup, setShowDemoSetup] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { login, user, isSessionValid, getSessionTimeRemaining } = useAuth();

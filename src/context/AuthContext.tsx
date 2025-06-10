@@ -97,7 +97,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return false;
     }
     
-    // Check for inactivity timeout - get timestamp as number
+    // Check for inactivity timeout - use timestamp as number
     const lastActivity = SessionManager.getLastActivity();
     if (SessionManager.isSessionExpired(lastActivity)) {
       return false;
@@ -108,9 +108,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const getSessionTimeRemaining = useCallback((): number => {
     if (!session?.expires_at) return 0;
-    const expiresAt = typeof session.expires_at === 'string' 
-      ? new Date(session.expires_at).getTime() 
-      : session.expires_at * 1000;
+    const expiresAt = new Date(session.expires_at).getTime();
     return Math.max(0, expiresAt - Date.now());
   }, [session]);
 

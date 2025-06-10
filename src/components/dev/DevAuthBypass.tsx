@@ -1,61 +1,69 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, User, Building2 } from 'lucide-react';
+import { useUserManagementStore } from '@/store/userManagementStore';
+import { useNavigate } from 'react-router-dom';
+import { User } from '@/types/user';
 
 export function DevAuthBypass() {
+  const { setCurrentUser } = useUserManagementStore();
   const navigate = useNavigate();
 
-  const handleRoleNavigation = (role: string) => {
-    // In development, we just navigate to the role-specific dashboard
-    // In a real app, this would set up proper authentication
+  const createDevUser = (role: 'admin' | 'company' | 'tech', name: string): User => ({
+    id: `dev-${role}-${Date.now()}`,
+    name,
+    email: `dev-${role}@example.com`,
+    role,
+    companyId: role === 'tech' ? 'company-1' : undefined,
+    status: 'active',
+    avatarUrl: 'https://i.pravatar.cc/300',
+    activeJobs: role === 'tech' ? 3 : 0
+  });
+
+  const loginAsDev = (role: 'admin' | 'company' | 'tech') => {
+    const names = {
+      admin: 'Dev Admin',
+      company: 'Dev Company Manager',
+      tech: 'Dev Technician'
+    };
+    
+    const devUser = createDevUser(role, names[role]);
+    setCurrentUser(devUser);
+    localStorage.setItem('currentUser', JSON.stringify(devUser));
     navigate(`/${role}`);
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader className="text-center">
-        <Shield className="h-8 w-8 mx-auto mb-2 text-orange-600" />
-        <CardTitle className="text-orange-600">Development Mode</CardTitle>
+    <Card className="w-full max-w-md mx-auto mt-8">
+      <CardHeader>
+        <CardTitle>Development Authentication</CardTitle>
         <CardDescription>
-          Quick access to different user dashboards for testing
+          Quick login for development purposes
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        <Button
-          onClick={() => handleRoleNavigation('admin')}
-          className="w-full justify-start"
+        <Button 
+          onClick={() => loginAsDev('tech')} 
+          className="w-full"
+          variant="default"
+        >
+          Login as Tech User
+        </Button>
+        <Button 
+          onClick={() => loginAsDev('company')} 
+          className="w-full"
           variant="outline"
         >
-          <Shield className="h-4 w-4 mr-2" />
-          Admin Dashboard
+          Login as Company User
         </Button>
-        
-        <Button
-          onClick={() => handleRoleNavigation('company')}
-          className="w-full justify-start"
+        <Button 
+          onClick={() => loginAsDev('admin')} 
+          className="w-full"
           variant="outline"
         >
-          <Building2 className="h-4 w-4 mr-2" />
-          Company Dashboard
+          Login as Admin User
         </Button>
-        
-        <Button
-          onClick={() => handleRoleNavigation('tech')}
-          className="w-full justify-start"
-          variant="outline"
-        >
-          <User className="h-4 w-4 mr-2" />
-          Technician Dashboard
-        </Button>
-
-        <div className="mt-4 p-3 bg-orange-50 rounded-lg">
-          <p className="text-xs text-orange-700">
-            ⚠️ This bypass is for development only and should be removed in production
-          </p>
-        </div>
       </CardContent>
     </Card>
   );
