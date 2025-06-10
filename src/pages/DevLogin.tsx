@@ -5,14 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
-import { useDemoAuth } from '@/hooks/useDemoAuth';
 
 export default function DevLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, isLoading } = useDemoAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -24,58 +25,49 @@ export default function DevLogin() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const success = await login(email, password);
-    if (success) {
-      toast({
-        title: "Login successful",
-        description: "Redirecting to dashboard...",
-      });
-      
-      // Determine redirect based on email
-      if (email.includes('admin@')) {
-        navigate('/admin');
-      } else if (email.includes('company@')) {
-        navigate('/company');
-      } else if (email.includes('tech@')) {
-        navigate('/tech');
-      } else {
-        navigate('/');
+    setIsLoading(true);
+
+    try {
+      const success = await login(email, password);
+      if (success) {
+        toast({
+          title: "Login successful",
+          description: "Redirecting to dashboard...",
+        });
+        // AuthContext will handle navigation based on user role
       }
-    } else {
+    } catch (error) {
       toast({
         title: "Login failed",
         description: "Please check your credentials and try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const quickLogin = async (email: string, password: string) => {
     setEmail(email);
     setPassword(password);
-    
-    const success = await login(email, password);
-    if (success) {
-      toast({
-        title: "Login successful",
-        description: "Redirecting to dashboard...",
-      });
-      
-      // Determine redirect based on email
-      if (email.includes('admin@')) {
-        navigate('/admin');
-      } else if (email.includes('company@')) {
-        navigate('/company');
-      } else if (email.includes('tech@')) {
-        navigate('/tech');
+    setIsLoading(true);
+
+    try {
+      const success = await login(email, password);
+      if (success) {
+        toast({
+          title: "Login successful",
+          description: "Redirecting to dashboard...",
+        });
       }
-    } else {
+    } catch (error) {
       toast({
         title: "Login failed",
         description: "Please check your credentials and try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
