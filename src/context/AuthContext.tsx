@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -96,9 +97,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return false;
     }
     
-    // Check for inactivity timeout - get lastActivity as number and pass as number
+    // Check for inactivity timeout - get lastActivity as string and pass as string
     const lastActivity = SessionManager.getLastActivity();
-    if (SessionManager.isSessionExpired(lastActivity)) {
+    if (SessionManager.isSessionExpired(lastActivity.toString())) {
       return false;
     }
     

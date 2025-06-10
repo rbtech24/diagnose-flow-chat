@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DashboardStats {
@@ -47,8 +48,8 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     let completedJobs = 0;
     let revenue = 0;
 
-    // Process repairs data
-    repairsData.forEach((repair) => {
+    // Process repairs data using traditional for loop
+    for (const repair of repairsData) {
       if (repair?.status === 'in_progress') {
         activeJobs++;
       }
@@ -61,7 +62,7 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
           }
         }
       }
-    });
+    }
       
     const completionRate = repairsData.length > 0 
       ? Math.round((completedJobs / repairsData.length) * 100) 
@@ -104,22 +105,25 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    // Map activity data
-    return rawData.map((item, index) => {
-      const activityId = item.id || `activity-${Date.now()}-${index}`;
+    // Map activity data using traditional for loop
+    const result: RecentActivity[] = [];
+    for (const item of rawData) {
+      const activityId = item.id || `activity-${Date.now()}-${Math.random()}`;
       const activityType = mapActivityTypeToRecentActivity(item.activity_type || 'unknown');
       const description = item.description || 'Activity recorded';
       const time = formatTimeAgo(new Date(item.created_at || new Date().toISOString()));
       const icon = getActivityIcon(item.activity_type || 'unknown');
       
-      return {
+      result.push({
         id: String(activityId),
         type: activityType,
         description: description,
         time: time,
         icon: icon
-      };
-    });
+      });
+    }
+
+    return result;
   } catch (error) {
     console.error('Error in fetchRecentActivity:', error);
     return [];
