@@ -104,7 +104,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    return rawData.map((item, index) => {
+    const activities: RecentActivity[] = rawData.map((item, index) => {
       const activityId = item.id || `activity-${Date.now()}-${index}`;
       const activityType = mapActivityTypeToRecentActivity(item.activity_type || 'unknown');
       const description = item.description || 'Activity recorded';
@@ -119,6 +119,8 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
         icon: icon
       };
     });
+
+    return activities;
   } catch (error) {
     console.error('Error in fetchRecentActivity:', error);
     return [];
