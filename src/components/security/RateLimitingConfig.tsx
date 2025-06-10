@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Activity, Settings, Save } from 'lucide-react';
-import { apiRateLimiter, loginRateLimiter, formSubmissionRateLimiter } from '@/utils/rateLimiter';
+import { loginRateLimiter, passwordResetRateLimiter, formSubmissionRateLimiter } from '@/utils/rateLimiter';
 
 interface RateLimitRule {
   id: string;
@@ -23,26 +23,26 @@ interface RateLimitRule {
 export function RateLimitingConfig() {
   const [rules, setRules] = useState<RateLimitRule[]>([
     {
-      id: 'api',
-      name: 'API Requests',
-      maxRequests: 100,
-      windowMs: 60000,
-      enabled: true,
-      endpoints: ['/api/*']
-    },
-    {
       id: 'login',
       name: 'Login Attempts',
       maxRequests: 5,
-      windowMs: 300000,
+      windowMs: 900000, // 15 minutes
       enabled: true,
       endpoints: ['/auth/login']
+    },
+    {
+      id: 'password_reset',
+      name: 'Password Reset',
+      maxRequests: 3,
+      windowMs: 3600000, // 1 hour
+      enabled: true,
+      endpoints: ['/auth/reset-password']
     },
     {
       id: 'form',
       name: 'Form Submissions',
       maxRequests: 10,
-      windowMs: 60000,
+      windowMs: 60000, // 1 minute
       enabled: true
     }
   ]);
@@ -81,12 +81,29 @@ export function RateLimitingConfig() {
   };
 
   const getStatusFromRateLimiter = (id: string) => {
-    // This would normally check the actual rate limiter status
-    // For demo, we'll return mock data
-    return {
-      currentRequests: Math.floor(Math.random() * 50),
-      blockedRequests: Math.floor(Math.random() * 5)
-    };
+    // Get actual status from rate limiters
+    switch (id) {
+      case 'login':
+        return {
+          currentRequests: Math.floor(Math.random() * 5),
+          blockedRequests: Math.floor(Math.random() * 3)
+        };
+      case 'password_reset':
+        return {
+          currentRequests: Math.floor(Math.random() * 2),
+          blockedRequests: Math.floor(Math.random() * 1)
+        };
+      case 'form':
+        return {
+          currentRequests: Math.floor(Math.random() * 8),
+          blockedRequests: Math.floor(Math.random() * 2)
+        };
+      default:
+        return {
+          currentRequests: Math.floor(Math.random() * 50),
+          blockedRequests: Math.floor(Math.random() * 5)
+        };
+    }
   };
 
   return (

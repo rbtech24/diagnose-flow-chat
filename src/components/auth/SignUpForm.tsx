@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/context/AuthContext';
-import { validateInput, emailSchema, passwordSchema, nameSchema } from '@/components/security/InputValidator';
+import { validateInput, emailSchema, nameSchema } from '@/components/security/InputValidator';
+import { PasswordSecurity } from '@/utils/rateLimiter';
 
 interface SignUpFormProps {
   onSuccess: () => void;
@@ -20,7 +21,8 @@ export function SignUpForm({ onSuccess }: SignUpFormProps) {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const { signup } = useAuth();
+  const [passwordStrength, setPasswordStrength] = useState<{ isValid: boolean; errors: string[] }>({ isValid: false, errors: [] });
+  const { signUp } = useAuth();
   const { toast } = useToast();
 
   const validateForm = (): boolean => {
@@ -36,9 +38,9 @@ export function SignUpForm({ onSuccess }: SignUpFormProps) {
       newErrors.email = emailResult.error || 'Invalid email';
     }
 
-    const passwordResult = validateInput(passwordSchema, formData.password);
-    if (!passwordResult.isValid) {
-      newErrors.password = passwordResult.error || 'Invalid password';
+    const passwordValidation = PasswordSecurity.validateStrength(formData.password);
+    if (!passwordValidation.isValid) {
+      newErrors.password = passwordValidation.errors[0] || 'Invalid password';
     }
 
     if (formData.password !== formData.confirmPassword) {
@@ -51,6 +53,13 @@ export function SignUpForm({ onSuccess }: SignUpFormProps) {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Real-time password strength validation
+    if (field === 'password') {
+      const strength = PasswordSecurity.validateStrength(value);
+      setPasswordStrength(strength);
+    }
+    
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -66,16 +75,14 @@ export function SignUpForm({ onSuccess }: SignUpFormProps) {
     setIsLoading(true);
     
     try {
-      const success = await signup({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password
+      const success = await signUp(formData.email, formData.password, {
+        name: formData.name
       });
       
       if (success) {
         toast({
           title: 'Account created successfully',
-          description: 'Welcome! Please sign in to continue.',
+          description: 'Welcome! Please check your email to verify your account.',
         });
         onSuccess();
       }
@@ -89,6 +96,19 @@ export function SignUpForm({ onSuccess }: SignUpFormProps) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const getPasswordStrengthColor = () => {
+    if (!formData.password) return 'bg-gray-200';
+    if (passwordStrength.errors.length > 3) return 'bg-red-500';
+    if (passwordStrength.errors.length > 1) return 'bg-yellow-500';
+    return 'bg-green-500';
+  };
+
+  const getPasswordStrengthWidth = () => {
+    if (!formData.password) return '0%';
+    const strength = Math.max(0, 100 - (passwordStrength.errors.length * 20));
+    return `${strength}%`;
   };
 
   return (
@@ -126,12 +146,35 @@ export function SignUpForm({ onSuccess }: SignUpFormProps) {
         <Input
           id="password"
           type="password"
-          placeholder="••••••••"
+          placeholder="••••••••••••"
           value={formData.password}
           onChange={(e) => handleInputChange('password', e.target.value)}
           className={errors.password ? 'border-red-500' : ''}
           required
         />
+        
+        {/* Password strength indicator */}
+        {formData.password && (
+          <div className="space-y-1">
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className={`h-2 rounded-full transition-all ${getPasswordStrengthColor()}`}
+                style={{ width: getPasswordStrengthWidth() }}
+              />
+            </div>
+            {passwordStrength.errors.length > 0 && (
+              <div className="text-xs text-gray-600">
+                <p>Password requirements:</p>
+                <ul className="list-disc list-inside ml-2">
+                  {passwordStrength.errors.map((error, index) => (
+                    <li key={index} className="text-red-500">{error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+        
         {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
       </div>
 
@@ -140,7 +183,7 @@ export function SignUpForm({ onSuccess }: SignUpFormProps) {
         <Input
           id="confirmPassword"
           type="password"
-          placeholder="••••••••"
+          placeholder="••••••••••••"
           value={formData.confirmPassword}
           onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
           className={errors.confirmPassword ? 'border-red-500' : ''}
@@ -152,7 +195,7 @@ export function SignUpForm({ onSuccess }: SignUpFormProps) {
       <Button 
         type="submit" 
         className="w-full bg-blue-600 hover:bg-blue-700" 
-        disabled={isLoading}
+        disabled={isLoading || !passwordStrength.isValid}
       >
         {isLoading ? 'Creating account...' : 'Create account'}
       </Button>

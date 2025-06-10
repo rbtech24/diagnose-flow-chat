@@ -9,6 +9,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { loginRateLimiter } from "@/utils/rateLimiter";
 import { emailSchema, passwordSchema } from "@/components/security/InputValidator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Shield, AlertTriangle } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -16,9 +18,11 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
+  const [lockoutTime, setLockoutTime] = useState<number | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { login, user } = useAuth();
+  const { login, user, isSessionValid, getSessionTimeRemaining } = useAuth();
 
   useEffect(() => {
     // If user is already logged in, redirect to the appropriate dashboard
@@ -26,6 +30,17 @@ export default function Login() {
       navigate(`/${user.role}`);
     }
   }, [user, navigate]);
+
+  // Session status indicator
+  useEffect(() => {
+    if (user && !isSessionValid()) {
+      toast({
+        title: "Session expired",
+        description: "Please log in again",
+        variant: "destructive",
+      });
+    }
+  }, [user, isSessionValid, toast]);
 
   const validateForm = (): boolean => {
     let isValid = true;
@@ -39,10 +54,9 @@ export default function Login() {
       isValid = false;
     }
 
-    // Validate password
-    const passwordResult = passwordSchema.safeParse(password);
-    if (!passwordResult.success) {
-      setPasswordError(passwordResult.error.errors[0]?.message || "Invalid password");
+    // Basic password validation for login (not as strict as signup)
+    if (!password || password.length < 6) {
+      setPasswordError("Password is required");
       isValid = false;
     }
 
@@ -60,6 +74,7 @@ export default function Login() {
     const rateLimitResult = loginRateLimiter.check(email);
     if (!rateLimitResult.allowed) {
       const resetTime = new Date(rateLimitResult.resetTime || Date.now());
+      setLockoutTime(rateLimitResult.resetTime || 0);
       toast({
         title: "Too many login attempts",
         description: `Please try again after ${resetTime.toLocaleTimeString()}`,
@@ -67,7 +82,8 @@ export default function Login() {
       });
       return;
     }
-    
+
+    setRemainingAttempts(rateLimitResult.remainingAttempts || 0);
     setIsLoading(true);
     
     try {
@@ -82,6 +98,10 @@ export default function Login() {
           description: `Welcome back! Redirecting to dashboard.`,
         });
         // Navigation will be handled by the useEffect above
+      } else {
+        // Update remaining attempts after failed login
+        const updatedResult = loginRateLimiter.check(email);
+        setRemainingAttempts(updatedResult.remainingAttempts || 0);
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -93,6 +113,12 @@ export default function Login() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const formatTimeRemaining = (ms: number): string => {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -112,6 +138,37 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Security Status Indicators */}
+          {remainingAttempts !== null && remainingAttempts < 3 && (
+            <Alert className="mb-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                {remainingAttempts > 0 
+                  ? `${remainingAttempts} login attempts remaining`
+                  : "Account temporarily locked"
+                }
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {lockoutTime && lockoutTime > Date.now() && (
+            <Alert variant="destructive" className="mb-4">
+              <Shield className="h-4 w-4" />
+              <AlertDescription>
+                Account locked. Try again in {formatTimeRemaining(lockoutTime - Date.now())}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {user && (
+            <Alert className="mb-4">
+              <Shield className="h-4 w-4" />
+              <AlertDescription>
+                Session expires in {formatTimeRemaining(getSessionTimeRemaining())}
+              </AlertDescription>
+            </Alert>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -122,6 +179,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className={emailError ? "border-red-500" : ""}
+                autoComplete="email"
                 required
               />
               {emailError && <p className="text-sm text-red-500">{emailError}</p>}
@@ -141,6 +199,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className={passwordError ? "border-red-500" : ""}
+                autoComplete="current-password"
                 required
               />
               {passwordError && <p className="text-sm text-red-500">{passwordError}</p>}
@@ -149,11 +208,19 @@ export default function Login() {
             <Button 
               type="submit" 
               className="w-full bg-blue-600 hover:bg-blue-700" 
-              disabled={isLoading}
+              disabled={isLoading || (lockoutTime !== null && lockoutTime > Date.now())}
             >
               {isLoading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
+
+          {/* Security Information */}
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+            <div className="flex items-center gap-2 text-sm text-blue-800">
+              <Shield className="h-4 w-4" />
+              <span>Secure login with rate limiting and session management</span>
+            </div>
+          </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="text-center text-sm text-gray-500">
