@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { 
-  FileTemplate, 
+  File, 
   Search, 
   Clock, 
   Star, 
@@ -61,7 +61,7 @@ export function WorkflowTemplateDialog({
       case 'general':
         return <Wrench className="w-4 h-4" />;
       default:
-        return <FileTemplate className="w-4 h-4" />;
+        return <File className="w-4 h-4" />;
     }
   };
 
@@ -83,7 +83,7 @@ export function WorkflowTemplateDialog({
       <DialogContent className="max-w-4xl max-h-[80vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FileTemplate className="w-5 h-5" />
+            <File className="w-5 h-5" />
             Choose Workflow Template
           </DialogTitle>
           <DialogDescription>
@@ -131,7 +131,7 @@ export function WorkflowTemplateDialog({
                 <div className="space-y-3 pr-4">
                   {templates.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
-                      <FileTemplate className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <File className="w-12 h-12 mx-auto mb-4 opacity-50" />
                       <p>No templates found</p>
                       <p className="text-sm">Try adjusting your search or category filter</p>
                     </div>
@@ -231,7 +231,6 @@ export function WorkflowTemplateDialog({
                         <span className="font-medium">Difficulty:</span>
                         <Badge 
                           className={cn('mt-1', getDifficultyColor(selectedTemplate.difficulty))}
-                          size="sm"
                         >
                           {selectedTemplate.difficulty}
                         </Badge>
@@ -271,7 +270,7 @@ export function WorkflowTemplateDialog({
                 </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
-                  <FileTemplate className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <File className="w-12 h-12 mx-auto mb-4 opacity-50" />
                   <p>Select a template</p>
                   <p className="text-sm">Choose a template to see details</p>
                 </div>

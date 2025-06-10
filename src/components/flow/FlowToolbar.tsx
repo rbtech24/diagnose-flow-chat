@@ -6,7 +6,7 @@ import { SearchPanel } from './SearchPanel';
 import { VersionHistoryPanel } from './VersionHistoryPanel';
 import { WorkflowTemplateDialog } from './WorkflowTemplateDialog';
 import { handleSaveWorkflow } from '@/utils/flow';
-import { Download, Upload, Plus, Copy, Clipboard, Link2, Save, Trash, History, FileTemplate } from 'lucide-react';
+import { Download, Upload, Plus, Copy, Clipboard, Link2, Save, Trash, History, File } from 'lucide-react';
 import { useFlowState } from '@/hooks/useFlowState';
 import { useWorkflowValidation } from '@/hooks/useWorkflowValidation';
 import { useWorkflowSearch } from '@/hooks/useWorkflowSearch';
@@ -174,7 +174,7 @@ export function FlowToolbar({
               onClick={() => setTemplateDialogOpen(true)}
               className="flex items-center gap-2"
             >
-              <FileTemplate className="w-4 h-4" />
+              <File className="w-4 h-4" />
               Templates
             </Button>
 
