@@ -8,12 +8,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft } from 'lucide-react';
-import { useStandardErrorHandler } from '@/utils/standardErrorHandler';
-import { formValidation, validateInput } from '@/utils/validation';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function TechNewFeatureRequest() {
   const navigate = useNavigate();
-  const { handleAsync, handleValidationError } = useStandardErrorHandler();
+  const { toast } = useToast();
   
   const [formData, setFormData] = useState({
     title: '',
@@ -36,14 +35,22 @@ export default function TechNewFeatureRequest() {
   ];
 
   const validateForm = () => {
-    const validation = validateInput(formValidation.featureRequest, formData);
-    if (!validation.isValid) {
-      handleValidationError(validation.error, { showToast: false });
-      setErrors({ general: validation.error || 'Please check your input' });
-      return false;
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.title || formData.title.length < 5) {
+      newErrors.title = 'Title must be at least 5 characters';
     }
-    setErrors({});
-    return true;
+    
+    if (!formData.description || formData.description.length < 20) {
+      newErrors.description = 'Description must be at least 20 characters';
+    }
+    
+    if (!formData.category) {
+      newErrors.category = 'Category is required';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,20 +60,26 @@ export default function TechNewFeatureRequest() {
     
     setIsSubmitting(true);
     
-    const result = await handleAsync(async () => {
-      // Mock API call - replace with actual implementation
+    try {
+      // Mock API call - in a real app this would submit to the backend
       await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: "Feature request submitted",
+        description: "Your feature request has been submitted successfully",
+      });
+      
       navigate('/tech/feature-requests');
-    }, {
-      context: 'createFeatureRequest',
-      fallbackMessage: 'Failed to create feature request. Please try again.'
-    });
-
-    if (!result.success) {
-      setErrors({ general: result.error || 'Failed to create feature request' });
+    } catch (error) {
+      console.error('Error submitting feature request:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit feature request. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    setIsSubmitting(false);
   };
 
   return (
@@ -101,6 +114,7 @@ export default function TechNewFeatureRequest() {
                 maxLength={200}
                 required
               />
+              {errors.title && <p className="text-sm text-red-600">{errors.title}</p>}
               <p className="text-sm text-gray-500">{formData.title.length}/200 characters</p>
             </div>
 
@@ -122,6 +136,7 @@ export default function TechNewFeatureRequest() {
                     ))}
                   </SelectContent>
                 </Select>
+                {errors.category && <p className="text-sm text-red-600">{errors.category}</p>}
               </div>
 
               <div className="space-y-2">
@@ -155,6 +170,7 @@ export default function TechNewFeatureRequest() {
                 maxLength={10000}
                 required
               />
+              {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
               <p className="text-sm text-gray-500">{formData.description.length}/10,000 characters</p>
             </div>
 

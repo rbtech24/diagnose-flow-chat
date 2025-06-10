@@ -1,4 +1,3 @@
-
 import {
   createBrowserRouter,
   RouterProvider,
@@ -205,6 +204,7 @@ const router = createBrowserRouter([
       { path: "feature-requests", element: <TechFeatureRequests /> },
       { path: "feature-requests/:id", element: <TechFeatureRequestDetailPage /> },
       { path: "feature-requests/new", element: <TechNewFeatureRequest /> },
+      { path: "new-feature-request", element: <TechNewFeatureRequest /> },
       { path: "diagnostics", element: <DiagnosticsPage /> }
     ]
   },
