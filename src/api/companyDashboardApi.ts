@@ -104,9 +104,6 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    // Define a valid activity type to avoid recursive type checking
-    type ValidActivityType = 'repair_completed' | 'job_started' | 'parts_needed' | 'job_scheduled';
-
     const activities: RecentActivity[] = rawData.map((item, index) => {
       const activityId = item.id || `activity-${Date.now()}-${index}`;
       const activityType = mapActivityTypeToRecentActivity(item.activity_type || 'unknown');
@@ -130,8 +127,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
   }
 };
 
-function mapActivityTypeToRecentActivity(activityType: string): RecentActivity['type'] {
-  // Fixed mapping to prevent infinite recursion
+function mapActivityTypeToRecentActivity(activityType: string): 'repair_completed' | 'job_started' | 'parts_needed' | 'job_scheduled' {
   switch (activityType) {
     case 'repair_completed':
     case 'job_completed':
