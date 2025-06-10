@@ -49,7 +49,7 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     let revenue = 0;
 
     // Process repairs data
-    repairsData.forEach((repair: any) => {
+    for (const repair of repairsData) {
       if (repair?.status === 'in_progress') {
         activeJobs++;
       }
@@ -62,7 +62,7 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
           }
         }
       }
-    });
+    }
       
     const completionRate = repairsData.length > 0 
       ? Math.round((completedJobs / repairsData.length) * 100) 
