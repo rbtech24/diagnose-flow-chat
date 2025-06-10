@@ -22,7 +22,7 @@ export default function ApiKeys() {
     {
       id: "1",
       name: "Production API",
-      key: "rap_prod_" + Math.random().toString(36).substring(2, 15),
+      key: "rap_prod_sk_1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t",
       createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
       lastUsed: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
     }
@@ -33,8 +33,15 @@ export default function ApiKeys() {
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
   
   const generateApiKey = () => {
-    return "rap_" + Math.random().toString(36).substring(2, 10) + "_" + 
-           Math.random().toString(36).substring(2, 15);
+    // Generate a more realistic API key format
+    const prefix = "rap_";
+    const environment = Math.random() > 0.5 ? "prod" : "test";
+    const keyType = "_sk_"; // secret key
+    const randomPart = Array.from({length: 32}, () => 
+      Math.random().toString(36).charAt(2) || Math.random().toString(16).charAt(2)
+    ).join('');
+    
+    return `${prefix}${environment}${keyType}${randomPart}`;
   };
   
   const handleCreateKey = () => {
@@ -184,7 +191,7 @@ export default function ApiKeys() {
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium">{key.name}</h3>
                       <Badge variant="outline" className="text-xs">
-                        {key.key.substring(0, 8)}...
+                        {key.key.substring(0, 12)}...
                       </Badge>
                     </div>
                     <div className="text-sm text-muted-foreground mt-1">

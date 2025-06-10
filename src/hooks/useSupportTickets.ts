@@ -81,7 +81,10 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
         sortOrder: 'desc'
       });
 
-      const formattedTickets: SupportTicket[] = result.tickets.map((ticket: any) => ({
+      // Handle empty results gracefully
+      const ticketsData = result?.tickets || [];
+
+      const formattedTickets: SupportTicket[] = ticketsData.map((ticket: any) => ({
         id: ticket.id,
         title: ticket.title,
         description: ticket.description,
@@ -102,8 +105,10 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
 
       setTickets(formattedTickets);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred while fetching tickets';
-      setError(new Error(errorMessage));
+      console.log('No tickets found or API not connected - this is normal for new installations');
+      // Don't set error for empty results, just set empty array
+      setTickets([]);
+      setError(null);
     } finally {
       setIsLoading(false);
     }

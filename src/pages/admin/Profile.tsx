@@ -8,12 +8,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { ShieldAlert, ShieldCheck, Key } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 export default function AdminProfile() {
-  // Mock admin data - would typically come from API/context
+  const { user } = useAuth();
+  
+  // Use actual user data from auth context
   const [adminData, setAdminData] = useState({
-    name: "Admin User",
-    email: "admin@repairautopilot.com",
+    name: user?.name || "Super Admin",
+    email: user?.email || "admin@repairautopilot.com",
     phone: "555-123-4567",
     title: "System Administrator",
     role: "Administrator",
@@ -125,6 +128,7 @@ export default function AdminProfile() {
       name={adminData.name}
       email={adminData.email}
       role={adminData.role}
+      avatarUrl={user?.avatarUrl}
       tabs={tabs}
     />
   );

@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { UserPlus, Edit, Trash2, RefreshCw } from "lucide-react";
+import { UserPlus, Edit, Trash2, RefreshCw, Shield, ShieldAlert } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserManagementStore } from "@/store/userManagementStore";
 import {
@@ -52,6 +52,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export default function AdminAccounts() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -63,6 +65,11 @@ export default function AdminAccounts() {
   const { users, fetchUsers, deleteUser } = useUserManagementStore();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Filter to show only admin users
+  const adminUsers = users.filter(user => user.role === 'admin');
+  const MAX_ADMINS = 3;
+  const canAddMoreAdmins = adminUsers.length < MAX_ADMINS;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -86,16 +93,26 @@ export default function AdminAccounts() {
 
   const handleDeleteUser = async () => {
     if (selectedUser) {
+      if (adminUsers.length <= 1) {
+        toast({
+          title: "Cannot Delete",
+          description: "Cannot delete the last admin user. At least one admin must remain.",
+          variant: "destructive",
+        });
+        handleCloseDeleteDialog();
+        return;
+      }
+
       const success = await deleteUser(selectedUser.id);
       if (success) {
         toast({
-          title: "User Deleted",
-          description: `${selectedUser.name} has been successfully deleted.`,
+          title: "Admin Deleted",
+          description: `${selectedUser.name} has been successfully removed from admin accounts.`,
         });
       } else {
         toast({
           title: "Error",
-          description: "Failed to delete user. Please try again.",
+          description: "Failed to delete admin user. Please try again.",
           variant: "destructive",
         });
       }
@@ -116,51 +133,76 @@ export default function AdminAccounts() {
   const handleResetPasswordSuccess = () => {
     toast({
       title: "Password Reset",
-      description: "Password has been reset successfully.",
+      description: "Admin password has been reset successfully.",
     });
     handleResetPasswordDialogClose();
   };
 
-  const filteredUsers = users.filter((user) => {
+  const filteredUsers = adminUsers.filter((user) => {
     const searchRegex = new RegExp(searchTerm, "i");
     const matchesSearchTerm = searchRegex.test(user.name) || searchRegex.test(user.email);
-    const matchesRole = roleFilter ? user.role === roleFilter : true;
     const matchesStatus = statusFilter ? user.status === statusFilter : true;
 
-    return matchesSearchTerm && matchesRole && matchesStatus;
+    return matchesSearchTerm && matchesStatus;
   });
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Manage Accounts</h1>
-        <Button asChild>
-          <Link to="/admin/accounts/new" className="flex items-center">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">Admin Account Management</h1>
+          <p className="text-muted-foreground">Manage system administrator accounts</p>
+        </div>
+        <Button 
+          asChild 
+          disabled={!canAddMoreAdmins}
+          className={!canAddMoreAdmins ? "opacity-50 cursor-not-allowed" : ""}
+        >
+          <Link to="/admin/users/new" className="flex items-center">
             <UserPlus className="mr-2 h-4 w-4" />
-            Add Account
+            Add Admin Account
           </Link>
         </Button>
       </div>
 
+      {/* Admin Limits Card */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-indigo-500" />
+            Admin Account Limits
+          </CardTitle>
+          <CardDescription>
+            System administrator account usage and limits
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">
+                Current admin accounts: <span className="font-medium">{adminUsers.length}</span> of <span className="font-medium">{MAX_ADMINS}</span> maximum
+              </p>
+              {!canAddMoreAdmins && (
+                <p className="text-sm text-amber-600 mt-1 flex items-center gap-1">
+                  <ShieldAlert className="h-4 w-4" />
+                  Maximum admin limit reached
+                </p>
+              )}
+            </div>
+            <Badge variant={canAddMoreAdmins ? "outline" : "secondary"}>
+              {adminUsers.length}/{MAX_ADMINS}
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="flex items-center space-x-4 mb-4">
         <Input
           type="text"
-          placeholder="Search accounts..."
+          placeholder="Search admin accounts..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-
-        <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by role" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Roles</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
-            <SelectItem value="company">Company</SelectItem>
-            <SelectItem value="tech">Tech</SelectItem>
-          </SelectContent>
-        </Select>
 
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[180px]">
@@ -178,7 +220,6 @@ export default function AdminAccounts() {
           variant="outline"
           onClick={() => {
             setSearchTerm("");
-            setRoleFilter("");
             setStatusFilter("");
           }}
         >
@@ -201,7 +242,7 @@ export default function AdminAccounts() {
             {isLoading ? (
               // Show skeleton loaders while loading
               <>
-                {Array(5)
+                {Array(3)
                   .fill(null)
                   .map((_, i) => (
                     <TableRow key={i}>
@@ -224,20 +265,28 @@ export default function AdminAccounts() {
                   ))}
               </>
             ) : filteredUsers.length === 0 ? (
-              // Show message when no users are found
+              // Show message when no admin users are found
               <TableRow>
                 <TableCell colSpan={5} className="text-center">
-                  No accounts found.
+                  No admin accounts found.
                 </TableCell>
               </TableRow>
             ) : (
-              // Show user data when available
+              // Show admin user data when available
               filteredUsers.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell>{user.name}</TableCell>
+                  <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.role}</TableCell>
-                  <TableCell>{user.status}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200">
+                      {user.role}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={user.status === 'active' ? 'outline' : 'secondary'}>
+                      {user.status}
+                    </Badge>
+                  </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -248,10 +297,10 @@ export default function AdminAccounts() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onClick={() => navigate(`/admin/accounts/${user.id}`)}
+                          onClick={() => navigate(`/admin/users/${user.id}`)}
                         >
                           <Edit className="mr-2 h-4 w-4" />
-                          Edit
+                          Edit Details
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleResetPasswordDialogOpen({ id: user.id, name: user.name, email: user.email })}
@@ -261,9 +310,11 @@ export default function AdminAccounts() {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => handleOpenDeleteDialog({ id: user.id, name: user.name })}
+                          disabled={adminUsers.length <= 1}
+                          className={adminUsers.length <= 1 ? "opacity-50 cursor-not-allowed" : ""}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
+                          Remove Admin
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -278,14 +329,14 @@ export default function AdminAccounts() {
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={handleCloseDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Account</AlertDialogTitle>
+            <AlertDialogTitle>Remove Admin Account</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete {selectedUser?.name}? This action cannot be undone.
+              Are you sure you want to remove {selectedUser?.name} from admin accounts? This will revoke their administrative privileges but not delete their user account.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleCloseDeleteDialog}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteUser}>Delete</AlertDialogAction>
+            <AlertDialogAction onClick={handleDeleteUser}>Remove Admin</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -294,7 +345,7 @@ export default function AdminAccounts() {
         <Dialog open={isResetPasswordModalOpen} onOpenChange={handleResetPasswordDialogClose}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Reset Password</DialogTitle>
+              <DialogTitle>Reset Admin Password</DialogTitle>
               <DialogDescription>
                 Set a new password for {selectedUser.name}
               </DialogDescription>

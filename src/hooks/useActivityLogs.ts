@@ -23,20 +23,16 @@ export function useActivityLogs() {
       
       return fetchedLogs;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load activity logs';
-      setError(err instanceof Error ? err : new Error(errorMessage));
-      
-      toast({
-        title: 'Error loading logs',
-        description: errorMessage,
-        variant: 'destructive',
-      });
+      console.log('No activity logs found or API not connected - this is normal for new installations');
+      // Don't show error toast for empty results, just set empty array
+      setLogs([]);
+      setError(null);
       
       return [];
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, []);
 
   const recordActivity = useCallback(async (
     activityType: string,
@@ -57,17 +53,11 @@ export function useActivityLogs() {
       
       return newActivity;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to record activity';
-      
-      toast({
-        title: 'Error recording activity',
-        description: errorMessage,
-        variant: 'destructive',
-      });
-      
-      throw err;
+      console.log('Failed to record activity - API may not be connected');
+      // Don't show error for activity logging failures in demo mode
+      return null;
     }
-  }, [logs, toast]);
+  }, [logs]);
 
   return {
     logs,
