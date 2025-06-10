@@ -8,6 +8,8 @@ import { FlowToolbar } from './FlowToolbar';
 import { FlowBackground } from './FlowBackground';
 import { Node } from '@xyflow/react';
 import { SavedWorkflow } from '@/utils/flow/types';
+import { useWorkflowSearch } from '@/hooks/useWorkflowSearch';
+import { useMemo } from 'react';
 
 // Define all node types to be rendered with DiagnosisNode
 const nodeTypes = {
@@ -56,10 +58,57 @@ export function FlowWrapper({
   currentWorkflow,
   onNodeFocus,
 }: FlowWrapperProps) {
+  const { filteredNodeIds, highlightedNodes, hasActiveFilters } = useWorkflowSearch(nodes);
+
+  // Apply search/filter styling to nodes
+  const styledNodes = useMemo(() => {
+    if (!hasActiveFilters) {
+      return nodes;
+    }
+
+    return nodes.map(node => {
+      const isFiltered = filteredNodeIds.has(node.id);
+      const isHighlighted = highlightedNodes.has(node.id);
+      
+      let style = { ...node.style };
+      let className = node.className || '';
+
+      if (hasActiveFilters) {
+        if (!isFiltered) {
+          // Dim nodes that don't match the filter
+          style = {
+            ...style,
+            opacity: 0.3,
+          };
+        } else if (isHighlighted) {
+          // Highlight specific focused nodes
+          style = {
+            ...style,
+            boxShadow: '0 0 0 3px #3b82f6, 0 0 20px rgba(59, 130, 246, 0.3)',
+            opacity: 1,
+          };
+          className += ' search-highlighted';
+        } else {
+          // Show filtered nodes normally
+          style = {
+            ...style,
+            opacity: 1,
+          };
+        }
+      }
+
+      return {
+        ...node,
+        style,
+        className
+      };
+    });
+  }, [nodes, filteredNodeIds, highlightedNodes, hasActiveFilters]);
+
   return (
     <div className="w-full h-full">
       <ReactFlow
-        nodes={nodes}
+        nodes={styledNodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}

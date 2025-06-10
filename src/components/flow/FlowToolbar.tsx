@@ -2,13 +2,14 @@
 import { Button } from '../ui/button';
 import { SaveWorkflowDialog } from './SaveWorkflowDialog';
 import { ValidationButton } from '../validation/ValidationButton';
+import { SearchPanel } from './SearchPanel';
 import { handleSaveWorkflow } from '@/utils/flow';
-import { Download, Upload, Plus, Copy, Clipboard, Search, Link2, Save, Trash } from 'lucide-react';
+import { Download, Upload, Plus, Copy, Clipboard, Link2, Save, Trash } from 'lucide-react';
 import { useFlowState } from '@/hooks/useFlowState';
 import { useWorkflowValidation } from '@/hooks/useWorkflowValidation';
+import { useWorkflowSearch } from '@/hooks/useWorkflowSearch';
 import { useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Input } from '../ui/input';
 import { SavedWorkflow } from '@/utils/flow/types';
 import { useUserRole } from '@/hooks/useUserRole';
 import { toast } from '@/hooks/use-toast';
@@ -41,6 +42,19 @@ export function FlowToolbar({
 }: FlowToolbarProps) {
   const { nodes, edges, nodeCounter } = useFlowState();
   const { validationSummary, isValidating, autoValidate, validate } = useWorkflowValidation();
+  const {
+    searchTerm,
+    typeFilter,
+    searchResults,
+    filteredNodeIds,
+    highlightedNodes,
+    handleSearch,
+    handleTypeFilter,
+    clearSearch,
+    focusNode,
+    hasActiveFilters
+  } = useWorkflowSearch(nodes);
+  
   const navigate = useNavigate();
   const { userRole } = useUserRole();
   const isAdmin = userRole === 'admin';
@@ -80,6 +94,13 @@ export function FlowToolbar({
     const basePath = isAdmin ? '/admin/workflows' : '/workflows';
     navigate(basePath);
   }, [isAdmin, navigate]);
+
+  const handleSearchFocus = useCallback((nodeId: string) => {
+    focusNode(nodeId);
+    if (onNodeFocus) {
+      onNodeFocus(nodeId);
+    }
+  }, [focusNode, onNodeFocus]);
 
   return (
     <div className="absolute top-0 left-0 right-0 z-10 bg-background border-b pointer-events-auto">
@@ -132,19 +153,21 @@ export function FlowToolbar({
             />
           </div>
 
-          {/* Center section - Search */}
-          <div className="flex-1 max-w-md mx-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search..."
-                className="pl-10 h-9"
-              />
-            </div>
+          {/* Center section - Search & Filter */}
+          <div className="flex-1 max-w-3xl mx-4">
+            <SearchPanel
+              searchTerm={searchTerm}
+              typeFilter={typeFilter}
+              searchResults={searchResults}
+              hasActiveFilters={hasActiveFilters}
+              onSearch={handleSearch}
+              onTypeFilter={handleTypeFilter}
+              onClearSearch={clearSearch}
+              onFocusNode={handleSearchFocus}
+            />
           </div>
 
-          {/* Right section - Navigation with more margin */}
+          {/* Right section - Navigation */}
           <div className="flex items-center flex-shrink-0 ml-4">
             <Button 
               variant="default"
@@ -204,6 +227,30 @@ export function FlowToolbar({
             </Button>
           </div>
         </div>
+        
+        {/* Search Results Summary */}
+        {hasActiveFilters && (
+          <div className="bg-blue-50 border border-blue-200 p-2 rounded-md">
+            <p className="text-sm text-blue-700 flex items-center justify-between">
+              <span>
+                {searchResults.length > 0 
+                  ? `Found ${searchResults.length} node${searchResults.length === 1 ? '' : 's'}`
+                  : 'No nodes match your search criteria'
+                }
+                {searchTerm && ` for "${searchTerm}"`}
+                {typeFilter !== 'all' && ` in ${typeFilter} nodes`}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearSearch}
+                className="text-blue-700 hover:text-blue-900 h-6 px-2 text-xs"
+              >
+                Clear
+              </Button>
+            </p>
+          </div>
+        )}
       </div>
 
       <input

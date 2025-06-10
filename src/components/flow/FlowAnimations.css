@@ -1,61 +1,61 @@
 
-@keyframes dash {
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+/* Existing animations */
+.react-flow__edge.animated {
+  stroke-dasharray: 5;
+  animation: dashdraw 0.5s linear infinite;
+}
+
+.react-flow__edge-path {
+  stroke: #10b981;
+  stroke-width: 3;
+}
+
+.react-flow__edge.animated .react-flow__edge-path {
+  stroke: #059669;
+  stroke-width: 3;
+}
+
+@keyframes dashdraw {
   to {
     stroke-dashoffset: -10;
   }
 }
 
-@keyframes pulse-edge {
+.react-flow__connection-line {
+  stroke: #10b981;
+  stroke-width: 3;
+}
+
+/* Search highlighting animations */
+.search-highlighted {
+  animation: searchPulse 2s ease-in-out infinite;
+}
+
+@keyframes searchPulse {
   0%, 100% {
-    opacity: 1;
+    box-shadow: 0 0 0 3px #3b82f6, 0 0 20px rgba(59, 130, 246, 0.3);
   }
   50% {
-    opacity: 0.7;
+    box-shadow: 0 0 0 5px #3b82f6, 0 0 30px rgba(59, 130, 246, 0.5);
   }
 }
 
-@keyframes flow-animation {
-  0% {
-    stroke-dashoffset: 20;
-  }
-  100% {
-    stroke-dashoffset: 0;
-  }
+/* Search transition animations */
+.react-flow__node {
+  transition: opacity 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Enhanced edge styles */
-.react-flow__edge-path {
-  transition: stroke 0.3s ease, stroke-width 0.3s ease;
+.react-flow__node.search-dimmed {
+  opacity: 0.3;
 }
 
-.react-flow__edge.animated .react-flow__edge-path {
-  animation: dash 2s linear infinite;
+.react-flow__node.search-highlighted {
+  opacity: 1 !important;
 }
 
-.react-flow__edge.workflow-link .react-flow__edge-path {
-  stroke-dasharray: 10, 5;
-  animation: flow-animation 3s linear infinite;
-}
-
-.react-flow__edge.success .react-flow__edge-path {
-  stroke: #22c55e;
-}
-
-.react-flow__edge.error .react-flow__edge-path {
-  stroke: #ef4444;
-}
-
-.react-flow__edge.warning .react-flow__edge-path {
-  stroke: #f59e0b;
-}
-
-/* Hover effects for edges */
-.react-flow__edge:hover .react-flow__edge-path {
-  stroke-width: 4;
-  filter: drop-shadow(0 0 6px currentColor);
-}
-
-/* Connection indicator improvements */
-.react-flow__handle.connectionindicator {
-  animation: pulse-edge 1.5s ease-in-out infinite;
+/* Enhanced hover states for search results */
+.react-flow__node:hover {
+  transition: all 0.2s ease;
 }
