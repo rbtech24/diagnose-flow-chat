@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface SupportTicket {
@@ -114,13 +113,7 @@ export async function fetchSupportTickets(
     throw error;
   }
   
-  const tickets: SupportTicket[] = [];
-  const rawData = data || [];
-  
-  // Use traditional for loop to avoid deep type instantiation
-  for (let i = 0; i < rawData.length; i++) {
-    tickets.push(convertToSupportTicket(rawData[i]));
-  }
+  const tickets: SupportTicket[] = (data || []).map(convertToSupportTicket);
   
   return {
     tickets,
@@ -169,13 +162,7 @@ export async function fetchTicketMessages(ticketId: string): Promise<SupportTick
     throw error;
   }
   
-  const messages: SupportTicketMessage[] = [];
-  const rawData = data || [];
-  
-  // Use traditional for loop to avoid deep type instantiation
-  for (let i = 0; i < rawData.length; i++) {
-    messages.push(convertToSupportTicketMessage(rawData[i]));
-  }
+  const messages: SupportTicketMessage[] = (data || []).map(convertToSupportTicketMessage);
   
   return messages;
 }
@@ -328,13 +315,7 @@ export async function searchSupportTickets(searchParams: {
     throw error;
   }
   
-  const tickets: SupportTicket[] = [];
-  const rawData = data || [];
-  
-  // Use traditional for loop to avoid deep type instantiation
-  for (let i = 0; i < rawData.length; i++) {
-    tickets.push(convertToSupportTicket(rawData[i]));
-  }
+  const tickets: SupportTicket[] = (data || []).map(convertToSupportTicket);
   
   return tickets;
 }

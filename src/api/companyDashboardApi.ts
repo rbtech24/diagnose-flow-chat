@@ -48,14 +48,8 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     let completedJobs = 0;
     let revenue = 0;
 
-    // Use traditional for loop to avoid deep type instantiation
-    for (let i = 0; i < repairsData.length; i++) {
-      const repair = repairsData[i] as {
-        status?: string;
-        actual_cost?: number | string;
-        completed_at?: string;
-      };
-      
+    // Process repairs data safely
+    repairsData.forEach((repair) => {
       if (repair?.status === 'in_progress') {
         activeJobs++;
       }
@@ -68,7 +62,7 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
           }
         }
       }
-    }
+    });
       
     const completionRate = repairsData.length > 0 
       ? Math.round((completedJobs / repairsData.length) * 100) 
@@ -111,25 +105,14 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    const results: RecentActivity[] = [];
-    
-    // Use traditional for loop to avoid deep type instantiation
-    for (let i = 0; i < activityData.length; i++) {
-      const activity = activityData[i] as {
-        id?: string;
-        activity_type?: string;
-        description?: string;
-        created_at?: string;
-      };
-      
-      results.push({
-        id: activity.id || `activity-${Date.now()}-${i}`,
-        type: mapActivityTypeToRecentActivity(activity.activity_type || 'unknown'),
-        description: activity.description || 'Activity recorded',
-        time: formatTimeAgo(new Date(activity.created_at || new Date())),
-        icon: getActivityIcon(activity.activity_type || 'unknown')
-      });
-    }
+    // Process activity data safely
+    const results: RecentActivity[] = activityData.map((activity) => ({
+      id: activity.id || `activity-${Date.now()}`,
+      type: mapActivityTypeToRecentActivity(activity.activity_type || 'unknown'),
+      description: activity.description || 'Activity recorded',
+      time: formatTimeAgo(new Date(activity.created_at || new Date())),
+      icon: getActivityIcon(activity.activity_type || 'unknown')
+    }));
 
     return results;
   } catch (error) {
