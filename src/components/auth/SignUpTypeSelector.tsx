@@ -10,58 +10,88 @@ interface SignUpTypeSelectorProps {
 
 export function SignUpTypeSelector({ onSelectType }: SignUpTypeSelectorProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold">Choose Your Account Type</h2>
-        <p className="text-muted-foreground mt-2">
+        <h2 className="text-2xl font-bold text-gray-900">Choose Your Account Type</h2>
+        <p className="text-muted-foreground mt-2 text-base">
           Select the option that best describes your business
         </p>
       </div>
       
-      <div className="grid gap-4">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardHeader className="text-center">
-            <Users className="mx-auto h-12 w-12 text-blue-600" />
-            <CardTitle>Company with Multiple Technicians</CardTitle>
+      <div className="grid gap-6">
+        <Card className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-blue-300">
+          <CardHeader className="text-center pb-4">
+            <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+              <Users className="h-8 w-8 text-blue-600" />
+            </div>
+            <CardTitle className="text-xl">Company with Multiple Technicians</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
+          <CardContent className="pt-0">
+            <p className="text-sm text-muted-foreground mb-4 text-center">
               Perfect for businesses with multiple technicians, job scheduling, and team management needs.
             </p>
-            <ul className="text-sm space-y-1 mb-4">
-              <li>• Manage multiple technicians</li>
-              <li>• Team scheduling and dispatch</li>
-              <li>• Company-wide reporting</li>
-              <li>• Customer management</li>
+            <ul className="text-sm space-y-2 mb-6 text-left">
+              <li className="flex items-center">
+                <span className="w-2 h-2 bg-blue-600 rounded-full mr-3"></span>
+                Manage multiple technicians
+              </li>
+              <li className="flex items-center">
+                <span className="w-2 h-2 bg-blue-600 rounded-full mr-3"></span>
+                Team scheduling and dispatch
+              </li>
+              <li className="flex items-center">
+                <span className="w-2 h-2 bg-blue-600 rounded-full mr-3"></span>
+                Company-wide reporting
+              </li>
+              <li className="flex items-center">
+                <span className="w-2 h-2 bg-blue-600 rounded-full mr-3"></span>
+                Customer management
+              </li>
             </ul>
             <Button 
               onClick={() => onSelectType('company')} 
-              className="w-full"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              size="lg"
             >
               Sign Up as Company
             </Button>
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardHeader className="text-center">
-            <User className="mx-auto h-12 w-12 text-green-600" />
-            <CardTitle>Independent Technician</CardTitle>
+        <Card className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-green-300">
+          <CardHeader className="text-center pb-4">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <User className="h-8 w-8 text-green-600" />
+            </div>
+            <CardTitle className="text-xl">Independent Technician</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
+          <CardContent className="pt-0">
+            <p className="text-sm text-muted-foreground mb-4 text-center">
               Ideal for solo technicians who want to manage their own jobs and customers.
             </p>
-            <ul className="text-sm space-y-1 mb-4">
-              <li>• Personal job management</li>
-              <li>• Customer tracking</li>
-              <li>• Simple scheduling</li>
-              <li>• Individual reporting</li>
+            <ul className="text-sm space-y-2 mb-6 text-left">
+              <li className="flex items-center">
+                <span className="w-2 h-2 bg-green-600 rounded-full mr-3"></span>
+                Personal job management
+              </li>
+              <li className="flex items-center">
+                <span className="w-2 h-2 bg-green-600 rounded-full mr-3"></span>
+                Customer tracking
+              </li>
+              <li className="flex items-center">
+                <span className="w-2 h-2 bg-green-600 rounded-full mr-3"></span>
+                Simple scheduling
+              </li>
+              <li className="flex items-center">
+                <span className="w-2 h-2 bg-green-600 rounded-full mr-3"></span>
+                Individual reporting
+              </li>
             </ul>
             <Button 
               onClick={() => onSelectType('individual')} 
               variant="outline"
-              className="w-full"
+              className="w-full border-2 border-green-600 text-green-600 hover:bg-green-50"
+              size="lg"
             >
               Sign Up as Individual
             </Button>

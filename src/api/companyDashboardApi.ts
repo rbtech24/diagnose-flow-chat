@@ -49,7 +49,8 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     let revenue = 0;
 
     // Process repairs data using traditional for loop
-    for (const repair of repairsData) {
+    for (let i = 0; i < repairsData.length; i++) {
+      const repair = repairsData[i];
       if (repair?.status === 'in_progress') {
         activeJobs++;
       }
@@ -107,7 +108,8 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
 
     // Map activity data using traditional for loop
     const result: RecentActivity[] = [];
-    for (const item of rawData) {
+    for (let i = 0; i < rawData.length; i++) {
+      const item = rawData[i];
       const activityId = item.id || `activity-${Date.now()}-${Math.random()}`;
       const activityType = mapActivityTypeToRecentActivity(item.activity_type || 'unknown');
       const description = item.description || 'Activity recorded';
