@@ -91,7 +91,7 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
     }
   };
 
-  // Render options with proper ReactNode handling
+  // Render options with proper ReactNode typing
   const renderOptions = (): React.ReactNode => {
     if (nodeData.options && nodeData.options.length > 0 && nodeData.type === 'question') {
       return (
@@ -99,8 +99,8 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
           <div className="text-xs text-gray-600 mb-1">Options:</div>
           <ul className="text-xs text-gray-600 list-disc list-inside">
             {nodeData.options.map((option, index) => {
-              // Properly type the option as string
-              const optionText = String(option || '');
+              // Ensure proper string conversion for React rendering
+              const optionText = String(option ?? '');
               return <li key={index}>{optionText}</li>;
             })}
           </ul>

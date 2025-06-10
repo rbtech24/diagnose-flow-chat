@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DashboardStats {
@@ -16,20 +15,19 @@ export interface RecentActivity {
   icon: string;
 }
 
-// Explicitly type the database repair record
-interface RepairRecord {
-  status?: string;
-  actual_cost?: number;
-  completed_at?: string;
-}
+// Simplified database types to avoid recursive instantiation
+type DatabaseRepair = {
+  status?: string | null;
+  actual_cost?: number | null;
+  completed_at?: string | null;
+};
 
-// Explicitly type the database activity record
-interface ActivityRecord {
-  id?: string;
-  activity_type?: string;
-  description?: string;
-  created_at?: string;
-}
+type DatabaseActivity = {
+  id?: string | null;
+  activity_type?: string | null;
+  description?: string | null;
+  created_at?: string | null;
+};
 
 export const fetchDashboardStats = async (companyId: string): Promise<DashboardStats> => {
   console.log('Fetching dashboard stats for company:', companyId);
@@ -63,15 +61,16 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     let completedJobs = 0;
     let revenue = 0;
 
-    // Process repairs data safely with explicit typing
-    repairsData.forEach((repair: RepairRecord) => {
-      if (repair?.status === 'in_progress') {
+    // Process repairs data with simplified typing
+    repairsData.forEach((repair) => {
+      const typedRepair = repair as DatabaseRepair;
+      if (typedRepair?.status === 'in_progress') {
         activeJobs++;
       }
-      if (repair?.status === 'completed') {
+      if (typedRepair?.status === 'completed') {
         completedJobs++;
-        if (repair?.actual_cost) {
-          const cost = Number(repair.actual_cost);
+        if (typedRepair?.actual_cost) {
+          const cost = Number(typedRepair.actual_cost);
           if (!isNaN(cost)) {
             revenue += cost;
           }
@@ -120,14 +119,17 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    // Convert to RecentActivity format with explicit typing
-    return rawData.map((item: ActivityRecord, index: number) => ({
-      id: item?.id || `activity-${Date.now()}-${index}`,
-      type: mapActivityTypeToRecentActivity(item?.activity_type || 'unknown'),
-      description: item?.description || 'Activity recorded',
-      time: formatTimeAgo(new Date(item?.created_at || new Date().toISOString())),
-      icon: getActivityIcon(item?.activity_type || 'unknown')
-    }));
+    // Convert to RecentActivity format with simplified typing
+    return rawData.map((item, index: number): RecentActivity => {
+      const typedItem = item as DatabaseActivity;
+      return {
+        id: typedItem?.id || `activity-${Date.now()}-${index}`,
+        type: mapActivityTypeToRecentActivity(typedItem?.activity_type || 'unknown'),
+        description: typedItem?.description || 'Activity recorded',
+        time: formatTimeAgo(new Date(typedItem?.created_at || new Date().toISOString())),
+        icon: getActivityIcon(typedItem?.activity_type || 'unknown')
+      };
+    });
   } catch (error) {
     console.error('Error in fetchRecentActivity:', error);
     return [];
