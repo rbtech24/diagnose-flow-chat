@@ -100,7 +100,7 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
           <ul className="text-xs text-gray-600 list-disc list-inside">
             {nodeData.options.map((option, index) => {
               // Ensure proper string conversion for React rendering
-              const optionText = String(option ?? '');
+              const optionText = typeof option === 'string' ? option : String(option ?? '');
               return <li key={index}>{optionText}</li>;
             })}
           </ul>

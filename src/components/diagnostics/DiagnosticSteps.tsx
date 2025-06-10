@@ -217,9 +217,6 @@ export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
           <h2 className="text-2xl font-bold text-blue-800 mb-1">
             {data.title || 'Diagnostic Step'}
           </h2>
-          <CardDescription className="text-base text-blue-700">
-            Review instructions below
-          </CardDescription>
         </div>
       </CardHeader>
       <CardContent className="pt-6">

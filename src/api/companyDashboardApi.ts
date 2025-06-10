@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DashboardStats {
@@ -119,17 +120,21 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    // Convert to RecentActivity format with simplified typing
-    return rawData.map((item, index: number): RecentActivity => {
+    // Convert to RecentActivity format with explicit mapping
+    const activities: RecentActivity[] = [];
+    
+    rawData.forEach((item, index) => {
       const typedItem = item as DatabaseActivity;
-      return {
+      activities.push({
         id: typedItem?.id || `activity-${Date.now()}-${index}`,
         type: mapActivityTypeToRecentActivity(typedItem?.activity_type || 'unknown'),
         description: typedItem?.description || 'Activity recorded',
         time: formatTimeAgo(new Date(typedItem?.created_at || new Date().toISOString())),
         icon: getActivityIcon(typedItem?.activity_type || 'unknown')
-      };
+      });
     });
+
+    return activities;
   } catch (error) {
     console.error('Error in fetchRecentActivity:', error);
     return [];
