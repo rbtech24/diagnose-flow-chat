@@ -85,7 +85,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: demoUser.name,
         email: demoUser.email,
         role: demoUser.role,
-        companyId: demoUser.companyId
+        companyId: demoUser.companyId,
+        // Explicitly not setting avatarUrl so it defaults to initials
       };
       
       setUser(user);
