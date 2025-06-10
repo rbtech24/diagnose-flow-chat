@@ -104,13 +104,18 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    const activities: RecentActivity[] = rawData.map((item) => {
+    const activities: RecentActivity[] = rawData.map((item, index) => {
+      const activityId = item.id ? String(item.id) : `activity-${index}`;
+      const activityType = item.activity_type || 'unknown';
+      const activityDescription = item.description || 'Activity recorded';
+      const activityCreatedAt = item.created_at || new Date().toISOString();
+      
       return {
-        id: String(item.id || `activity-${Math.random()}`),
-        type: mapActivityTypeToRecentActivity(item.activity_type || 'unknown'),
-        description: item.description || 'Activity recorded',
-        time: formatTimeAgo(new Date(item.created_at || new Date().toISOString())),
-        icon: getActivityIcon(item.activity_type || 'unknown')
+        id: activityId,
+        type: mapActivityTypeToRecentActivity(activityType),
+        description: activityDescription,
+        time: formatTimeAgo(new Date(activityCreatedAt)),
+        icon: getActivityIcon(activityType)
       };
     });
 
