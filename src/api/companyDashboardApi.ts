@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DashboardStats {
@@ -48,8 +47,14 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     let completedJobs = 0;
     let revenue = 0;
 
-    // Process repairs data safely
-    repairsData.forEach((repair) => {
+    // Process repairs data with explicit typing to avoid deep instantiation
+    const repairs = repairsData as Array<{
+      status?: string;
+      actual_cost?: number | string;
+      completed_at?: string;
+    }>;
+
+    for (const repair of repairs) {
       if (repair?.status === 'in_progress') {
         activeJobs++;
       }
@@ -62,10 +67,10 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
           }
         }
       }
-    });
+    }
       
-    const completionRate = repairsData.length > 0 
-      ? Math.round((completedJobs / repairsData.length) * 100) 
+    const completionRate = repairs.length > 0 
+      ? Math.round((completedJobs / repairs.length) * 100) 
       : 0;
 
     return {
@@ -105,8 +110,15 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    // Process activity data safely
-    const results: RecentActivity[] = activityData.map((activity) => ({
+    // Process activity data with explicit typing
+    const activities = activityData as Array<{
+      id?: string;
+      activity_type?: string;
+      description?: string;
+      created_at?: string;
+    }>;
+
+    const results: RecentActivity[] = activities.map((activity) => ({
       id: activity.id || `activity-${Date.now()}`,
       type: mapActivityTypeToRecentActivity(activity.activity_type || 'unknown'),
       description: activity.description || 'Activity recorded',

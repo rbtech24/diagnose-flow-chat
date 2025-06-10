@@ -299,9 +299,10 @@ export async function searchSupportTickets(searchParams: {
     .limit(50);
 
   if (searchParams.filters) {
-    const filterEntries = Object.entries(searchParams.filters);
-    for (let i = 0; i < filterEntries.length; i++) {
-      const [key, value] = filterEntries[i];
+    // Use simple iteration to avoid deep type instantiation
+    const filterKeys = Object.keys(searchParams.filters);
+    for (const key of filterKeys) {
+      const value = searchParams.filters[key];
       if (value && value.trim()) {
         query = query.eq(key, sanitizeString(value));
       }
