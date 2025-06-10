@@ -196,53 +196,75 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
   };
 
   const renderContent = () => {
-    // Get regular content, filtering out warning content
-    let content = data.content;
+    // Start with the main content
+    let content = '';
     
-    // If the main content is warning JSON, don't display it here
-    if (content && isWarningContent(content)) {
-      content = null;
+    // Check if main content exists and is not warning content
+    if (data.content && !isWarningContent(data.content)) {
+      content = typeof data.content === 'string' ? data.content : String(data.content);
     }
     
-    // Check fields for non-warning content
-    let fieldContent = '';
-    if (data.fields && Array.isArray(data.fields)) {
+    // Also check richInfo if no main content
+    if (!content && data.richInfo && !isWarningContent(data.richInfo)) {
+      content = typeof data.richInfo === 'string' ? data.richInfo : String(data.richInfo);
+    }
+    
+    // Check fields for content if still no content found
+    if (!content && data.fields && Array.isArray(data.fields)) {
       const contentFields = data.fields.filter(field => {
-        return field.id !== 'warning' && field.type === 'content' && 
-               field.content && !isWarningContent(field.content);
+        return field.type === 'content' && field.content && !isWarningContent(field.content);
       });
       
-      fieldContent = contentFields
-        .map(field => field.content)
-        .filter(Boolean)
-        .join(' ');
+      if (contentFields.length > 0) {
+        content = contentFields
+          .map(field => field.content)
+          .filter(Boolean)
+          .join('\n\n');
+      }
     }
     
-    const finalContent = content || fieldContent;
-    
-    if (!finalContent) return null;
+    // If still no content, use the label or title as fallback
+    if (!content) {
+      if (data.title && typeof data.title === 'string') {
+        content = data.title;
+      } else if (data.label && typeof data.label === 'string') {
+        content = data.label;
+      }
+    }
+
+    if (!content) return null;
 
     return (
-      <div className="text-sm text-gray-600 mt-2">
-        {typeof finalContent === 'string' ? finalContent : String(finalContent)}
+      <div className="text-sm text-gray-600 mt-2 whitespace-pre-wrap">
+        {content}
       </div>
     );
   };
 
   const renderOptions = () => {
-    if (!data.options?.length) return null;
+    // Check both direct options and field-based options
+    let options = data.options || [];
+    
+    if (data.fields && Array.isArray(data.fields)) {
+      const optionsField = data.fields.find(field => field.type === 'options');
+      if (optionsField?.options && Array.isArray(optionsField.options)) {
+        options = optionsField.options;
+      }
+    }
+    
+    if (!options.length) return null;
 
     return (
       <div className="mt-3 space-y-2">
-        {data.options.map((option) => (
+        {options.map((option, index) => (
           <Button
-            key={option.id}
+            key={typeof option === 'object' ? option.id || index : index}
             variant="outline"
             size="sm"
             className="w-full justify-start text-left"
             onClick={() => handleAction('selectOption', option)}
           >
-            {option.label}
+            {typeof option === 'object' ? option.label || option.value : option}
           </Button>
         ))}
       </div>
@@ -420,6 +442,17 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
   const isStartNode = data.type === 'start';
   const startNodeStyle = isStartNode ? 'ring-4 ring-green-300 ring-opacity-50' : '';
 
+  // Get the display title
+  const getDisplayTitle = () => {
+    if (data.title && typeof data.title === 'string') {
+      return data.title;
+    }
+    if (data.label && typeof data.label === 'string') {
+      return data.label;
+    }
+    return `${data.type || 'Node'} ${data.id}`;
+  };
+
   return (
     <Card 
       className={cn(
@@ -493,7 +526,7 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <IconComponent className="w-4 h-4" />
-            <h3 className="font-medium text-sm">{data.title}</h3>
+            <h3 className="font-medium text-sm">{getDisplayTitle()}</h3>
             {isStartNode && (
               <Badge variant="secondary" className="text-xs px-1 py-0 bg-green-200 text-green-800">
                 START
