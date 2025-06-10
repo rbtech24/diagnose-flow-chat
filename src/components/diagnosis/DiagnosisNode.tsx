@@ -69,6 +69,12 @@ export interface DiagnosisNodeData {
     difficulty?: 'easy' | 'medium' | 'hard';
     tags?: string[];
   };
+  fields?: Array<{
+    id: string;
+    type: string;
+    content?: string;
+    [key: string]: unknown;
+  }>;
   [key: string]: unknown;
 }
 
@@ -278,11 +284,23 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
   };
 
   const renderWarning = () => {
-    // Check multiple possible sources of warning data
     let warningConfig: any = null;
     
-    // First check if there's a warning property directly
-    if (data.warning) {
+    // First check if there's a warning field in the fields array
+    if (data.fields && Array.isArray(data.fields)) {
+      const warningField = data.fields.find(field => field.id === 'warning' && field.content);
+      if (warningField?.content) {
+        try {
+          warningConfig = typeof warningField.content === 'string' ? 
+            JSON.parse(warningField.content) : warningField.content;
+        } catch (error) {
+          console.log('Failed to parse warning field content:', error);
+        }
+      }
+    }
+    
+    // Fall back to checking the warning property directly
+    if (!warningConfig && data.warning) {
       try {
         warningConfig = typeof data.warning === 'string' ? JSON.parse(data.warning) : data.warning;
       } catch (error) {
@@ -298,9 +316,8 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
       }
     }
     
-    // Also check other possible warning sources in the data
+    // Check other possible warning sources in the data
     if (!warningConfig) {
-      // Check for warning in other data properties
       const possibleWarningKeys = Object.keys(data).filter(key => key.toLowerCase().includes('warning'));
       
       for (const key of possibleWarningKeys) {
