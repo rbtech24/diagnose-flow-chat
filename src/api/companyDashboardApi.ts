@@ -62,7 +62,7 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     let revenue = 0;
 
     // Process repairs data safely with proper typing
-    (repairsData as DatabaseRepair[]).forEach(repair => {
+    repairsData.forEach((repair: any) => {
       if (repair?.status === 'in_progress') {
         activeJobs++;
       }
@@ -119,7 +119,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
     }
 
     // Convert to RecentActivity format with proper typing
-    return (rawData as DatabaseActivity[]).map((item, index) => ({
+    return rawData.map((item: any, index: number) => ({
       id: item?.id || `activity-${Date.now()}-${index}`,
       type: mapActivityTypeToRecentActivity(item?.activity_type || 'unknown'),
       description: item?.description || 'Activity recorded',

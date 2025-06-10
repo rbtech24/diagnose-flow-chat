@@ -1653,6 +1653,166 @@ export type Database = {
           },
         ]
       }
+      file_categories: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      file_library: {
+        Row: {
+          category_id: string | null
+          community_comment_id: string | null
+          community_post_id: string | null
+          created_at: string | null
+          description: string | null
+          download_count: number | null
+          file_type: string
+          file_upload_id: string | null
+          id: string
+          indexed_at: string | null
+          is_featured: boolean | null
+          search_vector: unknown | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+          visibility: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          community_comment_id?: string | null
+          community_post_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          download_count?: number | null
+          file_type: string
+          file_upload_id?: string | null
+          id?: string
+          indexed_at?: string | null
+          is_featured?: boolean | null
+          search_vector?: unknown | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+          visibility?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          community_comment_id?: string | null
+          community_post_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          download_count?: number | null
+          file_type?: string
+          file_upload_id?: string | null
+          id?: string
+          indexed_at?: string | null
+          is_featured?: boolean | null
+          search_vector?: unknown | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+          visibility?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_library_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "file_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "file_library_community_comment_id_fkey"
+            columns: ["community_comment_id"]
+            isOneToOne: false
+            referencedRelation: "community_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "file_library_community_post_id_fkey"
+            columns: ["community_post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "file_library_file_upload_id_fkey"
+            columns: ["file_upload_id"]
+            isOneToOne: false
+            referencedRelation: "file_uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      file_library_access_logs: {
+        Row: {
+          access_type: string | null
+          created_at: string | null
+          file_library_id: string | null
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          access_type?: string | null
+          created_at?: string | null
+          file_library_id?: string | null
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          access_type?: string | null
+          created_at?: string | null
+          file_library_id?: string | null
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_library_access_logs_file_library_id_fkey"
+            columns: ["file_library_id"]
+            isOneToOne: false
+            referencedRelation: "file_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       file_uploads: {
         Row: {
           bucket: string
@@ -5452,6 +5612,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      log_file_access: {
+        Args: {
+          p_file_library_id: string
+          p_access_type?: string
+          p_ip_address?: string
+          p_user_agent?: string
+        }
+        Returns: undefined
+      }
       needs_setup: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -5503,6 +5672,36 @@ export type Database = {
           password: string
           role: string | null
           username: string
+        }[]
+      }
+      search_file_library: {
+        Args: {
+          p_query?: string
+          p_file_type?: string
+          p_category_id?: string
+          p_tags?: string[]
+          p_visibility?: string
+          p_limit?: number
+          p_offset?: number
+        }
+        Returns: {
+          id: string
+          title: string
+          description: string
+          file_type: string
+          tags: string[]
+          download_count: number
+          is_featured: boolean
+          visibility: string
+          category_name: string
+          category_icon: string
+          category_color: string
+          file_name: string
+          file_size: number
+          file_url: string
+          mime_type: string
+          created_at: string
+          rank: number
         }[]
       }
       search_messages: {
