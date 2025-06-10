@@ -3,17 +3,22 @@ import { Button } from '../ui/button';
 import { SaveWorkflowDialog } from './SaveWorkflowDialog';
 import { ValidationButton } from '../validation/ValidationButton';
 import { SearchPanel } from './SearchPanel';
+import { VersionHistoryPanel } from './VersionHistoryPanel';
+import { WorkflowTemplateDialog } from './WorkflowTemplateDialog';
 import { handleSaveWorkflow } from '@/utils/flow';
-import { Download, Upload, Plus, Copy, Clipboard, Link2, Save, Trash } from 'lucide-react';
+import { Download, Upload, Plus, Copy, Clipboard, Link2, Save, Trash, History, FileTemplate } from 'lucide-react';
 import { useFlowState } from '@/hooks/useFlowState';
 import { useWorkflowValidation } from '@/hooks/useWorkflowValidation';
 import { useWorkflowSearch } from '@/hooks/useWorkflowSearch';
-import { useCallback, useEffect } from 'react';
+import { useWorkflowTemplates, WorkflowTemplate } from '@/hooks/useWorkflowTemplates';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SavedWorkflow } from '@/utils/flow/types';
+import { WorkflowVersion } from '@/hooks/useVersionHistory';
 import { useUserRole } from '@/hooks/useUserRole';
 import { toast } from '@/hooks/use-toast';
 import { Separator } from '../ui/separator';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 
 interface FlowToolbarProps {
   onAddNode: () => void;
@@ -26,6 +31,10 @@ interface FlowToolbarProps {
   onApplyNodeChanges?: () => void;
   currentWorkflow?: SavedWorkflow;
   onNodeFocus?: (nodeId: string) => void;
+  versions: WorkflowVersion[];
+  onRestoreVersion: (version: WorkflowVersion) => void;
+  onRemoveVersion: (versionId: string) => void;
+  onClearVersions: () => void;
 }
 
 export function FlowToolbar({
@@ -38,7 +47,11 @@ export function FlowToolbar({
   appliances,
   onApplyNodeChanges,
   currentWorkflow,
-  onNodeFocus
+  onNodeFocus,
+  versions,
+  onRestoreVersion,
+  onRemoveVersion,
+  onClearVersions
 }: FlowToolbarProps) {
   const { nodes, edges, nodeCounter } = useFlowState();
   const { validationSummary, isValidating, autoValidate, validate } = useWorkflowValidation();
@@ -58,6 +71,10 @@ export function FlowToolbar({
   const navigate = useNavigate();
   const { userRole } = useUserRole();
   const isAdmin = userRole === 'admin';
+
+  // Template dialog state
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
 
   // Auto-validate when nodes or edges change
   useEffect(() => {
@@ -102,6 +119,38 @@ export function FlowToolbar({
     }
   }, [focusNode, onNodeFocus]);
 
+  const handleSelectTemplate = useCallback((template: WorkflowTemplate) => {
+    // Create a new workflow from template
+    const templateWorkflow: SavedWorkflow = {
+      metadata: {
+        name: `${template.name} (Copy)`,
+        folder: template.category,
+        appliance: template.category,
+        description: template.description,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isActive: true
+      },
+      nodes: template.nodes,
+      edges: template.edges,
+      nodeCounter: template.nodeCounter
+    };
+
+    // Navigate to editor with template data
+    const searchParams = new URLSearchParams({
+      folder: template.category,
+      name: `${template.name} (Copy)`,
+      template: 'true'
+    });
+    
+    navigate(`/workflow-editor?${searchParams.toString()}`);
+    
+    toast({
+      title: "Template Loaded",
+      description: `Started new workflow from "${template.name}" template`
+    });
+  }, [navigate]);
+
   return (
     <div className="absolute top-0 left-0 right-0 z-10 bg-background border-b pointer-events-auto">
       <div className="flex flex-col gap-3 p-4">
@@ -117,6 +166,16 @@ export function FlowToolbar({
             >
               <Plus className="w-4 h-4" />
               Add Step
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setTemplateDialogOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <FileTemplate className="w-4 h-4" />
+              Templates
             </Button>
 
             {onApplyNodeChanges && (
@@ -167,8 +226,29 @@ export function FlowToolbar({
             />
           </div>
 
-          {/* Right section - Navigation */}
-          <div className="flex items-center flex-shrink-0 ml-4">
+          {/* Right section - Navigation and History */}
+          <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+            <Popover open={versionHistoryOpen} onOpenChange={setVersionHistoryOpen}>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <History className="w-4 h-4" />
+                  History
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0" align="end">
+                <VersionHistoryPanel
+                  versions={versions}
+                  onRestoreVersion={onRestoreVersion}
+                  onRemoveVersion={onRemoveVersion}
+                  onClearHistory={onClearVersions}
+                />
+              </PopoverContent>
+            </Popover>
+            
             <Button 
               variant="default"
               size="sm"
@@ -259,6 +339,12 @@ export function FlowToolbar({
         className="hidden"
         accept=".json"
         onChange={handleImport}
+      />
+
+      <WorkflowTemplateDialog
+        open={templateDialogOpen}
+        onOpenChange={setTemplateDialogOpen}
+        onSelectTemplate={handleSelectTemplate}
       />
     </div>
   );

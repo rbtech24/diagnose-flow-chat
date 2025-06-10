@@ -5,6 +5,13 @@ import { FlowHeader } from './FlowHeader';
 import { FlowCanvas } from './FlowCanvas';
 import { FlowFileInput } from './FlowFileInput';
 import { SavedWorkflow } from '@/utils/flow';
+import { WorkflowVersion } from '@/hooks/useVersionHistory';
+
+interface AutoSaveState {
+  isAutoSaving: boolean;
+  lastSavedAt: Date | null;
+  hasUnsavedChanges: boolean;
+}
 
 interface FlowEditorContentProps {
   nodes: Node[];
@@ -27,6 +34,11 @@ interface FlowEditorContentProps {
   appliances: string[];
   onApplyNodeChanges?: () => void;
   onNodeFocus?: (nodeId: string) => void;
+  autoSaveState: AutoSaveState;
+  versions: WorkflowVersion[];
+  onRestoreVersion: (version: WorkflowVersion) => void;
+  onRemoveVersion: (versionId: string) => void;
+  onClearVersions: () => void;
 }
 
 export function FlowEditorContent({
@@ -50,12 +62,18 @@ export function FlowEditorContent({
   appliances,
   onApplyNodeChanges,
   onNodeFocus,
+  autoSaveState,
+  versions,
+  onRestoreVersion,
+  onRemoveVersion,
+  onClearVersions,
 }: FlowEditorContentProps) {
   return (
     <div className="w-full h-full relative">
       <FlowHeader 
         currentWorkflow={currentWorkflow}
         onQuickSave={onQuickSave}
+        autoSaveState={autoSaveState}
       />
       
       {isLoading && <LoadingOverlay />}
@@ -80,6 +98,10 @@ export function FlowEditorContent({
         onApplyNodeChanges={onApplyNodeChanges}
         currentWorkflow={currentWorkflow}
         onNodeFocus={onNodeFocus}
+        versions={versions}
+        onRestoreVersion={onRestoreVersion}
+        onRemoveVersion={onRemoveVersion}
+        onClearVersions={onClearVersions}
       />
     </div>
   );

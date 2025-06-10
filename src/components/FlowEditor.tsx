@@ -13,6 +13,8 @@ import { useFlowConnect } from '@/hooks/useFlowConnect';
 import { useNodeOperations } from '@/hooks/useNodeOperations';
 import { useFileHandling } from '@/hooks/useFileHandling';
 import { useHotkeySetup } from '@/hooks/useHotkeySetup';
+import { useAutoSave } from '@/hooks/useAutoSave';
+import { useVersionHistory } from '@/hooks/useVersionHistory';
 import { FlowEditorContent } from './flow/FlowEditorContent';
 import { toast } from '@/hooks/use-toast';
 import { useLocation } from 'react-router-dom';
@@ -60,6 +62,24 @@ export default function FlowEditor({
   const [history, setHistory] = useState(() => 
     createHistoryState({ nodes, edges, nodeCounter })
   );
+
+  // Auto-save and version history hooks
+  const autoSaveState = useAutoSave({
+    nodes,
+    edges,
+    nodeCounter,
+    currentWorkflow,
+    enabled: !isNewWorkflow && !!currentWorkflow
+  });
+
+  const {
+    versions,
+    addVersion,
+    removeVersion,
+    clearVersions
+  } = useVersionHistory({
+    currentWorkflow
+  });
 
   const { handleNodeUpdate } = useNodeOperations(
     nodes,
@@ -120,6 +140,39 @@ export default function FlowEditor({
     handlePaste,
     currentWorkflow,
   });
+
+  // Add version when significant changes occur
+  useEffect(() => {
+    if (currentWorkflow && nodes.length > 0) {
+      const timeoutId = setTimeout(() => {
+        if (autoSaveState.hasUnsavedChanges) {
+          addVersion(nodes, edges, nodeCounter, 'Auto-save version', true);
+        }
+      }, 10000); // Add version every 10 seconds if there are changes
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [nodes, edges, nodeCounter, currentWorkflow, autoSaveState.hasUnsavedChanges, addVersion]);
+
+  // Handle version restoration
+  const handleRestoreVersion = useCallback((version: any) => {
+    setNodes(version.nodes);
+    setEdges(version.edges);
+    setNodeCounter(version.nodeCounter);
+    
+    // Add to history
+    const newState = { 
+      nodes: version.nodes, 
+      edges: version.edges, 
+      nodeCounter: version.nodeCounter 
+    };
+    setHistory(addToHistory(history, newState));
+    
+    toast({
+      title: "Version Restored",
+      description: `Restored to version: ${version.description}`
+    });
+  }, [setNodes, setEdges, setNodeCounter, history, setHistory]);
 
   // Load workflow data when currentWorkflow changes or on initial load
   useEffect(() => {
@@ -248,6 +301,11 @@ export default function FlowEditor({
       appliances={appliances}
       onApplyNodeChanges={handleApplyNodeChanges}
       onNodeFocus={handleNodeFocus}
+      autoSaveState={autoSaveState}
+      versions={versions}
+      onRestoreVersion={handleRestoreVersion}
+      onRemoveVersion={removeVersion}
+      onClearVersions={clearVersions}
     />
   );
 }

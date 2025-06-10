@@ -2,6 +2,7 @@
 import { Node } from '@xyflow/react';
 import { FlowWrapperWithProvider } from './FlowWrapper';
 import { SavedWorkflow } from '@/utils/flow/types';
+import { WorkflowVersion } from '@/hooks/useVersionHistory';
 
 interface FlowCanvasProps {
   nodes: Node[];
@@ -21,6 +22,10 @@ interface FlowCanvasProps {
   onApplyNodeChanges?: () => void;
   currentWorkflow?: SavedWorkflow;
   onNodeFocus?: (nodeId: string) => void;
+  versions: WorkflowVersion[];
+  onRestoreVersion: (version: WorkflowVersion) => void;
+  onRemoveVersion: (versionId: string) => void;
+  onClearVersions: () => void;
 }
 
 export function FlowCanvas({
@@ -41,6 +46,10 @@ export function FlowCanvas({
   onApplyNodeChanges,
   currentWorkflow,
   onNodeFocus,
+  versions,
+  onRestoreVersion,
+  onRemoveVersion,
+  onClearVersions,
 }: FlowCanvasProps) {
   return (
     <FlowWrapperWithProvider
@@ -61,6 +70,10 @@ export function FlowCanvas({
       onApplyNodeChanges={onApplyNodeChanges}
       currentWorkflow={currentWorkflow}
       onNodeFocus={onNodeFocus}
+      versions={versions}
+      onRestoreVersion={onRestoreVersion}
+      onRemoveVersion={onRemoveVersion}
+      onClearVersions={onClearVersions}
     />
   );
 }

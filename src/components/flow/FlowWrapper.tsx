@@ -8,6 +8,7 @@ import { FlowToolbar } from './FlowToolbar';
 import { FlowBackground } from './FlowBackground';
 import { Node } from '@xyflow/react';
 import { SavedWorkflow } from '@/utils/flow/types';
+import { WorkflowVersion } from '@/hooks/useVersionHistory';
 import { useWorkflowSearch } from '@/hooks/useWorkflowSearch';
 import { useMemo } from 'react';
 
@@ -37,6 +38,10 @@ interface FlowWrapperProps {
   onApplyNodeChanges?: () => void;
   currentWorkflow?: SavedWorkflow;
   onNodeFocus?: (nodeId: string) => void;
+  versions: WorkflowVersion[];
+  onRestoreVersion: (version: WorkflowVersion) => void;
+  onRemoveVersion: (versionId: string) => void;
+  onClearVersions: () => void;
 }
 
 export function FlowWrapper({
@@ -57,6 +62,10 @@ export function FlowWrapper({
   onApplyNodeChanges,
   currentWorkflow,
   onNodeFocus,
+  versions,
+  onRestoreVersion,
+  onRemoveVersion,
+  onClearVersions,
 }: FlowWrapperProps) {
   const { filteredNodeIds, highlightedNodes, hasActiveFilters } = useWorkflowSearch(nodes);
 
@@ -141,6 +150,10 @@ export function FlowWrapper({
           onApplyNodeChanges={onApplyNodeChanges}
           currentWorkflow={currentWorkflow}
           onNodeFocus={onNodeFocus}
+          versions={versions}
+          onRestoreVersion={onRestoreVersion}
+          onRemoveVersion={onRemoveVersion}
+          onClearVersions={onClearVersions}
         />
       </ReactFlow>
     </div>
