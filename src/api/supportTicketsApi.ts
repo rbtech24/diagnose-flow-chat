@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface SupportTicket {
@@ -114,13 +113,7 @@ export async function fetchSupportTickets(
     throw error;
   }
   
-  const tickets: SupportTicket[] = [];
-  
-  if (data) {
-    for (const rawTicket of data) {
-      tickets.push(convertToSupportTicket(rawTicket));
-    }
-  }
+  const tickets = (data || []).map(convertToSupportTicket);
   
   return {
     tickets,
@@ -169,13 +162,7 @@ export async function fetchTicketMessages(ticketId: string): Promise<SupportTick
     throw error;
   }
   
-  const messages: SupportTicketMessage[] = [];
-  
-  if (data) {
-    for (const rawMessage of data) {
-      messages.push(convertToSupportTicketMessage(rawMessage));
-    }
-  }
+  const messages = (data || []).map(convertToSupportTicketMessage);
   
   return messages;
 }
@@ -326,13 +313,7 @@ export async function searchSupportTickets(searchParams: {
     throw error;
   }
   
-  const tickets: SupportTicket[] = [];
-  
-  if (data) {
-    for (const rawTicket of data) {
-      tickets.push(convertToSupportTicket(rawTicket));
-    }
-  }
+  const tickets = (data || []).map(convertToSupportTicket);
   
   return tickets;
 }

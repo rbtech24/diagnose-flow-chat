@@ -88,6 +88,10 @@ const router = createBrowserRouter([
     element: <Index />
   },
   {
+    path: "/dev-login",
+    element: <DevLogin />
+  },
+  {
     path: "/login",
     element: <Login />
   },
