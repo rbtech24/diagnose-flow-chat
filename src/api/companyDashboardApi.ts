@@ -48,9 +48,8 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     let completedJobs = 0;
     let revenue = 0;
 
-    // Process repairs data using traditional for loop
-    for (let i = 0; i < repairsData.length; i++) {
-      const repair = repairsData[i];
+    // Process repairs data using simple iteration
+    repairsData.forEach(repair => {
       if (repair?.status === 'in_progress') {
         activeJobs++;
       }
@@ -63,7 +62,7 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
           }
         }
       }
-    }
+    });
       
     const completionRate = repairsData.length > 0 
       ? Math.round((completedJobs / repairsData.length) * 100) 
@@ -106,26 +105,14 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    // Map activity data using traditional for loop
-    const result: RecentActivity[] = [];
-    for (let i = 0; i < rawData.length; i++) {
-      const item = rawData[i];
-      const activityId = item.id || `activity-${Date.now()}-${Math.random()}`;
-      const activityType = mapActivityTypeToRecentActivity(item.activity_type || 'unknown');
-      const description = item.description || 'Activity recorded';
-      const time = formatTimeAgo(new Date(item.created_at || new Date().toISOString()));
-      const icon = getActivityIcon(item.activity_type || 'unknown');
-      
-      result.push({
-        id: String(activityId),
-        type: activityType,
-        description: description,
-        time: time,
-        icon: icon
-      });
-    }
-
-    return result;
+    // Map activity data using simple iteration
+    return rawData.map(item => ({
+      id: String(item.id || `activity-${Date.now()}-${Math.random()}`),
+      type: mapActivityTypeToRecentActivity(item.activity_type || 'unknown'),
+      description: item.description || 'Activity recorded',
+      time: formatTimeAgo(new Date(item.created_at || new Date().toISOString())),
+      icon: getActivityIcon(item.activity_type || 'unknown')
+    }));
   } catch (error) {
     console.error('Error in fetchRecentActivity:', error);
     return [];
