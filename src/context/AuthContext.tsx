@@ -97,7 +97,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return false;
     }
     
-    // Check for inactivity timeout - get lastActivity as string and pass as string
+    // Check for inactivity timeout - get lastActivity as number and pass as string
     const lastActivity = SessionManager.getLastActivity();
     if (SessionManager.isSessionExpired(lastActivity.toString())) {
       return false;
@@ -108,7 +108,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const getSessionTimeRemaining = useCallback((): number => {
     if (!session?.expires_at) return 0;
-    const expiresAt = new Date(session.expires_at).getTime();
+    const expiresAt = typeof session.expires_at === 'string' 
+      ? new Date(session.expires_at).getTime()
+      : session.expires_at * 1000;
     return Math.max(0, expiresAt - Date.now());
   }, [session]);
 
@@ -215,7 +217,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (!session?.expires_at) return;
 
     const checkTokenRefresh = () => {
-      if (TokenSecurity.shouldRefreshToken(session.expires_at)) {
+      const expiresAt = typeof session.expires_at === 'string' 
+        ? session.expires_at
+        : new Date(session.expires_at * 1000).toISOString();
+      
+      if (TokenSecurity.shouldRefreshToken(expiresAt)) {
         refreshSession();
       }
     };
