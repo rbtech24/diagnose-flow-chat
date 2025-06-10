@@ -10,6 +10,7 @@ import { loginRateLimiter } from "@/utils/rateLimiter";
 import { emailSchema, passwordSchema } from "@/components/security/InputValidator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, AlertTriangle, CheckCircle, ArrowRight, Zap, Users, TrendingUp } from "lucide-react";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -122,18 +123,15 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+      <PageHeader showNavigation={true} />
+      
       <div className="container mx-auto px-4 lg:px-8">
-        <div className="grid lg:grid-cols-2 min-h-screen gap-8 lg:gap-12">
+        <div className="grid lg:grid-cols-2 min-h-[calc(100vh-4rem)] gap-8 lg:gap-12">
           {/* Left Side - Welcome Back Content */}
           <div className="hidden lg:flex lg:items-center">
             <div className="w-full max-w-2xl mx-auto py-12">
               <div className="space-y-8">
                 <div className="text-center">
-                  <img 
-                    src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
-                    alt="Repair Auto Pilot" 
-                    className="h-16 mx-auto mb-6"
-                  />
                   <h2 className="text-3xl font-bold text-gray-900 mb-4">
                     Welcome Back!
                   </h2>
@@ -188,7 +186,7 @@ export default function Login() {
           {/* Right Side - Login Form */}
           <div className="flex items-center justify-center py-8 lg:py-12">
             <div className="w-full max-w-md mx-auto">
-              {/* Welcome Back Header - No Logo */}
+              {/* Welcome Back Header */}
               <div className="text-center mb-8">
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
                   Welcome Back

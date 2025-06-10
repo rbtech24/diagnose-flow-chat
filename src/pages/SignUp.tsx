@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowRight, CheckCircle, Zap, Users, TrendingUp, Shield, Star, Award, Clock } from 'lucide-react';
+import { PageHeader } from '@/components/layout/PageHeader';
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -83,8 +84,10 @@ export default function SignUp() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+      <PageHeader showNavigation={true} />
+      
       <div className="container mx-auto px-4 lg:px-8">
-        <div className="grid lg:grid-cols-2 min-h-screen gap-8 lg:gap-12">
+        <div className="grid lg:grid-cols-2 min-h-[calc(100vh-4rem)] gap-8 lg:gap-12">
           {/* Left Side - Enhanced Sales Content */}
           <div className="hidden lg:flex lg:items-center">
             <div className="w-full max-w-2xl mx-auto py-12">
