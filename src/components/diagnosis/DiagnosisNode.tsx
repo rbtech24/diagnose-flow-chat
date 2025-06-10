@@ -279,7 +279,7 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
 
   const renderWarning = () => {
     // Check multiple possible sources of warning data
-    let warningConfig = null;
+    let warningConfig: any = null;
     
     // First check if there's a warning property directly
     if (data.warning) {
@@ -308,14 +308,14 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
         if (typeof value === 'string') {
           try {
             const parsed = JSON.parse(value);
-            if (parsed.type) {
+            if (parsed && typeof parsed === 'object' && parsed.type) {
               warningConfig = parsed;
               break;
             }
           } catch (error) {
             // Continue to next key
           }
-        } else if (value && typeof value === 'object' && value.type) {
+        } else if (value && typeof value === 'object' && 'type' in value) {
           warningConfig = value;
           break;
         }
