@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, CheckCircle, Wrench, Building2, Workflow, BarChart, ShieldCheck, Gauge, Clock } from "lucide-react";
+import { MobileAppDownload } from "@/components/tech/MobileAppDownload";
 
 export default function Index() {
   return (
@@ -254,6 +255,19 @@ export default function Index() {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          </div>
+        </section>
+        
+        {/* Mobile App Downloads Section */}
+        <section className="py-20">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-bold mb-4">Take Repair Auto Pilot Anywhere</h2>
+              <p className="text-gray-600 max-w-2xl mx-auto">Download our mobile apps to access diagnostic workflows, create support tickets, and manage your repair operations on the go.</p>
+            </div>
+            <div className="max-w-4xl mx-auto">
+              <MobileAppDownload />
             </div>
           </div>
         </section>
