@@ -48,10 +48,9 @@ export function NodeFields({
   };
 
   const renderField = (field: Field, index: number) => {
-    const fieldProps = {
+    const baseProps = {
       key: field.id,
       field,
-      onChange: (data: any) => handleFieldChange(field.id, data),
       onRemove: () => onRemoveField(field.id),
       canMoveUp: index > 0,
       canMoveDown: index < fields.length - 1,
@@ -61,32 +60,41 @@ export function NodeFields({
 
     switch (field.type) {
       case 'content':
-        return <ContentField {...fieldProps} />;
+        return <ContentField 
+          {...baseProps} 
+          onFieldChange={(updatedField) => handleFieldChange(field.id, updatedField)}
+        />;
       case 'options':
-        return <OptionsField {...fieldProps} />;
+        return <OptionsField 
+          {...baseProps} 
+          onFieldChange={(updatedField) => handleFieldChange(field.id, updatedField)}
+        />;
       case 'media':
-        return <MediaField {...fieldProps} />;
+        return <MediaField 
+          {...baseProps} 
+          onFieldChange={(updatedField) => handleFieldChange(field.id, updatedField)}
+        />;
       case 'workflow-link':
         return (
           <div key={field.id} className="border rounded-lg p-4 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Workflow Link</span>
               <div className="flex items-center gap-1">
-                {fieldProps.canMoveUp && (
+                {baseProps.canMoveUp && (
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={fieldProps.onMoveUp}
+                    onClick={baseProps.onMoveUp}
                     className="h-6 w-6 p-0"
                   >
                     <ChevronUp className="h-3 w-3" />
                   </Button>
                 )}
-                {fieldProps.canMoveDown && (
+                {baseProps.canMoveDown && (
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={fieldProps.onMoveDown}
+                    onClick={baseProps.onMoveDown}
                     className="h-6 w-6 p-0"
                   >
                     <ChevronDown className="h-3 w-3" />
@@ -95,7 +103,7 @@ export function NodeFields({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={fieldProps.onRemove}
+                  onClick={baseProps.onRemove}
                   className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
                 >
                   <Trash2 className="h-3 w-3" />

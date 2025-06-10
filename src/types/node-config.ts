@@ -1,3 +1,4 @@
+
 export interface TechnicalSpecs {
   range: {
     min: number;
@@ -21,6 +22,8 @@ export interface Field {
   type: 'content' | 'options' | 'media' | 'workflow-link';
   content?: string;
   placeholder?: string;
+  options?: string[];
+  media?: MediaItem[];
   validation?: {
     required?: boolean;
     pattern?: string;

@@ -69,9 +69,9 @@ export function FlowWrapper({
         snapGrid={[15, 15]}
         fitView={false}
         className="bg-gray-50"
-        minZoom={0.3}
-        maxZoom={2}
-        defaultViewport={{ x: 100, y: 100, zoom: 0.8 }}
+        minZoom={0.1}
+        maxZoom={3}
+        defaultViewport={{ x: 100, y: 100, zoom: 0.6 }}
         style={{ 
           backgroundColor: '#f9fafb',
           '--xy-edge-stroke-default': '#22c55e',
