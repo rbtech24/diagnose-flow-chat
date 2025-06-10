@@ -120,18 +120,21 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    // Convert to RecentActivity format with explicit mapping
-    const activities: RecentActivity[] = [];
-    
-    rawData.forEach((item, index) => {
-      const typedItem = item as DatabaseActivity;
-      activities.push({
-        id: typedItem?.id || `activity-${Date.now()}-${index}`,
-        type: mapActivityTypeToRecentActivity(typedItem?.activity_type || 'unknown'),
-        description: typedItem?.description || 'Activity recorded',
-        time: formatTimeAgo(new Date(typedItem?.created_at || new Date().toISOString())),
-        icon: getActivityIcon(typedItem?.activity_type || 'unknown')
-      });
+    // Convert to RecentActivity format with proper typing
+    const activities: RecentActivity[] = rawData.map((item, index) => {
+      const activityId = item.id || `activity-${Date.now()}-${index}`;
+      const activityType = mapActivityTypeToRecentActivity(item.activity_type || 'unknown');
+      const description = item.description || 'Activity recorded';
+      const time = formatTimeAgo(new Date(item.created_at || new Date().toISOString()));
+      const icon = getActivityIcon(item.activity_type || 'unknown');
+      
+      return {
+        id: activityId,
+        type: activityType,
+        description: description,
+        time: time,
+        icon: icon
+      };
     });
 
     return activities;
