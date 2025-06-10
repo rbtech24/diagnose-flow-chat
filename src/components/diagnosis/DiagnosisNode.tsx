@@ -98,7 +98,7 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
         <div className="mt-2">
           <div className="text-xs text-gray-600 mb-1">Options:</div>
           <ul className="text-xs text-gray-600 list-disc list-inside">
-            {nodeData.options.map((option: any, index: number) => {
+            {nodeData.options.map((option: string | number | boolean | null | undefined, index: number) => {
               const optionText = option != null ? String(option) : '';
               return (
                 <li key={index}>{optionText}</li>
