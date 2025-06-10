@@ -1,3 +1,4 @@
+
 import React, { memo, useCallback, useState } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -129,27 +130,50 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
   }, [data.id, onNodeAction]);
 
   // Helper function to check if content is warning JSON
-  const isWarningContent = (content: string) => {
-    if (!content || typeof content !== 'string') return false;
-    try {
-      const parsed = JSON.parse(content);
-      return parsed && typeof parsed === 'object' && parsed.type && 
-             ['electric', 'water', 'fire'].includes(parsed.type);
-    } catch {
-      return false;
+  const isWarningContent = (content: any) => {
+    if (!content) return false;
+    
+    // If it's already an object, check if it has warning properties
+    if (typeof content === 'object' && content.type && 
+        ['electric', 'water', 'fire'].includes(content.type)) {
+      console.log('Found warning object:', content);
+      return true;
     }
+    
+    // If it's a string, try to parse it
+    if (typeof content === 'string') {
+      try {
+        const parsed = JSON.parse(content);
+        if (parsed && typeof parsed === 'object' && parsed.type && 
+            ['electric', 'water', 'fire'].includes(parsed.type)) {
+          console.log('Found warning JSON string:', content, 'parsed to:', parsed);
+          return true;
+        }
+      } catch {
+        // Not JSON, could be regular content
+      }
+    }
+    
+    return false;
   };
 
   // Helper function to get warning config from fields
   const getWarningConfig = () => {
+    console.log('Getting warning config from data:', data);
+    
     if (data.fields && Array.isArray(data.fields)) {
       const warningField = data.fields.find(field => field.id === 'warning');
+      console.log('Found warning field:', warningField);
+      
       if (warningField?.content) {
         try {
           if (typeof warningField.content === 'object') {
+            console.log('Warning field content is object:', warningField.content);
             return warningField.content;
           } else if (typeof warningField.content === 'string') {
-            return JSON.parse(warningField.content);
+            const parsed = JSON.parse(warningField.content);
+            console.log('Parsed warning field content:', parsed);
+            return parsed;
           }
         } catch (error) {
           console.log('Failed to parse warning content:', error);
@@ -160,23 +184,34 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
   };
 
   const renderContent = () => {
+    console.log('Rendering content for node:', data.id, 'data.content:', data.content);
+    
     // Get regular content, filtering out warning content
     let content = data.content;
     
     // If the main content is warning JSON, don't display it here
     if (content && isWarningContent(content)) {
+      console.log('Main content is warning JSON, filtering it out');
       content = null;
     }
     
     // Check fields for non-warning content
     let fieldContent = '';
     if (data.fields && Array.isArray(data.fields)) {
-      const contentFields = data.fields.filter(field => 
-        field.type === 'content' && 
-        field.id !== 'warning' && 
-        field.content && 
-        !isWarningContent(field.content)
-      );
+      console.log('Processing fields:', data.fields);
+      
+      const contentFields = data.fields.filter(field => {
+        const isNotWarning = field.id !== 'warning';
+        const isContentType = field.type === 'content';
+        const hasContent = field.content;
+        const notWarningContent = !isWarningContent(field.content);
+        
+        console.log(`Field ${field.id}: isNotWarning=${isNotWarning}, isContentType=${isContentType}, hasContent=${hasContent}, notWarningContent=${notWarningContent}`);
+        
+        return isNotWarning && isContentType && hasContent && notWarningContent;
+      });
+      
+      console.log('Filtered content fields:', contentFields);
       
       fieldContent = contentFields
         .map(field => field.content)
@@ -185,6 +220,7 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
     }
     
     const finalContent = content || fieldContent;
+    console.log('Final content to display:', finalContent);
     
     if (!finalContent) return null;
 
@@ -340,12 +376,20 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
   };
 
   const renderWarning = () => {
+    console.log('Rendering warning for node:', data.id);
+    
     const warningConfig = getWarningConfig();
     
     // Also check if main content is warning JSON
     if (!warningConfig && data.content && isWarningContent(data.content)) {
       try {
-        const parsed = JSON.parse(data.content);
+        let parsed;
+        if (typeof data.content === 'object') {
+          parsed = data.content;
+        } else {
+          parsed = JSON.parse(data.content);
+        }
+        
         if (parsed && parsed.type) {
           console.log('Found warning in main content:', parsed);
           return (
