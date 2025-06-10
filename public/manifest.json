@@ -10,27 +10,27 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/favicon.ico",
+      "src": "/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png",
       "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "type": "image/png"
     },
     {
-      "src": "/favicon.ico",
-      "type": "image/x-icon",
+      "src": "/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png",
+      "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/favicon.ico",
-      "type": "image/x-icon", 
+      "src": "/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png",
+      "type": "image/png", 
       "sizes": "512x512"
     }
   ],
   "categories": ["productivity", "utilities", "business"],
   "screenshots": [
     {
-      "src": "/favicon.ico",
+      "src": "/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png",
       "sizes": "640x480",
-      "type": "image/x-icon"
+      "type": "image/png"
     }
   ]
 }
