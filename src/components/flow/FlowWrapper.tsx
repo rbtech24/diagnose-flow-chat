@@ -1,32 +1,36 @@
 
-import { ReactFlow, ReactFlowProvider } from '@xyflow/react';
+import React, { useCallback, useState } from 'react';
+import {
+  ReactFlow,
+  Controls,
+  Background,
+  Node,
+  Edge,
+  Connection,
+  ReactFlowProvider,
+  BackgroundVariant,
+} from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import './FlowAnimations.css';
-import DiagnosisNode from '../diagnosis/DiagnosisNode';
-import { enhancedEdgeOptions } from '@/utils/flow/edge-styles';
+
+import { DiagnosisNode } from '@/components/diagnosis/DiagnosisNode';
 import { FlowToolbar } from './FlowToolbar';
-import { FlowBackground } from './FlowBackground';
-import { Node } from '@xyflow/react';
+import { FlowControls } from './enhanced/FlowControls';
+import { FlowMinimap } from './enhanced/FlowMinimap';
+import { WorkflowOverview } from './enhanced/WorkflowOverview';
 import { SavedWorkflow } from '@/utils/flow/types';
 import { WorkflowVersion } from '@/hooks/useVersionHistory';
-import { useWorkflowSearch } from '@/hooks/useWorkflowSearch';
-import { useMemo } from 'react';
 
-// Define all node types to be rendered with DiagnosisNode
 const nodeTypes = {
   diagnosis: DiagnosisNode,
-  flowNode: DiagnosisNode,
-  flowTitle: DiagnosisNode,
-  flowAnswer: DiagnosisNode
 };
 
 interface FlowWrapperProps {
   nodes: Node[];
-  edges: any[];
+  edges: Edge[];
   onNodesChange: any;
   onEdgesChange: any;
-  onConnect: any;
-  onNodeClick: any;
+  onConnect: (connection: Connection) => void;
+  onNodeClick: (event: React.MouseEvent, node: Node) => void;
   snapToGrid: boolean;
   onAddNode: () => void;
   onSave: (name: string, folder: string, appliance: string) => Promise<void>;
@@ -44,7 +48,7 @@ interface FlowWrapperProps {
   onClearVersions: () => void;
 }
 
-export function FlowWrapper({
+function FlowWrapperComponent({
   nodes,
   edges,
   onNodesChange,
@@ -67,95 +71,137 @@ export function FlowWrapper({
   onRemoveVersion,
   onClearVersions,
 }: FlowWrapperProps) {
-  const { filteredNodeIds, highlightedNodes, hasActiveFilters } = useWorkflowSearch(nodes);
+  const [snapToGridState, setSnapToGridState] = useState(snapToGrid);
 
-  // Apply search/filter styling to nodes
-  const styledNodes = useMemo(() => {
-    if (!hasActiveFilters) {
-      return nodes;
+  const handleSnapToggle = useCallback(() => {
+    setSnapToGridState(prev => !prev);
+  }, []);
+
+  const handleAlignNodes = useCallback((alignment: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => {
+    const selectedNodes = nodes.filter(node => node.selected);
+    if (selectedNodes.length < 2) return;
+
+    let alignValue: number;
+    const isHorizontal = ['left', 'center', 'right'].includes(alignment);
+
+    if (isHorizontal) {
+      const positions = selectedNodes.map(node => node.position.x);
+      alignValue = alignment === 'left' 
+        ? Math.min(...positions)
+        : alignment === 'right'
+        ? Math.max(...positions)
+        : positions.reduce((sum, pos) => sum + pos, 0) / positions.length;
+    } else {
+      const positions = selectedNodes.map(node => node.position.y);
+      alignValue = alignment === 'top'
+        ? Math.min(...positions)
+        : alignment === 'bottom'
+        ? Math.max(...positions)
+        : positions.reduce((sum, pos) => sum + pos, 0) / positions.length;
     }
 
-    return nodes.map(node => {
-      const isFiltered = filteredNodeIds.has(node.id);
-      const isHighlighted = highlightedNodes.has(node.id);
-      
-      let style = { ...node.style };
-      let className = node.className || '';
-
-      if (hasActiveFilters) {
-        if (!isFiltered) {
-          // Dim nodes that don't match the filter
-          style = {
-            ...style,
-            opacity: 0.3,
-          };
-        } else if (isHighlighted) {
-          // Highlight specific focused nodes
-          style = {
-            ...style,
-            boxShadow: '0 0 0 3px #3b82f6, 0 0 20px rgba(59, 130, 246, 0.3)',
-            opacity: 1,
-          };
-          className += ' search-highlighted';
-        } else {
-          // Show filtered nodes normally
-          style = {
-            ...style,
-            opacity: 1,
-          };
-        }
+    const updatedNodes = nodes.map(node => {
+      if (node.selected) {
+        return {
+          ...node,
+          position: {
+            ...node.position,
+            [isHorizontal ? 'x' : 'y']: alignValue
+          }
+        };
       }
+      return node;
+    });
 
+    onNodesChange(updatedNodes);
+  }, [nodes, onNodesChange]);
+
+  const handleAutoLayout = useCallback(() => {
+    // Simple auto-layout algorithm - arrange nodes in a grid
+    const gridSize = Math.ceil(Math.sqrt(nodes.length));
+    const spacing = 200;
+    
+    const updatedNodes = nodes.map((node, index) => {
+      const row = Math.floor(index / gridSize);
+      const col = index % gridSize;
+      
       return {
         ...node,
-        style,
-        className
+        position: {
+          x: col * spacing + 100,
+          y: row * spacing + 100
+        }
       };
     });
-  }, [nodes, filteredNodeIds, highlightedNodes, hasActiveFilters]);
+
+    onNodesChange(updatedNodes);
+  }, [nodes, onNodesChange]);
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full relative">
+      <FlowToolbar
+        onAddNode={onAddNode}
+        onSave={onSave}
+        onImportClick={onImportClick}
+        onCopySelected={onCopySelected}
+        onPaste={onPaste}
+        onDeleteSelected={onDeleteSelected}
+        appliances={appliances}
+        onApplyNodeChanges={onApplyNodeChanges}
+        currentWorkflow={currentWorkflow}
+        onNodeFocus={onNodeFocus}
+        versions={versions}
+        onRestoreVersion={onRestoreVersion}
+        onRemoveVersion={onRemoveVersion}
+        onClearVersions={onClearVersions}
+      />
+
+      <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10">
+        <WorkflowOverview 
+          nodes={nodes} 
+          edges={edges} 
+          currentWorkflow={currentWorkflow}
+        />
+      </div>
+
       <ReactFlow
-        nodes={styledNodes}
+        nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onNodeClick={onNodeClick}
         nodeTypes={nodeTypes}
-        defaultEdgeOptions={enhancedEdgeOptions}
-        snapToGrid={snapToGrid}
-        snapGrid={[15, 15]}
-        fitView={false}
+        snapToGrid={snapToGridState}
+        snapGrid={[20, 20]}
+        attributionPosition="bottom-left"
         className="bg-gray-50"
+        fitView
+        maxZoom={2}
         minZoom={0.1}
-        maxZoom={3}
-        defaultViewport={{ x: 100, y: 100, zoom: 0.6 }}
-        style={{ 
-          backgroundColor: '#f9fafb',
-          '--xy-edge-stroke-default': '#22c55e',
-          '--xy-edge-stroke-width-default': '3px'
-        } as React.CSSProperties}
       >
-        <FlowBackground />
-        <FlowToolbar
-          onAddNode={onAddNode}
-          onSave={onSave}
-          onImportClick={onImportClick}
-          onCopySelected={onCopySelected}
-          onPaste={onPaste}
-          onDeleteSelected={onDeleteSelected}
-          appliances={appliances}
-          onApplyNodeChanges={onApplyNodeChanges}
-          currentWorkflow={currentWorkflow}
-          onNodeFocus={onNodeFocus}
-          versions={versions}
-          onRestoreVersion={onRestoreVersion}
-          onRemoveVersion={onRemoveVersion}
-          onClearVersions={onClearVersions}
+        <Background 
+          variant={BackgroundVariant.Dots} 
+          gap={20} 
+          size={1}
+          className={snapToGridState ? "opacity-40" : "opacity-20"}
+        />
+        <Controls 
+          position="bottom-left"
+          showZoom={false}
+          showFitView={false}
+          showInteractive={false}
         />
       </ReactFlow>
+
+      <FlowControls
+        snapToGrid={snapToGridState}
+        onSnapToggle={handleSnapToggle}
+        onAlignNodes={handleAlignNodes}
+        onAutoLayout={handleAutoLayout}
+      />
+
+      <FlowMinimap />
     </div>
   );
 }
@@ -163,7 +209,7 @@ export function FlowWrapper({
 export function FlowWrapperWithProvider(props: FlowWrapperProps) {
   return (
     <ReactFlowProvider>
-      <FlowWrapper {...props} />
+      <FlowWrapperComponent {...props} />
     </ReactFlowProvider>
   );
 }
