@@ -48,7 +48,7 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     let completedJobs = 0;
     let revenue = 0;
 
-    repairsData.forEach((repair: any) => {
+    repairsData.forEach((repair) => {
       if (repair?.status === 'in_progress') {
         activeJobs++;
       }
@@ -104,7 +104,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    const activities: RecentActivity[] = rawData.map((item: any, index: number) => {
+    const activities: RecentActivity[] = rawData.map((item, index) => {
       const activityId = item.id || `activity-${Date.now()}-${index}`;
       const activityType = mapActivityTypeToRecentActivity(item.activity_type || 'unknown');
       const description = item.description || 'Activity recorded';

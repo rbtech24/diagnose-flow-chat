@@ -5,19 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { CheckCircle, Wrench, Building2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { loginRateLimiter } from "@/utils/rateLimiter";
 import { emailSchema, passwordSchema } from "@/components/security/InputValidator";
 
-type UserRole = "tech" | "admin" | "company";
-
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [userRole, setUserRole] = useState<UserRole>("tech");
   const [isLoading, setIsLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
@@ -76,7 +71,7 @@ export default function Login() {
     setIsLoading(true);
     
     try {
-      const success = await login(email, password, userRole);
+      const success = await login(email, password);
       
       if (success) {
         // Reset rate limiter on successful login
@@ -84,9 +79,9 @@ export default function Login() {
         
         toast({
           title: "Login successful",
-          description: `Welcome back! Redirecting to ${userRole} dashboard.`,
+          description: `Welcome back! Redirecting to dashboard.`,
         });
-        navigate(`/${userRole}`);
+        // Navigation will be handled by the useEffect above
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -97,12 +92,6 @@ export default function Login() {
       });
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleRoleChange = (value: string | undefined) => {
-    if (value && (value === "tech" || value === "admin" || value === "company")) {
-      setUserRole(value as UserRole);
     }
   };
 
@@ -117,36 +106,13 @@ export default function Login() {
               className="h-32"
             />
           </div>
+          <CardTitle className="text-2xl font-bold">Sign in</CardTitle>
           <CardDescription>
             Sign in to your account to continue
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="role">Select your role</Label>
-              <ToggleGroup 
-                type="single" 
-                variant="outline" 
-                value={userRole} 
-                onValueChange={handleRoleChange}
-                className="justify-between"
-              >
-                <ToggleGroupItem value="tech" className="flex-1 gap-1.5">
-                  <Wrench className="h-4 w-4" />
-                  Technician
-                </ToggleGroupItem>
-                <ToggleGroupItem value="company" className="flex-1 gap-1.5">
-                  <Building2 className="h-4 w-4" />
-                  Company
-                </ToggleGroupItem>
-                <ToggleGroupItem value="admin" className="flex-1 gap-1.5">
-                  <CheckCircle className="h-4 w-4" />
-                  Admin
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </div>
-            
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input

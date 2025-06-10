@@ -23,14 +23,14 @@ import {
   SidebarToggle,
   SidebarNavGroup
 } from "@/components/ui/sidebar";
-import { useUserManagementStore } from "@/store/userManagementStore";
+import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 
 export function CompanySidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useUserManagementStore();
+  const { logout } = useAuth();
   const { toast } = useToast();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const isActive = (path: string) => location.pathname === path;
@@ -43,7 +43,7 @@ export function CompanySidebar() {
         title: "Logged out successfully",
         description: "You have been logged out of your account"
       });
-      navigate("/sign-in");
+      navigate("/login");
     } catch (error) {
       console.error("Error logging out:", error);
       toast({

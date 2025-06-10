@@ -1,154 +1,177 @@
 
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { User } from "@/types/user";
-import { useUserManagementStore } from "@/store/userManagementStore";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
+import { User as AppUser } from '@/types/user';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
 
 interface AuthContextType {
-  user: User | null;
+  user: AppUser | null;
+  session: Session | null;
   isLoading: boolean;
-  login: (email: string, password: string, userRole: "admin" | "company" | "tech") => Promise<boolean>;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
-  signup: (userData: any) => Promise<boolean>;
-  resetPassword: (email: string) => Promise<boolean>;
+  signUp: (email: string, password: string, userData?: Partial<AppUser>) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { users } = useUserManagementStore();
-  const { toast } = useToast();
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
 
-  useEffect(() => {
-    // Check if user is logged in from localStorage
-    const checkAuth = async () => {
-      const storedUser = localStorage.getItem("currentUser");
-      
-      if (storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          setUser(parsedUser);
-        } catch (error) {
-          console.error("Error parsing stored user:", error);
-          localStorage.removeItem("currentUser");
-        }
-      }
-      
-      setIsLoading(false);
-    };
-    
-    checkAuth();
-  }, []);
+interface AuthProviderProps {
+  children: ReactNode;
+}
 
-  const login = async (email: string, password: string, userRole: "admin" | "company" | "tech") => {
-    // In a real app, this would authenticate with a backend
-    // For now, we'll just find a matching user in our store
+export function AuthProvider({ children }: AuthProviderProps) {
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { handleError } = useErrorHandler();
+
+  const fetchUserProfile = async (authUser: User): Promise<AppUser | null> => {
     try {
-      const foundUser = users.find(
-        u => u.email.toLowerCase() === email.toLowerCase() && u.role === userRole
-      );
-      
-      if (foundUser) {
-        // In a real app, we would verify the password here
-        // For demo purposes, any password will work
-        setUser(foundUser);
-        localStorage.setItem("currentUser", JSON.stringify(foundUser));
-        return true;
-      } else {
-        toast({
-          title: "Login failed",
-          description: "Invalid email, password, or user role. Please try again.",
-          variant: "destructive",
-        });
-        return false;
+      const { data, error } = await supabase
+        .from('technicians')
+        .select('id, email, role, company_id, status, phone, created_at, updated_at')
+        .eq('id', authUser.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return null;
       }
+
+      return {
+        id: data.id,
+        name: authUser.email?.split('@')[0] || 'Unknown',
+        email: data.email || authUser.email || '',
+        role: (data.role as 'admin' | 'company' | 'tech') || 'tech',
+        companyId: data.company_id || '',
+        status: data.status || 'active',
+        avatarUrl: authUser.user_metadata?.avatar_url,
+        activeJobs: 0
+      };
     } catch (error) {
-      console.error("Login error:", error);
-      toast({
-        title: "Login failed",
-        description: "An error occurred during login. Please try again.",
-        variant: "destructive",
-      });
-      return false;
+      handleError(error, 'fetchUserProfile', { showToast: false });
+      return null;
     }
   };
 
-  const logout = async () => {
-    // In a real app, this would sign out from the backend
-    setUser(null);
-    localStorage.removeItem("currentUser");
-  };
-
-  const signup = async (userData: any) => {
-    // In a real app, this would create a user in the backend
+  const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // For now, we'll just pretend it worked
-      toast({
-        title: "Signup successful",
-        description: "Your account has been created. Please sign in.",
+      setIsLoading(true);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
       });
+
+      if (error) {
+        handleError(error, 'login');
+        return false;
+      }
+
       return true;
     } catch (error) {
-      console.error("Signup error:", error);
-      toast({
-        title: "Signup failed",
-        description: "An error occurred during signup. Please try again.",
-        variant: "destructive",
-      });
+      handleError(error, 'login');
       return false;
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const resetPassword = async (email: string) => {
+  const signUp = async (email: string, password: string, userData?: Partial<AppUser>): Promise<boolean> => {
     try {
-      // In a real app, this would send a password reset email
-      // For now, we'll just check if the email exists
-      const userExists = users.some(u => u.email.toLowerCase() === email.toLowerCase());
-      
-      if (userExists) {
-        toast({
-          title: "Password reset email sent",
-          description: "Check your email for instructions to reset your password.",
-        });
-        return true;
-      } else {
-        toast({
-          title: "Email not found",
-          description: "No account found with this email address.",
-          variant: "destructive",
-        });
+      setIsLoading(true);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: userData
+        }
+      });
+
+      if (error) {
+        handleError(error, 'signUp');
         return false;
       }
+
+      return true;
     } catch (error) {
-      console.error("Password reset error:", error);
-      toast({
-        title: "Password reset failed",
-        description: "An error occurred. Please try again.",
-        variant: "destructive",
-      });
+      handleError(error, 'signUp');
       return false;
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const value = {
+  const logout = async (): Promise<void> => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        handleError(error, 'logout');
+      }
+    } catch (error) {
+      handleError(error, 'logout');
+    }
+  };
+
+  useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        
+        setSession(session);
+        
+        if (session?.user) {
+          // Defer user profile fetching to avoid potential recursion
+          setTimeout(async () => {
+            const userProfile = await fetchUserProfile(session.user);
+            setUser(userProfile);
+            setIsLoading(false);
+          }, 0);
+        } else {
+          setUser(null);
+          setIsLoading(false);
+        }
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setSession(session);
+        fetchUserProfile(session.user).then((userProfile) => {
+          setUser(userProfile);
+          setIsLoading(false);
+        });
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const value: AuthContextType = {
     user,
+    session,
     isLoading,
     login,
     logout,
-    signup,
-    resetPassword,
+    signUp
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
