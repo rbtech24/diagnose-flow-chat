@@ -108,7 +108,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const getSessionTimeRemaining = useCallback((): number => {
     if (!session?.expires_at) return 0;
-    const expiresAt = new Date(session.expires_at).getTime();
+    const expiresAt = typeof session.expires_at === 'string' 
+      ? new Date(session.expires_at).getTime() 
+      : session.expires_at * 1000;
     return Math.max(0, expiresAt - Date.now());
   }, [session]);
 
