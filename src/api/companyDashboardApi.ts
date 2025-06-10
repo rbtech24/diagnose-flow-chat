@@ -16,14 +16,6 @@ export interface RecentActivity {
   icon: string;
 }
 
-// Define the raw data type from Supabase
-interface RawActivityData {
-  id: string | number;
-  activity_type: string | null;
-  description: string | null;
-  created_at: string;
-}
-
 export const fetchDashboardStats = async (companyId: string): Promise<DashboardStats> => {
   console.log('Fetching dashboard stats for company:', companyId);
   
@@ -113,20 +105,14 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    // Explicitly type the raw data and map it
-    const typedRawData = rawData as RawActivityData[];
-    const activities: RecentActivity[] = [];
-    
-    for (const item of typedRawData) {
-      const activity: RecentActivity = {
-        id: String(item.id || `activity-${Date.now()}-${Math.random()}`),
-        type: mapActivityTypeToRecentActivity(item.activity_type || 'unknown'),
-        description: item.description || 'Activity recorded',
-        time: formatTimeAgo(new Date(item.created_at || new Date().toISOString())),
-        icon: getActivityIcon(item.activity_type || 'unknown')
-      };
-      activities.push(activity);
-    }
+    // Process the raw data into RecentActivity format
+    const activities: RecentActivity[] = rawData.map((item: any) => ({
+      id: String(item.id || `activity-${Date.now()}-${Math.random()}`),
+      type: mapActivityTypeToRecentActivity(item.activity_type || 'unknown'),
+      description: item.description || 'Activity recorded',
+      time: formatTimeAgo(new Date(item.created_at || new Date().toISOString())),
+      icon: getActivityIcon(item.activity_type || 'unknown')
+    }));
 
     return activities;
   } catch (error) {
