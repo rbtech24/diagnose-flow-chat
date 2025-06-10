@@ -32,7 +32,7 @@ export function ContentField({ field, onFieldChange }: ContentFieldProps) {
   };
 
   // Handle special formatting when user presses Enter
-  const handleKeyDown = (e: React.KeyEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       const textarea = e.target as HTMLTextAreaElement;
       const cursorPos = textarea.selectionStart;
@@ -67,7 +67,7 @@ export function ContentField({ field, onFieldChange }: ContentFieldProps) {
   };
 
   // Handle tab indentation for nested lists
-  const handleKeyDownTab = (e: React.KeyEvent<HTMLTextAreaElement>) => {
+  const handleKeyDownTab = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Tab') {
       e.preventDefault();
       const textarea = e.target as HTMLTextAreaElement;
