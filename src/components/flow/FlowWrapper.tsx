@@ -1,8 +1,9 @@
 
 import { ReactFlow, ReactFlowProvider } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import './FlowAnimations.css';
 import DiagnosisNode from '../diagnosis/DiagnosisNode';
-import { defaultEdgeOptions } from '@/utils/flow';
+import { enhancedEdgeOptions } from '@/utils/flow/edge-styles';
 import { FlowToolbar } from './FlowToolbar';
 import { FlowBackground } from './FlowBackground';
 import { Node } from '@xyflow/react';
@@ -63,7 +64,7 @@ export function FlowWrapper({
         onConnect={onConnect}
         onNodeClick={onNodeClick}
         nodeTypes={nodeTypes}
-        defaultEdgeOptions={defaultEdgeOptions}
+        defaultEdgeOptions={enhancedEdgeOptions}
         snapToGrid={snapToGrid}
         snapGrid={[15, 15]}
         fitView={false}
@@ -74,7 +75,7 @@ export function FlowWrapper({
         style={{ 
           backgroundColor: '#f9fafb',
           '--xy-edge-stroke-default': '#22c55e',
-          '--xy-edge-stroke-width-default': '2px'
+          '--xy-edge-stroke-width-default': '3px'
         } as React.CSSProperties}
       >
         <FlowBackground />

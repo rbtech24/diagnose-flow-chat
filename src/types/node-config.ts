@@ -1,4 +1,3 @@
-
 export interface TechnicalSpecs {
   range: {
     min: number;
@@ -19,10 +18,14 @@ export interface MediaItem {
 
 export interface Field {
   id: string;
-  type: 'content' | 'media' | 'options';
+  type: 'content' | 'options' | 'media' | 'workflow-link';
   content?: string;
-  media?: MediaItem[];
-  options?: string[];
+  placeholder?: string;
+  validation?: {
+    required?: boolean;
+    pattern?: string;
+    message?: string;
+  };
 }
 
 export type WarningType = 'electric' | 'water' | 'fire';

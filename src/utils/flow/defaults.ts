@@ -1,19 +1,11 @@
-
 import { Node, Edge, MarkerType } from '@xyflow/react';
+import { getEdgeStyle, getEdgeMarker } from './edge-styles';
 
 export const defaultEdgeOptions = {
   type: 'smoothstep',
   animated: false,
-  markerEnd: {
-    type: MarkerType.ArrowClosed,
-    color: '#22c55e',
-    width: 20,
-    height: 20,
-  },
-  style: {
-    strokeWidth: 2,
-    stroke: '#22c55e',
-  },
+  markerEnd: getEdgeMarker(),
+  style: getEdgeStyle(),
 };
 
 export const initialNodes: Node[] = [

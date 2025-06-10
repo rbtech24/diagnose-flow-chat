@@ -1,0 +1,61 @@
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+
+@keyframes pulse-edge {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes flow-animation {
+  0% {
+    stroke-dashoffset: 20;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Enhanced edge styles */
+.react-flow__edge-path {
+  transition: stroke 0.3s ease, stroke-width 0.3s ease;
+}
+
+.react-flow__edge.animated .react-flow__edge-path {
+  animation: dash 2s linear infinite;
+}
+
+.react-flow__edge.workflow-link .react-flow__edge-path {
+  stroke-dasharray: 10, 5;
+  animation: flow-animation 3s linear infinite;
+}
+
+.react-flow__edge.success .react-flow__edge-path {
+  stroke: #22c55e;
+}
+
+.react-flow__edge.error .react-flow__edge-path {
+  stroke: #ef4444;
+}
+
+.react-flow__edge.warning .react-flow__edge-path {
+  stroke: #f59e0b;
+}
+
+/* Hover effects for edges */
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke-width: 4;
+  filter: drop-shadow(0 0 6px currentColor);
+}
+
+/* Connection indicator improvements */
+.react-flow__handle.connectionindicator {
+  animation: pulse-edge 1.5s ease-in-out infinite;
+}
