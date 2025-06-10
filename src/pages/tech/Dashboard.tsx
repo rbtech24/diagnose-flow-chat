@@ -67,7 +67,7 @@ export default function TechDashboard() {
               </div>
               <Button 
                 className="w-full bg-black hover:bg-gray-800 text-white"
-                onClick={() => window.open('https://apps.apple.com', '_blank')}
+                onClick={() => alert('iOS app will be available soon! Export this project to GitHub and follow the setup instructions to build the iOS app.')}
               >
                 <Download className="mr-2 h-4 w-4" />
                 Download for iOS
@@ -88,7 +88,7 @@ export default function TechDashboard() {
               </div>
               <Button 
                 className="w-full bg-green-600 hover:bg-green-700 text-white"
-                onClick={() => window.open('https://play.google.com', '_blank')}
+                onClick={() => alert('Android app will be available soon! Export this project to GitHub and follow the setup instructions to build the Android app.')}
               >
                 <Download className="mr-2 h-4 w-4" />
                 Download for Android

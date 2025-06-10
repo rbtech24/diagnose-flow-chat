@@ -1,22 +1,36 @@
 
 {
-  "name": "Repair Auto Pilot",
-  "short_name": "RepairPilot",
-  "description": "The ultimate appliance repair diagnostic solution for modern service businesses",
-  "start_url": "/",
+  "name": "DiagnoseFlow Tech",
+  "short_name": "DiagnoseFlow",
+  "description": "Technical diagnostic application for appliance repair technicians",
+  "start_url": "/tech",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/lovable-uploads/5e12430c-6872-485e-b07a-02b835f8e3d4.png",
-      "sizes": "192x192",
-      "type": "image/png"
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
     },
     {
-      "src": "/lovable-uploads/5e12430c-6872-485e-b07a-02b835f8e3d4.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "/favicon.ico",
+      "type": "image/x-icon",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/favicon.ico",
+      "type": "image/x-icon", 
+      "sizes": "512x512"
+    }
+  ],
+  "categories": ["productivity", "utilities", "business"],
+  "screenshots": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "640x480",
+      "type": "image/x-icon"
     }
   ]
 }
