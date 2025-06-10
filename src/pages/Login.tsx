@@ -11,7 +11,6 @@ import { loginRateLimiter } from "@/utils/rateLimiter";
 import { emailSchema, passwordSchema } from "@/components/security/InputValidator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, AlertTriangle } from "lucide-react";
-import { DemoUserSetup } from "@/components/auth/DemoUserSetup";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -21,7 +20,6 @@ export default function Login() {
   const [passwordError, setPasswordError] = useState("");
   const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
   const [lockoutTime, setLockoutTime] = useState<number | null>(null);
-  const [showDemoSetup, setShowDemoSetup] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { login, user, isSessionValid, getSessionTimeRemaining } = useAuth();
@@ -125,127 +123,114 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
-      <div className="flex gap-6 w-full max-w-4xl">
-        <Card className="w-full max-w-md shadow-lg">
-          <CardHeader className="space-y-1 text-center">
-            <div className="flex justify-center mb-3">
-              <img 
-                src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
-                alt="Repair Auto Pilot" 
-                className="h-32"
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader className="space-y-1 text-center">
+          <div className="flex justify-center mb-3">
+            <img 
+              src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
+              alt="Repair Auto Pilot" 
+              className="h-32"
+            />
+          </div>
+          <CardTitle className="text-2xl font-bold">Sign in</CardTitle>
+          <CardDescription>
+            Sign in to your account to continue
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {/* Security Status Indicators */}
+          {remainingAttempts !== null && remainingAttempts < 3 && (
+            <Alert className="mb-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                {remainingAttempts > 0 
+                  ? `${remainingAttempts} login attempts remaining`
+                  : "Account temporarily locked"
+                }
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {lockoutTime && lockoutTime > Date.now() && (
+            <Alert variant="destructive" className="mb-4">
+              <Shield className="h-4 w-4" />
+              <AlertDescription>
+                Account locked. Try again in {formatTimeRemaining(lockoutTime - Date.now())}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {user && (
+            <Alert className="mb-4">
+              <Shield className="h-4 w-4" />
+              <AlertDescription>
+                Session expires in {formatTimeRemaining(getSessionTimeRemaining())}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={emailError ? "border-red-500" : ""}
+                autoComplete="email"
+                required
               />
+              {emailError && <p className="text-sm text-red-500">{emailError}</p>}
             </div>
-            <CardTitle className="text-2xl font-bold">Sign in</CardTitle>
-            <CardDescription>
-              Sign in to your account to continue
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {/* Security Status Indicators */}
-            {remainingAttempts !== null && remainingAttempts < 3 && (
-              <Alert className="mb-4">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  {remainingAttempts > 0 
-                    ? `${remainingAttempts} login attempts remaining`
-                    : "Account temporarily locked"
-                  }
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {lockoutTime && lockoutTime > Date.now() && (
-              <Alert variant="destructive" className="mb-4">
-                <Shield className="h-4 w-4" />
-                <AlertDescription>
-                  Account locked. Try again in {formatTimeRemaining(lockoutTime - Date.now())}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {user && (
-              <Alert className="mb-4">
-                <Shield className="h-4 w-4" />
-                <AlertDescription>
-                  Session expires in {formatTimeRemaining(getSessionTimeRemaining())}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={emailError ? "border-red-500" : ""}
-                  autoComplete="email"
-                  required
-                />
-                {emailError && <p className="text-sm text-red-500">{emailError}</p>}
+            
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-800">
+                  Forgot password?
+                </Link>
               </div>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-800">
-                    Forgot password?
-                  </Link>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={passwordError ? "border-red-500" : ""}
-                  autoComplete="current-password"
-                  required
-                />
-                {passwordError && <p className="text-sm text-red-500">{passwordError}</p>}
-              </div>
-              
-              <Button 
-                type="submit" 
-                className="w-full bg-blue-600 hover:bg-blue-700" 
-                disabled={isLoading || (lockoutTime !== null && lockoutTime > Date.now())}
-              >
-                {isLoading ? "Signing in..." : "Sign in"}
-              </Button>
-            </form>
-
-            {/* Security Information */}
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-              <div className="flex items-center gap-2 text-sm text-blue-800">
-                <Shield className="h-4 w-4" />
-                <span>Secure login with rate limiting and session management</span>
-              </div>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={passwordError ? "border-red-500" : ""}
+                autoComplete="current-password"
+                required
+              />
+              {passwordError && <p className="text-sm text-red-500">{passwordError}</p>}
             </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <div className="text-center text-sm text-gray-500">
-              Don't have an account?{" "}
-              <Link to="/signup" className="text-blue-600 hover:text-blue-800">
-                Sign up now
-              </Link>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowDemoSetup(!showDemoSetup)}
-              className="w-full"
+            
+            <Button 
+              type="submit" 
+              className="w-full bg-blue-600 hover:bg-blue-700" 
+              disabled={isLoading || (lockoutTime !== null && lockoutTime > Date.now())}
             >
-              {showDemoSetup ? 'Hide' : 'Show'} Demo Setup
+              {isLoading ? "Signing in..." : "Sign in"}
             </Button>
-          </CardFooter>
-        </Card>
+          </form>
 
-        {/* Demo User Setup Panel */}
-        {showDemoSetup && <DemoUserSetup />}
-      </div>
+          {/* Security Information */}
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+            <div className="flex items-center gap-2 text-sm text-blue-800">
+              <Shield className="h-4 w-4" />
+              <span>Secure login with rate limiting and session management</span>
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter>
+          <div className="text-center text-sm text-gray-500 w-full">
+            Don't have an account?{" "}
+            <Link to="/signup" className="text-blue-600 hover:text-blue-800">
+              Sign up now
+            </Link>
+          </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 }
