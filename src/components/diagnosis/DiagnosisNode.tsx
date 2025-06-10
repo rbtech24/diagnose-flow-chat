@@ -288,7 +288,7 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
             <WarningIcon 
               type={warningConfig.type}
               includeLicenseText={warningConfig.includeLicenseText || false}
-              className="text-xs"
+              className="text-xs scale-75 origin-top-left"
             />
           </div>
         );
