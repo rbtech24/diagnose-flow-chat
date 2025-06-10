@@ -26,7 +26,7 @@ export function useWorkflowSearch(nodes: Node[]) {
     nodes.forEach(node => {
       // Type filter check
       if (typeFilter !== 'all') {
-        const nodeType = node.data?.type || 'question';
+        const nodeType = (typeof node.data?.type === 'string' ? node.data.type : 'question');
         if (nodeType !== typeFilter) {
           return;
         }
@@ -34,15 +34,16 @@ export function useWorkflowSearch(nodes: Node[]) {
 
       // Search term check
       if (term) {
-        const label = node.data?.label?.toLowerCase() || '';
-        const content = node.data?.content?.toLowerCase() || '';
-        const richInfo = node.data?.richInfo?.toLowerCase() || '';
+        // Safe string conversion with type guards
+        const label = typeof node.data?.label === 'string' ? node.data.label.toLowerCase() : '';
+        const content = typeof node.data?.content === 'string' ? node.data.content.toLowerCase() : '';
+        const richInfo = typeof node.data?.richInfo === 'string' ? node.data.richInfo.toLowerCase() : '';
 
         if (label.includes(term)) {
           results.push({
             nodeId: node.id,
             matchType: 'label',
-            matchText: node.data?.label || node.id
+            matchText: typeof node.data?.label === 'string' ? node.data.label : node.id
           });
         } else if (content.includes(term)) {
           results.push({
@@ -62,7 +63,7 @@ export function useWorkflowSearch(nodes: Node[]) {
         results.push({
           nodeId: node.id,
           matchType: 'type',
-          matchText: node.data?.label || node.id
+          matchText: typeof node.data?.label === 'string' ? node.data.label : node.id
         });
       }
     });
