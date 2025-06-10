@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { NodeTypeSelect } from './NodeTypeSelect';
 import { NodeFields } from './NodeFields';
-import { TechnicalSpecs } from './TechnicalSpecs';
+import { TechnicalSpecsPanel } from './TechnicalSpecs';
 import { EnhancedNodeConfig } from './enhanced/EnhancedNodeConfig';
 import { DiagnosticTemplates } from './enhanced/DiagnosticTemplates';
 import { Button } from '../ui/button';
@@ -11,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Separator } from '../ui/separator';
 import { Badge } from '../ui/badge';
-import { RotateCcw, Check, FileTemplate } from 'lucide-react';
+import { RotateCcw, Check, File } from 'lucide-react';
 import { Field, TechnicalSpecs as TechnicalSpecsType } from '@/types/node-config';
 import { EnhancedNodeData, EnhancedNodeType } from '@/types/enhanced-node-config';
 
@@ -62,8 +63,8 @@ export function NodeConfigForm({
 
   const handleTemplateApply = (templateData: EnhancedNodeData) => {
     // Apply template data to the current node
-    onNodeTypeChange(templateData.type || 'question');
-    onLabelChange(templateData.title || templateData.label || '');
+    onNodeTypeChange(templateData.type as string || 'question');
+    onLabelChange(templateData.title || templateData.label as string || '');
     
     // Convert template data to the expected format
     const convertedFields: Field[] = [];
@@ -129,8 +130,9 @@ export function NodeConfigForm({
               {showTechnicalFields && (
                 <>
                   <Separator />
-                  <TechnicalSpecs
-                    specs={technicalSpecs}
+                  <TechnicalSpecsPanel
+                    nodeType={nodeType}
+                    value={technicalSpecs}
                     onChange={onTechnicalSpecsChange}
                   />
                 </>
@@ -150,7 +152,7 @@ export function NodeConfigForm({
               onChange={(data) => {
                 // Handle enhanced node data changes
                 if (data.title !== label) {
-                  onLabelChange(data.title || data.label || '');
+                  onLabelChange(data.title as string || data.label as string || '');
                 }
               }} 
             />
@@ -172,7 +174,7 @@ export function NodeConfigForm({
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileTemplate className="w-4 h-4" />
+                <File className="w-4 h-4" />
                 Diagnostic Templates
               </CardTitle>
             </CardHeader>

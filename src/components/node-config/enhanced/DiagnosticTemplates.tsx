@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +8,7 @@ import {
   Wrench, 
   Camera, 
   ClipboardCheck,
-  FileText 
+  File 
 } from 'lucide-react';
 import { EnhancedNodeData } from '@/types/enhanced-node-config';
 
@@ -157,7 +156,7 @@ export function DiagnosticTemplates({ onApplyTemplate }: DiagnosticTemplatesProp
     },
     {
       name: "Decision Tree",
-      icon: <FileText className="w-4 h-4" />,
+      icon: <File className="w-4 h-4" />,
       category: "Logic",
       data: {
         type: "decision-tree",
