@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { FileLibraryItem, FileCategory, SearchFilters } from "@/types/fileLibrary";
 
@@ -23,7 +22,26 @@ export const searchFileLibrary = async (
       throw error;
     }
 
-    return data || [];
+    // Type assertion to ensure proper typing from database
+    return (data || []).map((item: any): FileLibraryItem => ({
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      file_type: item.file_type,
+      tags: item.tags || [],
+      download_count: item.download_count || 0,
+      is_featured: item.is_featured || false,
+      visibility: item.visibility as 'public' | 'company_only' | 'private',
+      category_name: item.category_name,
+      category_icon: item.category_icon,
+      category_color: item.category_color,
+      file_name: item.file_name,
+      file_size: item.file_size || 0,
+      file_url: item.file_url,
+      mime_type: item.mime_type,
+      created_at: item.created_at,
+      rank: item.rank || 0
+    }));
   } catch (error) {
     console.error('Error in searchFileLibrary:', error);
     throw error;

@@ -99,7 +99,8 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
           <div className="text-xs text-gray-600 mb-1">Options:</div>
           <ul className="text-xs text-gray-600 list-disc list-inside">
             {nodeData.options.map((option, index) => {
-              const optionText = option != null ? String(option) : '';
+              // Properly type the option as string
+              const optionText = String(option || '');
               return <li key={index}>{optionText}</li>;
             })}
           </ul>
@@ -177,8 +178,8 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
         
         {(nodeData.yes || nodeData.no) && nodeData.type === 'question' && (
           <div className="mt-2 text-xs text-gray-600">
-            <div>Yes: {nodeData.yes ? String(nodeData.yes) : 'Continue'}</div>
-            <div>No: {nodeData.no ? String(nodeData.no) : 'Stop'}</div>
+            <div>Yes: {String(nodeData.yes || 'Continue')}</div>
+            <div>No: {String(nodeData.no || 'Stop')}</div>
           </div>
         )}
 
