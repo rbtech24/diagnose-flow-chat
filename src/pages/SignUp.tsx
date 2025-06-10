@@ -100,7 +100,7 @@ export default function SignUp() {
                     Transform Your Business Today
                   </h2>
                   <p className="text-xl text-gray-600 mb-8">
-                    Join thousands of professionals revolutionizing the repair industry with AI
+                    Join thousands of professionals streamlining their repair operations with powerful management tools
                   </p>
                   
                   {/* Trust Indicators */}
@@ -124,8 +124,8 @@ export default function SignUp() {
                       <Zap className="h-7 w-7 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-gray-900 text-lg">40% Faster Diagnostics</h3>
-                      <p className="text-gray-600">AI-powered insights cut diagnosis time in half</p>
+                      <h3 className="font-bold text-gray-900 text-lg">Streamlined Workflows</h3>
+                      <p className="text-gray-600">Organize and track repairs more efficiently</p>
                     </div>
                   </div>
                   
@@ -144,8 +144,8 @@ export default function SignUp() {
                       <TrendingUp className="h-7 w-7 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-gray-900 text-lg">2.5x Revenue Growth</h3>
-                      <p className="text-gray-600">Boost profits with optimized operations</p>
+                      <h3 className="font-bold text-gray-900 text-lg">Business Growth</h3>
+                      <p className="text-gray-600">Scale your operations with data-driven insights</p>
                     </div>
                   </div>
                 </div>
@@ -340,14 +340,14 @@ export default function SignUp() {
               <div className="lg:hidden mt-8 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg p-6">
                 <div className="text-center mb-6">
                   <h3 className="font-bold text-gray-900 text-lg mb-2">Join the Revolution</h3>
-                  <p className="text-sm text-gray-600">Transform your repair business with AI</p>
+                  <p className="text-sm text-gray-600">Transform your repair business with modern tools</p>
                 </div>
                 <div className="space-y-4 text-sm">
                   <div className="flex items-center">
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
                       <Zap className="w-4 h-4 text-blue-600" />
                     </div>
-                    <span className="font-medium">40% faster diagnostics</span>
+                    <span className="font-medium">Streamlined workflows</span>
                   </div>
                   <div className="flex items-center">
                     <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
@@ -359,7 +359,7 @@ export default function SignUp() {
                     <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
                       <TrendingUp className="w-4 h-4 text-purple-600" />
                     </div>
-                    <span className="font-medium">2.5x revenue growth</span>
+                    <span className="font-medium">Business growth insights</span>
                   </div>
                 </div>
                 <div className="mt-6 p-4 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg text-white text-center">
