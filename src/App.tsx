@@ -1,3 +1,4 @@
+
 import {
   createBrowserRouter,
   RouterProvider,
@@ -54,7 +55,6 @@ import Contact from "./pages/Contact";
 import Partners from "./pages/Partners";
 import HelpCenter from "./pages/HelpCenter";
 import CommunityForum from "./pages/CommunityForum";
-import Status from "./pages/Status";
 import GetStarted from "./pages/GetStarted";
 import CaseStudies from "./pages/CaseStudies";
 import Updates from "./pages/Updates";
@@ -122,10 +122,6 @@ const router = createBrowserRouter([
   {
     path: "/community-forum",
     element: <CommunityForum />
-  },
-  {
-    path: "/status",
-    element: <Status />
   },
   {
     path: "/get-started",

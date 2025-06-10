@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Home, HelpCircle, Settings, Bell } from 'lucide-react';
+import { ArrowLeft, Home, HelpCircle, Settings } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 interface PageHeaderProps {
@@ -68,12 +68,6 @@ export function PageHeader({
                 <Link to="/help-center">
                   <HelpCircle className="h-4 w-4" />
                   <span className="hidden sm:inline ml-2">Help</span>
-                </Link>
-              </Button>
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/status">
-                  <Bell className="h-4 w-4" />
-                  <span className="hidden sm:inline ml-2">Status</span>
                 </Link>
               </Button>
             </nav>
