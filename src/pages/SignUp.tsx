@@ -90,11 +90,6 @@ export default function SignUp() {
             <div className="w-full max-w-2xl mx-auto py-12">
               <div className="space-y-8">
                 <div className="text-center">
-                  <img 
-                    src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
-                    alt="Repair Auto Pilot" 
-                    className="h-16 mx-auto mb-6"
-                  />
                   <h2 className="text-4xl font-bold text-gray-900 mb-4">
                     Transform Your Business Today
                   </h2>
@@ -168,13 +163,8 @@ export default function SignUp() {
           {/* Right Side - Sign Up Form */}
           <div className="flex items-center justify-center py-8 lg:py-12">
             <div className="w-full max-w-md mx-auto">
-              {/* Large Logo Above Form */}
+              {/* Header without logo */}
               <div className="text-center mb-8">
-                <img 
-                  src="/lovable-uploads/868fa51f-a29b-4816-a866-c3f9cbdfac9e.png" 
-                  alt="Repair Auto Pilot" 
-                  className="h-24 mx-auto mb-4"
-                />
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
                   Create Your Account
                 </h1>
