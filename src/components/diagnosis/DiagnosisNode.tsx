@@ -179,8 +179,8 @@ const DiagnosisNode = memo(({ data, id }: DiagnosisNodeProps) => {
         
         {(nodeData.yes || nodeData.no) && nodeData.type === 'question' && (
           <div className="mt-2 text-xs text-gray-600">
-            <div>Yes: {nodeData.yes || 'Continue'}</div>
-            <div>No: {nodeData.no || 'Stop'}</div>
+            <div>Yes: {String(nodeData.yes) || 'Continue'}</div>
+            <div>No: {String(nodeData.no) || 'Stop'}</div>
           </div>
         )}
 

@@ -42,6 +42,7 @@ interface UserManagementState {
   isLoadingUsers: boolean;
   isLoadingCompanies: boolean;
   isLoadingCurrentUser: boolean;
+  setCurrentUser: (user: User | null) => void;
   fetchUsers: () => Promise<void>;
   fetchUserById: (id: string) => Promise<User | null>;
   updateUser: (id: string, userData: Partial<User>) => Promise<boolean>;
@@ -63,6 +64,10 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
   isLoadingUsers: false,
   isLoadingCompanies: false,
   isLoadingCurrentUser: false,
+
+  setCurrentUser: (user: User | null) => {
+    set({ currentUser: user });
+  },
 
   fetchUsers: async () => {
     set({ isLoadingUsers: true });
