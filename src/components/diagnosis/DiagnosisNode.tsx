@@ -1,4 +1,3 @@
-
 import React, { memo, useCallback, useState } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -129,12 +128,69 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
     onNodeAction?.(data.id, action, actionData);
   }, [data.id, onNodeAction]);
 
+  // Helper function to check if content is warning JSON
+  const isWarningContent = (content: string) => {
+    if (!content || typeof content !== 'string') return false;
+    try {
+      const parsed = JSON.parse(content);
+      return parsed && typeof parsed === 'object' && parsed.type && 
+             ['electric', 'water', 'fire'].includes(parsed.type);
+    } catch {
+      return false;
+    }
+  };
+
+  // Helper function to get warning config from fields
+  const getWarningConfig = () => {
+    if (data.fields && Array.isArray(data.fields)) {
+      const warningField = data.fields.find(field => field.id === 'warning');
+      if (warningField?.content) {
+        try {
+          if (typeof warningField.content === 'object') {
+            return warningField.content;
+          } else if (typeof warningField.content === 'string') {
+            return JSON.parse(warningField.content);
+          }
+        } catch (error) {
+          console.log('Failed to parse warning content:', error);
+        }
+      }
+    }
+    return null;
+  };
+
   const renderContent = () => {
-    if (!data.content) return null;
+    // Get regular content, filtering out warning content
+    let content = data.content;
+    
+    // If the main content is warning JSON, don't display it here
+    if (content && isWarningContent(content)) {
+      content = null;
+    }
+    
+    // Check fields for non-warning content
+    let fieldContent = '';
+    if (data.fields && Array.isArray(data.fields)) {
+      const contentFields = data.fields.filter(field => 
+        field.type === 'content' && 
+        field.id !== 'warning' && 
+        field.content && 
+        !isWarningContent(field.content)
+      );
+      
+      fieldContent = contentFields
+        .map(field => field.content)
+        .filter(Boolean)
+        .join(' ');
+    }
+    
+    const finalContent = content || fieldContent;
+    
+    if (!finalContent) return null;
 
     return (
       <div className="text-sm text-gray-600 mt-2">
-        {typeof data.content === 'string' ? data.content : String(data.content)}
+        {typeof finalContent === 'string' ? finalContent : String(finalContent)}
       </div>
     );
   };
@@ -284,30 +340,26 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
   };
 
   const renderWarning = () => {
-    let warningConfig: any = null;
+    const warningConfig = getWarningConfig();
     
-    // Look for warning field in the fields array
-    if (data.fields && Array.isArray(data.fields)) {
-      const warningField = data.fields.find(field => field.id === 'warning');
-      if (warningField) {
-        console.log('Found warning field:', warningField);
-        
-        // Check if content exists and try to parse it
-        if (warningField.content) {
-          try {
-            // Handle case where content is already an object
-            if (typeof warningField.content === 'object') {
-              warningConfig = warningField.content;
-            } else if (typeof warningField.content === 'string') {
-              // Try to parse as JSON
-              warningConfig = JSON.parse(warningField.content);
-            }
-            console.log('Parsed warning config:', warningConfig);
-          } catch (error) {
-            console.log('Failed to parse warning content:', error);
-            console.log('Raw content:', warningField.content);
-          }
+    // Also check if main content is warning JSON
+    if (!warningConfig && data.content && isWarningContent(data.content)) {
+      try {
+        const parsed = JSON.parse(data.content);
+        if (parsed && parsed.type) {
+          console.log('Found warning in main content:', parsed);
+          return (
+            <div className="mt-3">
+              <WarningIcon 
+                type={parsed.type}
+                includeLicenseText={parsed.includeLicenseText || false}
+                className="text-xs scale-75 origin-top-left"
+              />
+            </div>
+          );
         }
+      } catch (error) {
+        console.log('Failed to parse warning from main content:', error);
       }
     }
     
