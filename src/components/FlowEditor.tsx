@@ -1,6 +1,6 @@
 
 import { useEffect, useState, useCallback } from 'react';
-import { Node } from '@xyflow/react';
+import { Node, useReactFlow } from '@xyflow/react';
 import {
   SavedWorkflow,
   initialNodes,
@@ -205,6 +205,27 @@ export default function FlowEditor({
     }
   }, [onNodeSelect]);
 
+  // Focus on a specific node (for validation)
+  const handleNodeFocus = useCallback((nodeId: string) => {
+    const targetNode = nodes.find(n => n.id === nodeId);
+    if (targetNode) {
+      // Focus the node and select it
+      setNodes(prevNodes => 
+        prevNodes.map(n => ({
+          ...n,
+          selected: n.id === nodeId
+        }))
+      );
+      
+      // If we have ReactFlow instance, we could also center the view on the node
+      console.log('Focusing on node:', nodeId);
+      toast({
+        title: "Node Focused",
+        description: `Highlighted node: ${targetNode.data?.label || nodeId}`
+      });
+    }
+  }, [nodes, setNodes]);
+
   return (
     <FlowEditorContent
       nodes={nodes}
@@ -226,6 +247,7 @@ export default function FlowEditor({
       onDeleteSelected={handleDeleteSelected}
       appliances={appliances}
       onApplyNodeChanges={handleApplyNodeChanges}
+      onNodeFocus={handleNodeFocus}
     />
   );
 }

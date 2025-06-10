@@ -1,10 +1,12 @@
 
 import { Button } from '../ui/button';
 import { SaveWorkflowDialog } from './SaveWorkflowDialog';
+import { ValidationButton } from '../validation/ValidationButton';
 import { handleSaveWorkflow } from '@/utils/flow';
 import { Download, Upload, Plus, Copy, Clipboard, Search, Link2, Save, Trash } from 'lucide-react';
 import { useFlowState } from '@/hooks/useFlowState';
-import { useCallback } from 'react';
+import { useWorkflowValidation } from '@/hooks/useWorkflowValidation';
+import { useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '../ui/input';
 import { SavedWorkflow } from '@/utils/flow/types';
@@ -22,6 +24,7 @@ interface FlowToolbarProps {
   appliances: string[];
   onApplyNodeChanges?: () => void;
   currentWorkflow?: SavedWorkflow;
+  onNodeFocus?: (nodeId: string) => void;
 }
 
 export function FlowToolbar({
@@ -33,12 +36,39 @@ export function FlowToolbar({
   onDeleteSelected,
   appliances,
   onApplyNodeChanges,
-  currentWorkflow
+  currentWorkflow,
+  onNodeFocus
 }: FlowToolbarProps) {
   const { nodes, edges, nodeCounter } = useFlowState();
+  const { validationSummary, isValidating, autoValidate, validate } = useWorkflowValidation();
   const navigate = useNavigate();
   const { userRole } = useUserRole();
   const isAdmin = userRole === 'admin';
+
+  // Auto-validate when nodes or edges change
+  useEffect(() => {
+    if (autoValidate && (nodes.length > 0 || edges.length > 0)) {
+      const timeoutId = setTimeout(() => {
+        validate({
+          nodes,
+          edges,
+          nodeCounter,
+          workflowMetadata: currentWorkflow?.metadata
+        });
+      }, 1000); // Debounce validation
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [nodes, edges, nodeCounter, autoValidate, validate, currentWorkflow]);
+
+  const handleValidate = useCallback(() => {
+    validate({
+      nodes,
+      edges,
+      nodeCounter,
+      workflowMetadata: currentWorkflow?.metadata
+    });
+  }, [nodes, edges, nodeCounter, currentWorkflow, validate]);
 
   const handleImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -93,6 +123,13 @@ export function FlowToolbar({
               <Upload className="w-4 h-4" />
               Import
             </Button>
+
+            <ValidationButton
+              validationSummary={validationSummary}
+              isValidating={isValidating}
+              onValidate={handleValidate}
+              onNodeFocus={onNodeFocus}
+            />
           </div>
 
           {/* Center section - Search */}

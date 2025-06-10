@@ -20,6 +20,7 @@ interface FlowCanvasProps {
   appliances: string[];
   onApplyNodeChanges?: () => void;
   currentWorkflow?: SavedWorkflow;
+  onNodeFocus?: (nodeId: string) => void;
 }
 
 export function FlowCanvas({
@@ -39,6 +40,7 @@ export function FlowCanvas({
   appliances,
   onApplyNodeChanges,
   currentWorkflow,
+  onNodeFocus,
 }: FlowCanvasProps) {
   return (
     <FlowWrapperWithProvider
@@ -58,6 +60,7 @@ export function FlowCanvas({
       appliances={appliances}
       onApplyNodeChanges={onApplyNodeChanges}
       currentWorkflow={currentWorkflow}
+      onNodeFocus={onNodeFocus}
     />
   );
 }

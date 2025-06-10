@@ -34,6 +34,7 @@ interface FlowWrapperProps {
   appliances: string[];
   onApplyNodeChanges?: () => void;
   currentWorkflow?: SavedWorkflow;
+  onNodeFocus?: (nodeId: string) => void;
 }
 
 export function FlowWrapper({
@@ -53,6 +54,7 @@ export function FlowWrapper({
   appliances,
   onApplyNodeChanges,
   currentWorkflow,
+  onNodeFocus,
 }: FlowWrapperProps) {
   return (
     <div className="w-full h-full">
@@ -89,6 +91,7 @@ export function FlowWrapper({
           appliances={appliances}
           onApplyNodeChanges={onApplyNodeChanges}
           currentWorkflow={currentWorkflow}
+          onNodeFocus={onNodeFocus}
         />
       </ReactFlow>
     </div>

@@ -26,6 +26,7 @@ interface FlowEditorContentProps {
   onDeleteSelected: () => void;
   appliances: string[];
   onApplyNodeChanges?: () => void;
+  onNodeFocus?: (nodeId: string) => void;
 }
 
 export function FlowEditorContent({
@@ -48,6 +49,7 @@ export function FlowEditorContent({
   onDeleteSelected,
   appliances,
   onApplyNodeChanges,
+  onNodeFocus,
 }: FlowEditorContentProps) {
   return (
     <div className="w-full h-full relative">
@@ -77,6 +79,7 @@ export function FlowEditorContent({
         appliances={appliances}
         onApplyNodeChanges={onApplyNodeChanges}
         currentWorkflow={currentWorkflow}
+        onNodeFocus={onNodeFocus}
       />
     </div>
   );
