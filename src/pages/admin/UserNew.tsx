@@ -1,3 +1,4 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -12,6 +13,7 @@ import { useUserManagementStore } from "@/store/userManagementStore";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import { toast } from "@/components/ui/use-toast";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -30,6 +32,7 @@ type UserFormValues = z.infer<typeof formSchema>;
 export default function UserNew() {
   const navigate = useNavigate();
   const { addUser, companies } = useUserManagementStore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [subscriptionPlans] = useState([
     { id: "basic-monthly", name: "Basic Plan (Monthly)", price: 9.99, billingCycle: "monthly" },
     { id: "pro-monthly", name: "Professional Plan (Monthly)", price: 19.99, billingCycle: "monthly" },
@@ -57,15 +60,20 @@ export default function UserNew() {
   const selectedRole = form.watch("role");
   const assignmentType = form.watch("assignmentType");
 
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+  const onSubmit = async (data: UserFormValues) => {
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+    console.log("Form submission started with data:", data);
+    
     try {
       const userData = {
         role: data.role,
         name: data.name,
         email: data.email,
-        phone: data.phone,
+        phone: data.phone || "",
         password: data.password,
-        status: "active", // Add status field which is required
+        status: "active",
         // Only include company ID if assignment type is company
         companyId: data.assignmentType === "company" ? data.companyId : undefined,
         // Only include subscription details if assignment type is subscription
@@ -75,10 +83,33 @@ export default function UserNew() {
         ...(data.role === "admin" && { companyId: undefined, planId: undefined, subscriptionStatus: undefined })
       };
       
+      console.log("Calling addUser with userData:", userData);
       const newUser = await addUser(userData);
-      navigate(`/admin/users/${newUser.id}`);
+      
+      if (newUser) {
+        console.log("User created successfully:", newUser);
+        toast({
+          title: "Success",
+          description: "User created successfully",
+        });
+        navigate("/admin/users");
+      } else {
+        console.error("User creation failed - no user returned");
+        toast({
+          title: "Error",
+          description: "Failed to create user. Please try again.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error("Failed to create user:", error);
+      toast({
+        title: "Error", 
+        description: error instanceof Error ? error.message : "Failed to create user. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -318,10 +349,16 @@ export default function UserNew() {
                   type="button"
                   variant="outline"
                   onClick={() => navigate("/admin/users")}
+                  disabled={isSubmitting}
                 >
                   Cancel
                 </Button>
-                <Button type="submit">Create User</Button>
+                <Button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Creating..." : "Create User"}
+                </Button>
               </div>
             </form>
           </Form>
