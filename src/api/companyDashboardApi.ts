@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DashboardStats {
@@ -48,9 +47,8 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     let completedJobs = 0;
     let revenue = 0;
 
-    // Simplified forEach without complex type inference
-    for (let i = 0; i < repairsData.length; i++) {
-      const repair = repairsData[i];
+    // Process repairs data
+    repairsData.forEach((repair) => {
       if (repair?.status === 'in_progress') {
         activeJobs++;
       }
@@ -63,7 +61,7 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
           }
         }
       }
-    }
+    });
       
     const completionRate = repairsData.length > 0 
       ? Math.round((completedJobs / repairsData.length) * 100) 
@@ -106,26 +104,22 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    // Simplified mapping without complex type inference
-    const result: RecentActivity[] = [];
-    for (let i = 0; i < rawData.length; i++) {
-      const item = rawData[i];
-      const activityId = item.id || `activity-${Date.now()}-${i}`;
+    // Map activity data
+    return rawData.map((item, index) => {
+      const activityId = item.id || `activity-${Date.now()}-${index}`;
       const activityType = mapActivityTypeToRecentActivity(item.activity_type || 'unknown');
       const description = item.description || 'Activity recorded';
       const time = formatTimeAgo(new Date(item.created_at || new Date().toISOString()));
       const icon = getActivityIcon(item.activity_type || 'unknown');
       
-      result.push({
+      return {
         id: String(activityId),
         type: activityType,
         description: description,
         time: time,
         icon: icon
-      });
-    }
-
-    return result;
+      };
+    });
   } catch (error) {
     console.error('Error in fetchRecentActivity:', error);
     return [];
