@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -138,7 +139,7 @@ export default function Login() {
                     Welcome Back!
                   </h2>
                   <p className="text-lg text-gray-600 mb-8">
-                    Continue transforming your repair business with AI-powered diagnostics
+                    Continue streamlining your repair operations with powerful management tools
                   </p>
                 </div>
                 
