@@ -1,4 +1,3 @@
-
 import React, { memo, useCallback, useState } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -150,11 +149,15 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
   const renderMedia = () => {
     if (!data.media) return null;
 
+    // Safely handle media type with fallback
+    const mediaType = data.media.type || 'unknown';
+    const mediaTypeDisplay = typeof mediaType === 'string' ? mediaType.toUpperCase() : 'MEDIA';
+
     return (
       <div className="mt-3 p-2 border rounded bg-gray-50">
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Camera className="w-4 h-4" />
-          <span>{data.media.type.toUpperCase()}</span>
+          <span>{mediaTypeDisplay}</span>
         </div>
         {data.media.description && (
           <p className="text-xs text-gray-500 mt-1">{data.media.description}</p>
