@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Zap, Shield, Search, FileText, Wrench } from 'lucide-react';
+import { CheckCircle, Search, FileText, Wrench, Shield } from 'lucide-react';
 
 export function SalesContent() {
   return (
@@ -103,20 +103,6 @@ export function SalesContent() {
           ))}
         </div>
       </div>
-
-      {/* Social Proof */}
-      <Card className="bg-blue-50 border-blue-200">
-        <CardContent className="p-6 text-center">
-          <Zap className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-          <h3 className="font-semibold text-lg mb-2">Join 10,000+ Repair Professionals</h3>
-          <p className="text-gray-600">
-            "This diagnostic tool has revolutionized how we troubleshoot appliances. The step-by-step workflows helped us identify issues we would have missed."
-          </p>
-          <p className="text-sm text-gray-500 mt-2">
-            - Mike Rodriguez, Senior Appliance Technician
-          </p>
-        </CardContent>
-      </Card>
     </div>
   );
 }
