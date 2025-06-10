@@ -97,9 +97,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return false;
     }
     
-    // Check for inactivity timeout - use timestamp as number
+    // Check for inactivity timeout - convert to string for consistency with SessionManager
     const lastActivity = SessionManager.getLastActivity();
-    if (SessionManager.isSessionExpired(lastActivity)) {
+    if (SessionManager.isSessionExpired(lastActivity.toString())) {
       return false;
     }
     

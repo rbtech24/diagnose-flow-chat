@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -213,14 +212,6 @@ export default function Login() {
               {isLoading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
-
-          {/* Security Information */}
-          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-            <div className="flex items-center gap-2 text-sm text-blue-800">
-              <Shield className="h-4 w-4" />
-              <span>Secure login with rate limiting and session management</span>
-            </div>
-          </div>
         </CardContent>
         <CardFooter>
           <div className="text-center text-sm text-gray-500 w-full">
