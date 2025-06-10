@@ -1,7 +1,7 @@
 
 {
-  "name": "DiagnoseFlow Tech",
-  "short_name": "DiagnoseFlow",
+  "name": "Repair Auto Pilot",
+  "short_name": "Repair Auto Pilot",
   "description": "Technical diagnostic application for appliance repair technicians",
   "start_url": "/tech",
   "display": "standalone",
