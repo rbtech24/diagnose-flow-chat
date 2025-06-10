@@ -4,12 +4,14 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Search, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserMessages } from "@/context/SystemMessageContext";
 import { SystemMessage } from "@/components/system/SystemMessage";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useUserManagementStore } from "@/store/userManagementStore";
+import { useAuth } from "@/context/AuthContext";
 
 export function TechLayout() {
   const navigate = useNavigate();
@@ -18,6 +20,7 @@ export function TechLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { currentUser, fetchUsers } = useUserManagementStore();
+  const { user } = useAuth();
 
   // Fetch users on component mount if we don't have a current user
   useEffect(() => {
@@ -62,12 +65,13 @@ export function TechLayout() {
           <Button 
             size="icon" 
             variant="ghost" 
-            className="h-8 w-8 rounded-full"
+            className="h-8 w-8 rounded-full p-0"
             onClick={() => navigate("/tech/profile")}
           >
-            <span className="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full">
-              <img className="aspect-square h-full w-full" src={currentUser?.avatarUrl || "https://i.pravatar.cc/300"} alt="Profile" />
-            </span>
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={user?.avatarUrl} />
+              <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
+            </Avatar>
           </Button>
         </div>
         
