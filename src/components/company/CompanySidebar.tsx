@@ -9,7 +9,8 @@ import {
   CreditCard,
   MessageSquare,
   FileText,
-  Stethoscope
+  Stethoscope,
+  Library
 } from "lucide-react";
 
 import {
@@ -81,6 +82,13 @@ export function CompanySidebar() {
               active={isActive("/company/diagnostics")}
             >
               <Link to="/company/diagnostics" className="w-full h-full flex items-center">Diagnostics</Link>
+            </SidebarNavItem>
+
+            <SidebarNavItem 
+              icon={<Library className="w-5 h-5" />} 
+              active={isActive("/company/file-library")}
+            >
+              <Link to="/company/file-library" className="w-full h-full flex items-center">File Library</Link>
             </SidebarNavItem>
 
             <SidebarNavItem 

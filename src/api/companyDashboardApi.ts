@@ -16,20 +16,6 @@ export interface RecentActivity {
   icon: string;
 }
 
-// Simplified database types to avoid recursive instantiation
-type DatabaseRepair = {
-  status?: string | null;
-  actual_cost?: number | null;
-  completed_at?: string | null;
-};
-
-type DatabaseActivity = {
-  id?: string | null;
-  activity_type?: string | null;
-  description?: string | null;
-  created_at?: string | null;
-};
-
 export const fetchDashboardStats = async (companyId: string): Promise<DashboardStats> => {
   console.log('Fetching dashboard stats for company:', companyId);
   
@@ -62,16 +48,14 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     let completedJobs = 0;
     let revenue = 0;
 
-    // Process repairs data with simplified typing
-    repairsData.forEach((repair) => {
-      const typedRepair = repair as DatabaseRepair;
-      if (typedRepair?.status === 'in_progress') {
+    repairsData.forEach((repair: any) => {
+      if (repair?.status === 'in_progress') {
         activeJobs++;
       }
-      if (typedRepair?.status === 'completed') {
+      if (repair?.status === 'completed') {
         completedJobs++;
-        if (typedRepair?.actual_cost) {
-          const cost = Number(typedRepair.actual_cost);
+        if (repair?.actual_cost) {
+          const cost = Number(repair.actual_cost);
           if (!isNaN(cost)) {
             revenue += cost;
           }
@@ -120,8 +104,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    // Convert to RecentActivity format with proper typing
-    const activities: RecentActivity[] = rawData.map((item, index) => {
+    const activities: RecentActivity[] = rawData.map((item: any, index: number) => {
       const activityId = item.id || `activity-${Date.now()}-${index}`;
       const activityType = mapActivityTypeToRecentActivity(item.activity_type || 'unknown');
       const description = item.description || 'Activity recorded';
