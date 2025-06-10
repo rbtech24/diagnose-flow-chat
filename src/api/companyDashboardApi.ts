@@ -48,8 +48,7 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     let completedJobs = 0;
     let revenue = 0;
 
-    // Process repairs data
-    for (const repair of repairsData) {
+    repairsData.forEach((repair) => {
       if (repair?.status === 'in_progress') {
         activeJobs++;
       }
@@ -62,7 +61,7 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
           }
         }
       }
-    }
+    });
       
     const completionRate = repairsData.length > 0 
       ? Math.round((completedJobs / repairsData.length) * 100) 
@@ -105,8 +104,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       return [];
     }
 
-    // Process the raw data into RecentActivity format
-    const activities: RecentActivity[] = rawData.map((item: any) => ({
+    const activities: RecentActivity[] = rawData.map((item) => ({
       id: String(item.id || `activity-${Date.now()}-${Math.random()}`),
       type: mapActivityTypeToRecentActivity(item.activity_type || 'unknown'),
       description: item.description || 'Activity recorded',
