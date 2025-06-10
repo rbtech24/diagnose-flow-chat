@@ -66,7 +66,7 @@ export function SignUpTypeSelector({ onSelectType }: SignUpTypeSelectorProps) {
               Sign Up as Individual
             </Button>
           </CardContent>
-        </div>
+        </Card>
       </div>
     </div>
   );
