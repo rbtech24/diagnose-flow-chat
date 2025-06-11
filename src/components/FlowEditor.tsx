@@ -121,7 +121,7 @@ export default function FlowEditor({
 
   const {
     handleSave,
-    handleFileImport,
+    handleFileImport: handleFileImportEvent,
     handleFileInputClick,
   } = useFileHandling({
     nodes,
@@ -134,6 +134,19 @@ export default function FlowEditor({
     history,
     setHistory,
   });
+
+  // Create a wrapper function that matches the expected interface
+  const handleFileImport = useCallback((file: File) => {
+    // Create a mock event object that matches what useFileHandling expects
+    const mockEvent = {
+      target: {
+        files: [file],
+        value: ''
+      }
+    } as React.ChangeEvent<HTMLInputElement>;
+    
+    handleFileImportEvent(mockEvent);
+  }, [handleFileImportEvent]);
 
   useHotkeySetup({
     handleQuickSaveClick,
