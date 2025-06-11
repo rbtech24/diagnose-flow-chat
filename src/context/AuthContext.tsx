@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@/types/user';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { DemoAuthService } from '@/services/demoAuthService';
 
 interface AuthContextType {
   user: User | null;
@@ -25,6 +26,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
 
   useEffect(() => {
+    // Check for demo session first
+    const demoUser = DemoAuthService.getDemoSession();
+    if (demoUser) {
+      setUser(demoUser);
+      setSession({ user: demoUser, expires_at: Date.now() + (8 * 60 * 60 * 1000) });
+      setIsLoading(false);
+      return;
+    }
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -106,6 +116,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
+      // Check if this is a demo user first
+      if (DemoAuthService.isDemoEmail(email)) {
+        const demoUser = DemoAuthService.authenticateDemo(email, password);
+        if (demoUser) {
+          const userData: User = {
+            id: demoUser.id,
+            name: demoUser.name,
+            email: demoUser.email,
+            role: demoUser.role,
+            companyId: demoUser.companyId,
+            status: 'active',
+            avatarUrl: undefined,
+            activeJobs: 0,
+          };
+          
+          setUser(userData);
+          setSession({ user: userData, expires_at: Date.now() + (8 * 60 * 60 * 1000) });
+          
+          toast({
+            title: "Demo login successful",
+            description: `Logged in as ${demoUser.name}`,
+          });
+          
+          setIsLoading(false);
+          return true;
+        } else {
+          toast({
+            title: "Demo login failed",
+            description: "Invalid demo credentials",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return false;
+        }
+      }
+
+      // Try Supabase authentication for non-demo users
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -117,7 +164,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Provide specific error messages for common issues
         let errorMessage = error.message;
         if (error.message.includes('permission denied') || error.message.includes('Database error')) {
-          errorMessage = 'Database configuration issue. Please check your Supabase settings or contact support.';
+          errorMessage = 'Database configuration issue. Please try demo login instead or contact support.';
         } else if (error.message.includes('Invalid login credentials')) {
           errorMessage = 'Invalid email or password. Please check your credentials.';
         }
@@ -142,7 +189,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Login error:', error);
       toast({
         title: "Login failed",
-        description: "An unexpected error occurred. Please try again or contact support.",
+        description: "An unexpected error occurred. Please try demo login or contact support.",
         variant: "destructive",
       });
       setIsLoading(false);
@@ -166,6 +213,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updatedUser = { ...user, ...userData };
       setUser(updatedUser);
       
+      // Update demo session if it's a demo user
+      if (DemoAuthService.isDemoEmail(user.email)) {
+        localStorage.setItem('demo_session', JSON.stringify({
+          user: updatedUser,
+          expires: Date.now() + (8 * 60 * 60 * 1000)
+        }));
+        return;
+      }
+      
       try {
         // Only update fields that exist in the technicians table
         const updateData: any = {};
@@ -187,6 +243,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async (): Promise<void> => {
     try {
+      // Clear demo session
+      DemoAuthService.clearDemoSession();
+      
+      // Try Supabase logout
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('Logout error:', error);

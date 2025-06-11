@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, Key, LogIn, UserCheck, AlertCircle } from 'lucide-react';
+import { AlertTriangle, Key, LogIn, UserCheck, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -19,7 +19,6 @@ export function DevAuthBypass() {
   const { login, user } = useAuth();
   const navigate = useNavigate();
   const [isLoggingIn, setIsLoggingIn] = useState<string | null>(null);
-  const [showDatabaseError, setShowDatabaseError] = useState(false);
 
   // Demo users with credentials
   const demoUsers: DemoUser[] = [
@@ -54,7 +53,6 @@ export function DevAuthBypass() {
   const handleDemoLogin = async (demoUser: DemoUser) => {
     try {
       setIsLoggingIn(demoUser.email);
-      setShowDatabaseError(false);
       
       const success = await login(demoUser.email, demoUser.password);
       
@@ -63,20 +61,12 @@ export function DevAuthBypass() {
         toast.success(`Logged in as ${demoUser.name}`);
         navigate(`/${role}`);
       } else {
-        setShowDatabaseError(true);
-        toast.error('Login failed. There may be a database configuration issue.');
+        toast.error('Demo login failed. Please try again.');
         setIsLoggingIn(null);
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      
-      // Check for database permission errors
-      if (error?.message?.includes('Database error') || error?.message?.includes('permission denied')) {
-        setShowDatabaseError(true);
-        toast.error('Database configuration issue detected. Please check Supabase settings.');
-      } else {
-        toast.error('Login error. Please try again.');
-      }
+      toast.error('Demo login error. Please try again.');
       setIsLoggingIn(null);
     }
   };
@@ -90,6 +80,14 @@ export function DevAuthBypass() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <Alert className="bg-blue-50 text-blue-800 border-blue-200">
+          <CheckCircle className="h-4 w-4" />
+          <AlertTitle>Demo Mode Active</AlertTitle>
+          <AlertDescription className="text-sm">
+            Demo accounts work independently of database configuration. Perfect for testing and development.
+          </AlertDescription>
+        </Alert>
+
         <Alert className="bg-amber-50 text-amber-800 border-amber-200">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Development Environment</AlertTitle>
@@ -97,19 +95,6 @@ export function DevAuthBypass() {
             These are demo logins for development and testing. Use the standard login page for production.
           </AlertDescription>
         </Alert>
-
-        {showDatabaseError && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Database Configuration Issue</AlertTitle>
-            <AlertDescription className="text-sm">
-              There appears to be a Supabase authentication configuration issue. Please check:
-              <br />• Row Level Security (RLS) policies
-              <br />• User table permissions
-              <br />• Authentication settings in Supabase
-            </AlertDescription>
-          </Alert>
-        )}
 
         <div className="space-y-3">
           {demoUsers.map((demoUser) => (
