@@ -15,7 +15,6 @@ export interface SupportTicket {
   updated_at: string;
   company_id?: string;
   attachments?: string[];
-  comments?: TicketComment[];
   created_by_user?: {
     name: string;
     email: string;
@@ -71,10 +70,7 @@ export function useSupportTickets(userId?: string, companyId?: string) {
     try {
       let query = supabase
         .from('support_tickets')
-        .select(`
-          *,
-          comments:support_ticket_comments(*)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       // Apply filters based on user role and parameters
@@ -90,9 +86,19 @@ export function useSupportTickets(userId?: string, companyId?: string) {
       
       // Transform the data to match our interface types
       const transformedTickets: SupportTicket[] = (data || []).map(ticket => ({
-        ...ticket,
+        id: ticket.id,
+        title: ticket.title,
+        description: ticket.description,
         status: ticket.status as 'open' | 'in_progress' | 'resolved' | 'closed',
-        priority: ticket.priority as 'low' | 'medium' | 'high' | 'urgent'
+        priority: ticket.priority as 'low' | 'medium' | 'high' | 'urgent',
+        category: ticket.category,
+        user_id: ticket.user_id,
+        assignedTo: ticket.assigned_to,
+        created_at: ticket.created_at,
+        updated_at: ticket.updated_at,
+        company_id: ticket.company_id,
+        attachments: ticket.attachments || [],
+        created_by_user: ticket.created_by_user
       }));
       
       setTickets(transformedTickets);
@@ -115,9 +121,19 @@ export function useSupportTickets(userId?: string, companyId?: string) {
       if (error) throw error;
       
       return {
-        ...data,
+        id: data.id,
+        title: data.title,
+        description: data.description,
         status: data.status as 'open' | 'in_progress' | 'resolved' | 'closed',
-        priority: data.priority as 'low' | 'medium' | 'high' | 'urgent'
+        priority: data.priority as 'low' | 'medium' | 'high' | 'urgent',
+        category: data.category,
+        user_id: data.user_id,
+        assignedTo: data.assigned_to,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        company_id: data.company_id,
+        attachments: data.attachments || [],
+        created_by_user: data.created_by_user
       };
     } catch (err) {
       console.error('Error fetching ticket:', err);
@@ -188,8 +204,9 @@ export function useSupportTickets(userId?: string, companyId?: string) {
 
   const addComment = async (commentData: CreateCommentData) => {
     try {
+      // Since support_ticket_comments table doesn't exist, we'll use support_ticket_messages
       const { data, error } = await supabase
-        .from('support_ticket_comments')
+        .from('support_ticket_messages')
         .insert({
           content: commentData.content,
           ticket_id: commentData.ticket_id,
