@@ -19,47 +19,131 @@ export interface RecentActivity {
 export const fetchDashboardStats = async (companyId: string): Promise<DashboardStats> => {
   console.log('Fetching dashboard stats for company:', companyId);
   
-  // Return mock data for demo purposes
-  return {
-    activeJobs: 12,
-    completedJobs: 45,
-    revenue: 15420,
-    completionRate: 87
-  };
+  try {
+    // Get technician count as a proxy for active jobs (since we don't have a jobs table yet)
+    const { data: technicians } = await supabase
+      .from('technicians')
+      .select('id, status')
+      .eq('company_id', companyId);
+
+    const activeJobs = technicians?.filter(t => t.status === 'active').length || 0;
+
+    // Get diagnostic sessions as completed jobs
+    const { data: diagnosticSessions } = await supabase
+      .from('diagnostic_sessions')
+      .select('id, status')
+      .eq('company_id', companyId)
+      .eq('status', 'completed');
+
+    const completedJobs = diagnosticSessions?.length || 0;
+
+    // Calculate basic revenue estimate (placeholder calculation)
+    const revenue = completedJobs * 150; // $150 average per completed job
+
+    // Calculate completion rate
+    const totalJobs = activeJobs + completedJobs;
+    const completionRate = totalJobs > 0 ? Math.round((completedJobs / totalJobs) * 100) : 0;
+
+    return {
+      activeJobs,
+      completedJobs,
+      revenue,
+      completionRate
+    };
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    // Return fallback data
+    return {
+      activeJobs: 0,
+      completedJobs: 0,
+      revenue: 0,
+      completionRate: 0
+    };
+  }
 };
 
 export const fetchRecentActivity = async (companyId: string): Promise<RecentActivity[]> => {
   console.log('Fetching recent activity for company:', companyId);
   
-  // Return mock data for demo purposes
-  return [
-    {
-      id: '1',
-      type: 'repair_completed',
-      description: 'Washing machine repair completed',
-      time: '2 hours ago',
-      icon: 'CheckSquare'
-    },
-    {
-      id: '2',
-      type: 'job_started',
-      description: 'Dishwasher diagnostic started',
-      time: '4 hours ago',
-      icon: 'Clock'
-    },
-    {
-      id: '3',
-      type: 'parts_needed',
-      description: 'Parts ordered for refrigerator repair',
-      time: '6 hours ago',
-      icon: 'AlertCircle'
-    },
-    {
-      id: '4',
-      type: 'job_scheduled',
-      description: 'New appointment scheduled',
-      time: '1 day ago',
-      icon: 'Calendar'
+  try {
+    const activities: RecentActivity[] = [];
+
+    // Get recent diagnostic sessions
+    const { data: recentDiagnostics } = await supabase
+      .from('diagnostic_sessions')
+      .select('id, status, created_at, completed_at')
+      .eq('company_id', companyId)
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (recentDiagnostics) {
+      recentDiagnostics.forEach(session => {
+        if (session.status === 'completed') {
+          activities.push({
+            id: session.id,
+            type: 'repair_completed',
+            description: 'Diagnostic session completed',
+            time: formatTimeAgo(session.completed_at || session.created_at),
+            icon: 'CheckSquare'
+          });
+        } else if (session.status === 'in_progress') {
+          activities.push({
+            id: session.id,
+            type: 'job_started',
+            description: 'Diagnostic session started',
+            time: formatTimeAgo(session.created_at),
+            icon: 'Clock'
+          });
+        }
+      });
     }
-  ];
+
+    // Get recent notifications
+    const { data: recentNotifications } = await supabase
+      .from('notifications')
+      .select('id, title, message, created_at, type')
+      .eq('company_id', companyId)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (recentNotifications) {
+      recentNotifications.forEach(notification => {
+        activities.push({
+          id: notification.id,
+          type: 'job_scheduled',
+          description: notification.message,
+          time: formatTimeAgo(notification.created_at),
+          icon: 'Calendar'
+        });
+      });
+    }
+
+    // Sort by most recent and return top 4
+    return activities
+      .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+      .slice(0, 4);
+
+  } catch (error) {
+    console.error('Error fetching recent activity:', error);
+    // Return empty array on error
+    return [];
+  }
 };
+
+function formatTimeAgo(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInMs = now.getTime() - date.getTime();
+  const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+  const diffInDays = Math.floor(diffInHours / 24);
+
+  if (diffInHours < 1) {
+    return 'Just now';
+  } else if (diffInHours < 24) {
+    return `${diffInHours} hour${diffInHours === 1 ? '' : 's'} ago`;
+  } else if (diffInDays < 7) {
+    return `${diffInDays} day${diffInDays === 1 ? '' : 's'} ago`;
+  } else {
+    return date.toLocaleDateString();
+  }
+}

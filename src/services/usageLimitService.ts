@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface UsageData {
@@ -19,13 +18,15 @@ export interface SubscriptionLimits {
   diagnostics_per_day: number;
 }
 
+interface LimitsCheckResult {
+  usage: UsageData;
+  limits: SubscriptionLimits;
+  violations: string[];
+  canPerformAction: (action: string) => boolean;
+}
+
 export class UsageLimitService {
-  static async checkCompanyLimits(companyId: string): Promise<{
-    usage: UsageData;
-    limits: SubscriptionLimits;
-    violations: string[];
-    canPerformAction: (action: string) => boolean;
-  }> {
+  static async checkCompanyLimits(companyId: string): Promise<LimitsCheckResult> {
     try {
       // Get current license and plan
       const { data: license, error: licenseError } = await supabase
@@ -118,7 +119,7 @@ export class UsageLimitService {
     }
   }
 
-  private static getDefaultLimits() {
+  private static getDefaultLimits(): LimitsCheckResult {
     const defaultUsage: UsageData = {
       technicians_active: 0,
       admins_active: 0,
