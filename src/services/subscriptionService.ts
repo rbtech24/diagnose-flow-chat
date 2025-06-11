@@ -156,6 +156,30 @@ export class SubscriptionService {
     console.log('SubscriptionService.updatePlan() - Updating plan:', planId, planData);
     
     try {
+      // First check if plan exists and clean up any duplicates
+      const { data: existingPlans, error: checkError } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('id', planId);
+
+      if (checkError) {
+        console.error('Error checking existing plan:', checkError);
+        throw new Error(`Failed to check plan: ${checkError.message}`);
+      }
+
+      if (!existingPlans || existingPlans.length === 0) {
+        throw new Error('Plan not found');
+      }
+
+      if (existingPlans.length > 1) {
+        console.warn('Multiple plans found with same ID, cleaning up...');
+        // Keep the first one and delete the rest
+        const toDelete = existingPlans.slice(1);
+        for (const duplicate of toDelete) {
+          await supabase.from('subscription_plans').delete().eq('id', duplicate.id);
+        }
+      }
+
       const updateFields: any = {};
       
       if (planData.name !== undefined) updateFields.name = planData.name;
@@ -175,7 +199,7 @@ export class SubscriptionService {
         .update(updateFields)
         .eq('id', planId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error updating plan in database:', error);
@@ -205,6 +229,30 @@ export class SubscriptionService {
     console.log('SubscriptionService.togglePlanStatus() - Toggling plan status:', planId, 'from', currentStatus, 'to', !currentStatus);
     
     try {
+      // First check if plan exists and clean up any duplicates
+      const { data: existingPlans, error: checkError } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('id', planId);
+
+      if (checkError) {
+        console.error('Error checking existing plan:', checkError);
+        throw new Error(`Failed to check plan: ${checkError.message}`);
+      }
+
+      if (!existingPlans || existingPlans.length === 0) {
+        throw new Error('Plan not found');
+      }
+
+      if (existingPlans.length > 1) {
+        console.warn('Multiple plans found with same ID, cleaning up...');
+        // Keep the first one and delete the rest
+        const toDelete = existingPlans.slice(1);
+        for (const duplicate of toDelete) {
+          await supabase.from('subscription_plans').delete().eq('id', duplicate.id);
+        }
+      }
+
       const { data: updatedPlan, error: updateError } = await supabase
         .from('subscription_plans')
         .update({ 
@@ -213,7 +261,7 @@ export class SubscriptionService {
         })
         .eq('id', planId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (updateError) {
         console.error('Error toggling plan status in database:', updateError);
@@ -243,7 +291,22 @@ export class SubscriptionService {
     console.log('SubscriptionService.deletePlan() - Attempting to delete plan:', planId);
     
     try {
-      // Check for dependent licenses first
+      // First check if plan exists
+      const { data: existingPlans, error: checkError } = await supabase
+        .from('subscription_plans')
+        .select('id, name')
+        .eq('id', planId);
+
+      if (checkError) {
+        console.error('Error checking existing plan:', checkError);
+        throw new Error(`Failed to check plan: ${checkError.message}`);
+      }
+
+      if (!existingPlans || existingPlans.length === 0) {
+        throw new Error('Plan not found');
+      }
+
+      // Check for dependent licenses
       const { data: licensesUsingPlan, error: licenseCheckError } = await supabase
         .from('licenses')
         .select('id, company_name')
@@ -257,7 +320,7 @@ export class SubscriptionService {
         throw new Error(`Cannot delete plan - it is currently used by ${licensesUsingPlan.length} license(s) (${companyNames})`);
       }
 
-      // Perform the deletion
+      // Delete all instances of the plan (in case of duplicates)
       const { error: deleteError } = await supabase
         .from('subscription_plans')
         .delete()
