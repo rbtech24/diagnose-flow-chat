@@ -1,32 +1,26 @@
 
-import { Node } from '@xyflow/react';
+import React from 'react';
+import { Node, Edge, Connection } from '@xyflow/react';
+import { FlowWrapperWithProvider } from './FlowWrapper';
 import { LoadingOverlay } from './LoadingOverlay';
-import { FlowHeader } from './FlowHeader';
-import { FlowCanvas } from './FlowCanvas';
-import { FlowFileInput } from './FlowFileInput';
-import { SavedWorkflow } from '@/utils/flow';
+import { SavedWorkflow } from '@/utils/flow/types';
 import { WorkflowVersion } from '@/hooks/useVersionHistory';
-
-interface AutoSaveState {
-  isAutoSaving: boolean;
-  lastSavedAt: Date | null;
-  hasUnsavedChanges: boolean;
-}
+import { WorkflowTemplate } from '@/hooks/useWorkflowTemplates';
 
 interface FlowEditorContentProps {
   nodes: Node[];
-  edges: any[];
+  edges: Edge[];
   isLoading: boolean;
   snapToGrid: boolean;
   currentWorkflow?: SavedWorkflow;
   onNodesChange: any;
   onEdgesChange: any;
-  onConnect: any;
+  onConnect: (connection: Connection) => void;
   onNodeClick: (event: React.MouseEvent, node: Node) => void;
   onQuickSave: () => void;
   onAddNode: () => void;
   onSave: (name: string, folder: string, appliance: string) => Promise<void>;
-  onFileImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onFileImport: (file: File) => void;
   onFileInputClick: () => void;
   onCopySelected: () => void;
   onPaste: () => void;
@@ -34,11 +28,12 @@ interface FlowEditorContentProps {
   appliances: string[];
   onApplyNodeChanges?: () => void;
   onNodeFocus?: (nodeId: string) => void;
-  autoSaveState: AutoSaveState;
+  autoSaveState: any;
   versions: WorkflowVersion[];
   onRestoreVersion: (version: WorkflowVersion) => void;
   onRemoveVersion: (versionId: string) => void;
   onClearVersions: () => void;
+  onLoadTemplate?: (template: WorkflowTemplate) => void;
 }
 
 export function FlowEditorContent({
@@ -67,20 +62,12 @@ export function FlowEditorContent({
   onRestoreVersion,
   onRemoveVersion,
   onClearVersions,
+  onLoadTemplate
 }: FlowEditorContentProps) {
   return (
-    <div className="w-full h-full relative">
-      <FlowHeader 
-        currentWorkflow={currentWorkflow}
-        onQuickSave={onQuickSave}
-        autoSaveState={autoSaveState}
-      />
-      
+    <div className="relative w-full h-full bg-gray-50">
       {isLoading && <LoadingOverlay />}
-      
-      <FlowFileInput onFileImport={onFileImport} />
-
-      <FlowCanvas
+      <FlowWrapperWithProvider
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
@@ -102,6 +89,7 @@ export function FlowEditorContent({
         onRestoreVersion={onRestoreVersion}
         onRemoveVersion={onRemoveVersion}
         onClearVersions={onClearVersions}
+        onLoadTemplate={onLoadTemplate}
       />
     </div>
   );

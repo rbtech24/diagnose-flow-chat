@@ -18,6 +18,7 @@ import { useVersionHistory } from '@/hooks/useVersionHistory';
 import { FlowEditorContent } from './flow/FlowEditorContent';
 import { toast } from '@/hooks/use-toast';
 import { useLocation } from 'react-router-dom';
+import { WorkflowTemplate } from '@/hooks/useWorkflowTemplates';
 
 interface FlowEditorProps {
   onNodeSelect?: (node: Node, updateNode: (nodeId: string, newData: any) => void) => void;
@@ -140,6 +141,58 @@ export default function FlowEditor({
     handlePaste,
     currentWorkflow,
   });
+
+  // Handle template loading
+  const handleLoadTemplate = useCallback((template: WorkflowTemplate) => {
+    console.log('Loading template in FlowEditor:', template);
+    
+    try {
+      // Process template nodes to ensure they work with our flow editor
+      const processedNodes = template.nodes.map(node => ({
+        ...node,
+        // Ensure each node has a unique ID in case there are conflicts
+        id: `${node.id}-${Date.now()}`,
+        // Ensure data is properly formatted
+        data: {
+          ...node.data,
+          nodeId: node.data?.nodeId || `N${String(Math.random().toString(36).substr(2, 5))}`
+        }
+      }));
+
+      // Process edges to match the new node IDs
+      const processedEdges = template.edges.map(edge => ({
+        ...edge,
+        id: `${edge.id}-${Date.now()}`,
+        source: `${edge.source}-${Date.now()}`,
+        target: `${edge.target}-${Date.now()}`
+      }));
+
+      // Load the template data
+      setNodes(processedNodes);
+      setEdges(processedEdges);
+      setNodeCounter(template.nodeCounter || processedNodes.length + 1);
+      
+      // Add to history
+      const newState = {
+        nodes: processedNodes,
+        edges: processedEdges,
+        nodeCounter: template.nodeCounter || processedNodes.length + 1
+      };
+      setHistory(createHistoryState(newState));
+      
+      toast({
+        title: "Template Loaded",
+        description: `"${template.name}" template has been loaded successfully`
+      });
+    } catch (error) {
+      console.error('Error loading template:', error);
+      toast({
+        title: "Error Loading Template",
+        description: "Failed to load the selected template. Please try again.",
+        variant: "destructive"
+      });
+    }
+  }, [setNodes, setEdges, setNodeCounter, setHistory]);
 
   // Add version when significant changes occur
   useEffect(() => {
@@ -306,6 +359,7 @@ export default function FlowEditor({
       onRestoreVersion={handleRestoreVersion}
       onRemoveVersion={removeVersion}
       onClearVersions={clearVersions}
+      onLoadTemplate={handleLoadTemplate}
     />
   );
 }

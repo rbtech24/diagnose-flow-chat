@@ -19,6 +19,7 @@ import { FlowMinimap } from './enhanced/FlowMinimap';
 import { WorkflowOverview } from './enhanced/WorkflowOverview';
 import { SavedWorkflow } from '@/utils/flow/types';
 import { WorkflowVersion } from '@/hooks/useVersionHistory';
+import { WorkflowTemplate } from '@/hooks/useWorkflowTemplates';
 
 const nodeTypes = {
   diagnosis: DiagnosisNode,
@@ -46,6 +47,7 @@ interface FlowWrapperProps {
   onRestoreVersion: (version: WorkflowVersion) => void;
   onRemoveVersion: (versionId: string) => void;
   onClearVersions: () => void;
+  onLoadTemplate?: (template: WorkflowTemplate) => void;
 }
 
 function FlowWrapperComponent({
@@ -70,6 +72,7 @@ function FlowWrapperComponent({
   onRestoreVersion,
   onRemoveVersion,
   onClearVersions,
+  onLoadTemplate,
 }: FlowWrapperProps) {
   const [snapToGridState, setSnapToGridState] = useState(snapToGrid);
 
@@ -154,6 +157,7 @@ function FlowWrapperComponent({
         onRestoreVersion={onRestoreVersion}
         onRemoveVersion={onRemoveVersion}
         onClearVersions={onClearVersions}
+        onLoadTemplate={onLoadTemplate}
       />
 
       <div className="absolute top-20 left-1/2 transform -translate-x-1/2 pointer-events-none">

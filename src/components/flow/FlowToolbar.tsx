@@ -1,5 +1,6 @@
 import { Button } from '../ui/button';
 import { SaveWorkflowDialog } from './SaveWorkflowDialog';
+import { SaveTemplateDialog } from './SaveTemplateDialog';
 import { ValidationButton } from '../validation/ValidationButton';
 import { SearchPanel } from './SearchPanel';
 import { VersionHistoryPanel } from './VersionHistoryPanel';
@@ -34,6 +35,7 @@ interface FlowToolbarProps {
   onRestoreVersion: (version: WorkflowVersion) => void;
   onRemoveVersion: (versionId: string) => void;
   onClearVersions: () => void;
+  onLoadTemplate?: (template: WorkflowTemplate) => void;
 }
 
 export function FlowToolbar({
@@ -50,9 +52,11 @@ export function FlowToolbar({
   versions,
   onRestoreVersion,
   onRemoveVersion,
-  onClearVersions
+  onClearVersions,
+  onLoadTemplate
 }: FlowToolbarProps) {
   const { nodes, edges, nodeCounter } = useFlowState();
+  
   const { validationSummary, isValidating, autoValidate, validate } = useWorkflowValidation();
   const {
     searchTerm,
@@ -119,36 +123,31 @@ export function FlowToolbar({
   }, [focusNode, onNodeFocus]);
 
   const handleSelectTemplate = useCallback((template: WorkflowTemplate) => {
-    // Create a new workflow from template
-    const templateWorkflow: SavedWorkflow = {
-      metadata: {
-        name: `${template.name} (Copy)`,
+    console.log('Template selected in toolbar:', template);
+    
+    if (onLoadTemplate) {
+      // If we have an onLoadTemplate callback, use it to load the template data directly
+      onLoadTemplate(template);
+      toast({
+        title: "Template Loaded",
+        description: `Loaded "${template.name}" template into the current editor`
+      });
+    } else {
+      // Fallback: navigate to a new editor with template data
+      const searchParams = new URLSearchParams({
         folder: template.category,
-        appliance: template.category,
-        description: template.description,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        isActive: true
-      },
-      nodes: template.nodes,
-      edges: template.edges,
-      nodeCounter: template.nodeCounter
-    };
-
-    // Navigate to editor with template data
-    const searchParams = new URLSearchParams({
-      folder: template.category,
-      name: `${template.name} (Copy)`,
-      template: 'true'
-    });
-    
-    navigate(`/workflow-editor?${searchParams.toString()}`);
-    
-    toast({
-      title: "Template Loaded",
-      description: `Started new workflow from "${template.name}" template`
-    });
-  }, [navigate]);
+        name: `${template.name} (Copy)`,
+        template: 'true'
+      });
+      
+      navigate(`/workflow-editor?${searchParams.toString()}`);
+      
+      toast({
+        title: "Template Loaded",
+        description: `Started new workflow from "${template.name}" template`
+      });
+    }
+  }, [onLoadTemplate, navigate]);
 
   return (
     <div className="absolute top-0 left-0 right-0 z-10 bg-background border-b pointer-events-auto">
@@ -207,6 +206,12 @@ export function FlowToolbar({
               <File className="w-3.5 h-3.5" />
               Templates
             </Button>
+
+            <SaveTemplateDialog
+              nodes={nodes}
+              edges={edges}
+              nodeCounter={nodeCounter}
+            />
 
             <ValidationButton
               validationSummary={validationSummary}

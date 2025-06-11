@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,6 +45,7 @@ export function WorkflowTemplateDialog({
 
   const handleSelectTemplate = () => {
     if (selectedTemplate) {
+      console.log('Selecting template:', selectedTemplate);
       onSelectTemplate(selectedTemplate);
       onOpenChange(false);
       setSelectedTemplate(null);
