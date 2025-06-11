@@ -357,41 +357,72 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   deletePlan: async (planId: string) => {
     try {
       console.log('Store: Attempting to delete plan:', planId);
-      await SubscriptionService.deletePlan(planId);
       
-      // Only remove from state if deletion was successful
+      // Optimistically remove from state first
+      const currentPlans = get().plans;
+      const planToDelete = currentPlans.find(p => p.id === planId);
+      
+      if (!planToDelete) {
+        console.log('Plan not found in current state, refreshing plans');
+        await get().fetchPlans();
+        return;
+      }
+      
+      // Remove from state immediately
       set(state => ({
         plans: state.plans.filter(plan => plan.id !== planId)
       }));
       
-      console.log('Store: Plan deleted successfully and removed from state');
+      // Attempt deletion
+      await SubscriptionService.deletePlan(planId);
+      
+      console.log('Store: Plan deleted successfully');
       toast.success('Plan deleted successfully');
     } catch (error) {
       console.error('Store: Error deleting plan:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to delete plan';
       toast.error(errorMessage);
       
-      // Re-fetch plans to ensure state is in sync with database
-      console.log('Store: Re-fetching plans after delete error');
-      get().fetchPlans();
+      // Restore plan to state if deletion failed
+      console.log('Store: Restoring plan to state and re-fetching');
+      await get().fetchPlans();
     }
   },
   
   togglePlanStatus: async (planId: string) => {
     try {
       const plan = get().plans.find(p => p.id === planId);
-      if (!plan) return;
+      if (!plan) {
+        console.error('Plan not found for status toggle:', planId);
+        toast.error('Plan not found');
+        return;
+      }
 
-      const updated = await SubscriptionService.togglePlanStatus(planId, plan.is_active);
+      console.log('Toggling plan status for:', planId, 'current status:', plan.is_active);
+      
+      // Optimistically update the state
       set(state => ({
-        plans: state.plans.map(plan => 
-          plan.id === planId ? updated : plan
+        plans: state.plans.map(p => 
+          p.id === planId ? { ...p, is_active: !p.is_active } : p
         )
       }));
+
+      const updated = await SubscriptionService.togglePlanStatus(planId, plan.is_active);
+      
+      // Update with actual server response
+      set(state => ({
+        plans: state.plans.map(p => 
+          p.id === planId ? updated : p
+        )
+      }));
+      
       toast.success(`Plan ${updated.is_active ? 'activated' : 'deactivated'} successfully`);
     } catch (error) {
       console.error('Error toggling plan status:', error);
       toast.error('Failed to update plan status');
+      
+      // Revert optimistic update
+      await get().fetchPlans();
     }
   },
   
