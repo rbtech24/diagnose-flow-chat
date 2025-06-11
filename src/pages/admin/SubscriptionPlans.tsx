@@ -3,12 +3,13 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { SubscriptionPlanForm } from "@/components/subscription/SubscriptionPlanForm";
 import { useSubscriptionStore } from "@/store/subscriptionStore";
 import { SubscriptionPlan } from "@/types/subscription-consolidated";
-import { Plus, Edit, Users, DollarSign, Settings } from "lucide-react";
+import { Plus, Edit, Users, DollarSign, Settings, Trash2 } from "lucide-react";
 
 export default function AdminSubscriptionPlans() {
   const { 
@@ -16,6 +17,7 @@ export default function AdminSubscriptionPlans() {
     fetchPlans, 
     addPlan, 
     updatePlan, 
+    deletePlan,
     togglePlanStatus,
     isLoadingPlans 
   } = useSubscriptionStore();
@@ -48,6 +50,10 @@ export default function AdminSubscriptionPlans() {
     }
     setIsFormOpen(false);
     setSelectedPlan(null);
+  };
+
+  const handleDeletePlan = (planId: string) => {
+    deletePlan(planId);
   };
 
   const handleToggleStatus = (planId: string) => {
@@ -122,6 +128,35 @@ export default function AdminSubscriptionPlans() {
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Subscription Plan</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete "{plan.name}"? This action cannot be undone.
+                            Any active licenses using this plan may be affected.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeletePlan(plan.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete Plan
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               </CardHeader>

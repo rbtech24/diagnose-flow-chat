@@ -27,6 +27,7 @@ interface SubscriptionStore {
   getActivePlans: () => SubscriptionPlan[];
   addPlan: (plan: SubscriptionPlan) => void;
   updatePlan: (plan: SubscriptionPlan) => void;
+  deletePlan: (planId: string) => void;
   togglePlanStatus: (planId: string) => void;
   addLicense: (license: License) => void;
   deactivateLicense: (licenseId: string) => void;
@@ -338,6 +339,19 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
     } catch (error) {
       console.error('Error updating plan:', error);
       toast.error('Failed to update plan');
+    }
+  },
+  
+  deletePlan: async (planId: string) => {
+    try {
+      await SubscriptionService.deletePlan(planId);
+      set(state => ({
+        plans: state.plans.filter(plan => plan.id !== planId)
+      }));
+      toast.success('Plan deleted successfully');
+    } catch (error) {
+      console.error('Error deleting plan:', error);
+      toast.error('Failed to delete plan');
     }
   },
   
