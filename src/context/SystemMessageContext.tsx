@@ -19,7 +19,7 @@ interface SystemMessageContextType {
 
 const SystemMessageContext = createContext<SystemMessageContextType | undefined>(undefined);
 
-export function SystemMessageProvider({ children }: { children: ReactNode }) {
+export const SystemMessageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // Initialize with an empty array instead of a default maintenance message
   const [messages, setMessages] = useState<SystemMessageData[]>([]);
 
@@ -40,7 +40,7 @@ export function SystemMessageProvider({ children }: { children: ReactNode }) {
       {children}
     </SystemMessageContext.Provider>
   );
-}
+};
 
 export function useSystemMessages() {
   const context = useContext(SystemMessageContext);
