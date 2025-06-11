@@ -91,14 +91,14 @@ export function useSupportTickets(userId?: string, companyId?: string) {
         description: ticket.description,
         status: ticket.status as 'open' | 'in_progress' | 'resolved' | 'closed',
         priority: ticket.priority as 'low' | 'medium' | 'high' | 'urgent',
-        category: ticket.category,
+        category: (ticket as any).category || undefined,
         user_id: ticket.user_id,
         assignedTo: ticket.assigned_to,
         created_at: ticket.created_at,
         updated_at: ticket.updated_at,
         company_id: ticket.company_id,
-        attachments: ticket.attachments || [],
-        created_by_user: ticket.created_by_user
+        attachments: (ticket as any).attachments || [],
+        created_by_user: (ticket as any).created_by_user || undefined
       }));
       
       setTickets(transformedTickets);
@@ -126,14 +126,14 @@ export function useSupportTickets(userId?: string, companyId?: string) {
         description: data.description,
         status: data.status as 'open' | 'in_progress' | 'resolved' | 'closed',
         priority: data.priority as 'low' | 'medium' | 'high' | 'urgent',
-        category: data.category,
+        category: (data as any).category || undefined,
         user_id: data.user_id,
         assignedTo: data.assigned_to,
         created_at: data.created_at,
         updated_at: data.updated_at,
         company_id: data.company_id,
-        attachments: data.attachments || [],
-        created_by_user: data.created_by_user
+        attachments: (data as any).attachments || [],
+        created_by_user: (data as any).created_by_user || undefined
       };
     } catch (err) {
       console.error('Error fetching ticket:', err);
@@ -165,7 +165,6 @@ export function useSupportTickets(userId?: string, companyId?: string) {
           title: ticketData.title,
           description: ticketData.description,
           priority: ticketData.priority,
-          category: ticketData.category,
           user_id: userId,
           company_id: companyId,
           status: 'open',
