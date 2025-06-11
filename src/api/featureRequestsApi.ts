@@ -27,7 +27,8 @@ export async function fetchFeatureRequests(status?: string, companyId?: string):
     return (data || []).map(item => ({
       ...item,
       status: item.status as FeatureRequestStatus,
-      priority: item.priority as FeatureRequestPriority
+      priority: item.priority as FeatureRequestPriority,
+      created_by_user: item.created_by_user as FeatureRequest['created_by_user']
     }));
   } catch (error) {
     console.error('Error in fetchFeatureRequests:', error);
@@ -55,7 +56,8 @@ export async function fetchFeatureRequestById(id: string): Promise<FeatureReques
     return {
       ...data,
       status: data.status as FeatureRequestStatus,
-      priority: data.priority as FeatureRequestPriority
+      priority: data.priority as FeatureRequestPriority,
+      created_by_user: data.created_by_user as FeatureRequest['created_by_user']
     };
   } catch (error) {
     console.error('Error in fetchFeatureRequestById:', error);
@@ -106,7 +108,8 @@ export async function createFeatureRequest(requestData: Partial<FeatureRequest>)
     return {
       ...data,
       status: data.status as FeatureRequestStatus,
-      priority: data.priority as FeatureRequestPriority
+      priority: data.priority as FeatureRequestPriority,
+      created_by_user: data.created_by_user as FeatureRequest['created_by_user']
     };
   } catch (error) {
     console.error('Error in createFeatureRequest:', error);
@@ -131,7 +134,8 @@ export async function updateFeatureRequest(id: string, updateData: Partial<Featu
     return {
       ...data,
       status: data.status as FeatureRequestStatus,
-      priority: data.priority as FeatureRequestPriority
+      priority: data.priority as FeatureRequestPriority,
+      created_by_user: data.created_by_user as FeatureRequest['created_by_user']
     };
   } catch (error) {
     console.error('Error in updateFeatureRequest:', error);
