@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -47,7 +46,14 @@ export function useSLATracking(companyId?: string) {
         .order('priority');
 
       if (error) throw error;
-      setSLAPolicies(data || []);
+      
+      // Transform the data to match our interface types
+      const policies: SLAPolicy[] = (data || []).map(policy => ({
+        ...policy,
+        priority: policy.priority as 'low' | 'medium' | 'high' | 'critical'
+      }));
+      
+      setSLAPolicies(policies);
     } catch (err) {
       console.error('Error fetching SLA policies:', err);
       setError('Failed to load SLA policies');

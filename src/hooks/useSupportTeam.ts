@@ -48,7 +48,14 @@ export function useSupportTeam(companyId?: string) {
         .order('name');
 
       if (error) throw error;
-      setTeamMembers(data || []);
+      
+      // Transform the data to match our interface types
+      const members: SupportTeamMember[] = (data || []).map(member => ({
+        ...member,
+        role: member.role as 'agent' | 'supervisor' | 'manager'
+      }));
+      
+      setTeamMembers(members);
     } catch (err) {
       console.error('Error fetching team members:', err);
       setError('Failed to load team members');
@@ -64,7 +71,7 @@ export function useSupportTeam(companyId?: string) {
         .from('ticket_assignments')
         .select(`
           *,
-          agent:assigned_to (
+          agent:support_team_members!assigned_to (
             id,
             name,
             email,
@@ -146,12 +153,23 @@ export function useSupportTeam(companyId?: string) {
 
   const addTeamMember = async (memberData: Partial<SupportTeamMember>) => {
     try {
+      // Ensure required fields are present
+      const newMember = {
+        company_id: companyId,
+        name: memberData.name || '',
+        email: memberData.email || '',
+        role: memberData.role || 'agent',
+        user_id: memberData.user_id,
+        department: memberData.department,
+        is_active: memberData.is_active ?? true,
+        max_tickets: memberData.max_tickets ?? 10,
+        current_tickets: memberData.current_tickets ?? 0,
+        specializations: memberData.specializations ?? [],
+      };
+
       const { data, error } = await supabase
         .from('support_team_members')
-        .insert({
-          ...memberData,
-          company_id: companyId,
-        })
+        .insert(newMember)
         .select()
         .single();
 
