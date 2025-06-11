@@ -2,14 +2,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@/types/user';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
   user: User | null;
-  session: any | null; // Added session property
+  session: any | null;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
-  signUp: (email: string, password: string, userData?: any) => Promise<boolean>; // Added signUp method
-  updateUser?: (userData: Partial<User>) => Promise<void>; // Added updateUser method
+  signUp: (email: string, password: string, userData?: any) => Promise<boolean>;
+  updateUser?: (userData: Partial<User>) => Promise<void>;
   isLoading: boolean;
   isSessionValid: () => boolean;
   getSessionTimeRemaining: () => number;
@@ -17,102 +18,97 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const DEMO_USERS = [
-  {
-    id: '11111111-1111-1111-1111-111111111111',
-    email: 'admin@repairautopilot.com',
-    password: 'RepairAdmin123!',
-    name: 'Super Admin',
-    role: 'admin' as const,
-    companyId: '11111111-1111-1111-1111-111111111111'
-  },
-  {
-    id: '22222222-2222-2222-2222-222222222222',
-    email: 'company@repairautopilot.com',
-    password: 'CompanyAdmin123!',
-    name: 'Company Admin',
-    role: 'company' as const,
-    companyId: '22222222-2222-2222-2222-222222222222'
-  },
-  {
-    id: '33333333-3333-3333-3333-333333333333',
-    email: 'tech@repairautopilot.com',
-    password: 'TechUser123!',
-    name: 'Tech User',
-    role: 'tech' as const,
-    companyId: '22222222-2222-2222-2222-222222222222'
-  }
-];
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<any | null>(null); // Added session state
+  const [session, setSession] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for existing session
-    const savedUser = localStorage.getItem('demo_user');
-    const sessionExpiry = localStorage.getItem('demo_session_expiry');
-    
-    if (savedUser && sessionExpiry) {
-      const expiry = parseInt(sessionExpiry);
-      if (Date.now() < expiry) {
-        const userData = JSON.parse(savedUser);
-        setUser(userData);
-        // Create a mock session object
-        setSession({
-          user: userData,
-          expires_at: expiry,
-          access_token: 'demo_token'
-        });
-      } else {
-        localStorage.removeItem('demo_user');
-        localStorage.removeItem('demo_session_expiry');
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        
+        setSession(session);
+        
+        if (session?.user) {
+          // Fetch user profile from technicians table
+          const { data: technicianData, error } = await supabase
+            .from('technicians')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (technicianData && !error) {
+            const userData: User = {
+              id: technicianData.id,
+              name: technicianData.name || session.user.email?.split('@')[0] || 'User',
+              email: technicianData.email || session.user.email || '',
+              role: technicianData.role as 'admin' | 'company' | 'tech',
+              companyId: technicianData.company_id,
+              status: technicianData.status,
+              avatarUrl: technicianData.avatar_url,
+              activeJobs: 0,
+            };
+            setUser(userData);
+          } else {
+            console.error('Error fetching technician data:', error);
+          }
+        } else {
+          setUser(null);
+        }
+        
+        setIsLoading(false);
       }
-    }
-    
-    setIsLoading(false);
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        setIsLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     console.log('Attempting login for:', email);
+    setIsLoading(true);
     
-    const demoUser = DEMO_USERS.find(u => u.email === email && u.password === password);
-    
-    if (demoUser) {
-      const user: User = {
-        id: demoUser.id,
-        name: demoUser.name,
-        email: demoUser.email,
-        role: demoUser.role,
-        companyId: demoUser.companyId,
-        // Explicitly not setting avatarUrl so it defaults to initials
-      };
-      
-      setUser(user);
-      
-      // Set session expiry to 8 hours from now
-      const sessionExpiry = Date.now() + (8 * 60 * 60 * 1000);
-      const mockSession = {
-        user: user,
-        expires_at: sessionExpiry,
-        access_token: 'demo_token'
-      };
-      
-      setSession(mockSession);
-      localStorage.setItem('demo_user', JSON.stringify(user));
-      localStorage.setItem('demo_session_expiry', sessionExpiry.toString());
-      
-      console.log('Login successful for user role:', user.role);
-      
-      return true;
-    } else {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        console.error('Login error:', error);
+        toast({
+          title: "Login failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return false;
+      }
+
+      if (data.user) {
+        console.log('Login successful for user:', data.user.email);
+        return true;
+      }
+
+      setIsLoading(false);
+      return false;
+    } catch (error) {
+      console.error('Login error:', error);
       toast({
         title: "Login failed",
-        description: "Invalid email or password",
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
+      setIsLoading(false);
       return false;
     }
   };
@@ -120,8 +116,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, userData?: any): Promise<boolean> => {
     console.log('Demo sign up attempt for:', email);
     
-    // For demo purposes, we'll simulate a successful signup
-    // In a real app, this would create a new user account
     toast({
       title: "Demo Sign Up",
       description: "Sign up successful! In a real app, this would create your account.",
@@ -135,39 +129,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updatedUser = { ...user, ...userData };
       setUser(updatedUser);
       
-      // Update stored user data
-      localStorage.setItem('demo_user', JSON.stringify(updatedUser));
-      
-      // Update session if it exists
-      if (session) {
-        const updatedSession = {
-          ...session,
-          user: updatedUser
-        };
-        setSession(updatedSession);
-      }
+      // Update in Supabase
+      await supabase
+        .from('technicians')
+        .update({
+          name: updatedUser.name,
+          avatar_url: updatedUser.avatarUrl,
+        })
+        .eq('id', user.id);
       
       console.log('User updated:', updatedUser);
     }
   };
 
   const logout = async (): Promise<void> => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Logout error:', error);
+    }
     setUser(null);
     setSession(null);
-    localStorage.removeItem('demo_user');
-    localStorage.removeItem('demo_session_expiry');
   };
 
   const isSessionValid = (): boolean => {
-    const sessionExpiry = localStorage.getItem('demo_session_expiry');
-    if (!sessionExpiry) return false;
-    return Date.now() < parseInt(sessionExpiry);
+    return !!session && !!user;
   };
 
   const getSessionTimeRemaining = (): number => {
-    const sessionExpiry = localStorage.getItem('demo_session_expiry');
-    if (!sessionExpiry) return 0;
-    return Math.max(0, parseInt(sessionExpiry) - Date.now());
+    if (!session) return 0;
+    const expiresAt = new Date(session.expires_at || 0).getTime();
+    return Math.max(0, expiresAt - Date.now());
   };
 
   return (

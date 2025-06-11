@@ -41,12 +41,12 @@ export class UsageLimitService {
       throw new Error('No active license found for company');
     }
 
-    // Extract the limits with safer type handling
-    const subscriptionPlans = license.subscription_plans as any;
-    let planLimits: any = {};
+    // Extract the limits with fixed type handling
+    const subscriptionPlans = license.subscription_plans;
+    let planLimits: Record<string, any> = {};
     
     if (subscriptionPlans && typeof subscriptionPlans === 'object' && !Array.isArray(subscriptionPlans)) {
-      planLimits = subscriptionPlans.limits || {};
+      planLimits = (subscriptionPlans as any).limits || {};
     }
 
     const limits: SubscriptionLimits = {
@@ -88,7 +88,7 @@ export class UsageLimitService {
       violations.push(`Daily diagnostics exceeded: ${usage.diagnostics_today}/${limits.diagnostics_per_day}`);
     }
 
-    const canPerformAction = (action: string) => {
+    const canPerformAction = (action: string): boolean => {
       switch (action) {
         case 'add_technician':
           return usage.technicians_active < limits.technicians;
