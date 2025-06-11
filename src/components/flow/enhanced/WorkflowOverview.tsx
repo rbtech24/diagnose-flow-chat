@@ -14,24 +14,35 @@ interface WorkflowOverviewProps {
 
 export function WorkflowOverview({ nodes, edges, currentWorkflow }: WorkflowOverviewProps) {
   const [open, setOpen] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [position, setPosition] = useState({ x: 20, y: 20 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Check if clicking on the button or dialog trigger - don't start drag
+    // Only start drag if clicking on the grip handle or the container background
     const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('[role="dialog"]')) {
+    
+    // Don't start drag if clicking on button, dialog trigger, or any interactive element
+    if (target.closest('button') || 
+        target.closest('[role="dialog"]') || 
+        target.tagName === 'BUTTON' ||
+        target.closest('.pointer-events-auto')) {
       return;
     }
     
     e.preventDefault();
+    e.stopPropagation();
+    
     setIsDragging(true);
     setDragStart({
       x: e.clientX - position.x,
       y: e.clientY - position.y
     });
+    
+    // Add cursor style to body
+    document.body.style.cursor = 'grabbing';
+    document.body.style.userSelect = 'none';
   };
 
   useEffect(() => {
@@ -43,12 +54,12 @@ export function WorkflowOverview({ nodes, edges, currentWorkflow }: WorkflowOver
       const newY = e.clientY - dragStart.y;
       
       // Keep the component within viewport bounds
-      const maxX = window.innerWidth - 200; // rough width of component
-      const maxY = window.innerHeight - 100; // rough height of component
+      const maxX = window.innerWidth - 250; // account for component width
+      const maxY = window.innerHeight - 150; // account for component height
       
       setPosition({
-        x: Math.max(0, Math.min(newX, maxX)),
-        y: Math.max(0, Math.min(newY, maxY))
+        x: Math.max(10, Math.min(newX, maxX)),
+        y: Math.max(10, Math.min(newY, maxY))
       });
     };
 
@@ -56,22 +67,23 @@ export function WorkflowOverview({ nodes, edges, currentWorkflow }: WorkflowOver
       if (isDragging) {
         e.preventDefault();
         setIsDragging(false);
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
       }
     };
 
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
-      // Prevent text selection while dragging
-      document.body.style.userSelect = 'none';
     }
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
       document.body.style.userSelect = '';
     };
-  }, [isDragging, dragStart, position]);
+  }, [isDragging, dragStart]);
 
   const getNodeTypeStats = () => {
     const stats: Record<string, number> = {};
@@ -98,29 +110,32 @@ export function WorkflowOverview({ nodes, edges, currentWorkflow }: WorkflowOver
   return (
     <div 
       ref={containerRef}
-      className={`fixed z-50 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`}
+      className={`fixed z-50 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
-        transform: 'none'
       }}
       onMouseDown={handleMouseDown}
     >
       <div className="bg-white rounded-lg shadow-lg border p-2 flex items-center gap-2">
-        <GripHorizontal className="w-4 h-4 text-gray-400 flex-shrink-0 pointer-events-none" />
+        <GripHorizontal className="w-4 h-4 text-gray-400 flex-shrink-0" />
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button 
               variant="outline" 
               size="sm" 
               className="flex items-center gap-2 pointer-events-auto"
-              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+              }}
             >
               <BarChart className="w-4 h-4" />
               Overview
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl pointer-events-auto">
+          <DialogContent className="max-w-2xl pointer-events-auto" onMouseDown={(e) => e.stopPropagation()}>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Eye className="w-5 h-5" />
