@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { SubscriptionPlanForm } from "@/components/subscription/SubscriptionPlanForm";
 import { useSubscriptionStore } from "@/store/subscriptionStore";
 import { SubscriptionPlan } from "@/types/subscription-consolidated";
-import { Plus, Edit, Users, DollarSign, Settings, Trash2 } from "lucide-react";
+import { Plus, Edit, Users, DollarSign, Settings, Trash2, RefreshCw } from "lucide-react";
 
 export default function AdminSubscriptionPlans() {
   const { 
@@ -19,6 +18,7 @@ export default function AdminSubscriptionPlans() {
     updatePlan, 
     deletePlan,
     togglePlanStatus,
+    cleanupDuplicatePlans,
     isLoadingPlans 
   } = useSubscriptionStore();
 
@@ -66,6 +66,10 @@ export default function AdminSubscriptionPlans() {
     setIsEditing(false);
   };
 
+  const handleCleanupDuplicates = async () => {
+    await cleanupDuplicatePlans();
+  };
+
   if (isLoadingPlans) {
     return (
       <div className="container mx-auto p-6">
@@ -83,10 +87,34 @@ export default function AdminSubscriptionPlans() {
           <h1 className="text-3xl font-bold">Subscription Plans</h1>
           <p className="text-gray-500">Manage subscription plans and pricing</p>
         </div>
-        <Button onClick={handleCreatePlan}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Plan
-        </Button>
+        <div className="flex gap-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Cleanup Duplicates
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Cleanup Duplicate Plans</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will remove duplicate subscription plans from the database, keeping only the earliest created version of each plan. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleCleanupDuplicates}>
+                  Cleanup Duplicates
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <Button onClick={handleCreatePlan}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Plan
+          </Button>
+        </div>
       </div>
 
       {plans.length === 0 ? (

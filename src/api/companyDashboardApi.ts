@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DashboardStats {
@@ -26,7 +25,7 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
       .select('id, status')
       .eq('company_id', companyId);
 
-    const activeJobs = technicians?.filter((tech) => tech.status === 'active').length || 0;
+    const activeJobs = technicians?.filter((tech: { status: string }) => tech.status === 'active').length || 0;
 
     // Get diagnostic sessions as completed jobs
     const { data: diagnosticSessions } = await supabase

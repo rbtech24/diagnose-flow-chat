@@ -15,6 +15,7 @@ interface SubscriptionStore {
   selectedLicense: License | null;
   
   fetchPlans: () => Promise<SubscriptionPlan[]>;
+  cleanupDuplicatePlans: () => Promise<void>;
   fetchLicenses: (companyId: string) => Promise<License[]>;
   fetchLicenseById: (licenseId: string) => Promise<License | null>;
   fetchPayments: (licenseId: string) => Promise<Payment[]>;
@@ -54,6 +55,18 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
       set({ error: (error as Error).message, isLoadingPlans: false });
       toast.error('Failed to fetch subscription plans');
       return [];
+    }
+  },
+  
+  cleanupDuplicatePlans: async () => {
+    try {
+      await SubscriptionService.cleanupDuplicatePlans();
+      toast.success('Duplicate plans cleaned up successfully');
+      // Refresh the plans after cleanup
+      await get().fetchPlans();
+    } catch (error) {
+      console.error('Error cleaning up duplicate plans:', error);
+      toast.error('Failed to cleanup duplicate plans');
     }
   },
   
