@@ -137,16 +137,16 @@ export class UsageLimitService {
     const storage_used_gb = files.reduce((total, file) => total + (file.size || 0), 0) / (1024 * 1024 * 1024);
 
     // Get today's API calls
-    const { count: api_calls_today } = await supabase
+    const { count: apiCallsToday } = await supabase
       .from('api_usage_logs')
-      .select('*', { count: 'exact' })
+      .select('*', { count: 'exact', head: true })
       .eq('company_id', companyId)
       .gte('created_at', today);
 
     // Get today's diagnostics
-    const { count: diagnostics_today } = await supabase
+    const { count: diagnosticsToday } = await supabase
       .from('diagnostic_sessions')
-      .select('*', { count: 'exact' })
+      .select('*', { count: 'exact', head: true })
       .eq('company_id', companyId)
       .gte('created_at', today);
 
@@ -155,8 +155,8 @@ export class UsageLimitService {
       admins_active,
       workflows_count,
       storage_used_gb: Math.round(storage_used_gb * 100) / 100,
-      api_calls_today: api_calls_today || 0,
-      diagnostics_today: diagnostics_today || 0
+      api_calls_today: apiCallsToday || 0,
+      diagnostics_today: diagnosticsToday || 0
     };
   }
 

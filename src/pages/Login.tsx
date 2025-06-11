@@ -11,6 +11,7 @@ import { emailSchema, passwordSchema } from "@/components/security/InputValidato
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, AlertTriangle, CheckCircle, ArrowRight, Zap, Users, TrendingUp } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { DevAuthBypass } from "@/components/dev/DevAuthBypass";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -23,6 +24,7 @@ export default function Login() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { login, user, isSessionValid, getSessionTimeRemaining } = useAuth();
+  const [showDemoLogin, setShowDemoLogin] = useState(false);
 
   useEffect(() => {
     // If user is already logged in, redirect to the appropriate dashboard
@@ -120,6 +122,29 @@ export default function Login() {
     const seconds = Math.floor((ms % 60000) / 1000);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
+
+  if (showDemoLogin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 py-12">
+        <div className="container mx-auto px-4">
+          <div className="mb-6 text-center">
+            <h1 className="text-2xl font-bold mb-2">Demo Login</h1>
+            <p className="text-gray-600 mb-4">Choose a demo account to continue</p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowDemoLogin(false)}
+              className="mx-auto"
+            >
+              Back to Regular Login
+            </Button>
+          </div>
+          
+          <DevAuthBypass />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
@@ -281,12 +306,22 @@ export default function Login() {
                     </Button>
                   </form>
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="flex flex-col space-y-4">
                   <div className="text-center text-sm text-gray-500 w-full">
                     Don't have an account?{" "}
                     <Link to="/signup" className="text-blue-600 hover:text-blue-800 font-medium">
                       Sign up now
                     </Link>
+                  </div>
+                  
+                  <div className="w-full pt-2 border-t">
+                    <Button 
+                      variant="link" 
+                      className="text-xs text-gray-500 w-full"
+                      onClick={() => setShowDemoLogin(true)}
+                    >
+                      Use Demo Accounts
+                    </Button>
                   </div>
                 </CardFooter>
               </Card>
