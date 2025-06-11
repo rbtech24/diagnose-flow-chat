@@ -32,22 +32,24 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
 
     const activeJobs = technicians?.filter(tech => tech.status === 'active').length || 0;
 
-    // Get diagnostic sessions as completed jobs
-    const { data: diagnosticSessions, error: diagError } = await supabase
-      .from('diagnostic_sessions')
-      .select('id, status, company_id')
-      .eq('status', 'completed');
+    // Get company technician IDs first
+    const companyTechnicianIds = technicians?.map(tech => tech.id) || [];
 
-    if (diagError) {
-      console.error('Error fetching diagnostic sessions:', diagError);
+    // Get diagnostic sessions for company technicians
+    let completedJobs = 0;
+    if (companyTechnicianIds.length > 0) {
+      const { data: diagnosticSessions, error: diagError } = await supabase
+        .from('diagnostic_sessions')
+        .select('id, status, technician_id')
+        .eq('status', 'completed')
+        .in('technician_id', companyTechnicianIds);
+
+      if (diagError) {
+        console.error('Error fetching diagnostic sessions:', diagError);
+      }
+
+      completedJobs = diagnosticSessions?.length || 0;
     }
-
-    // Filter diagnostic sessions by company_id if the column exists
-    const relevantSessions = diagnosticSessions?.filter(session => 
-      session.company_id === companyId
-    ) || [];
-
-    const completedJobs = relevantSessions.length;
 
     // Calculate basic revenue estimate (placeholder calculation)
     const revenue = completedJobs * 150; // $150 average per completed job
@@ -80,52 +82,64 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
   try {
     const activities: RecentActivity[] = [];
 
-    // Get recent diagnostic sessions
-    const { data: recentDiagnostics, error: recentError } = await supabase
-      .from('diagnostic_sessions')
-      .select('id, status, created_at, completed_at, company_id')
-      .order('created_at', { ascending: false })
-      .limit(10);
+    // Get company technician IDs first
+    const { data: technicians, error: techError } = await supabase
+      .from('technicians')
+      .select('id')
+      .eq('company_id', companyId);
 
-    if (recentError) {
-      console.error('Error fetching recent diagnostics:', recentError);
+    if (techError) {
+      console.error('Error fetching company technicians:', techError);
     }
 
-    if (recentDiagnostics) {
-      // Filter by company_id if the column exists
-      const relevantDiagnostics = recentDiagnostics.filter(session => 
-        session.company_id === companyId
-      );
+    const companyTechnicianIds = technicians?.map(tech => tech.id) || [];
 
-      relevantDiagnostics.forEach(session => {
-        if (session.status === 'completed') {
-          activities.push({
-            id: session.id,
-            type: 'repair_completed',
-            description: 'Diagnostic session completed',
-            time: formatTimeAgo(session.completed_at || session.created_at),
-            icon: 'CheckSquare'
-          });
-        } else if (session.status === 'in_progress') {
-          activities.push({
-            id: session.id,
-            type: 'job_started',
-            description: 'Diagnostic session started',
-            time: formatTimeAgo(session.created_at),
-            icon: 'Clock'
-          });
-        }
-      });
+    // Get recent diagnostic sessions for company technicians
+    if (companyTechnicianIds.length > 0) {
+      const { data: recentDiagnostics, error: recentError } = await supabase
+        .from('diagnostic_sessions')
+        .select('id, status, created_at, completed_at, technician_id')
+        .in('technician_id', companyTechnicianIds)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (recentError) {
+        console.error('Error fetching recent diagnostics:', recentError);
+      }
+
+      if (recentDiagnostics) {
+        recentDiagnostics.forEach(session => {
+          if (session.status === 'completed') {
+            activities.push({
+              id: session.id,
+              type: 'repair_completed',
+              description: 'Diagnostic session completed',
+              time: formatTimeAgo(session.completed_at || session.created_at),
+              icon: 'CheckSquare'
+            });
+          } else if (session.status === 'in_progress') {
+            activities.push({
+              id: session.id,
+              type: 'job_started',
+              description: 'Diagnostic session started',
+              time: formatTimeAgo(session.created_at),
+              icon: 'Clock'
+            });
+          }
+        });
+      }
     }
 
     // Add some mock activities since the notifications table may not exist or may not have the expected columns
-    activities.push({
-      id: 'mock-1',
-      type: 'job_scheduled',
-      description: 'New job scheduled',
-      time: formatTimeAgo(new Date().toISOString()),
-      icon: 'Calendar'
-    });
+    if (activities.length === 0) {
+      activities.push({
+        id: 'mock-1',
+        type: 'job_scheduled',
+        description: 'New job scheduled',
+        time: formatTimeAgo(new Date().toISOString()),
+        icon: 'Calendar'
+      });
+    }
 
     // Sort by most recent and return top 4
     return activities.slice(0, 4);
