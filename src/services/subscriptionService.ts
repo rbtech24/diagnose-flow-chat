@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { SubscriptionPlan, SubscriptionFeatures, SubscriptionLimits } from "@/types/subscription-consolidated";
 
@@ -201,6 +200,65 @@ export class SubscriptionService {
       console.log('Plan successfully deleted:', planId);
     } catch (error) {
       console.error('SubscriptionService.deletePlan() - Error:', error);
+      throw error;
+    }
+  }
+
+  static async cleanupDuplicatePlans(): Promise<void> {
+    console.log('SubscriptionService.cleanupDuplicatePlans() - Starting cleanup...');
+    
+    try {
+      // Find duplicate plans based on name and keep the most recent one
+      const { data: plans, error: fetchError } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (fetchError) {
+        console.error('Error fetching plans for cleanup:', fetchError);
+        throw new Error(`Failed to fetch plans for cleanup: ${fetchError.message}`);
+      }
+
+      if (!plans || plans.length === 0) {
+        console.log('No plans found for cleanup');
+        return;
+      }
+
+      // Group plans by name and keep only the most recent one
+      const plansByName = new Map();
+      const duplicatesToDelete: string[] = [];
+
+      for (const plan of plans) {
+        if (plansByName.has(plan.name)) {
+          // This is a duplicate, mark for deletion
+          duplicatesToDelete.push(plan.id);
+        } else {
+          // This is the first (most recent) plan with this name
+          plansByName.set(plan.name, plan);
+        }
+      }
+
+      if (duplicatesToDelete.length === 0) {
+        console.log('No duplicate plans found');
+        return;
+      }
+
+      console.log(`Found ${duplicatesToDelete.length} duplicate plans to delete:`, duplicatesToDelete);
+
+      // Delete duplicate plans
+      const { error: deleteError } = await supabase
+        .from('subscription_plans')
+        .delete()
+        .in('id', duplicatesToDelete);
+
+      if (deleteError) {
+        console.error('Error deleting duplicate plans:', deleteError);
+        throw new Error(`Failed to delete duplicate plans: ${deleteError.message}`);
+      }
+
+      console.log(`Successfully deleted ${duplicatesToDelete.length} duplicate plans`);
+    } catch (error) {
+      console.error('SubscriptionService.cleanupDuplicatePlans() - Error:', error);
       throw error;
     }
   }

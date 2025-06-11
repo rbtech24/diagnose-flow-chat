@@ -35,15 +35,19 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
     // Get diagnostic sessions as completed jobs
     const { data: diagnosticSessions, error: diagError } = await supabase
       .from('diagnostic_sessions')
-      .select('id, status')
-      .eq('company_id', companyId)
+      .select('id, status, company_id')
       .eq('status', 'completed');
 
     if (diagError) {
       console.error('Error fetching diagnostic sessions:', diagError);
     }
 
-    const completedJobs = diagnosticSessions?.length || 0;
+    // Filter diagnostic sessions by company_id if the column exists
+    const relevantSessions = diagnosticSessions?.filter(session => 
+      session.company_id === companyId
+    ) || [];
+
+    const completedJobs = relevantSessions.length;
 
     // Calculate basic revenue estimate (placeholder calculation)
     const revenue = completedJobs * 150; // $150 average per completed job
@@ -79,8 +83,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
     // Get recent diagnostic sessions
     const { data: recentDiagnostics, error: recentError } = await supabase
       .from('diagnostic_sessions')
-      .select('id, status, created_at, completed_at')
-      .eq('company_id', companyId)
+      .select('id, status, created_at, completed_at, company_id')
       .order('created_at', { ascending: false })
       .limit(10);
 
@@ -89,7 +92,12 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
     }
 
     if (recentDiagnostics) {
-      recentDiagnostics.forEach(session => {
+      // Filter by company_id if the column exists
+      const relevantDiagnostics = recentDiagnostics.filter(session => 
+        session.company_id === companyId
+      );
+
+      relevantDiagnostics.forEach(session => {
         if (session.status === 'completed') {
           activities.push({
             id: session.id,

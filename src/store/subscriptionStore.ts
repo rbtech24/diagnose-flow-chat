@@ -28,6 +28,7 @@ interface SubscriptionStore {
   updatePlan: (plan: SubscriptionPlan) => Promise<void>;
   deletePlan: (planId: string) => Promise<void>;
   togglePlanStatus: (planId: string) => Promise<void>;
+  cleanupDuplicatePlans: () => Promise<void>;
   addLicense: (license: License) => void;
   deactivateLicense: (licenseId: string) => Promise<boolean>;
 }
