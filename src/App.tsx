@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -30,6 +31,7 @@ import TechCommunity from './pages/tech/Community';
 import TechCommunityPostDetail from './pages/tech/CommunityPostDetail';
 import TechFeatureRequests from './pages/tech/FeatureRequests';
 import TechFeatureRequestDetail from './pages/tech/FeatureRequestDetail';
+import TechNewFeatureRequest from './pages/tech/TechNewFeatureRequest';
 import TechSupport from './pages/tech/Support';
 import TechSupportTicketDetail from './pages/tech/SupportTicketDetail';
 import TechTraining from './pages/tech/Training';
@@ -109,6 +111,7 @@ function App() {
                 <Route path="community/:id" element={<TechCommunityPostDetail />} />
                 <Route path="feature-requests" element={<TechFeatureRequests />} />
                 <Route path="feature-requests/:id" element={<TechFeatureRequestDetail />} />
+                <Route path="new-feature-request" element={<TechNewFeatureRequest />} />
                 <Route path="support" element={<TechSupport />} />
                 <Route path="support/:id" element={<TechSupportTicketDetail />} />
                 <Route path="training" element={<TechTraining />} />
