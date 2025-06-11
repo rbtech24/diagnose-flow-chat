@@ -33,7 +33,13 @@ export class UsageLimitService {
       throw new Error('No active license found for company');
     }
 
-    const limits = license.subscription_plans.limits as SubscriptionLimits;
+    // Safely cast the limits with proper type checking
+    const rawLimits = license.subscription_plans?.limits;
+    if (!rawLimits || typeof rawLimits !== 'object') {
+      throw new Error('Invalid subscription plan limits');
+    }
+
+    const limits = rawLimits as SubscriptionLimits;
 
     // Get current usage
     const usage = await this.getCurrentUsage(companyId);
@@ -145,15 +151,22 @@ export class UsageLimitService {
 
   static async recordUsage(companyId: string, usageType: string, amount: number = 1): Promise<void> {
     try {
-      // Record usage in a usage tracking table (you might want to create this)
-      await supabase
-        .from('usage_tracking')
-        .insert({
-          company_id: companyId,
-          usage_type: usageType,
-          amount: amount,
-          recorded_at: new Date().toISOString()
-        });
+      // For now, we'll just log the usage since the usage_tracking table doesn't exist
+      // In a real implementation, you would want to create this table or use existing tables
+      console.log(`Recording usage for company ${companyId}: ${usageType} - ${amount}`);
+      
+      // You could also store this in the api_usage_logs table for API calls
+      if (usageType === 'api_call') {
+        await supabase
+          .from('api_usage_logs')
+          .insert({
+            company_id: companyId,
+            provider: 'internal',
+            endpoint: usageType,
+            status_code: 200,
+            cost: amount
+          });
+      }
     } catch (error) {
       console.error('Error recording usage:', error);
     }
