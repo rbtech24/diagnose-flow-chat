@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,15 +35,12 @@ export default function AdminWorkflows() {
 
   const handleCreateWorkflow = () => {
     console.log("Navigating to workflow editor");
-    navigate('/admin/workflow-editor');
+    navigate('/workflow-editor?new=true');
   };
 
   const handleEditWorkflow = (folder: string, name: string) => {
-    // The issue was here - we need to use the correct path format when in the admin section
-    // Using the current URL path structure to determine if we're in the admin section
-    const path = window.location.pathname.startsWith('/admin') 
-      ? `/admin/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`
-      : `/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`;
+    // Use the standard workflow editor path that exists in the routes
+    const path = `/workflow-editor?folder=${encodeURIComponent(folder)}&name=${encodeURIComponent(name)}`;
     
     console.log("Navigating to:", path);
     navigate(path);
