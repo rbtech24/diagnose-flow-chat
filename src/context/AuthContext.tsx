@@ -43,12 +43,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (technicianData && !error) {
             const userData: User = {
               id: technicianData.id,
-              name: technicianData.name || session.user.email?.split('@')[0] || 'User',
+              name: session.user.email?.split('@')[0] || 'User', // Use email prefix as name
               email: technicianData.email || session.user.email || '',
               role: technicianData.role as 'admin' | 'company' | 'tech',
               companyId: technicianData.company_id,
               status: technicianData.status,
-              avatarUrl: technicianData.avatar_url,
+              avatarUrl: undefined, // Will be set from user metadata if available
               activeJobs: 0,
             };
             setUser(userData);
@@ -129,13 +129,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updatedUser = { ...user, ...userData };
       setUser(updatedUser);
       
-      // Update in Supabase
+      // Only update fields that exist in the technicians table
+      const updateData: any = {};
+      if (userData.email) updateData.email = userData.email;
+      if (userData.status) updateData.status = userData.status;
+      if (userData.role) updateData.role = userData.role;
+      
       await supabase
         .from('technicians')
-        .update({
-          name: updatedUser.name,
-          avatar_url: updatedUser.avatarUrl,
-        })
+        .update(updateData)
         .eq('id', user.id);
       
       console.log('User updated:', updatedUser);

@@ -41,13 +41,9 @@ export class UsageLimitService {
       throw new Error('No active license found for company');
     }
 
-    // Extract the limits with fixed type handling
+    // Extract the limits with safer type handling
     const subscriptionPlans = license.subscription_plans;
-    let planLimits: Record<string, any> = {};
-    
-    if (subscriptionPlans && typeof subscriptionPlans === 'object' && !Array.isArray(subscriptionPlans)) {
-      planLimits = (subscriptionPlans as any).limits || {};
-    }
+    const planLimits = (subscriptionPlans as any)?.limits || {};
 
     const limits: SubscriptionLimits = {
       technicians: Number(planLimits.technicians) || 1,
@@ -129,13 +125,8 @@ export class UsageLimitService {
     const technicians_active = technicianCounts.filter(t => t.role === 'tech').length;
     const admins_active = technicianCounts.filter(t => t.role === 'admin' || t.role === 'company_admin').length;
 
-    // Get workflow count
-    const workflowResult = await supabase
-      .from('workflows')
-      .select('*', { count: 'exact' })
-      .eq('company_id', companyId);
-
-    const workflows_count = workflowResult.count || 0;
+    // Get workflow count (workflows table doesn't exist yet, so default to 0)
+    const workflows_count = 0;
 
     // Get storage usage (approximate from file uploads)
     const fileResult = await supabase
