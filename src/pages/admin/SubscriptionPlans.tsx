@@ -5,12 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SubscriptionPlanForm } from "@/components/subscription/SubscriptionPlanForm";
-import { SubscriptionTestPanel } from "@/components/subscription/SubscriptionTestPanel";
 import { useSubscriptionStore } from "@/store/subscriptionStore";
 import { SubscriptionPlan } from "@/types/subscription-consolidated";
-import { Plus, Edit, Trash2, Users, DollarSign, Settings, TestTube } from "lucide-react";
+import { Plus, Edit, Users, DollarSign, Settings } from "lucide-react";
 
 export default function AdminSubscriptionPlans() {
   const { 
@@ -85,122 +83,106 @@ export default function AdminSubscriptionPlans() {
         </Button>
       </div>
 
-      <Tabs defaultValue="plans" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="plans">Plans</TabsTrigger>
-          <TabsTrigger value="test">
-            <TestTube className="h-4 w-4 mr-2" />
-            Test Panel
-          </TabsTrigger>
-        </TabsList>
+      {plans.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-lg text-muted-foreground">No subscription plans found</p>
+          <p className="text-gray-500 mb-4">Create your first subscription plan to get started</p>
+          <Button onClick={handleCreatePlan}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create First Plan
+          </Button>
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {plans.map((plan) => (
+            <Card key={plan.id} className={`relative ${plan.recommended ? 'ring-2 ring-blue-500' : ''}`}>
+              {plan.recommended && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <Badge className="bg-blue-500 text-white">Recommended</Badge>
+                </div>
+              )}
+              
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      {plan.name}
+                      <Switch
+                        checked={plan.is_active}
+                        onCheckedChange={() => handleToggleStatus(plan.id)}
+                      />
+                    </CardTitle>
+                    <CardDescription>{plan.description}</CardDescription>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEditPlan(plan)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
 
-        <TabsContent value="plans">
-          {plans.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-lg text-muted-foreground">No subscription plans found</p>
-              <p className="text-gray-500 mb-4">Create your first subscription plan to get started</p>
-              <Button onClick={handleCreatePlan}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create First Plan
-              </Button>
-            </div>
-          ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {plans.map((plan) => (
-                <Card key={plan.id} className={`relative ${plan.recommended ? 'ring-2 ring-blue-500' : ''}`}>
-                  {plan.recommended && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <Badge className="bg-blue-500 text-white">Recommended</Badge>
-                    </div>
-                  )}
-                  
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          {plan.name}
-                          <Switch
-                            checked={plan.is_active}
-                            onCheckedChange={() => handleToggleStatus(plan.id)}
-                          />
-                        </CardTitle>
-                        <CardDescription>{plan.description}</CardDescription>
-                      </div>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEditPlan(plan)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between">
+                  <div>
+                    <div className="text-2xl font-bold">${plan.price_monthly}</div>
+                    <div className="text-sm text-gray-500">per month</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold">${plan.price_yearly}</div>
+                    <div className="text-sm text-gray-500">per year</div>
+                  </div>
+                </div>
 
-                  <CardContent className="space-y-4">
-                    <div className="flex justify-between">
-                      <div>
-                        <div className="text-2xl font-bold">${plan.price_monthly}</div>
-                        <div className="text-sm text-gray-500">per month</div>
-                      </div>
-                      <div>
-                        <div className="text-2xl font-bold">${plan.price_yearly}</div>
-                        <div className="text-sm text-gray-500">per year</div>
-                      </div>
-                    </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm">
+                      {plan.limits.technicians} technicians, {plan.limits.admins} admins
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm">
+                      {plan.limits.diagnostics_per_day} diagnostics/day
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Settings className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm">
+                      {plan.limits.storage_gb} GB storage
+                    </span>
+                  </div>
+                </div>
 
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm">
-                          {plan.limits.technicians} technicians, {plan.limits.admins} admins
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm">
-                          {plan.limits.diagnostics_per_day} diagnostics/day
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Settings className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm">
-                          {plan.limits.storage_gb} GB storage
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="pt-2">
-                      <h4 className="text-sm font-medium mb-2">Features:</h4>
-                      <div className="space-y-1">
-                        {plan.features && typeof plan.features === 'object' && 
-                          Object.entries(plan.features).slice(0, 3).map(([key, value]) => (
-                            <div key={key} className="text-xs text-gray-600">
-                              • {typeof value === 'string' ? value : key.replace(/_/g, ' ')}
-                            </div>
-                          ))
-                        }
-                        {plan.features && typeof plan.features === 'object' && 
-                          Object.keys(plan.features).length > 3 && (
-                            <div className="text-xs text-blue-600">
-                              +{Object.keys(plan.features).length - 3} more features
-                            </div>
-                          )
-                        }
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="test">
-          <SubscriptionTestPanel />
-        </TabsContent>
-      </Tabs>
+                <div className="pt-2">
+                  <h4 className="text-sm font-medium mb-2">Features:</h4>
+                  <div className="space-y-1">
+                    {plan.features && typeof plan.features === 'object' && 
+                      Object.entries(plan.features).slice(0, 3).map(([key, value]) => (
+                        <div key={key} className="text-xs text-gray-600">
+                          • {typeof value === 'string' ? value : key.replace(/_/g, ' ')}
+                        </div>
+                      ))
+                    }
+                    {plan.features && typeof plan.features === 'object' && 
+                      Object.keys(plan.features).length > 3 && (
+                        <div className="text-xs text-blue-600">
+                          +{Object.keys(plan.features).length - 3} more features
+                        </div>
+                      )
+                    }
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
