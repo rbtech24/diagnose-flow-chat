@@ -16,12 +16,12 @@ export interface RecentActivity {
   icon: string;
 }
 
-interface Technician {
+interface TechnicianData {
   id: string;
   status: string;
 }
 
-interface DiagnosticSession {
+interface DiagnosticSessionData {
   id: string;
   status: string;
   created_at: string;
@@ -38,7 +38,8 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
       .select('id, status')
       .eq('company_id', companyId);
 
-    const activeJobs = (technicians as Technician[])?.filter((t) => t.status === 'active').length || 0;
+    const technicianList = technicians as TechnicianData[] | null;
+    const activeJobs = technicianList?.filter((t) => t.status === 'active').length || 0;
 
     // Get diagnostic sessions as completed jobs
     const { data: diagnosticSessions } = await supabase
@@ -89,7 +90,8 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       .limit(10);
 
     if (recentDiagnostics) {
-      (recentDiagnostics as DiagnosticSession[]).forEach((session) => {
+      const diagnosticList = recentDiagnostics as DiagnosticSessionData[];
+      diagnosticList.forEach((session) => {
         if (session.status === 'completed') {
           activities.push({
             id: session.id,

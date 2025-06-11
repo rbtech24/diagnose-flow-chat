@@ -118,8 +118,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // Check if this is a demo user first
       if (DemoAuthService.isDemoEmail(email)) {
+        console.log('Demo email detected, attempting demo authentication');
         const demoUser = DemoAuthService.authenticateDemo(email, password);
         if (demoUser) {
+          console.log('Demo authentication successful');
           const userData: User = {
             id: demoUser.id,
             name: demoUser.name,
@@ -142,6 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setIsLoading(false);
           return true;
         } else {
+          console.log('Demo authentication failed');
           toast({
             title: "Demo login failed",
             description: "Invalid demo credentials",
