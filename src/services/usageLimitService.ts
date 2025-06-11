@@ -1,6 +1,5 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SubscriptionLimits } from "@/types/subscription-consolidated";
 
 export interface UsageData {
   technicians_active: number;
@@ -9,6 +8,15 @@ export interface UsageData {
   storage_used_gb: number;
   api_calls_today: number;
   diagnostics_today: number;
+}
+
+export interface SubscriptionLimits {
+  technicians: number;
+  admins: number;
+  workflows: number;
+  storage_gb: number;
+  api_calls: number;
+  diagnostics_per_day: number;
 }
 
 export class UsageLimitService {
@@ -33,7 +41,7 @@ export class UsageLimitService {
       throw new Error('No active license found for company');
     }
 
-    // Safely extract the limits
+    // Extract the limits with safer type handling
     const subscriptionPlans = license.subscription_plans as any;
     const planLimits = subscriptionPlans?.limits;
     
@@ -41,7 +49,14 @@ export class UsageLimitService {
       throw new Error('Invalid subscription plan limits');
     }
 
-    const limits = this.parseLimits(planLimits);
+    const limits: SubscriptionLimits = {
+      technicians: Number(planLimits.technicians) || 1,
+      admins: Number(planLimits.admins) || 1,
+      workflows: Number(planLimits.workflows) || 10,
+      storage_gb: Number(planLimits.storage_gb) || 1,
+      api_calls: Number(planLimits.api_calls) || 1000,
+      diagnostics_per_day: Number(planLimits.diagnostics_per_day) || 10
+    };
 
     // Get current usage
     const usage = await this.getCurrentUsage(companyId);
@@ -97,17 +112,6 @@ export class UsageLimitService {
       limits,
       violations,
       canPerformAction
-    };
-  }
-
-  private static parseLimits(rawLimits: Record<string, unknown>): SubscriptionLimits {
-    return {
-      technicians: Number(rawLimits.technicians) || 1,
-      admins: Number(rawLimits.admins) || 1,
-      workflows: Number(rawLimits.workflows) || 10,
-      storage_gb: Number(rawLimits.storage_gb) || 1,
-      api_calls: Number(rawLimits.api_calls) || 1000,
-      diagnostics_per_day: Number(rawLimits.diagnostics_per_day) || 10
     };
   }
 

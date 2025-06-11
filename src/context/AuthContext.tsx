@@ -9,6 +9,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   signUp: (email: string, password: string, userData?: any) => Promise<boolean>; // Added signUp method
+  updateUser?: (userData: Partial<User>) => Promise<void>; // Added updateUser method
   isLoading: boolean;
   isSessionValid: () => boolean;
   getSessionTimeRemaining: () => number;
@@ -129,6 +130,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return true;
   };
 
+  const updateUser = async (userData: Partial<User>): Promise<void> => {
+    if (user) {
+      const updatedUser = { ...user, ...userData };
+      setUser(updatedUser);
+      
+      // Update stored user data
+      localStorage.setItem('demo_user', JSON.stringify(updatedUser));
+      
+      // Update session if it exists
+      if (session) {
+        const updatedSession = {
+          ...session,
+          user: updatedUser
+        };
+        setSession(updatedSession);
+      }
+      
+      console.log('User updated:', updatedUser);
+    }
+  };
+
   const logout = async (): Promise<void> => {
     setUser(null);
     setSession(null);
@@ -155,6 +177,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       login,
       logout,
       signUp,
+      updateUser,
       isLoading,
       isSessionValid,
       getSessionTimeRemaining
