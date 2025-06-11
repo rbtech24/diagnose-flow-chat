@@ -302,7 +302,7 @@ export function WorkflowSearch({
                     <SelectItem value="">Any size</SelectItem>
                     <SelectItem value="small">Small (≤5 steps)</SelectItem>
                     <SelectItem value="medium">Medium (6-15 steps)</SelectItem>
-                    <SelectItem value="large">Large (>15 steps)</SelectItem>
+                    <SelectItem value="large">Large (&gt;15 steps)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
