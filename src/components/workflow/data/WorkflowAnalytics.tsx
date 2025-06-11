@@ -61,7 +61,7 @@ export function WorkflowAnalytics({
     const nodeTypeMap = new Map<string, number>();
     workflows.forEach(workflow => {
       workflow.nodes.forEach(node => {
-        const type = node.data?.type || 'question';
+        const type = typeof node.data?.type === 'string' ? node.data.type : 'question';
         nodeTypeMap.set(type, (nodeTypeMap.get(type) || 0) + 1);
       });
     });

@@ -83,7 +83,7 @@ export function WorkflowDataExporter({
         includesExecutionData: exportOptions.includeExecutionData
       },
       workflows: selectedWorkflows.map(workflow => ({
-        id: workflow.id,
+        id: workflow.metadata.name, // Use name as id since id doesn't exist in type
         metadata: workflow.metadata,
         nodeCount: workflow.nodes.length,
         edgeCount: workflow.edges.length,
@@ -293,8 +293,8 @@ export function WorkflowDataExporter({
                 Clear All
               </Button>
             </div>
-            {workflows.map(workflow => (
-              <label key={workflow.id} className="flex items-center gap-2 text-sm">
+            {workflows.map((workflow, index) => (
+              <label key={workflow.metadata.name || index} className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
                   checked={exportOptions.workflows.includes(workflow.metadata.name)}

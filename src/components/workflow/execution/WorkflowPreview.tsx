@@ -315,11 +315,13 @@ export function WorkflowPreview({
                 </Badge>
                 <div className="flex-1">
                   <span className="font-medium">
-                    {node.data?.title || node.data?.label || `Step ${index + 1}`}
+                    {typeof node.data?.title === 'string' ? node.data.title : 
+                     typeof node.data?.label === 'string' ? node.data.label : 
+                     `Step ${index + 1}`}
                   </span>
                 </div>
                 <div className="text-xs text-gray-500">
-                  {node.data?.type || 'question'}
+                  {typeof node.data?.type === 'string' ? node.data.type : 'question'}
                 </div>
                 {index < workflow.nodes.length - 1 && (
                   <ArrowRight className="w-4 h-4 text-gray-400" />

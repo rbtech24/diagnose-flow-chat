@@ -58,7 +58,7 @@ export function WorkflowSearch({
   // Extract unique values for filter options
   const filterOptions = useMemo(() => {
     const categories = Array.from(new Set(workflows.map(w => w.metadata.folder).filter(Boolean)));
-    const authors = Array.from(new Set(workflows.map(w => w.metadata.author || 'Unknown').filter(Boolean)));
+    const authors = Array.from(new Set(workflows.map(w => 'Unknown').filter(Boolean))); // Since author doesn't exist in type
     const allTags = Array.from(new Set(workflows.flatMap(w => w.metadata.tags || [])));
     
     return { categories, authors, tags: allTags };
@@ -71,15 +71,20 @@ export function WorkflowSearch({
     // Search term filter
     if (filters.searchTerm) {
       const searchLower = filters.searchTerm.toLowerCase();
-      result = result.filter(workflow => 
-        workflow.metadata.name.toLowerCase().includes(searchLower) ||
-        workflow.metadata.description?.toLowerCase().includes(searchLower) ||
-        workflow.metadata.folder.toLowerCase().includes(searchLower) ||
-        workflow.nodes.some(node => 
-          node.data?.title?.toLowerCase().includes(searchLower) ||
-          node.data?.content?.toLowerCase().includes(searchLower)
-        )
-      );
+      result = result.filter(workflow => {
+        const name = typeof workflow.metadata.name === 'string' ? workflow.metadata.name.toLowerCase() : '';
+        const description = typeof workflow.metadata.description === 'string' ? workflow.metadata.description.toLowerCase() : '';
+        const folder = typeof workflow.metadata.folder === 'string' ? workflow.metadata.folder.toLowerCase() : '';
+        
+        return name.includes(searchLower) ||
+               description.includes(searchLower) ||
+               folder.includes(searchLower) ||
+               workflow.nodes.some(node => {
+                 const title = typeof node.data?.title === 'string' ? node.data.title.toLowerCase() : '';
+                 const content = typeof node.data?.content === 'string' ? node.data.content.toLowerCase() : '';
+                 return title.includes(searchLower) || content.includes(searchLower);
+               });
+      });
     }
 
     // Category filter
@@ -161,7 +166,9 @@ export function WorkflowSearch({
     const nodeCount = workflow.nodes.length;
     const edgeCount = workflow.edges.length;
     const enhancedNodes = workflow.nodes.filter(node => 
-      ['decision-tree', 'equipment-test', 'data-form', 'photo-capture'].includes(node.data?.type || '')
+      ['decision-tree', 'equipment-test', 'data-form', 'photo-capture'].includes(
+        typeof node.data?.type === 'string' ? node.data.type : ''
+      )
     ).length;
     
     return Math.round((nodeCount * 0.3) + (edgeCount * 0.4) + (enhancedNodes * 0.8));

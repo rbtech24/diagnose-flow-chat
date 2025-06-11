@@ -33,10 +33,12 @@ export function WorkflowExecutionStep({
   const [notes, setNotes] = useState('');
 
   const nodeData = node.data;
-  const nodeType = nodeData?.type || 'question';
-  const title = nodeData?.title || nodeData?.label || 'Step';
-  const content = nodeData?.content || nodeData?.richInfo || '';
-  const options = nodeData?.options || ['Yes', 'No'];
+  const nodeType = typeof nodeData?.type === 'string' ? nodeData.type : 'question';
+  const title = (typeof nodeData?.title === 'string' ? nodeData.title : 
+                typeof nodeData?.label === 'string' ? nodeData.label : 'Step');
+  const content = (typeof nodeData?.content === 'string' ? nodeData.content : 
+                  typeof nodeData?.richInfo === 'string' ? nodeData.richInfo : '');
+  const options = Array.isArray(nodeData?.options) ? nodeData.options : ['Yes', 'No'];
 
   const handleSubmit = () => {
     const answer = selectedAnswer || textInput || 'Completed';
@@ -114,28 +116,36 @@ export function WorkflowExecutionStep({
         )}
 
         {/* Technical Specifications */}
-        {nodeData?.technicalSpecs && (
+        {nodeData?.technicalSpecs && typeof nodeData.technicalSpecs === 'object' && (
           <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
               <Info className="w-4 h-4" />
               Technical Specifications
             </h4>
             <div className="text-sm space-y-1">
-              {nodeData.technicalSpecs.range && (
-                <p><strong>Range:</strong> {nodeData.technicalSpecs.range.min} - {nodeData.technicalSpecs.range.max}</p>
+              {nodeData.technicalSpecs && 
+               typeof nodeData.technicalSpecs === 'object' && 
+               'range' in nodeData.technicalSpecs && 
+               nodeData.technicalSpecs.range && 
+               typeof nodeData.technicalSpecs.range === 'object' && (
+                <p><strong>Range:</strong> {(nodeData.technicalSpecs.range as any).min} - {(nodeData.technicalSpecs.range as any).max}</p>
               )}
-              {nodeData.technicalSpecs.testPoints && (
-                <p><strong>Test Points:</strong> {nodeData.technicalSpecs.testPoints}</p>
+              {nodeData.technicalSpecs && 
+               typeof nodeData.technicalSpecs === 'object' && 
+               'testPoints' in nodeData.technicalSpecs && (
+                <p><strong>Test Points:</strong> {(nodeData.technicalSpecs as any).testPoints}</p>
               )}
-              {nodeData.technicalSpecs.value && (
-                <p><strong>Expected Value:</strong> {nodeData.technicalSpecs.value}</p>
+              {nodeData.technicalSpecs && 
+               typeof nodeData.technicalSpecs === 'object' && 
+               'value' in nodeData.technicalSpecs && (
+                <p><strong>Expected Value:</strong> {(nodeData.technicalSpecs as any).value}</p>
               )}
             </div>
           </div>
         )}
 
         {/* Equipment Test Specific */}
-        {nodeType === 'equipment-test' && nodeData?.equipmentTest && (
+        {nodeType === 'equipment-test' && nodeData?.equipmentTest && typeof nodeData.equipmentTest === 'object' && (
           <div className="space-y-4">
             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <h4 className="font-semibold text-yellow-800 mb-2 flex items-center gap-2">
@@ -143,7 +153,8 @@ export function WorkflowExecutionStep({
                 Safety Requirements
               </h4>
               <ul className="text-sm space-y-1">
-                {nodeData.equipmentTest.safetyWarnings?.map((warning: string, index: number) => (
+                {Array.isArray((nodeData.equipmentTest as any).safetyWarnings) && 
+                 (nodeData.equipmentTest as any).safetyWarnings.map((warning: string, index: number) => (
                   <li key={index} className="flex items-start gap-2">
                     <span className="text-yellow-600">•</span>
                     {warning}
@@ -155,7 +166,8 @@ export function WorkflowExecutionStep({
             <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
               <h4 className="font-semibold text-green-800 mb-2">Required Tools</h4>
               <ul className="text-sm space-y-1">
-                {nodeData.equipmentTest.requiredTools?.map((tool: string, index: number) => (
+                {Array.isArray((nodeData.equipmentTest as any).requiredTools) && 
+                 (nodeData.equipmentTest as any).requiredTools.map((tool: string, index: number) => (
                   <li key={index} className="flex items-start gap-2">
                     <span className="text-green-600">•</span>
                     {tool}
@@ -170,7 +182,7 @@ export function WorkflowExecutionStep({
         <div className="space-y-4">
           <h4 className="font-semibold">Response Required</h4>
           
-          {options.length <= 4 ? (
+          {Array.isArray(options) && options.length <= 4 ? (
             <RadioGroup value={selectedAnswer} onValueChange={setSelectedAnswer}>
               {options.map((option: string, index: number) => (
                 <div key={index} className="flex items-center space-x-2">
