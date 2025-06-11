@@ -41,9 +41,8 @@ export class UsageLimitService {
       throw new Error('No active license found for company');
     }
 
-    // Extract the limits with safer type handling
-    const subscriptionPlans = license.subscription_plans;
-    const planLimits = (subscriptionPlans as any)?.limits || {};
+    // Extract the limits with type assertion
+    const planLimits = (license.subscription_plans as any)?.limits || {};
 
     const limits: SubscriptionLimits = {
       technicians: Number(planLimits.technicians) || 1,
@@ -115,13 +114,13 @@ export class UsageLimitService {
     const today = new Date().toISOString().split('T')[0];
 
     // Get technician counts
-    const technicianResult = await supabase
+    const { data: technicianData } = await supabase
       .from('technicians')
       .select('role')
       .eq('company_id', companyId)
       .eq('status', 'active');
 
-    const technicianCounts = technicianResult.data || [];
+    const technicianCounts = technicianData || [];
     const technicians_active = technicianCounts.filter(t => t.role === 'tech').length;
     const admins_active = technicianCounts.filter(t => t.role === 'admin' || t.role === 'company_admin').length;
 
@@ -129,39 +128,35 @@ export class UsageLimitService {
     const workflows_count = 0;
 
     // Get storage usage (approximate from file uploads)
-    const fileResult = await supabase
+    const { data: fileUploads } = await supabase
       .from('file_uploads')
       .select('size')
       .eq('company_id', companyId);
 
-    const fileUploads = fileResult.data || [];
-    const storage_used_gb = fileUploads.reduce((total, file) => total + (file.size || 0), 0) / (1024 * 1024 * 1024);
+    const files = fileUploads || [];
+    const storage_used_gb = files.reduce((total, file) => total + (file.size || 0), 0) / (1024 * 1024 * 1024);
 
     // Get today's API calls
-    const apiResult = await supabase
+    const { count: api_calls_today } = await supabase
       .from('api_usage_logs')
       .select('*', { count: 'exact' })
       .eq('company_id', companyId)
       .gte('created_at', today);
 
-    const api_calls_today = apiResult.count || 0;
-
     // Get today's diagnostics
-    const diagnosticResult = await supabase
+    const { count: diagnostics_today } = await supabase
       .from('diagnostic_sessions')
       .select('*', { count: 'exact' })
       .eq('company_id', companyId)
       .gte('created_at', today);
-
-    const diagnostics_today = diagnosticResult.count || 0;
 
     return {
       technicians_active,
       admins_active,
       workflows_count,
       storage_used_gb: Math.round(storage_used_gb * 100) / 100,
-      api_calls_today,
-      diagnostics_today
+      api_calls_today: api_calls_today || 0,
+      diagnostics_today: diagnostics_today || 0
     };
   }
 
