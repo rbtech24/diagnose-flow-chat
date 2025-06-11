@@ -4,23 +4,35 @@ import { SubscriptionPlan, SubscriptionFeatures, SubscriptionLimits } from "@/ty
 
 export class SubscriptionService {
   static async getPlans(): Promise<SubscriptionPlan[]> {
+    console.log('SubscriptionService.getPlans() - Fetching plans from database...');
+    
     const { data, error } = await supabase
       .from('subscription_plans')
       .select('*')
       .order('created_at', { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching plans from database:', error);
+      throw error;
+    }
 
-    return data.map(plan => ({
+    console.log('Raw data from database:', data);
+
+    const mappedPlans = data.map(plan => ({
       ...plan,
       features: this.parseFeatures(plan.features),
       limits: this.parseLimits(plan.limits),
       created_at: plan.created_at || new Date().toISOString(),
       updated_at: plan.updated_at || new Date().toISOString()
     }));
+    
+    console.log('Mapped plans:', mappedPlans);
+    return mappedPlans;
   }
 
   static async createPlan(planData: Omit<SubscriptionPlan, 'id' | 'created_at' | 'updated_at'>): Promise<SubscriptionPlan> {
+    console.log('SubscriptionService.createPlan() - Creating plan:', planData);
+    
     const { data, error } = await supabase
       .from('subscription_plans')
       .insert({
@@ -37,18 +49,28 @@ export class SubscriptionService {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error creating plan in database:', error);
+      throw error;
+    }
 
-    return {
+    console.log('Plan created successfully in database:', data);
+
+    const createdPlan = {
       ...data,
       features: this.parseFeatures(data.features),
       limits: this.parseLimits(data.limits),
       created_at: data.created_at || new Date().toISOString(),
       updated_at: data.updated_at || new Date().toISOString()
     };
+    
+    console.log('Returning created plan:', createdPlan);
+    return createdPlan;
   }
 
   static async updatePlan(planId: string, planData: Partial<SubscriptionPlan>): Promise<SubscriptionPlan> {
+    console.log('SubscriptionService.updatePlan() - Updating plan:', planId, planData);
+    
     const { data, error } = await supabase
       .from('subscription_plans')
       .update({
@@ -67,7 +89,12 @@ export class SubscriptionService {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error updating plan in database:', error);
+      throw error;
+    }
+
+    console.log('Plan updated successfully in database:', data);
 
     return {
       ...data,
@@ -79,6 +106,8 @@ export class SubscriptionService {
   }
 
   static async togglePlanStatus(planId: string, currentStatus: boolean): Promise<SubscriptionPlan> {
+    console.log('SubscriptionService.togglePlanStatus() - Toggling plan status:', planId, currentStatus);
+    
     const { data, error } = await supabase
       .from('subscription_plans')
       .update({ 
@@ -89,7 +118,12 @@ export class SubscriptionService {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error toggling plan status in database:', error);
+      throw error;
+    }
+
+    console.log('Plan status toggled successfully in database:', data);
 
     return {
       ...data,
@@ -101,12 +135,19 @@ export class SubscriptionService {
   }
 
   static async deletePlan(planId: string): Promise<void> {
+    console.log('SubscriptionService.deletePlan() - Deleting plan:', planId);
+    
     const { error } = await supabase
       .from('subscription_plans')
       .delete()
       .eq('id', planId);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error deleting plan from database:', error);
+      throw error;
+    }
+    
+    console.log('Plan deleted successfully from database');
   }
 
   private static parseFeatures(features: any): SubscriptionFeatures {

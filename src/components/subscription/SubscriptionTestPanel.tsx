@@ -54,7 +54,16 @@ export function SubscriptionTestPanel() {
         updated_at: new Date().toISOString()
       };
 
+      console.log('About to call addPlan with:', newPlan);
       await addPlan(newPlan);
+      console.log('addPlan completed, now refreshing plans...');
+      
+      // Wait a moment then refresh to ensure we see the new plan
+      setTimeout(async () => {
+        await fetchPlans();
+        console.log('Plans refreshed after creation');
+      }, 1000);
+      
       toast.success('Test plan created successfully!');
     } catch (error) {
       console.error('Error creating test plan:', error);
@@ -64,13 +73,19 @@ export function SubscriptionTestPanel() {
 
   const handleRefreshPlans = async () => {
     try {
-      console.log('Refreshing plans...');
-      await fetchPlans();
+      console.log('Manually refreshing plans...');
+      const refreshedPlans = await fetchPlans();
+      console.log('Refreshed plans:', refreshedPlans);
       toast.success('Plans refreshed successfully!');
     } catch (error) {
       console.error('Error refreshing plans:', error);
       toast.error(`Failed to refresh plans: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  };
+
+  const handleClearPlans = () => {
+    console.log('Current plans in store:', plans);
+    toast.info(`Found ${plans.length} plans in store`);
   };
 
   return (
@@ -128,6 +143,9 @@ export function SubscriptionTestPanel() {
             <Button variant="outline" onClick={handleRefreshPlans} disabled={isLoadingPlans}>
               Refresh Plans
             </Button>
+            <Button variant="secondary" onClick={handleClearPlans}>
+              Debug Plans
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -152,7 +170,8 @@ export function SubscriptionTestPanel() {
                   </div>
                   <div className="text-xs text-muted-foreground">
                     Status: {plan.is_active ? 'Active' : 'Inactive'} • 
-                    Trial: {plan.trial_period} days
+                    Trial: {plan.trial_period} days • 
+                    ID: {plan.id.substring(0, 8)}...
                   </div>
                 </div>
               ))}
