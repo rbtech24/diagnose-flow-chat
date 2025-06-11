@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { SubscriptionLimits } from "@/types/subscription-consolidated";
 
@@ -70,7 +71,7 @@ export class UsageLimitService {
       violations.push(`Daily diagnostics exceeded: ${usage.diagnostics_today}/${limits.diagnostics_per_day}`);
     }
 
-    const canPerformAction = (action: string): boolean => {
+    const canPerformAction = (action: string) => {
       switch (action) {
         case 'add_technician':
           return usage.technicians_active < limits.technicians;
@@ -97,7 +98,7 @@ export class UsageLimitService {
     };
   }
 
-  private static parseLimits(rawLimits: any): SubscriptionLimits {
+  private static parseLimits(rawLimits: Record<string, unknown>): SubscriptionLimits {
     return {
       technicians: Number(rawLimits.technicians) || 1,
       admins: Number(rawLimits.admins) || 1,
@@ -161,11 +162,8 @@ export class UsageLimitService {
 
   static async recordUsage(companyId: string, usageType: string, amount: number = 1): Promise<void> {
     try {
-      // For now, we'll just log the usage since the usage_tracking table doesn't exist
-      // In a real implementation, you would want to create this table or use existing tables
       console.log(`Recording usage for company ${companyId}: ${usageType} - ${amount}`);
       
-      // You could also store this in the api_usage_logs table for API calls
       if (usageType === 'api_call') {
         await supabase
           .from('api_usage_logs')
@@ -187,7 +185,6 @@ export class UsageLimitService {
       const { canPerformAction } = await this.checkCompanyLimits(companyId);
       
       if (!canPerformAction(action)) {
-        // Create notification about limit reached
         await supabase
           .from('notifications')
           .insert({
