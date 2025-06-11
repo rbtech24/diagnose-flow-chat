@@ -19,7 +19,6 @@ export default function AdminSubscriptionPlans() {
     updatePlan, 
     deletePlan,
     togglePlanStatus,
-    cleanupDuplicatePlans,
     isLoadingPlans,
     fetchPlans 
   } = useSubscriptionStore();
@@ -89,16 +88,6 @@ export default function AdminSubscriptionPlans() {
     setIsEditing(false);
   };
 
-  const handleCleanupDuplicates = async () => {
-    try {
-      await cleanupDuplicatePlans();
-      // Sync plans to ensure consistency
-      await syncPlans();
-    } catch (error) {
-      console.error('Error cleaning up duplicates:', error);
-    }
-  };
-
   const handleRefreshPlans = async () => {
     try {
       await syncPlans();
@@ -129,28 +118,6 @@ export default function AdminSubscriptionPlans() {
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Cleanup Duplicates
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Cleanup Duplicate Plans</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This will remove duplicate subscription plans from the database, keeping only the earliest created version of each plan. This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleCleanupDuplicates}>
-                  Cleanup Duplicates
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
           <Button onClick={handleCreatePlan}>
             <Plus className="h-4 w-4 mr-2" />
             Add Plan

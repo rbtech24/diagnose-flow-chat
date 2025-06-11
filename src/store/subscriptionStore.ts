@@ -1,3 +1,4 @@
+
 import { create } from "zustand";
 import { SubscriptionPlan, License, Payment } from "@/types/subscription-consolidated";
 import { SubscriptionService } from "@/services/subscriptionService";
@@ -15,7 +16,6 @@ interface SubscriptionStore {
   selectedLicense: License | null;
   
   fetchPlans: () => Promise<SubscriptionPlan[]>;
-  cleanupDuplicatePlans: () => Promise<void>;
   fetchLicenses: (companyId: string) => Promise<License[]>;
   fetchLicenseById: (licenseId: string) => Promise<License | null>;
   fetchPayments: (licenseId: string) => Promise<Payment[]>;

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { SubscriptionPlan, SubscriptionFeatures, SubscriptionLimits } from "@/types/subscription-consolidated";
 
@@ -202,6 +203,25 @@ export class SubscriptionService {
     console.log('SubscriptionService.togglePlanStatus() - Toggling plan status:', planId, 'from', currentStatus, 'to', !currentStatus);
     
     try {
+      // First check if the plan exists
+      const { data: existingPlan, error: fetchError } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('id', planId)
+        .maybeSingle();
+
+      if (fetchError) {
+        console.error('Error fetching plan for status toggle:', fetchError);
+        throw new Error(`Failed to fetch plan: ${fetchError.message}`);
+      }
+
+      if (!existingPlan) {
+        throw new Error('Plan not found');
+      }
+
+      console.log('Found plan for status toggle:', existingPlan);
+
+      // Update the plan status
       const { data, error } = await supabase
         .from('subscription_plans')
         .update({ 
@@ -210,7 +230,7 @@ export class SubscriptionService {
         })
         .eq('id', planId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error toggling plan status in database:', error);
