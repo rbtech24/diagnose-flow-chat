@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { SubscriptionPlan, SubscriptionFeatures, SubscriptionLimits } from "@/types/subscription-consolidated";
 
@@ -203,12 +202,12 @@ export class SubscriptionService {
     console.log('SubscriptionService.togglePlanStatus() - Toggling plan status:', planId, 'from', currentStatus, 'to', !currentStatus);
     
     try {
-      // First check if the plan exists
+      // First verify the plan exists and get current state
       const { data: existingPlan, error: fetchError } = await supabase
         .from('subscription_plans')
         .select('*')
         .eq('id', planId)
-        .maybeSingle();
+        .single();
 
       if (fetchError) {
         console.error('Error fetching plan for status toggle:', fetchError);
@@ -221,8 +220,8 @@ export class SubscriptionService {
 
       console.log('Found plan for status toggle:', existingPlan);
 
-      // Update the plan status
-      const { data, error } = await supabase
+      // Now update the plan status
+      const { data: updatedPlan, error: updateError } = await supabase
         .from('subscription_plans')
         .update({ 
           is_active: !currentStatus,
@@ -230,25 +229,25 @@ export class SubscriptionService {
         })
         .eq('id', planId)
         .select()
-        .maybeSingle();
+        .single();
 
-      if (error) {
-        console.error('Error toggling plan status in database:', error);
-        throw new Error(`Failed to update plan status: ${error.message}`);
+      if (updateError) {
+        console.error('Error toggling plan status in database:', updateError);
+        throw new Error(`Failed to update plan status: ${updateError.message}`);
       }
 
-      if (!data) {
+      if (!updatedPlan) {
         throw new Error('Plan status update failed - no data returned');
       }
 
-      console.log('Plan status toggled successfully in database:', data);
+      console.log('Plan status toggled successfully in database:', updatedPlan);
 
       return {
-        ...data,
-        features: this.parseFeatures(data.features),
-        limits: this.parseLimits(data.limits),
-        created_at: data.created_at || new Date().toISOString(),
-        updated_at: data.updated_at || new Date().toISOString()
+        ...updatedPlan,
+        features: this.parseFeatures(updatedPlan.features),
+        limits: this.parseLimits(updatedPlan.limits),
+        created_at: updatedPlan.created_at || new Date().toISOString(),
+        updated_at: updatedPlan.updated_at || new Date().toISOString()
       };
     } catch (error) {
       console.error('SubscriptionService.togglePlanStatus() - Error:', error);
