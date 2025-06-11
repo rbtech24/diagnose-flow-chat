@@ -207,10 +207,21 @@ export function FlowToolbar({
               Templates
             </Button>
 
+            {/* Make Save Template Button More Prominent */}
             <SaveTemplateDialog
               nodes={nodes}
               edges={edges}
               nodeCounter={nodeCounter}
+              trigger={
+                <Button 
+                  variant="default" 
+                  size="sm"
+                  className="flex items-center gap-1.5 h-8 px-3 text-xs bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  Save Template
+                </Button>
+              }
             />
 
             <ValidationButton
