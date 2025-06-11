@@ -1,13 +1,12 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { SubscriptionPlan, BillingCycle } from "@/types/subscription-consolidated";
-import { PaymentService } from "@/services/paymentService";
 import { CheckCircle2, CreditCard, Calendar, Lock } from "lucide-react";
 import { toast } from "sonner";
+import { StripeService } from "@/services/stripeService";
 
 interface PaymentFormProps {
   plan: SubscriptionPlan;
@@ -34,37 +33,14 @@ export function PaymentForm({
     setIsSubmitting(true);
     
     try {
-      // Create payment intent
-      const createResult = await PaymentService.createPaymentIntent(
-        price,
-        'USD',
-        {
-          plan_id: plan.id,
-          plan_name: plan.name,
-          billing_cycle: billingCycle
-        }
-      );
-
-      if (!createResult.success || !createResult.payment_intent) {
-        throw new Error(createResult.error || 'Failed to create payment intent');
-      }
-
-      // Confirm payment
-      const confirmResult = await PaymentService.confirmPayment(
-        createResult.payment_intent.id,
-        'credit_card'
-      );
-
-      if (!confirmResult.success) {
-        throw new Error(confirmResult.error || 'Payment failed');
-      }
-
-      toast.success('Payment completed successfully!');
-      onComplete();
+      // Use Stripe Checkout instead of the mock payment service
+      const { url } = await StripeService.createCheckoutSession(plan.id, billingCycle);
+      
+      // Redirect to Stripe Checkout
+      window.location.href = url;
     } catch (error) {
       console.error('Payment error:', error);
       toast.error((error as Error).message || 'Payment failed');
-    } finally {
       setIsSubmitting(false);
     }
   };
