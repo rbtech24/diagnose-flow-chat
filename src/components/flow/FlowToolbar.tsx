@@ -153,43 +153,46 @@ export function FlowToolbar({
 
   return (
     <div className="absolute top-0 left-0 right-0 z-10 bg-background border-b pointer-events-auto">
-      <div className="flex flex-col gap-4 p-4">
-        {/* Primary Toolbar Row */}
-        <div className="flex items-center justify-between w-full gap-4 min-h-[40px]">
-          {/* Left Actions Group */}
+      <div className="flex flex-col gap-3 p-3">
+        {/* Single Toolbar Row - Compact Layout */}
+        <div className="flex items-center w-full gap-3 min-h-[36px] flex-nowrap">
+          {/* Left Actions Group - Core actions */}
           <div className="flex items-center gap-2 flex-shrink-0">
             <Button 
               variant="default"
               size="sm" 
-              className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+              className="flex items-center gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 h-8 px-3 text-xs"
               onClick={onAddNode}
             >
-              <Plus className="w-4 h-4" />
-              Add Step
+              <Plus className="w-3.5 h-3.5" />
+              Add
             </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setTemplateDialogOpen(true)}
-              className="flex items-center gap-2"
-            >
-              <File className="w-4 h-4" />
-              Templates
-            </Button>
-
-            <Separator orientation="vertical" className="h-6" />
 
             <SaveWorkflowDialog onSave={onSave} currentWorkflow={currentWorkflow} />
 
             <Button 
               variant="secondary" 
               size="sm"
-              className="flex items-center gap-2" 
+              className="flex items-center gap-1.5 h-8 px-3 text-xs" 
               onClick={onImportClick}
             >
-              <Upload className="w-4 h-4" />
+              <Upload className="w-3.5 h-3.5" />
               Import
+            </Button>
+          </div>
+
+          <Separator orientation="vertical" className="h-5" />
+
+          {/* Core Tools */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setTemplateDialogOpen(true)}
+              className="flex items-center gap-1.5 h-8 px-3 text-xs"
+            >
+              <File className="w-3.5 h-3.5" />
+              Templates
             </Button>
 
             <ValidationButton
@@ -200,8 +203,8 @@ export function FlowToolbar({
             />
           </div>
 
-          {/* Center Search Panel */}
-          <div className="flex-1 max-w-2xl mx-4 min-w-0">
+          {/* Center Search Panel - Flexible */}
+          <div className="flex-1 max-w-md mx-3 min-w-0">
             <SearchPanel
               searchTerm={searchTerm}
               typeFilter={typeFilter}
@@ -214,17 +217,17 @@ export function FlowToolbar({
             />
           </div>
 
-          {/* Right Actions Group - Fixed spacing */}
-          <div className="flex items-center gap-3 flex-shrink-0 min-w-fit">
+          {/* Right Actions Group - Essential only */}
+          <div className="flex items-center gap-2 flex-shrink-0">
             {onApplyNodeChanges && (
               <Button 
                 variant="secondary"
                 size="sm"
-                className="flex items-center gap-2 whitespace-nowrap"
+                className="flex items-center gap-1.5 h-8 px-3 text-xs whitespace-nowrap"
                 onClick={onApplyNodeChanges}
               >
-                <Save className="w-4 h-4" />
-                Apply Changes
+                <Save className="w-3.5 h-3.5" />
+                Apply
               </Button>
             )}
 
@@ -233,9 +236,9 @@ export function FlowToolbar({
                 <Button 
                   variant="outline"
                   size="sm"
-                  className="flex items-center gap-2 whitespace-nowrap"
+                  className="flex items-center gap-1.5 h-8 px-3 text-xs whitespace-nowrap"
                 >
-                  <History className="w-4 h-4" />
+                  <History className="w-3.5 h-3.5" />
                   History
                 </Button>
               </PopoverTrigger>
@@ -252,63 +255,63 @@ export function FlowToolbar({
             <Button 
               variant="default"
               size="sm"
-              className="flex items-center gap-2 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white whitespace-nowrap"
+              className="flex items-center gap-1.5 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white h-8 px-3 text-xs whitespace-nowrap"
               onClick={handleGoToWorkflows}
             >
-              <Link2 className="w-4 h-4" />
+              <Link2 className="w-3.5 h-3.5" />
               Workflows
             </Button>
           </div>
         </div>
 
-        {/* Secondary Actions Row */}
+        {/* Secondary Actions Row - Only when needed */}
         <div className="flex items-center justify-center w-full">
-          <div className="flex items-center gap-4 px-6 py-2 bg-muted/50 rounded-lg">
+          <div className="flex items-center gap-3 px-4 py-1.5 bg-muted/50 rounded-md">
             <Button 
               variant="ghost"
               size="sm"
-              className="flex items-center gap-2 min-w-[80px] hover:bg-background"
+              className="flex items-center gap-1.5 h-7 px-2 text-xs hover:bg-background"
               onClick={onCopySelected}
             >
-              <Copy className="w-4 h-4" />
+              <Copy className="w-3 h-3" />
               Copy
             </Button>
             
-            <Separator orientation="vertical" className="h-4" />
+            <Separator orientation="vertical" className="h-3" />
             
             <Button 
               variant="ghost"
               size="sm"
-              className="flex items-center gap-2 min-w-[80px] hover:bg-background"
+              className="flex items-center gap-1.5 h-7 px-2 text-xs hover:bg-background"
               onClick={onPaste}
             >
-              <Clipboard className="w-4 h-4" />
+              <Clipboard className="w-3 h-3" />
               Paste
             </Button>
 
-            <Separator orientation="vertical" className="h-4" />
+            <Separator orientation="vertical" className="h-3" />
 
             <Button 
               variant="ghost"
               size="sm"
-              className="flex items-center gap-2 min-w-[80px] hover:bg-destructive hover:text-destructive-foreground"
+              className="flex items-center gap-1.5 h-7 px-2 text-xs hover:bg-destructive hover:text-destructive-foreground"
               onClick={onDeleteSelected}
             >
-              <Trash className="w-4 h-4" />
+              <Trash className="w-3 h-3" />
               Delete
             </Button>
             
-            <Separator orientation="vertical" className="h-4" />
+            <Separator orientation="vertical" className="h-3" />
             
             <Button 
               variant="ghost"
               size="sm"
-              className="flex items-center gap-2 min-w-[80px] hover:bg-background"
+              className="flex items-center gap-1.5 h-7 px-2 text-xs hover:bg-background"
               onClick={() => {
                 handleSaveWorkflow(nodes, edges, nodeCounter, 'Exported Workflow', 'export', 'export', '');
               }}
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-3 h-3" />
               Export
             </Button>
           </div>
@@ -316,8 +319,8 @@ export function FlowToolbar({
         
         {/* Search Results Summary */}
         {hasActiveFilters && (
-          <div className="bg-blue-50 border border-blue-200 p-3 rounded-md">
-            <p className="text-sm text-blue-700 flex items-center justify-between">
+          <div className="bg-blue-50 border border-blue-200 p-2 rounded-md">
+            <p className="text-xs text-blue-700 flex items-center justify-between">
               <span>
                 {searchResults.length > 0 
                   ? `Found ${searchResults.length} node${searchResults.length === 1 ? '' : 's'}`
@@ -330,7 +333,7 @@ export function FlowToolbar({
                 variant="ghost"
                 size="sm"
                 onClick={clearSearch}
-                className="text-blue-700 hover:text-blue-900 h-6 px-2 text-xs"
+                className="text-blue-700 hover:text-blue-900 h-5 px-1 text-xs"
               >
                 Clear
               </Button>
