@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface SupportTicket {
@@ -323,4 +322,218 @@ export async function searchSupportTickets(searchParams: {
   const tickets: SupportTicket[] = (data || []).map(convertToSupportTicket);
   
   return tickets;
+}
+
+export async function uploadTicketAttachment(
+  ticketId: string,
+  file: File,
+  messageId?: string
+): Promise<{ id: string; file_url: string }> {
+  if (!isValidUUID(ticketId)) {
+    throw new Error('Invalid ticket ID format');
+  }
+
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
+  // Upload file to storage
+  const fileName = `${Date.now()}-${file.name}`;
+  const { data: uploadData, error: uploadError } = await supabase.storage
+    .from('support-attachments')
+    .upload(fileName, file);
+
+  if (uploadError) {
+    console.error('Error uploading file:', uploadError);
+    throw uploadError;
+  }
+
+  // Get public URL
+  const { data: { publicUrl } } = supabase.storage
+    .from('support-attachments')
+    .getPublicUrl(fileName);
+
+  // Create attachment record
+  const { data, error } = await supabase
+    .from('support_ticket_attachments')
+    .insert({
+      ticket_id: ticketId,
+      message_id: messageId,
+      file_name: file.name,
+      file_size: file.size,
+      file_type: file.type,
+      file_url: publicUrl,
+      uploaded_by: user.id,
+    })
+    .select('*')
+    .single();
+
+  if (error) {
+    console.error('Error creating attachment record:', error);
+    throw error;
+  }
+
+  return {
+    id: data.id,
+    file_url: publicUrl,
+  };
+}
+
+export async function fetchTicketAttachments(ticketId: string): Promise<any[]> {
+  if (!isValidUUID(ticketId)) {
+    throw new Error('Invalid ticket ID format');
+  }
+
+  const { data, error } = await supabase
+    .from('support_ticket_attachments')
+    .select('*')
+    .eq('ticket_id', ticketId)
+    .order('created_at');
+
+  if (error) {
+    console.error(`Error fetching attachments for ticket ${ticketId}:`, error);
+    throw error;
+  }
+
+  return data || [];
+}
+
+export async function getNotificationPreferences(userId: string): Promise<any> {
+  const { data, error } = await supabase
+    .from('support_notification_preferences')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+
+  if (error && error.code !== 'PGRST116') {
+    console.error('Error fetching notification preferences:', error);
+    throw error;
+  }
+
+  // Return default preferences if none exist
+  return data || {
+    ticket_created: true,
+    ticket_updated: true,
+    ticket_assigned: true,
+    ticket_resolved: true,
+    sla_breach: true,
+    email_enabled: true,
+  };
+}
+
+export async function updateNotificationPreferences(
+  userId: string, 
+  preferences: Record<string, boolean>
+): Promise<any> {
+  const { data, error } = await supabase
+    .from('support_notification_preferences')
+    .upsert({
+      user_id: userId,
+      ...preferences,
+    })
+    .select('*')
+    .single();
+
+  if (error) {
+    console.error('Error updating notification preferences:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+export async function sendTicketNotification(
+  ticketId: string,
+  type: 'created' | 'updated' | 'assigned' | 'resolved',
+  recipientIds: string[]
+): Promise<void> {
+  // This would integrate with your email service
+  // For now, we'll just log the notification
+  console.log('Sending notification:', {
+    ticketId,
+    type,
+    recipientIds,
+  });
+
+  // You could integrate with services like:
+  // - SendGrid
+  // - Mailgun
+  // - AWS SES
+  // - Resend
+  
+  // Example notification content generation
+  const ticket = await fetchSupportTicketById(ticketId);
+  const notificationContent = {
+    created: `New support ticket created: ${ticket.title}`,
+    updated: `Support ticket updated: ${ticket.title}`,
+    assigned: `Support ticket assigned: ${ticket.title}`,
+    resolved: `Support ticket resolved: ${ticket.title}`,
+  }[type];
+
+  // Store notification in database for in-app notifications
+  for (const userId of recipientIds) {
+    await supabase.from('notifications').insert({
+      user_id: userId,
+      type: 'info',
+      title: 'Support Ticket Update',
+      message: notificationContent,
+    });
+  }
+}
+
+export async function assignTicketToAgent(
+  ticketId: string,
+  agentId: string,
+  notes?: string
+): Promise<any> {
+  if (!isValidUUID(ticketId) || !isValidUUID(agentId)) {
+    throw new Error('Invalid ticket or agent ID format');
+  }
+
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
+  // First, deactivate existing assignments
+  await supabase
+    .from('ticket_assignments')
+    .update({ is_active: false })
+    .eq('ticket_id', ticketId);
+
+  // Create new assignment
+  const { data, error } = await supabase
+    .from('ticket_assignments')
+    .insert({
+      ticket_id: ticketId,
+      assigned_to: agentId,
+      assigned_by: user.id,
+      notes,
+    })
+    .select('*')
+    .single();
+
+  if (error) {
+    console.error('Error creating ticket assignment:', error);
+    throw error;
+  }
+
+  // Update ticket's assigned_to field
+  const { error: updateError } = await supabase
+    .from('support_tickets')
+    .update({ assigned_to: agentId })
+    .eq('id', ticketId);
+
+  if (updateError) {
+    console.error('Error updating ticket assigned_to:', updateError);
+    throw updateError;
+  }
+
+  // Send notification
+  await sendTicketNotification(ticketId, 'assigned', [agentId]);
+
+  return data;
 }

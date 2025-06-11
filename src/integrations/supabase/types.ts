@@ -3412,6 +3412,50 @@ export type Database = {
         }
         Relationships: []
       }
+      sla_policies: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          priority: string
+          resolution_time: number
+          response_time: number
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          priority: string
+          resolution_time: number
+          response_time: number
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          priority?: string
+          resolution_time?: number
+          response_time?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sla_policies_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           created_at: string | null
@@ -3456,6 +3500,206 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      support_metrics: {
+        Row: {
+          agent_id: string | null
+          avg_resolution_time: number | null
+          avg_response_time: number | null
+          company_id: string | null
+          created_at: string | null
+          customer_satisfaction: number | null
+          id: string
+          metric_date: string
+          sla_compliance_rate: number | null
+          tickets_handled: number | null
+        }
+        Insert: {
+          agent_id?: string | null
+          avg_resolution_time?: number | null
+          avg_response_time?: number | null
+          company_id?: string | null
+          created_at?: string | null
+          customer_satisfaction?: number | null
+          id?: string
+          metric_date: string
+          sla_compliance_rate?: number | null
+          tickets_handled?: number | null
+        }
+        Update: {
+          agent_id?: string | null
+          avg_resolution_time?: number | null
+          avg_response_time?: number | null
+          company_id?: string | null
+          created_at?: string | null
+          customer_satisfaction?: number | null
+          id?: string
+          metric_date?: string
+          sla_compliance_rate?: number | null
+          tickets_handled?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_metrics_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "support_team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_metrics_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_notification_preferences: {
+        Row: {
+          created_at: string | null
+          email_enabled: boolean | null
+          id: string
+          sla_breach: boolean | null
+          ticket_assigned: boolean | null
+          ticket_created: boolean | null
+          ticket_resolved: boolean | null
+          ticket_updated: boolean | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_enabled?: boolean | null
+          id?: string
+          sla_breach?: boolean | null
+          ticket_assigned?: boolean | null
+          ticket_created?: boolean | null
+          ticket_resolved?: boolean | null
+          ticket_updated?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email_enabled?: boolean | null
+          id?: string
+          sla_breach?: boolean | null
+          ticket_assigned?: boolean | null
+          ticket_created?: boolean | null
+          ticket_resolved?: boolean | null
+          ticket_updated?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      support_team_members: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          current_tickets: number | null
+          department: string | null
+          email: string
+          id: string
+          is_active: boolean | null
+          max_tickets: number | null
+          name: string
+          role: string
+          specializations: string[] | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          current_tickets?: number | null
+          department?: string | null
+          email: string
+          id?: string
+          is_active?: boolean | null
+          max_tickets?: number | null
+          name: string
+          role?: string
+          specializations?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          current_tickets?: number | null
+          department?: string | null
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          max_tickets?: number | null
+          name?: string
+          role?: string
+          specializations?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_team_members_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_ticket_attachments: {
+        Row: {
+          created_at: string | null
+          file_name: string
+          file_size: number
+          file_type: string
+          file_url: string
+          id: string
+          message_id: string | null
+          ticket_id: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_name: string
+          file_size: number
+          file_type: string
+          file_url: string
+          id?: string
+          message_id?: string | null
+          ticket_id?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          file_url?: string
+          id?: string
+          message_id?: string | null
+          ticket_id?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_ticket_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "support_ticket_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_ticket_attachments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       support_ticket_messages: {
         Row: {
@@ -4560,6 +4804,58 @@ export type Database = {
         }
         Relationships: []
       }
+      ticket_assignments: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          assigned_to: string | null
+          id: string
+          is_active: boolean | null
+          notes: string | null
+          ticket_id: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          assigned_to?: string | null
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          ticket_id?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          assigned_to?: string | null
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          ticket_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "support_team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_assignments_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "support_team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_assignments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ticket_comments: {
         Row: {
           content: string
@@ -4585,6 +4881,60 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "ticket_comments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_sla_tracking: {
+        Row: {
+          created_at: string | null
+          first_response_at: string | null
+          id: string
+          resolution_due_at: string | null
+          resolution_sla_met: boolean | null
+          resolved_at: string | null
+          response_due_at: string | null
+          response_sla_met: boolean | null
+          sla_policy_id: string | null
+          ticket_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          first_response_at?: string | null
+          id?: string
+          resolution_due_at?: string | null
+          resolution_sla_met?: boolean | null
+          resolved_at?: string | null
+          response_due_at?: string | null
+          response_sla_met?: boolean | null
+          sla_policy_id?: string | null
+          ticket_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          first_response_at?: string | null
+          id?: string
+          resolution_due_at?: string | null
+          resolution_sla_met?: boolean | null
+          resolved_at?: string | null
+          response_due_at?: string | null
+          response_sla_met?: boolean | null
+          sla_policy_id?: string | null
+          ticket_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_sla_tracking_sla_policy_id_fkey"
+            columns: ["sla_policy_id"]
+            isOneToOne: false
+            referencedRelation: "sla_policies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_sla_tracking_ticket_id_fkey"
             columns: ["ticket_id"]
             isOneToOne: false
             referencedRelation: "support_tickets"
@@ -5438,6 +5788,10 @@ export type Database = {
       }
     }
     Functions: {
+      assign_ticket_to_best_agent: {
+        Args: { p_ticket_id: string; p_company_id: string; p_priority?: string }
+        Returns: string
+      }
       build_safe_query: {
         Args: {
           search_term: string
@@ -5467,6 +5821,10 @@ export type Database = {
       }
       calculate_repair_metrics: {
         Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      calculate_sla_dates: {
+        Args: { p_ticket_id: string; p_priority: string; p_company_id: string }
         Returns: undefined
       }
       calculate_technician_metrics: {

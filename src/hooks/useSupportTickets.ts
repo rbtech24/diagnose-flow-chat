@@ -236,9 +236,25 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
     }
   };
 
-  const addMessage = async (messageData: { content: string; ticket_id: string }): Promise<SupportTicketMessage> => {
+  const addMessage = async (messageData: { content: string; ticket_id: string; attachments?: File[] }): Promise<SupportTicketMessage> => {
     try {
-      const data = await addTicketMessage(messageData);
+      // First create the message
+      const data = await addTicketMessage({
+        content: messageData.content,
+        ticket_id: messageData.ticket_id,
+      });
+
+      // Upload any attachments
+      if (messageData.attachments && messageData.attachments.length > 0) {
+        for (const file of messageData.attachments) {
+          try {
+            await uploadTicketAttachment(messageData.ticket_id, file, data.id);
+          } catch (attachmentError) {
+            console.warn('Failed to upload attachment:', attachmentError);
+            // Continue with message creation even if attachment fails
+          }
+        }
+      }
 
       return {
         id: data.id,
@@ -246,15 +262,18 @@ export function useSupportTickets(initialStatus?: string, companyId?: string) {
         content: data.content,
         userId: data.user_id,
         createdAt: new Date(data.created_at),
-        ticket_id: data.ticket_id,
-        user_id: data.user_id,
-        created_at: data.created_at,
+        ticket_id: messageData.ticket_id,
+        user_id: messageData.user_id,
+        created_at: message.created_at,
         sender: data.sender || null
       };
     } catch (err) {
       throw err instanceof Error ? err : new Error('Failed to add message');
     }
   };
+
+  // Add import for the new functions
+  const { uploadTicketAttachment } = require('@/api/supportTicketsApi');
 
   useEffect(() => {
     loadTickets(initialStatus);
