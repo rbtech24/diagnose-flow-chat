@@ -43,10 +43,10 @@ export class UsageLimitService {
 
     // Extract the limits with safer type handling
     const subscriptionPlans = license.subscription_plans as any;
-    const planLimits = subscriptionPlans?.limits;
+    let planLimits: any = {};
     
-    if (!planLimits || typeof planLimits !== 'object' || Array.isArray(planLimits)) {
-      throw new Error('Invalid subscription plan limits');
+    if (subscriptionPlans && typeof subscriptionPlans === 'object' && !Array.isArray(subscriptionPlans)) {
+      planLimits = subscriptionPlans.limits || {};
     }
 
     const limits: SubscriptionLimits = {
