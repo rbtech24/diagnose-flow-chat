@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -133,6 +132,7 @@ function App() {
                 <Route path="support" element={<CompanySupport />} />
                 <Route path="support/:id" element={<CompanySupportTicketDetail />} />
                 <Route path="profile" element={<CompanyProfile />} />
+                <Route path="settings" element={<CompanyProfile />} />
               </Route>
 
               {/* Admin routes */}
