@@ -156,20 +156,23 @@ export class SubscriptionService {
     console.log('SubscriptionService.updatePlan() - Updating plan:', planId, planData);
     
     try {
+      const updateFields: any = {};
+      
+      if (planData.name !== undefined) updateFields.name = planData.name;
+      if (planData.description !== undefined) updateFields.description = planData.description;
+      if (planData.price_monthly !== undefined) updateFields.price_monthly = planData.price_monthly;
+      if (planData.price_yearly !== undefined) updateFields.price_yearly = planData.price_yearly;
+      if (planData.features !== undefined) updateFields.features = planData.features;
+      if (planData.limits !== undefined) updateFields.limits = planData.limits;
+      if (planData.is_active !== undefined) updateFields.is_active = planData.is_active;
+      if (planData.recommended !== undefined) updateFields.recommended = planData.recommended;
+      if (planData.trial_period !== undefined) updateFields.trial_period = planData.trial_period;
+      
+      updateFields.updated_at = new Date().toISOString();
+
       const { data, error } = await supabase
         .from('subscription_plans')
-        .update({
-          name: planData.name,
-          description: planData.description,
-          price_monthly: planData.price_monthly,
-          price_yearly: planData.price_yearly,
-          features: planData.features as any,
-          limits: planData.limits as any,
-          is_active: planData.is_active,
-          recommended: planData.recommended,
-          trial_period: planData.trial_period,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateFields)
         .eq('id', planId)
         .select()
         .single();
@@ -202,25 +205,6 @@ export class SubscriptionService {
     console.log('SubscriptionService.togglePlanStatus() - Toggling plan status:', planId, 'from', currentStatus, 'to', !currentStatus);
     
     try {
-      // First verify the plan exists and get current state
-      const { data: existingPlan, error: fetchError } = await supabase
-        .from('subscription_plans')
-        .select('*')
-        .eq('id', planId)
-        .single();
-
-      if (fetchError) {
-        console.error('Error fetching plan for status toggle:', fetchError);
-        throw new Error(`Failed to fetch plan: ${fetchError.message}`);
-      }
-
-      if (!existingPlan) {
-        throw new Error('Plan not found');
-      }
-
-      console.log('Found plan for status toggle:', existingPlan);
-
-      // Now update the plan status
       const { data: updatedPlan, error: updateError } = await supabase
         .from('subscription_plans')
         .update({ 
@@ -259,21 +243,7 @@ export class SubscriptionService {
     console.log('SubscriptionService.deletePlan() - Attempting to delete plan:', planId);
     
     try {
-      // First, verify the plan exists
-      const { data: existingPlan, error: fetchError } = await supabase
-        .from('subscription_plans')
-        .select('id, name')
-        .eq('id', planId)
-        .single();
-
-      if (fetchError || !existingPlan) {
-        console.error('Plan not found:', fetchError);
-        throw new Error('Plan not found in database');
-      }
-
-      console.log('Plan found before deletion:', existingPlan);
-
-      // Check for dependent licenses
+      // Check for dependent licenses first
       const { data: licensesUsingPlan, error: licenseCheckError } = await supabase
         .from('licenses')
         .select('id, company_name')
@@ -297,25 +267,8 @@ export class SubscriptionService {
         console.error('Error deleting plan from database:', deleteError);
         throw new Error(`Failed to delete plan: ${deleteError.message}`);
       }
-      
-      // Verify deletion was successful
-      const { data: verifyPlan, error: verifyError } = await supabase
-        .from('subscription_plans')
-        .select('id')
-        .eq('id', planId)
-        .maybeSingle();
 
-      if (verifyError) {
-        console.error('Error verifying plan deletion:', verifyError);
-        throw new Error('Could not verify plan deletion');
-      }
-
-      if (verifyPlan) {
-        console.error('Plan still exists after deletion attempt:', verifyPlan);
-        throw new Error('Plan deletion failed - plan still exists in database');
-      }
-
-      console.log('Plan successfully deleted and verified:', planId);
+      console.log('Plan successfully deleted:', planId);
     } catch (error) {
       console.error('SubscriptionService.deletePlan() - Error:', error);
       throw error;

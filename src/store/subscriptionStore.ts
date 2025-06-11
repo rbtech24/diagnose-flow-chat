@@ -1,4 +1,3 @@
-
 import { create } from "zustand";
 import { SubscriptionPlan, License, Payment } from "@/types/subscription-consolidated";
 import { SubscriptionService } from "@/services/subscriptionService";
@@ -332,6 +331,7 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   },
   
   addPlan: async (newPlan: SubscriptionPlan) => {
+    set({ error: null });
     try {
       console.log('Store: Creating new plan:', newPlan);
       const createdPlan = await SubscriptionService.createPlan(newPlan);
@@ -345,13 +345,14 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
     } catch (error) {
       console.error('Store: Error adding plan:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to create plan';
+      set({ error: errorMessage });
       toast.error(errorMessage);
-      // Re-fetch plans to ensure consistency
-      await get().fetchPlans();
+      throw error;
     }
   },
   
   updatePlan: async (updatedPlan: SubscriptionPlan) => {
+    set({ error: null });
     try {
       console.log('Store: Updating plan:', updatedPlan.id);
       const updated = await SubscriptionService.updatePlan(updatedPlan.id, updatedPlan);
@@ -367,68 +368,46 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
     } catch (error) {
       console.error('Store: Error updating plan:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to update plan';
+      set({ error: errorMessage });
       toast.error(errorMessage);
-      // Re-fetch plans to ensure consistency
-      await get().fetchPlans();
+      throw error;
     }
   },
   
   deletePlan: async (planId: string) => {
+    set({ error: null });
     try {
       console.log('Store: Attempting to delete plan:', planId);
       
-      // Get current plan for potential restoration
-      const currentPlans = get().plans;
-      const planToDelete = currentPlans.find(p => p.id === planId);
+      await SubscriptionService.deletePlan(planId);
       
-      if (!planToDelete) {
-        console.log('Plan not found in current state, refreshing plans');
-        await get().fetchPlans();
-        return;
-      }
-      
-      // Optimistically remove from state
       set(state => ({
         plans: state.plans.filter(plan => plan.id !== planId)
       }));
-      
-      // Attempt deletion
-      await SubscriptionService.deletePlan(planId);
       
       console.log('Store: Plan deleted successfully');
       toast.success('Plan deleted successfully');
     } catch (error) {
       console.error('Store: Error deleting plan:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to delete plan';
+      set({ error: errorMessage });
       toast.error(errorMessage);
-      
-      // Restore state and re-fetch to ensure consistency
-      console.log('Store: Restoring state and re-fetching plans');
-      await get().fetchPlans();
+      throw error;
     }
   },
   
   togglePlanStatus: async (planId: string) => {
+    set({ error: null });
     try {
       const plan = get().plans.find(p => p.id === planId);
       if (!plan) {
-        console.error('Plan not found for status toggle:', planId);
-        toast.error('Plan not found');
-        return;
+        throw new Error('Plan not found');
       }
 
       console.log('Store: Toggling plan status for:', planId, 'current status:', plan.is_active);
       
-      // Optimistically update the state
-      set(state => ({
-        plans: state.plans.map(p => 
-          p.id === planId ? { ...p, is_active: !p.is_active } : p
-        )
-      }));
-
       const updated = await SubscriptionService.togglePlanStatus(planId, plan.is_active);
       
-      // Update with actual server response
       set(state => ({
         plans: state.plans.map(p => 
           p.id === planId ? updated : p
@@ -439,10 +418,9 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
     } catch (error) {
       console.error('Store: Error toggling plan status:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to update plan status';
+      set({ error: errorMessage });
       toast.error(errorMessage);
-      
-      // Revert optimistic update
-      await get().fetchPlans();
+      throw error;
     }
   },
   
