@@ -26,88 +26,122 @@ export class UsageLimitService {
     violations: string[];
     canPerformAction: (action: string) => boolean;
   }> {
-    // Get current license and plan
-    const { data: license, error: licenseError } = await supabase
-      .from('licenses')
-      .select(`
-        *,
-        subscription_plans!inner(limits)
-      `)
-      .eq('company_id', companyId)
-      .eq('status', 'active')
-      .single();
+    try {
+      // Get current license and plan
+      const { data: license, error: licenseError } = await supabase
+        .from('licenses')
+        .select(`
+          *,
+          subscription_plans!inner(limits)
+        `)
+        .eq('company_id', companyId)
+        .eq('status', 'active')
+        .single();
 
-    if (licenseError || !license) {
-      throw new Error('No active license found for company');
+      if (licenseError || !license) {
+        console.error('No active license found for company:', licenseError);
+        // Return default limits if no license found
+        return this.getDefaultLimits();
+      }
+
+      // Extract the limits with proper type handling
+      const subscriptionPlans = license.subscription_plans as any;
+      const planLimits = subscriptionPlans?.limits || {};
+
+      const limits: SubscriptionLimits = {
+        technicians: Number(planLimits.technicians) || 1,
+        admins: Number(planLimits.admins) || 1,
+        workflows: Number(planLimits.workflows) || 10,
+        storage_gb: Number(planLimits.storage_gb) || 1,
+        api_calls: Number(planLimits.api_calls) || 1000,
+        diagnostics_per_day: Number(planLimits.diagnostics_per_day) || 10
+      };
+
+      // Get current usage
+      const usage = await this.getCurrentUsage(companyId);
+      
+      // Check for violations
+      const violations: string[] = [];
+      
+      if (usage.technicians_active > limits.technicians) {
+        violations.push(`Technician limit exceeded: ${usage.technicians_active}/${limits.technicians}`);
+      }
+      
+      if (usage.admins_active > limits.admins) {
+        violations.push(`Admin limit exceeded: ${usage.admins_active}/${limits.admins}`);
+      }
+      
+      if (usage.workflows_count > limits.workflows) {
+        violations.push(`Workflow limit exceeded: ${usage.workflows_count}/${limits.workflows}`);
+      }
+      
+      if (usage.storage_used_gb > limits.storage_gb) {
+        violations.push(`Storage limit exceeded: ${usage.storage_used_gb}GB/${limits.storage_gb}GB`);
+      }
+      
+      if (usage.api_calls_today > limits.api_calls) {
+        violations.push(`Daily API calls exceeded: ${usage.api_calls_today}/${limits.api_calls}`);
+      }
+      
+      if (usage.diagnostics_today > limits.diagnostics_per_day) {
+        violations.push(`Daily diagnostics exceeded: ${usage.diagnostics_today}/${limits.diagnostics_per_day}`);
+      }
+
+      const canPerformAction = (action: string): boolean => {
+        switch (action) {
+          case 'add_technician':
+            return usage.technicians_active < limits.technicians;
+          case 'add_admin':
+            return usage.admins_active < limits.admins;
+          case 'create_workflow':
+            return usage.workflows_count < limits.workflows;
+          case 'upload_file':
+            return usage.storage_used_gb < limits.storage_gb;
+          case 'api_call':
+            return usage.api_calls_today < limits.api_calls;
+          case 'run_diagnostic':
+            return usage.diagnostics_today < limits.diagnostics_per_day;
+          default:
+            return true;
+        }
+      };
+
+      return {
+        usage,
+        limits,
+        violations,
+        canPerformAction
+      };
+    } catch (error) {
+      console.error('Error checking company limits:', error);
+      return this.getDefaultLimits();
     }
+  }
 
-    // Extract the limits with proper type handling
-    const subscriptionPlans = license.subscription_plans as any;
-    const planLimits = subscriptionPlans?.limits || {};
-
-    const limits: SubscriptionLimits = {
-      technicians: Number(planLimits.technicians) || 1,
-      admins: Number(planLimits.admins) || 1,
-      workflows: Number(planLimits.workflows) || 10,
-      storage_gb: Number(planLimits.storage_gb) || 1,
-      api_calls: Number(planLimits.api_calls) || 1000,
-      diagnostics_per_day: Number(planLimits.diagnostics_per_day) || 10
+  private static getDefaultLimits() {
+    const defaultUsage: UsageData = {
+      technicians_active: 0,
+      admins_active: 0,
+      workflows_count: 0,
+      storage_used_gb: 0,
+      api_calls_today: 0,
+      diagnostics_today: 0
     };
 
-    // Get current usage
-    const usage = await this.getCurrentUsage(companyId);
-    
-    // Check for violations
-    const violations: string[] = [];
-    
-    if (usage.technicians_active > limits.technicians) {
-      violations.push(`Technician limit exceeded: ${usage.technicians_active}/${limits.technicians}`);
-    }
-    
-    if (usage.admins_active > limits.admins) {
-      violations.push(`Admin limit exceeded: ${usage.admins_active}/${limits.admins}`);
-    }
-    
-    if (usage.workflows_count > limits.workflows) {
-      violations.push(`Workflow limit exceeded: ${usage.workflows_count}/${limits.workflows}`);
-    }
-    
-    if (usage.storage_used_gb > limits.storage_gb) {
-      violations.push(`Storage limit exceeded: ${usage.storage_used_gb}GB/${limits.storage_gb}GB`);
-    }
-    
-    if (usage.api_calls_today > limits.api_calls) {
-      violations.push(`Daily API calls exceeded: ${usage.api_calls_today}/${limits.api_calls}`);
-    }
-    
-    if (usage.diagnostics_today > limits.diagnostics_per_day) {
-      violations.push(`Daily diagnostics exceeded: ${usage.diagnostics_today}/${limits.diagnostics_per_day}`);
-    }
-
-    const canPerformAction = (action: string): boolean => {
-      switch (action) {
-        case 'add_technician':
-          return usage.technicians_active < limits.technicians;
-        case 'add_admin':
-          return usage.admins_active < limits.admins;
-        case 'create_workflow':
-          return usage.workflows_count < limits.workflows;
-        case 'upload_file':
-          return usage.storage_used_gb < limits.storage_gb;
-        case 'api_call':
-          return usage.api_calls_today < limits.api_calls;
-        case 'run_diagnostic':
-          return usage.diagnostics_today < limits.diagnostics_per_day;
-        default:
-          return true;
-      }
+    const defaultLimits: SubscriptionLimits = {
+      technicians: 5,
+      admins: 2,
+      workflows: 10,
+      storage_gb: 1,
+      api_calls: 1000,
+      diagnostics_per_day: 10
     };
 
     return {
-      usage,
-      limits,
-      violations,
-      canPerformAction
+      usage: defaultUsage,
+      limits: defaultLimits,
+      violations: [],
+      canPerformAction: () => true
     };
   }
 

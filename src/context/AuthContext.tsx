@@ -33,27 +33,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         
         if (session?.user) {
-          // Fetch user profile from technicians table
-          const { data: technicianData, error } = await supabase
-            .from('technicians')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
+          // Try to fetch user profile from technicians table
+          try {
+            const { data: technicianData, error } = await supabase
+              .from('technicians')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
 
-          if (technicianData && !error) {
+            if (technicianData && !error) {
+              const userData: User = {
+                id: technicianData.id,
+                name: session.user.email?.split('@')[0] || 'User',
+                email: technicianData.email || session.user.email || '',
+                role: technicianData.role as 'admin' | 'company' | 'tech',
+                companyId: technicianData.company_id,
+                status: technicianData.status,
+                avatarUrl: undefined,
+                activeJobs: 0,
+              };
+              setUser(userData);
+            } else {
+              console.error('Error fetching technician data:', error);
+              // If we can't fetch from technicians table, create a basic user object
+              const userData: User = {
+                id: session.user.id,
+                name: session.user.email?.split('@')[0] || 'User',
+                email: session.user.email || '',
+                role: 'tech', // Default role
+                companyId: undefined,
+                status: 'active',
+                avatarUrl: undefined,
+                activeJobs: 0,
+              };
+              setUser(userData);
+            }
+          } catch (error) {
+            console.error('Error in auth state change:', error);
+            // Create basic user object as fallback
             const userData: User = {
-              id: technicianData.id,
-              name: session.user.email?.split('@')[0] || 'User', // Use email prefix as name
-              email: technicianData.email || session.user.email || '',
-              role: technicianData.role as 'admin' | 'company' | 'tech',
-              companyId: technicianData.company_id,
-              status: technicianData.status,
-              avatarUrl: undefined, // Will be set from user metadata if available
+              id: session.user.id,
+              name: session.user.email?.split('@')[0] || 'User',
+              email: session.user.email || '',
+              role: 'tech',
+              companyId: undefined,
+              status: 'active',
+              avatarUrl: undefined,
               activeJobs: 0,
             };
             setUser(userData);
-          } else {
-            console.error('Error fetching technician data:', error);
           }
         } else {
           setUser(null);
@@ -85,9 +113,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('Login error:', error);
+        
+        // Provide specific error messages for common issues
+        let errorMessage = error.message;
+        if (error.message.includes('permission denied') || error.message.includes('Database error')) {
+          errorMessage = 'Database configuration issue. Please check your Supabase settings or contact support.';
+        } else if (error.message.includes('Invalid login credentials')) {
+          errorMessage = 'Invalid email or password. Please check your credentials.';
+        }
+        
         toast({
           title: "Login failed",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         });
         setIsLoading(false);
@@ -105,7 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Login error:', error);
       toast({
         title: "Login failed",
-        description: "An unexpected error occurred",
+        description: "An unexpected error occurred. Please try again or contact support.",
         variant: "destructive",
       });
       setIsLoading(false);
@@ -129,28 +166,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updatedUser = { ...user, ...userData };
       setUser(updatedUser);
       
-      // Only update fields that exist in the technicians table
-      const updateData: any = {};
-      if (userData.email) updateData.email = userData.email;
-      if (userData.status) updateData.status = userData.status;
-      if (userData.role) updateData.role = userData.role;
-      
-      await supabase
-        .from('technicians')
-        .update(updateData)
-        .eq('id', user.id);
-      
-      console.log('User updated:', updatedUser);
+      try {
+        // Only update fields that exist in the technicians table
+        const updateData: any = {};
+        if (userData.email) updateData.email = userData.email;
+        if (userData.status) updateData.status = userData.status;
+        if (userData.role) updateData.role = userData.role;
+        
+        await supabase
+          .from('technicians')
+          .update(updateData)
+          .eq('id', user.id);
+        
+        console.log('User updated:', updatedUser);
+      } catch (error) {
+        console.error('Error updating user:', error);
+      }
     }
   };
 
   const logout = async (): Promise<void> => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Logout error:', error);
+      }
+      setUser(null);
+      setSession(null);
+    } catch (error) {
       console.error('Logout error:', error);
     }
-    setUser(null);
-    setSession(null);
   };
 
   const isSessionValid = (): boolean => {
