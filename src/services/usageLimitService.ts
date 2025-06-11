@@ -11,12 +11,6 @@ export interface UsageData {
   diagnostics_today: number;
 }
 
-interface LicenseData {
-  subscription_plans?: {
-    limits?: Record<string, unknown>;
-  } | null;
-}
-
 export class UsageLimitService {
   static async checkCompanyLimits(companyId: string): Promise<{
     usage: UsageData;
@@ -33,19 +27,19 @@ export class UsageLimitService {
       `)
       .eq('company_id', companyId)
       .eq('status', 'active')
-      .single() as { data: LicenseData | null; error: any };
+      .single();
 
     if (licenseError || !license) {
       throw new Error('No active license found for company');
     }
 
     // Safely cast the limits with proper type checking
-    const rawLimits = license.subscription_plans?.limits;
-    if (!rawLimits || typeof rawLimits !== 'object' || Array.isArray(rawLimits)) {
+    const planLimits = (license as any).subscription_plans?.limits;
+    if (!planLimits || typeof planLimits !== 'object' || Array.isArray(planLimits)) {
       throw new Error('Invalid subscription plan limits');
     }
 
-    const limits = this.parseLimits(rawLimits);
+    const limits = this.parseLimits(planLimits);
 
     // Get current usage
     const usage = await this.getCurrentUsage(companyId);
