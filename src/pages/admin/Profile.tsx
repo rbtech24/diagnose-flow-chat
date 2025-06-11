@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button";
 import { ShieldAlert, ShieldCheck, Key } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { AvatarUpload } from "@/components/shared/AvatarUpload";
 
 export default function AdminProfile() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   
   // Use actual user data from auth context
   const [adminData, setAdminData] = useState({
@@ -30,6 +31,12 @@ export default function AdminProfile() {
       ...adminData,
       ...values
     });
+  };
+
+  const handleAvatarChange = async (avatarUrl: string) => {
+    if (updateUser) {
+      await updateUser({ avatarUrl });
+    }
   };
 
   const securityCard = (
@@ -77,11 +84,39 @@ export default function AdminProfile() {
     </Card>
   );
 
+  const profileTab = (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile Picture</CardTitle>
+          <CardDescription>
+            Update your profile picture. Recommended size is 300x300 pixels.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AvatarUpload
+            currentAvatarUrl={user?.avatarUrl}
+            name={adminData.name}
+            onAvatarChange={handleAvatarChange}
+            size="lg"
+          />
+        </CardContent>
+      </Card>
+      
+      <ProfileForm 
+        defaultValues={adminData} 
+        onSubmit={handleProfileUpdate} 
+        title="Admin Profile" 
+        description="Update your administrator profile information." 
+      />
+    </div>
+  );
+
   const tabs = [
     {
       id: "general",
       label: "General",
-      content: <ProfileForm defaultValues={adminData} onSubmit={handleProfileUpdate} title="Admin Profile" description="Update your administrator profile information." />
+      content: profileTab
     },
     {
       id: "security",

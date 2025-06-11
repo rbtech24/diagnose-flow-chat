@@ -6,16 +6,29 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUserMessages } from "@/context/SystemMessageContext";
 import { SystemMessage } from "@/components/system/SystemMessage";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Search, Menu } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useAuth } from "@/context/AuthContext";
 
 export function AdminLayout() {
   const navigate = useNavigate();
   const userMessages = useUserMessages("admin");
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user } = useAuth();
+
+  const getInitials = () => {
+    if (!user?.name) return 'SA';
+    return user.name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
 
   return (
     <div className="flex h-screen w-full">
@@ -56,9 +69,12 @@ export function AdminLayout() {
             className="h-8 w-8 rounded-full"
             onClick={() => navigate("/admin/profile")}
           >
-            <span className="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full">
-              <img className="aspect-square h-full w-full" src="https://i.pravatar.cc/300" alt="Profile" />
-            </span>
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={user?.avatarUrl} alt={user?.name || "Admin"} />
+              <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                {getInitials()}
+              </AvatarFallback>
+            </Avatar>
           </Button>
         </div>
         

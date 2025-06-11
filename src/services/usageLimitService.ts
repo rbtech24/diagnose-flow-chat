@@ -33,8 +33,10 @@ export class UsageLimitService {
       throw new Error('No active license found for company');
     }
 
-    // Safely cast the limits with proper type checking
-    const planLimits = (license as any).subscription_plans?.limits;
+    // Safely extract the limits
+    const subscriptionPlans = license.subscription_plans as any;
+    const planLimits = subscriptionPlans?.limits;
+    
     if (!planLimits || typeof planLimits !== 'object' || Array.isArray(planLimits)) {
       throw new Error('Invalid subscription plan limits');
     }
