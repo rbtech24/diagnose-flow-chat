@@ -21,21 +21,21 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
   
   try {
     // Get technician count as a proxy for active jobs (since we don't have a jobs table yet)
-    const { data: technicians } = await supabase
+    const technicianQuery = await supabase
       .from('technicians')
       .select('id, status')
       .eq('company_id', companyId);
 
-    const activeJobs = technicians?.filter(tech => tech.status === 'active').length || 0;
+    const activeJobs = technicianQuery.data?.filter(tech => tech.status === 'active').length || 0;
 
     // Get diagnostic sessions as completed jobs
-    const { data: diagnosticSessions } = await supabase
+    const diagnosticQuery = await supabase
       .from('diagnostic_sessions')
       .select('id, status')
       .eq('company_id', companyId)
       .eq('status', 'completed');
 
-    const completedJobs = diagnosticSessions?.length || 0;
+    const completedJobs = diagnosticQuery.data?.length || 0;
 
     // Calculate basic revenue estimate (placeholder calculation)
     const revenue = completedJobs * 150; // $150 average per completed job
@@ -69,15 +69,15 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
     const activities: RecentActivity[] = [];
 
     // Get recent diagnostic sessions
-    const { data: recentDiagnostics } = await supabase
+    const recentQuery = await supabase
       .from('diagnostic_sessions')
       .select('id, status, created_at, completed_at')
       .eq('company_id', companyId)
       .order('created_at', { ascending: false })
       .limit(10);
 
-    if (recentDiagnostics) {
-      recentDiagnostics.forEach((session) => {
+    if (recentQuery.data) {
+      recentQuery.data.forEach((session) => {
         if (session.status === 'completed') {
           activities.push({
             id: session.id,
