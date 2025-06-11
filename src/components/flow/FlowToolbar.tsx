@@ -1,4 +1,3 @@
-
 import { Button } from '../ui/button';
 import { SaveWorkflowDialog } from './SaveWorkflowDialog';
 import { ValidationButton } from '../validation/ValidationButton';
@@ -154,9 +153,9 @@ export function FlowToolbar({
   return (
     <div className="absolute top-0 left-0 right-0 z-10 bg-background border-b pointer-events-auto">
       <div className="flex flex-col gap-3 p-3">
-        {/* Single Toolbar Row - Compact Layout */}
+        {/* Top Row - Core Actions */}
         <div className="flex items-center w-full gap-3 min-h-[36px] flex-nowrap">
-          {/* Left Actions Group - Core actions */}
+          {/* Left Actions Group */}
           <div className="flex items-center gap-2 flex-shrink-0">
             <Button 
               variant="default"
@@ -183,7 +182,21 @@ export function FlowToolbar({
 
           <Separator orientation="vertical" className="h-5" />
 
-          {/* Core Tools */}
+          {/* Center Search Panel - Flexible */}
+          <div className="flex-1 max-w-md mx-3 min-w-0">
+            <SearchPanel
+              searchTerm={searchTerm}
+              typeFilter={typeFilter}
+              searchResults={searchResults}
+              hasActiveFilters={hasActiveFilters}
+              onSearch={handleSearch}
+              onTypeFilter={handleTypeFilter}
+              onClearSearch={clearSearch}
+              onFocusNode={handleSearchFocus}
+            />
+          </div>
+
+          {/* Right Actions Group */}
           <div className="flex items-center gap-2 flex-shrink-0">
             <Button
               variant="outline"
@@ -202,23 +215,45 @@ export function FlowToolbar({
               onNodeFocus={onNodeFocus}
             />
           </div>
+        </div>
 
-          {/* Center Search Panel - Flexible */}
-          <div className="flex-1 max-w-md mx-3 min-w-0">
-            <SearchPanel
-              searchTerm={searchTerm}
-              typeFilter={typeFilter}
-              searchResults={searchResults}
-              hasActiveFilters={hasActiveFilters}
-              onSearch={handleSearch}
-              onTypeFilter={handleTypeFilter}
-              onClearSearch={clearSearch}
-              onFocusNode={handleSearchFocus}
-            />
+        {/* Bottom Row - Secondary Actions */}
+        <div className="flex items-center justify-between w-full gap-3">
+          {/* Left Side - Edit Actions */}
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-1.5 h-8 px-3 text-xs hover:bg-background"
+              onClick={onCopySelected}
+            >
+              <Copy className="w-3.5 h-3.5" />
+              Copy
+            </Button>
+            
+            <Button 
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-1.5 h-8 px-3 text-xs hover:bg-background"
+              onClick={onPaste}
+            >
+              <Clipboard className="w-3.5 h-3.5" />
+              Paste
+            </Button>
+
+            <Button 
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-1.5 h-8 px-3 text-xs hover:bg-destructive hover:text-destructive-foreground"
+              onClick={onDeleteSelected}
+            >
+              <Trash className="w-3.5 h-3.5" />
+              Delete
+            </Button>
           </div>
 
-          {/* Right Actions Group - Essential only */}
-          <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Right Side - Tool Actions */}
+          <div className="flex items-center gap-2">
             {onApplyNodeChanges && (
               <Button 
                 variant="secondary"
@@ -230,6 +265,18 @@ export function FlowToolbar({
                 Apply
               </Button>
             )}
+
+            <Button 
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-1.5 h-8 px-3 text-xs hover:bg-background"
+              onClick={() => {
+                handleSaveWorkflow(nodes, edges, nodeCounter, 'Exported Workflow', 'export', 'export', '');
+              }}
+            >
+              <Download className="w-3.5 h-3.5" />
+              Export
+            </Button>
 
             <Popover open={versionHistoryOpen} onOpenChange={setVersionHistoryOpen}>
               <PopoverTrigger asChild>
@@ -260,59 +307,6 @@ export function FlowToolbar({
             >
               <Link2 className="w-3.5 h-3.5" />
               Workflows
-            </Button>
-          </div>
-        </div>
-
-        {/* Secondary Actions Row - Only when needed */}
-        <div className="flex items-center justify-center w-full">
-          <div className="flex items-center gap-3 px-4 py-1.5 bg-muted/50 rounded-md">
-            <Button 
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-1.5 h-7 px-2 text-xs hover:bg-background"
-              onClick={onCopySelected}
-            >
-              <Copy className="w-3 h-3" />
-              Copy
-            </Button>
-            
-            <Separator orientation="vertical" className="h-3" />
-            
-            <Button 
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-1.5 h-7 px-2 text-xs hover:bg-background"
-              onClick={onPaste}
-            >
-              <Clipboard className="w-3 h-3" />
-              Paste
-            </Button>
-
-            <Separator orientation="vertical" className="h-3" />
-
-            <Button 
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-1.5 h-7 px-2 text-xs hover:bg-destructive hover:text-destructive-foreground"
-              onClick={onDeleteSelected}
-            >
-              <Trash className="w-3 h-3" />
-              Delete
-            </Button>
-            
-            <Separator orientation="vertical" className="h-3" />
-            
-            <Button 
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-1.5 h-7 px-2 text-xs hover:bg-background"
-              onClick={() => {
-                handleSaveWorkflow(nodes, edges, nodeCounter, 'Exported Workflow', 'export', 'export', '');
-              }}
-            >
-              <Download className="w-3 h-3" />
-              Export
             </Button>
           </div>
         </div>
