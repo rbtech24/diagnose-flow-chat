@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { FeatureRequest, FeatureComment, FeatureRequestStatus } from '@/types/feature-request';
+import { FeatureRequest, FeatureComment, FeatureRequestStatus, FeatureRequestPriority } from '@/types/feature-request';
 
 export async function fetchFeatureRequests(status?: string, companyId?: string): Promise<FeatureRequest[]> {
   try {
@@ -26,7 +26,8 @@ export async function fetchFeatureRequests(status?: string, companyId?: string):
 
     return (data || []).map(item => ({
       ...item,
-      status: item.status as FeatureRequestStatus
+      status: item.status as FeatureRequestStatus,
+      priority: item.priority as FeatureRequestPriority
     }));
   } catch (error) {
     console.error('Error in fetchFeatureRequests:', error);
@@ -53,7 +54,8 @@ export async function fetchFeatureRequestById(id: string): Promise<FeatureReques
 
     return {
       ...data,
-      status: data.status as FeatureRequestStatus
+      status: data.status as FeatureRequestStatus,
+      priority: data.priority as FeatureRequestPriority
     };
   } catch (error) {
     console.error('Error in fetchFeatureRequestById:', error);
@@ -103,7 +105,8 @@ export async function createFeatureRequest(requestData: Partial<FeatureRequest>)
 
     return {
       ...data,
-      status: data.status as FeatureRequestStatus
+      status: data.status as FeatureRequestStatus,
+      priority: data.priority as FeatureRequestPriority
     };
   } catch (error) {
     console.error('Error in createFeatureRequest:', error);
@@ -127,7 +130,8 @@ export async function updateFeatureRequest(id: string, updateData: Partial<Featu
 
     return {
       ...data,
-      status: data.status as FeatureRequestStatus
+      status: data.status as FeatureRequestStatus,
+      priority: data.priority as FeatureRequestPriority
     };
   } catch (error) {
     console.error('Error in updateFeatureRequest:', error);
