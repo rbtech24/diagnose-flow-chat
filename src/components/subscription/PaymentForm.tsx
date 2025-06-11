@@ -1,12 +1,19 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { SubscriptionPlan, BillingCycle } from "@/types/subscription-consolidated";
-import { CheckCircle2, CreditCard, Calendar, Lock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CreditCard, DollarSign, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { SubscriptionPlan, BillingCycle } from "@/types/subscription-consolidated";
 import { StripeService } from "@/services/stripeService";
+import { processHelcimPayment } from "@/utils/api/helcim";
+import { useAPIConfigStore } from "@/store/apiConfigStore";
 
 interface PaymentFormProps {
   plan: SubscriptionPlan;
@@ -15,203 +22,252 @@ interface PaymentFormProps {
   onCancel: () => void;
 }
 
-export function PaymentForm({
-  plan,
-  billingCycle,
-  onComplete,
-  onCancel
-}: PaymentFormProps) {
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardName, setCardName] = useState("");
-  const [expiryDate, setExpiryDate] = useState("");
-  const [cvv, setCvv] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export function PaymentForm({ plan, billingCycle, onComplete, onCancel }: PaymentFormProps) {
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'helcim'>('stripe');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [cardDetails, setCardDetails] = useState({
+    number: '',
+    expiry: '',
+    cvv: '',
+    name: ''
+  });
 
-  const price = billingCycle === "monthly" ? plan.price_monthly : plan.price_yearly;
-  
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    
+  const { configs } = useAPIConfigStore();
+  const isHelcimEnabled = configs.helcim.enabled && configs.helcim.apiKey;
+  const isStripeEnabled = configs.stripe.enabled && configs.stripe.apiKey;
+
+  const amount = billingCycle === 'monthly' ? plan.price_monthly : plan.price_yearly;
+  const savings = billingCycle === 'yearly' ? 
+    Math.round(((plan.price_monthly * 12) - plan.price_yearly) / (plan.price_monthly * 12) * 100) : 0;
+
+  const handleStripePayment = async () => {
     try {
-      // Use Stripe Checkout instead of the mock payment service
-      const { url } = await StripeService.createCheckoutSession(plan.id, billingCycle);
+      setIsProcessing(true);
+      const session = await StripeService.createCheckoutSession(plan.id, billingCycle);
       
-      // Redirect to Stripe Checkout
-      window.location.href = url;
+      if (session.url) {
+        window.location.href = session.url;
+      } else {
+        throw new Error('Failed to create checkout session');
+      }
     } catch (error) {
-      console.error('Payment error:', error);
-      toast.error((error as Error).message || 'Payment failed');
-      setIsSubmitting(false);
+      console.error('Stripe payment error:', error);
+      toast.error('Failed to initiate payment. Please try again.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  // Format card number with spaces
-  const formatCardNumber = (value: string) => {
-    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
-    const matches = v.match(/\d{4,16}/g);
-    const match = (matches && matches[0]) || "";
-    const parts = [];
+  const handleHelcimPayment = async () => {
+    if (!cardDetails.number || !cardDetails.expiry || !cardDetails.cvv || !cardDetails.name) {
+      toast.error('Please fill in all card details');
+      return;
+    }
 
+    try {
+      setIsProcessing(true);
+      
+      const result = await processHelcimPayment(
+        amount,
+        cardDetails.number,
+        cardDetails.expiry,
+        cardDetails.cvv,
+        plan.id,
+        billingCycle
+      );
+
+      if (result.success) {
+        toast.success('Payment successful! Your subscription has been activated.');
+        onComplete();
+      } else {
+        throw new Error('Payment processing failed');
+      }
+    } catch (error) {
+      console.error('Helcim payment error:', error);
+      toast.error('Payment failed. Please check your card details and try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (paymentMethod === 'stripe') {
+      await handleStripePayment();
+    } else if (paymentMethod === 'helcim') {
+      await handleHelcimPayment();
+    }
+  };
+
+  const formatCardNumber = (value: string) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    const matches = v.match(/\d{4,16}/g);
+    const match = matches && matches[0] || '';
+    const parts = [];
     for (let i = 0, len = match.length; i < len; i += 4) {
       parts.push(match.substring(i, i + 4));
     }
-
     if (parts.length) {
-      return parts.join(" ");
+      return parts.join(' ');
     } else {
-      return value;
+      return v;
     }
   };
 
-  // Format expiry date as MM/YY
-  const formatExpiryDate = (value: string) => {
-    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
-    
-    if (v.length > 2) {
+  const formatExpiry = (value: string) => {
+    const v = value.replace(/\D/g, '');
+    if (v.length >= 2) {
       return `${v.substring(0, 2)}/${v.substring(2, 4)}`;
     }
-    
     return v;
   };
 
-  // Convert features object to display array
-  const featuresArray = plan.features && typeof plan.features === 'object' 
-    ? Object.values(plan.features).filter(feature => typeof feature === 'string').slice(0, 3)
-    : [];
-
   return (
-    <div className="space-y-6">
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <div className="flex justify-between items-center">
-          <div>
-            <h3 className="font-medium">{plan.name} Plan</h3>
-            <p className="text-gray-500 text-sm">{billingCycle === "monthly" ? "Monthly" : "Annual"} billing</p>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="h-5 w-5" />
+            Order Summary
+          </CardTitle>
+          <CardDescription>Review your subscription details</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex justify-between items-center">
+            <span className="font-medium">{plan.name} Plan</span>
+            <Badge variant="secondary">{billingCycle}</Badge>
           </div>
-          <div className="text-right">
-            <div className="font-bold text-lg">${price.toFixed(2)}</div>
-            <p className="text-gray-500 text-sm">
-              {billingCycle === "monthly" ? "per month" : "per year"}
-            </p>
+          
+          <div className="flex justify-between items-center">
+            <span>Subtotal</span>
+            <span>${amount.toFixed(2)}</span>
           </div>
-        </div>
-        
-        <Separator className="my-4" />
-        
-        <div className="space-y-1">
-          <div className="flex items-start text-sm">
-            <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
-            <span>Up to {plan.limits.technicians} technicians & {plan.limits.admins} admins</span>
-          </div>
-          <div className="flex items-start text-sm">
-            <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
-            <span>{plan.limits.diagnostics_per_day} diagnostics per day</span>
-          </div>
-          <div className="flex items-start text-sm">
-            <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
-            <span>{plan.limits.storage_gb} GB storage</span>
-          </div>
-          {featuresArray.map((feature, index) => (
-            <div key={index} className="flex items-start text-sm">
-              <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
-              <span>{feature}</span>
+          
+          {savings > 0 && (
+            <div className="flex justify-between items-center text-green-600">
+              <span>Annual savings ({savings}%)</span>
+              <span>-${((plan.price_monthly * 12) - plan.price_yearly).toFixed(2)}</span>
             </div>
-          ))}
-          {plan.features && typeof plan.features === 'object' && Object.keys(plan.features).length > 3 && (
-            <div className="text-sm text-blue-600">+{Object.keys(plan.features).length - 3} more features</div>
           )}
-        </div>
-      </div>
-      
-      <div className="space-y-4">
-        <h3 className="font-semibold text-lg flex items-center">
-          <CreditCard className="mr-2 h-5 w-5" />
-          Payment Details
-        </h3>
-        
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="cardNumber">Card Number</Label>
-            <div className="relative">
-              <Input
-                id="cardNumber"
-                value={cardNumber}
-                onChange={e => setCardNumber(formatCardNumber(e.target.value))}
-                placeholder="1234 5678 9012 3456"
-                maxLength={19}
-              />
-              <div className="absolute right-3 top-2.5">
-                <svg className="h-5 w-5 text-gray-400" viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
-                  <path d="M3 10H21" stroke="currentColor" strokeWidth="2" />
-                </svg>
-              </div>
-            </div>
-          </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="cardName">Cardholder Name</Label>
-            <Input
-              id="cardName"
-              value={cardName}
-              onChange={e => setCardName(e.target.value)}
-              placeholder="John Doe"
-            />
-          </div>
+          <Separator />
           
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="expiryDate">Expiry Date</Label>
-              <div className="relative">
-                <Input
-                  id="expiryDate"
-                  value={expiryDate}
-                  onChange={e => setExpiryDate(formatExpiryDate(e.target.value))}
-                  placeholder="MM/YY"
-                  maxLength={5}
-                />
-                <div className="absolute right-3 top-2.5">
-                  <Calendar className="h-4 w-4 text-gray-400" />
+          <div className="flex justify-between items-center font-bold text-lg">
+            <span>Total</span>
+            <span>${amount.toFixed(2)}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {(isStripeEnabled || isHelcimEnabled) ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Payment Method
+            </CardTitle>
+            <CardDescription>Choose your preferred payment method</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <RadioGroup value={paymentMethod} onValueChange={(value: 'stripe' | 'helcim') => setPaymentMethod(value)}>
+              {isStripeEnabled && (
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="stripe" id="stripe" />
+                  <Label htmlFor="stripe" className="flex items-center gap-2 cursor-pointer">
+                    <div className="text-sm font-medium">Stripe</div>
+                    <Badge variant="outline">Secure Checkout</Badge>
+                  </Label>
+                </div>
+              )}
+              
+              {isHelcimEnabled && (
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="helcim" id="helcim" />
+                  <Label htmlFor="helcim" className="flex items-center gap-2 cursor-pointer">
+                    <div className="text-sm font-medium">Helcim</div>
+                    <Badge variant="outline">Direct Payment</Badge>
+                  </Label>
+                </div>
+              )}
+            </RadioGroup>
+
+            {paymentMethod === 'helcim' && (
+              <div className="space-y-4 pt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <Label htmlFor="cardName">Cardholder Name</Label>
+                    <Input
+                      id="cardName"
+                      placeholder="John Doe"
+                      value={cardDetails.name}
+                      onChange={(e) => setCardDetails(prev => ({ ...prev, name: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="col-span-2">
+                    <Label htmlFor="cardNumber">Card Number</Label>
+                    <Input
+                      id="cardNumber"
+                      placeholder="1234 5678 9012 3456"
+                      value={cardDetails.number}
+                      onChange={(e) => setCardDetails(prev => ({ ...prev, number: formatCardNumber(e.target.value) }))}
+                      maxLength={19}
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="expiry">Expiry Date</Label>
+                    <Input
+                      id="expiry"
+                      placeholder="MM/YY"
+                      value={cardDetails.expiry}
+                      onChange={(e) => setCardDetails(prev => ({ ...prev, expiry: formatExpiry(e.target.value) }))}
+                      maxLength={5}
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="cvv">CVV</Label>
+                    <Input
+                      id="cvv"
+                      placeholder="123"
+                      value={cardDetails.cvv}
+                      onChange={(e) => setCardDetails(prev => ({ ...prev, cvv: e.target.value.replace(/\D/g, '') }))}
+                      maxLength={4}
+                      required
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="cvv">Security Code</Label>
-              <div className="relative">
-                <Input
-                  id="cvv"
-                  value={cvv}
-                  onChange={e => setCvv(e.target.value.replace(/\D/g, ''))}
-                  placeholder="123"
-                  maxLength={4}
-                  type="password"
-                />
-                <div className="absolute right-3 top-2.5">
-                  <Lock className="h-4 w-4 text-gray-400" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div className="pt-2 flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
-        <Button variant="outline" onClick={onCancel}>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            No payment methods are currently configured. Please contact your administrator to set up payment processing.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <div className="flex gap-3">
+        <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
           Cancel
         </Button>
+        
         <Button 
-          onClick={handleSubmit}
-          disabled={isSubmitting || !cardNumber || !cardName || !expiryDate || !cvv}
-          className="mb-2 sm:mb-0"
+          type="submit" 
+          disabled={isProcessing || (!isStripeEnabled && !isHelcimEnabled)}
+          className="flex-1"
         >
-          {isSubmitting ? "Processing..." : `Pay $${price.toFixed(2)}`}
+          {isProcessing ? 'Processing...' : `Pay $${amount.toFixed(2)}`}
         </Button>
       </div>
-      
-      <div className="text-center text-xs text-gray-500">
-        <Lock className="inline h-3 w-3 mr-1" />
-        Secure payment processed. Payment data is stored securely in our database.
-      </div>
-    </div>
+    </form>
   );
 }

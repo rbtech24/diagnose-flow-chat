@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { SubscriptionLimits } from "@/types/subscription-consolidated";
 
@@ -35,11 +34,11 @@ export class UsageLimitService {
 
     // Safely cast the limits with proper type checking
     const rawLimits = license.subscription_plans?.limits;
-    if (!rawLimits || typeof rawLimits !== 'object') {
+    if (!rawLimits || typeof rawLimits !== 'object' || Array.isArray(rawLimits)) {
       throw new Error('Invalid subscription plan limits');
     }
 
-    const limits = rawLimits as SubscriptionLimits;
+    const limits = this.parseLimits(rawLimits);
 
     // Get current usage
     const usage = await this.getCurrentUsage(companyId);
@@ -95,6 +94,17 @@ export class UsageLimitService {
       limits,
       violations,
       canPerformAction
+    };
+  }
+
+  private static parseLimits(rawLimits: any): SubscriptionLimits {
+    return {
+      technicians: Number(rawLimits.technicians) || 1,
+      admins: Number(rawLimits.admins) || 1,
+      workflows: Number(rawLimits.workflows) || 10,
+      storage_gb: Number(rawLimits.storage_gb) || 1,
+      api_calls: Number(rawLimits.api_calls) || 1000,
+      diagnostics_per_day: Number(rawLimits.diagnostics_per_day) || 10
     };
   }
 
