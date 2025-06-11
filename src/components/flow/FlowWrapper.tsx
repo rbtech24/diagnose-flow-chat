@@ -156,12 +156,14 @@ function FlowWrapperComponent({
         onClearVersions={onClearVersions}
       />
 
-      <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10">
-        <WorkflowOverview 
-          nodes={nodes} 
-          edges={edges} 
-          currentWorkflow={currentWorkflow}
-        />
+      <div className="absolute top-20 left-1/2 transform -translate-x-1/2 pointer-events-none">
+        <div className="pointer-events-auto">
+          <WorkflowOverview 
+            nodes={nodes} 
+            edges={edges} 
+            currentWorkflow={currentWorkflow}
+          />
+        </div>
       </div>
 
       <ReactFlow
