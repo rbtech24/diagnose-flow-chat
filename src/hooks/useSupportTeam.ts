@@ -71,11 +71,20 @@ export function useSupportTeam(companyId?: string) {
         .from('ticket_assignments')
         .select(`
           *,
-          agent:support_team_members!assigned_to (
+          agent:support_team_members!ticket_assignments_assigned_to_fkey (
             id,
             name,
             email,
-            role
+            role,
+            user_id,
+            company_id,
+            is_active,
+            max_tickets,
+            current_tickets,
+            specializations,
+            created_at,
+            updated_at,
+            department
           )
         `)
         .eq('is_active', true);
@@ -87,7 +96,16 @@ export function useSupportTeam(companyId?: string) {
       const { data, error } = await query.order('assigned_at', { ascending: false });
 
       if (error) throw error;
-      setAssignments(data || []);
+      
+      const transformedAssignments: TicketAssignment[] = (data || []).map(assignment => ({
+        ...assignment,
+        agent: assignment.agent ? {
+          ...assignment.agent,
+          role: assignment.agent.role as 'agent' | 'supervisor' | 'manager'
+        } : undefined
+      }));
+      
+      setAssignments(transformedAssignments);
     } catch (err) {
       console.error('Error fetching assignments:', err);
       setError('Failed to load assignments');
@@ -155,10 +173,10 @@ export function useSupportTeam(companyId?: string) {
     try {
       // Ensure required fields are present
       const newMember = {
-        company_id: companyId,
+        company_id: companyId!,
         name: memberData.name || '',
         email: memberData.email || '',
-        role: memberData.role || 'agent',
+        role: memberData.role || 'agent' as 'agent',
         user_id: memberData.user_id,
         department: memberData.department,
         is_active: memberData.is_active ?? true,

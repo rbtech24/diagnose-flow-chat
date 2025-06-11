@@ -16,6 +16,12 @@ export interface SupportTicket {
   company_id?: string;
   attachments?: string[];
   comments?: TicketComment[];
+  created_by_user?: {
+    name: string;
+    email: string;
+    avatar_url?: string;
+    role: string;
+  };
 }
 
 export interface TicketComment {
@@ -25,6 +31,20 @@ export interface TicketComment {
   user_id: string;
   created_at: string;
   attachments?: string[];
+}
+
+export interface SupportTicketMessage {
+  id: string;
+  ticket_id: string;
+  content: string;
+  user_id: string;
+  created_at: string;
+  sender?: {
+    name: string;
+    email: string;
+    avatar_url?: string;
+    role: string;
+  };
 }
 
 export interface CreateTicketData {
@@ -67,12 +87,57 @@ export function useSupportTickets(userId?: string, companyId?: string) {
       const { data, error } = await query;
 
       if (error) throw error;
-      setTickets(data || []);
+      
+      // Transform the data to match our interface types
+      const transformedTickets: SupportTicket[] = (data || []).map(ticket => ({
+        ...ticket,
+        status: ticket.status as 'open' | 'in_progress' | 'resolved' | 'closed',
+        priority: ticket.priority as 'low' | 'medium' | 'high' | 'urgent'
+      }));
+      
+      setTickets(transformedTickets);
     } catch (err) {
       console.error('Error fetching tickets:', err);
       setError('Failed to load tickets');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const getTicketById = async (ticketId: string): Promise<SupportTicket | null> => {
+    try {
+      const { data, error } = await supabase
+        .from('support_tickets')
+        .select('*')
+        .eq('id', ticketId)
+        .single();
+
+      if (error) throw error;
+      
+      return {
+        ...data,
+        status: data.status as 'open' | 'in_progress' | 'resolved' | 'closed',
+        priority: data.priority as 'low' | 'medium' | 'high' | 'urgent'
+      };
+    } catch (err) {
+      console.error('Error fetching ticket:', err);
+      return null;
+    }
+  };
+
+  const getTicketMessages = async (ticketId: string): Promise<SupportTicketMessage[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('support_ticket_messages')
+        .select('*')
+        .eq('ticket_id', ticketId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.error('Error fetching messages:', err);
+      return [];
     }
   };
 
@@ -128,7 +193,7 @@ export function useSupportTickets(userId?: string, companyId?: string) {
         .insert({
           content: commentData.content,
           ticket_id: commentData.ticket_id,
-          user_id: userId,
+          user_id: userId!,
         })
         .select()
         .single();
@@ -140,6 +205,26 @@ export function useSupportTickets(userId?: string, companyId?: string) {
     } catch (err) {
       console.error('Error adding comment:', err);
       throw new Error('Failed to add comment');
+    }
+  };
+
+  const addMessage = async (messageData: { content: string; ticket_id: string }): Promise<SupportTicketMessage> => {
+    try {
+      const { data, error } = await supabase
+        .from('support_ticket_messages')
+        .insert({
+          content: messageData.content,
+          ticket_id: messageData.ticket_id,
+          user_id: userId!,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      console.error('Error adding message:', err);
+      throw new Error('Failed to add message');
     }
   };
 
@@ -171,9 +256,12 @@ export function useSupportTickets(userId?: string, companyId?: string) {
     isLoading,
     error,
     fetchTickets,
+    getTicketById,
+    getTicketMessages,
     createTicket,
     updateTicketStatus,
     addComment,
+    addMessage,
     assignTicket,
   };
 }

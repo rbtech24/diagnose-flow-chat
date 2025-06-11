@@ -139,7 +139,7 @@ export default function SupportTicketDetail() {
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock className="h-4 w-4" />
-                    {ticket.createdAt.toLocaleString()}
+                    {new Date(ticket.created_at).toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -179,7 +179,7 @@ export default function SupportTicketDetail() {
                           </Badge>
                         </div>
                         <span className="text-sm text-gray-500">
-                          {message.createdAt.toLocaleString()}
+                          {new Date(message.created_at).toLocaleString()}
                         </span>
                       </div>
                       <p className="text-gray-700">{message.content}</p>
@@ -217,7 +217,7 @@ export default function SupportTicketDetail() {
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-gray-500">Category</label>
-                <p className="font-medium">{ticket.category}</p>
+                <p className="font-medium">{ticket.category || 'General'}</p>
               </div>
               
               <div>
@@ -229,7 +229,7 @@ export default function SupportTicketDetail() {
                 <Clock className="h-4 w-4 text-gray-500" />
                 <div>
                   <label className="text-sm font-medium text-gray-500">Created</label>
-                  <p className="text-sm">{ticket.createdAt.toLocaleString()}</p>
+                  <p className="text-sm">{new Date(ticket.created_at).toLocaleString()}</p>
                 </div>
               </div>
               
@@ -237,7 +237,7 @@ export default function SupportTicketDetail() {
                 <Clock className="h-4 w-4 text-gray-500" />
                 <div>
                   <label className="text-sm font-medium text-gray-500">Last Updated</label>
-                  <p className="text-sm">{ticket.updatedAt.toLocaleString()}</p>
+                  <p className="text-sm">{new Date(ticket.updated_at).toLocaleString()}</p>
                 </div>
               </div>
             </div>
