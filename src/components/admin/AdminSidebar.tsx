@@ -20,7 +20,7 @@ import {
   Edit,
   Folder
 } from "lucide-react";
-import { useUserManagementStore } from "@/store/userManagementStore";
+import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 import {
@@ -35,7 +35,7 @@ export function AdminSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const pathname = location.pathname;
-  const { logout } = useUserManagementStore();
+  const { user, logout } = useAuth();
   const { toast } = useToast();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -58,7 +58,7 @@ export function AdminSidebar() {
       hasSubmenu: true,
       submenu: [
         { path: "/admin/workflows", label: "All Workflows", icon: <FileText className="h-4 w-4" /> },
-        { path: "/admin/workflow-editor", label: "Workflow Editor", icon: <Edit className="h-4 w-4" /> },
+        { path: "/workflow-editor", label: "Workflow Editor", icon: <Edit className="h-4 w-4" /> },
         { path: "/workflows", label: "Workflow Folders", icon: <Folder className="h-4 w-4" /> },
       ] 
     },
@@ -77,12 +77,14 @@ export function AdminSidebar() {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
+      console.log('Logging out user:', user?.email);
       await logout();
       toast({
         title: "Logged out successfully",
         description: "You have been logged out of your account"
       });
-      navigate("/sign-in");
+      console.log('Logout successful, navigating to login');
+      navigate("/login");
     } catch (error) {
       console.error("Error logging out:", error);
       toast({

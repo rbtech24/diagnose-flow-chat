@@ -30,7 +30,7 @@ import { useState } from "react";
 export function CompanySidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const { toast } = useToast();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const isActive = (path: string) => location.pathname === path;
@@ -38,11 +38,13 @@ export function CompanySidebar() {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
+      console.log('Logging out user:', user?.email);
       await logout();
       toast({
         title: "Logged out successfully",
         description: "You have been logged out of your account"
       });
+      console.log('Logout successful, navigating to login');
       navigate("/login");
     } catch (error) {
       console.error("Error logging out:", error);
@@ -142,7 +144,7 @@ export function CompanySidebar() {
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="flex items-center text-sm gap-1 text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center text-sm gap-1 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
           >
             <LogOut size={18} />
             <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>

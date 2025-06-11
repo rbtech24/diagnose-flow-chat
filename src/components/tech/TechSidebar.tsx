@@ -30,18 +30,20 @@ export function TechSidebar({ collapsed = false }: TechSidebarProps) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { user, logout } = useAuth();
-  const [pending, setPending] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { toast } = useToast();
 
   const handleSignOut = async () => {
-    setPending(true);
+    setIsLoggingOut(true);
     try {
+      console.log('Logging out user:', user?.email);
       await logout();
       toast({
         title: "Logged out successfully",
         description: "You have been logged out of your account",
       });
-      navigate("/dev-login");
+      console.log('Logout successful, navigating to login');
+      navigate("/login");
     } catch (error) {
       console.error("Error signing out:", error);
       toast({
@@ -50,7 +52,7 @@ export function TechSidebar({ collapsed = false }: TechSidebarProps) {
         variant: "destructive",
       });
     } finally {
-      setPending(false);
+      setIsLoggingOut(false);
     }
   };
 
@@ -124,10 +126,10 @@ export function TechSidebar({ collapsed = false }: TechSidebarProps) {
               variant="ghost" 
               className="justify-start text-red-600 hover:text-red-700 hover:bg-red-50" 
               onClick={handleSignOut} 
-              disabled={pending}
+              disabled={isLoggingOut}
             >
               <LogOut className="h-4 w-4 mr-2" />
-              {pending ? "Signing out..." : "Sign Out"}
+              {isLoggingOut ? "Signing out..." : "Sign Out"}
             </Button>
           </div>
         </nav>

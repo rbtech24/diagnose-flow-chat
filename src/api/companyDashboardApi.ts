@@ -38,8 +38,7 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
       .select('id, status')
       .eq('company_id', companyId);
 
-    const technicianList = technicians as TechnicianData[] | null;
-    const activeJobs = technicianList?.filter((t) => t.status === 'active').length || 0;
+    const activeJobs = technicians?.filter((t: TechnicianData) => t.status === 'active').length || 0;
 
     // Get diagnostic sessions as completed jobs
     const { data: diagnosticSessions } = await supabase
@@ -90,8 +89,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       .limit(10);
 
     if (recentDiagnostics) {
-      const diagnosticList = recentDiagnostics as DiagnosticSessionData[];
-      diagnosticList.forEach((session) => {
+      recentDiagnostics.forEach((session: DiagnosticSessionData) => {
         if (session.status === 'completed') {
           activities.push({
             id: session.id,
