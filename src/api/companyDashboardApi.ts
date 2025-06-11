@@ -26,7 +26,7 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
       .select('id, status')
       .eq('company_id', companyId);
 
-    const activeJobs = technicians?.filter((tech: any) => tech.status === 'active').length || 0;
+    const activeJobs = technicians?.filter(tech => tech.status === 'active').length || 0;
 
     // Get diagnostic sessions as completed jobs
     const { data: diagnosticSessions } = await supabase
@@ -77,7 +77,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       .limit(10);
 
     if (recentDiagnostics) {
-      recentDiagnostics.forEach((session: any) => {
+      recentDiagnostics.forEach((session) => {
         if (session.status === 'completed') {
           activities.push({
             id: session.id,

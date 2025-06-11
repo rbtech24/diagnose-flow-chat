@@ -7,13 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { SubscriptionPlanForm } from "@/components/subscription/SubscriptionPlanForm";
 import { useSubscriptionStore } from "@/store/subscriptionStore";
+import { useSubscriptionSync } from "@/hooks/useSubscriptionSync";
 import { SubscriptionPlan } from "@/types/subscription-consolidated";
 import { Plus, Edit, Users, DollarSign, Settings, Trash2, RefreshCw } from "lucide-react";
 
 export default function AdminSubscriptionPlans() {
   const { 
     plans, 
-    fetchPlans, 
     addPlan, 
     updatePlan, 
     deletePlan,
@@ -21,6 +21,9 @@ export default function AdminSubscriptionPlans() {
     cleanupDuplicatePlans,
     isLoadingPlans 
   } = useSubscriptionStore();
+
+  // Use the sync hook to ensure real-time updates
+  const { syncPlans } = useSubscriptionSync();
 
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -42,22 +45,40 @@ export default function AdminSubscriptionPlans() {
     setIsFormOpen(true);
   };
 
-  const handleSavePlan = (planData: SubscriptionPlan) => {
-    if (isEditing && selectedPlan) {
-      updatePlan(planData);
-    } else {
-      addPlan(planData);
+  const handleSavePlan = async (planData: SubscriptionPlan) => {
+    try {
+      if (isEditing && selectedPlan) {
+        await updatePlan(planData);
+      } else {
+        await addPlan(planData);
+      }
+      setIsFormOpen(false);
+      setSelectedPlan(null);
+      // Sync plans to ensure consistency
+      await syncPlans();
+    } catch (error) {
+      console.error('Error saving plan:', error);
     }
-    setIsFormOpen(false);
-    setSelectedPlan(null);
   };
 
-  const handleDeletePlan = (planId: string) => {
-    deletePlan(planId);
+  const handleDeletePlan = async (planId: string) => {
+    try {
+      await deletePlan(planId);
+      // Sync plans to ensure consistency
+      await syncPlans();
+    } catch (error) {
+      console.error('Error deleting plan:', error);
+    }
   };
 
-  const handleToggleStatus = (planId: string) => {
-    togglePlanStatus(planId);
+  const handleToggleStatus = async (planId: string) => {
+    try {
+      await togglePlanStatus(planId);
+      // Sync plans to ensure consistency
+      await syncPlans();
+    } catch (error) {
+      console.error('Error toggling plan status:', error);
+    }
   };
 
   const handleCloseForm = () => {
@@ -67,7 +88,21 @@ export default function AdminSubscriptionPlans() {
   };
 
   const handleCleanupDuplicates = async () => {
-    await cleanupDuplicatePlans();
+    try {
+      await cleanupDuplicatePlans();
+      // Sync plans to ensure consistency
+      await syncPlans();
+    } catch (error) {
+      console.error('Error cleaning up duplicates:', error);
+    }
+  };
+
+  const handleRefreshPlans = async () => {
+    try {
+      await syncPlans();
+    } catch (error) {
+      console.error('Error refreshing plans:', error);
+    }
   };
 
   if (isLoadingPlans) {
@@ -88,6 +123,10 @@ export default function AdminSubscriptionPlans() {
           <p className="text-gray-500">Manage subscription plans and pricing</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={handleRefreshPlans}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="outline">
