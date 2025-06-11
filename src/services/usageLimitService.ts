@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface UsageData {
@@ -88,7 +87,7 @@ export class UsageLimitService {
       violations.push(`Daily diagnostics exceeded: ${usage.diagnostics_today}/${limits.diagnostics_per_day}`);
     }
 
-    const canPerformAction = (action: string) => {
+    const canPerformAction = (action: string): boolean => {
       switch (action) {
         case 'add_technician':
           return usage.technicians_active < limits.technicians;
