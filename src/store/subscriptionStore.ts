@@ -1,4 +1,3 @@
-
 import { create } from "zustand";
 import { SubscriptionPlan, License, Payment } from "@/types/subscription-consolidated";
 import { SubscriptionService } from "@/services/subscriptionService";
@@ -344,14 +343,24 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   
   deletePlan: async (planId: string) => {
     try {
+      console.log('Store: Attempting to delete plan:', planId);
       await SubscriptionService.deletePlan(planId);
+      
+      // Only remove from state if deletion was successful
       set(state => ({
         plans: state.plans.filter(plan => plan.id !== planId)
       }));
+      
+      console.log('Store: Plan deleted successfully and removed from state');
       toast.success('Plan deleted successfully');
     } catch (error) {
-      console.error('Error deleting plan:', error);
-      toast.error('Failed to delete plan');
+      console.error('Store: Error deleting plan:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete plan';
+      toast.error(errorMessage);
+      
+      // Re-fetch plans to ensure state is in sync with database
+      console.log('Store: Re-fetching plans after delete error');
+      get().fetchPlans();
     }
   },
   

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { SubscriptionPlan, SubscriptionFeatures, SubscriptionLimits } from "@/types/subscription-consolidated";
 
@@ -136,47 +137,69 @@ export class SubscriptionService {
   static async deletePlan(planId: string): Promise<void> {
     console.log('SubscriptionService.deletePlan() - Attempting to delete plan:', planId);
     
-    // First, let's check if the plan exists
-    const { data: existingPlan, error: fetchError } = await supabase
-      .from('subscription_plans')
-      .select('id, name')
-      .eq('id', planId)
-      .single();
+    try {
+      // First, let's check if the plan exists
+      const { data: existingPlan, error: fetchError } = await supabase
+        .from('subscription_plans')
+        .select('id, name')
+        .eq('id', planId)
+        .single();
 
-    if (fetchError) {
-      console.error('Error fetching plan before deletion:', fetchError);
-      throw new Error(`Plan not found: ${fetchError.message}`);
-    }
+      if (fetchError) {
+        console.error('Error fetching plan before deletion:', fetchError);
+        throw new Error(`Plan not found: ${fetchError.message}`);
+      }
 
-    console.log('Plan found before deletion:', existingPlan);
+      console.log('Plan found before deletion:', existingPlan);
 
-    // Now try to delete it
-    const { error } = await supabase
-      .from('subscription_plans')
-      .delete()
-      .eq('id', planId);
+      // Check if there are any licenses using this plan
+      const { data: licensesUsingPlan, error: licenseCheckError } = await supabase
+        .from('licenses')
+        .select('id')
+        .eq('plan_id', planId)
+        .limit(1);
 
-    if (error) {
-      console.error('Error deleting plan from database:', error);
-      throw new Error(`Failed to delete plan: ${error.message}`);
-    }
-    
-    console.log('Plan deleted successfully from database:', planId);
+      if (licenseCheckError) {
+        console.error('Error checking for licenses using this plan:', licenseCheckError);
+        throw new Error('Failed to check plan dependencies');
+      }
 
-    // Verify deletion
-    const { data: checkPlan, error: checkError } = await supabase
-      .from('subscription_plans')
-      .select('id')
-      .eq('id', planId)
-      .maybeSingle();
+      if (licensesUsingPlan && licensesUsingPlan.length > 0) {
+        throw new Error('Cannot delete plan - it is currently in use by active licenses');
+      }
 
-    if (checkError) {
-      console.error('Error checking plan deletion:', checkError);
-    } else if (checkPlan) {
-      console.error('WARNING: Plan still exists after deletion attempt:', checkPlan);
-      throw new Error('Plan deletion failed - plan still exists in database');
-    } else {
-      console.log('Deletion verified - plan no longer exists in database');
+      // Now try to delete it
+      const { error } = await supabase
+        .from('subscription_plans')
+        .delete()
+        .eq('id', planId);
+
+      if (error) {
+        console.error('Error deleting plan from database:', error);
+        throw new Error(`Failed to delete plan: ${error.message}`);
+      }
+      
+      console.log('Plan deleted successfully from database:', planId);
+
+      // Verify deletion
+      const { data: checkPlan, error: checkError } = await supabase
+        .from('subscription_plans')
+        .select('id')
+        .eq('id', planId)
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('Error checking plan deletion:', checkError);
+        throw new Error('Failed to verify plan deletion');
+      } else if (checkPlan) {
+        console.error('WARNING: Plan still exists after deletion attempt:', checkPlan);
+        throw new Error('Plan deletion failed - plan still exists in database');
+      } else {
+        console.log('Deletion verified - plan no longer exists in database');
+      }
+    } catch (error) {
+      console.error('Delete plan error:', error);
+      throw error;
     }
   }
 
