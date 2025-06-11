@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { FeatureRequest, FeatureComment } from '@/types/feature-request';
+import { FeatureRequest, FeatureComment, FeatureRequestStatus } from '@/types/feature-request';
 
 export async function fetchFeatureRequests(status?: string, companyId?: string): Promise<FeatureRequest[]> {
   try {
@@ -24,7 +24,10 @@ export async function fetchFeatureRequests(status?: string, companyId?: string):
       throw new Error(`Failed to fetch feature requests: ${error.message}`);
     }
 
-    return data || [];
+    return (data || []).map(item => ({
+      ...item,
+      status: item.status as FeatureRequestStatus
+    }));
   } catch (error) {
     console.error('Error in fetchFeatureRequests:', error);
     throw error;
@@ -48,7 +51,10 @@ export async function fetchFeatureRequestById(id: string): Promise<FeatureReques
       throw new Error('Feature request not found');
     }
 
-    return data;
+    return {
+      ...data,
+      status: data.status as FeatureRequestStatus
+    };
   } catch (error) {
     console.error('Error in fetchFeatureRequestById:', error);
     throw error;
@@ -95,7 +101,10 @@ export async function createFeatureRequest(requestData: Partial<FeatureRequest>)
       throw new Error(`Failed to create feature request: ${error.message}`);
     }
 
-    return data;
+    return {
+      ...data,
+      status: data.status as FeatureRequestStatus
+    };
   } catch (error) {
     console.error('Error in createFeatureRequest:', error);
     throw error;
@@ -116,7 +125,10 @@ export async function updateFeatureRequest(id: string, updateData: Partial<Featu
       throw new Error(`Failed to update feature request: ${error.message}`);
     }
 
-    return data;
+    return {
+      ...data,
+      status: data.status as FeatureRequestStatus
+    };
   } catch (error) {
     console.error('Error in updateFeatureRequest:', error);
     throw error;
