@@ -45,7 +45,23 @@ export function DevAuthBypass() {
   // Redirect if user is already logged in
   useEffect(() => {
     if (user) {
-      const redirectPath = `/${user.role.toLowerCase()}`;
+      // Map user roles to correct routes
+      let redirectPath = '/tech'; // default
+      
+      switch (user.role) {
+        case 'admin':
+          redirectPath = '/admin';
+          break;
+        case 'company':
+          redirectPath = '/company';
+          break;
+        case 'tech':
+          redirectPath = '/tech';
+          break;
+        default:
+          redirectPath = '/tech';
+      }
+      
       navigate(redirectPath);
     }
   }, [user, navigate]);
@@ -57,9 +73,8 @@ export function DevAuthBypass() {
       const success = await login(demoUser.email, demoUser.password);
       
       if (success) {
-        const role = demoUser.role.toLowerCase().replace(' ', '_');
         toast.success(`Logged in as ${demoUser.name}`);
-        navigate(`/${role}`);
+        // Navigation will be handled by the useEffect above
       } else {
         toast.error('Demo login failed. Please try again.');
         setIsLoggingIn(null);
