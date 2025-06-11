@@ -155,7 +155,7 @@ export function FlowToolbar({
     <div className="absolute top-0 left-0 right-0 z-10 bg-background border-b pointer-events-auto">
       <div className="flex flex-col gap-4 p-4">
         {/* Primary Toolbar Row */}
-        <div className="flex items-center justify-between w-full gap-4">
+        <div className="flex items-center justify-between w-full gap-4 min-h-[40px]">
           {/* Left Actions Group */}
           <div className="flex items-center gap-2 flex-shrink-0">
             <Button 
@@ -214,13 +214,13 @@ export function FlowToolbar({
             />
           </div>
 
-          {/* Right Actions Group */}
-          <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Right Actions Group - Fixed spacing */}
+          <div className="flex items-center gap-3 flex-shrink-0 min-w-fit">
             {onApplyNodeChanges && (
               <Button 
                 variant="secondary"
                 size="sm"
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 whitespace-nowrap"
                 onClick={onApplyNodeChanges}
               >
                 <Save className="w-4 h-4" />
@@ -233,7 +233,7 @@ export function FlowToolbar({
                 <Button 
                   variant="outline"
                   size="sm"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 whitespace-nowrap"
                 >
                   <History className="w-4 h-4" />
                   History
@@ -252,7 +252,7 @@ export function FlowToolbar({
             <Button 
               variant="default"
               size="sm"
-              className="flex items-center gap-2 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white"
+              className="flex items-center gap-2 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white whitespace-nowrap"
               onClick={handleGoToWorkflows}
             >
               <Link2 className="w-4 h-4" />
