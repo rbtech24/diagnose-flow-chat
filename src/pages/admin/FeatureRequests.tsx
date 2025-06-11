@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -76,7 +77,6 @@ export default function AdminFeatureRequests() {
     }
   };
 
-  // Fix the pendingRequests filter to include both "pending" and "submitted" statuses
   const pendingRequests = filteredRequests.filter((request) => 
     ["pending", "submitted"].includes(request.status)
   );
@@ -188,16 +188,14 @@ export default function AdminFeatureRequests() {
         <TabsContent value="pending" className="mt-0">
           <div className="grid grid-cols-1 gap-4">
             {sortedRequests.filter(r => ["pending", "submitted"].includes(r.status)).length > 0 ? (
-              sortedRequests
-                .filter(r => ["pending", "submitted"].includes(r.status))
-                .map((request) => (
-                  <Link to={`/admin/feature-requests/${request.id}`} key={request.id}>
-                    <FeatureRequestCard request={request} />
-                  </Link>
-                ))
+              sortedRequests.filter(r => ["pending", "submitted"].includes(r.status)).map((request) => (
+                <Link to={`/admin/feature-requests/${request.id}`} key={request.id}>
+                  <FeatureRequestCard request={request} />
+                </Link>
+              ))
             ) : (
               <div className="text-center py-8">
-                <p className="text-muted-foreground">No pending feature requests found</p>
+                <p className="text-muted-foreground">No pending requests found</p>
               </div>
             )}
           </div>
@@ -206,16 +204,14 @@ export default function AdminFeatureRequests() {
         <TabsContent value="approved" className="mt-0">
           <div className="grid grid-cols-1 gap-4">
             {sortedRequests.filter(r => ["approved", "in-progress"].includes(r.status as string)).length > 0 ? (
-              sortedRequests
-                .filter(r => ["approved", "in-progress"].includes(r.status as string))
-                .map((request) => (
-                  <Link to={`/admin/feature-requests/${request.id}`} key={request.id}>
-                    <FeatureRequestCard request={request} />
-                  </Link>
-                ))
+              sortedRequests.filter(r => ["approved", "in-progress"].includes(r.status as string)).map((request) => (
+                <Link to={`/admin/feature-requests/${request.id}`} key={request.id}>
+                  <FeatureRequestCard request={request} />
+                </Link>
+              ))
             ) : (
               <div className="text-center py-8">
-                <p className="text-muted-foreground">No approved feature requests found</p>
+                <p className="text-muted-foreground">No approved requests found</p>
               </div>
             )}
           </div>
@@ -224,16 +220,14 @@ export default function AdminFeatureRequests() {
         <TabsContent value="completed" className="mt-0">
           <div className="grid grid-cols-1 gap-4">
             {sortedRequests.filter(r => r.status === "completed").length > 0 ? (
-              sortedRequests
-                .filter(r => r.status === "completed")
-                .map((request) => (
-                  <Link to={`/admin/feature-requests/${request.id}`} key={request.id}>
-                    <FeatureRequestCard request={request} />
-                  </Link>
-                ))
+              sortedRequests.filter(r => r.status === "completed").map((request) => (
+                <Link to={`/admin/feature-requests/${request.id}`} key={request.id}>
+                  <FeatureRequestCard request={request} />
+                </Link>
+              ))
             ) : (
               <div className="text-center py-8">
-                <p className="text-muted-foreground">No completed feature requests found</p>
+                <p className="text-muted-foreground">No completed requests found</p>
               </div>
             )}
           </div>
