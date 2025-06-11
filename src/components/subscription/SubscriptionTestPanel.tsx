@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSubscriptionStore } from "@/store/subscriptionStore";
 import { SubscriptionPlan } from "@/types/subscription-consolidated";
+import { SubscriptionService } from "@/services/subscriptionService";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export function SubscriptionTestPanel() {
@@ -24,9 +26,12 @@ export function SubscriptionTestPanel() {
     trial_period: 14
   });
 
+  const [debugInfo, setDebugInfo] = useState<string>("");
+
   const handleCreateTestPlan = async () => {
     try {
       console.log('Creating test plan with data:', testPlanData);
+      setDebugInfo("Starting plan creation...");
       
       const newPlan: SubscriptionPlan = {
         id: crypto.randomUUID(),
@@ -55,18 +60,23 @@ export function SubscriptionTestPanel() {
       };
 
       console.log('About to call addPlan with:', newPlan);
+      setDebugInfo("Calling addPlan...");
+      
       await addPlan(newPlan);
       console.log('addPlan completed, now refreshing plans...');
+      setDebugInfo("Plan created, refreshing list...");
       
       // Wait a moment then refresh to ensure we see the new plan
       setTimeout(async () => {
-        await fetchPlans();
-        console.log('Plans refreshed after creation');
+        const refreshedPlans = await fetchPlans();
+        console.log('Plans refreshed after creation:', refreshedPlans);
+        setDebugInfo(`Refresh complete. Found ${refreshedPlans.length} plans.`);
       }, 1000);
       
       toast.success('Test plan created successfully!');
     } catch (error) {
       console.error('Error creating test plan:', error);
+      setDebugInfo(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       toast.error(`Failed to create test plan: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
@@ -74,17 +84,63 @@ export function SubscriptionTestPanel() {
   const handleRefreshPlans = async () => {
     try {
       console.log('Manually refreshing plans...');
+      setDebugInfo("Refreshing plans...");
       const refreshedPlans = await fetchPlans();
       console.log('Refreshed plans:', refreshedPlans);
+      setDebugInfo(`Refresh complete. Found ${refreshedPlans.length} plans.`);
       toast.success('Plans refreshed successfully!');
     } catch (error) {
       console.error('Error refreshing plans:', error);
+      setDebugInfo(`Refresh error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       toast.error(`Failed to refresh plans: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  const handleDirectDatabaseQuery = async () => {
+    try {
+      console.log('Querying database directly...');
+      setDebugInfo("Querying database directly...");
+      
+      const { data, error } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Database query error:', error);
+        setDebugInfo(`Database error: ${error.message}`);
+        return;
+      }
+
+      console.log('Direct database query result:', data);
+      setDebugInfo(`Direct DB query: Found ${data?.length || 0} plans`);
+      
+      if (data && data.length > 0) {
+        console.log('Sample plan from DB:', data[0]);
+      }
+    } catch (error) {
+      console.error('Error in direct database query:', error);
+      setDebugInfo(`DB query error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  const handleTestService = async () => {
+    try {
+      console.log('Testing SubscriptionService directly...');
+      setDebugInfo("Testing SubscriptionService...");
+      
+      const servicePlans = await SubscriptionService.getPlans();
+      console.log('SubscriptionService.getPlans() result:', servicePlans);
+      setDebugInfo(`Service test: Found ${servicePlans.length} plans`);
+    } catch (error) {
+      console.error('Error testing SubscriptionService:', error);
+      setDebugInfo(`Service error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
   const handleClearPlans = () => {
     console.log('Current plans in store:', plans);
+    setDebugInfo(`Store contains ${plans.length} plans`);
     toast.info(`Found ${plans.length} plans in store`);
   };
 
@@ -136,7 +192,7 @@ export function SubscriptionTestPanel() {
             </div>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button onClick={handleCreateTestPlan} disabled={isLoadingPlans}>
               Create Test Plan
             </Button>
@@ -144,9 +200,22 @@ export function SubscriptionTestPanel() {
               Refresh Plans
             </Button>
             <Button variant="secondary" onClick={handleClearPlans}>
-              Debug Plans
+              Debug Store
+            </Button>
+            <Button variant="destructive" onClick={handleDirectDatabaseQuery}>
+              Query DB Direct
+            </Button>
+            <Button variant="ghost" onClick={handleTestService}>
+              Test Service
             </Button>
           </div>
+
+          {debugInfo && (
+            <div className="p-3 bg-gray-100 rounded-md">
+              <Label>Debug Info:</Label>
+              <p className="text-sm text-gray-700">{debugInfo}</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

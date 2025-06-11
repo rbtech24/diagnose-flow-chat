@@ -16,18 +16,6 @@ export interface RecentActivity {
   icon: string;
 }
 
-interface TechnicianRecord {
-  id: string;
-  status: string;
-}
-
-interface DiagnosticSessionRecord {
-  id: string;
-  status: string;
-  created_at: string;
-  completed_at?: string;
-}
-
 export const fetchDashboardStats = async (companyId: string): Promise<DashboardStats> => {
   console.log('Fetching dashboard stats for company:', companyId);
   
@@ -38,7 +26,7 @@ export const fetchDashboardStats = async (companyId: string): Promise<DashboardS
       .select('id, status')
       .eq('company_id', companyId);
 
-    const activeJobs = technicians?.filter((t: TechnicianRecord) => t.status === 'active').length || 0;
+    const activeJobs = technicians?.filter((t) => t.status === 'active').length || 0;
 
     // Get diagnostic sessions as completed jobs
     const { data: diagnosticSessions } = await supabase
@@ -89,7 +77,7 @@ export const fetchRecentActivity = async (companyId: string): Promise<RecentActi
       .limit(10);
 
     if (recentDiagnostics) {
-      recentDiagnostics.forEach((session: DiagnosticSessionRecord) => {
+      recentDiagnostics.forEach((session) => {
         if (session.status === 'completed') {
           activities.push({
             id: session.id,
