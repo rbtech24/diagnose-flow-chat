@@ -1,7 +1,39 @@
 import { supabase } from "@/integrations/supabase/client";
 import { SubscriptionPlan, SubscriptionFeatures, SubscriptionLimits } from "@/types/subscription-consolidated";
+import { DemoAuthService } from "./demoAuthService";
 
 export class SubscriptionService {
+  // Helper method to check if user is authenticated (works for both demo and real auth)
+  private static async checkAuthentication(): Promise<{ isAuthenticated: boolean; userId?: string; error?: string }> {
+    // First check if we're in demo mode
+    const demoUser = DemoAuthService.getDemoSession();
+    if (demoUser) {
+      console.log('Demo authentication detected:', demoUser.id);
+      return { isAuthenticated: true, userId: demoUser.id };
+    }
+
+    // If not demo mode, check Supabase auth
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) {
+        console.error('Supabase authentication error:', authError);
+        return { isAuthenticated: false, error: `Authentication failed: ${authError.message}` };
+      }
+      
+      if (!user) {
+        console.error('No authenticated user found');
+        return { isAuthenticated: false, error: 'You must be logged in to perform this action' };
+      }
+      
+      console.log('Supabase authenticated user:', user.id);
+      return { isAuthenticated: true, userId: user.id };
+    } catch (error) {
+      console.error('Authentication check failed:', error);
+      return { isAuthenticated: false, error: 'Authentication check failed' };
+    }
+  }
+
   static async getPlans(): Promise<SubscriptionPlan[]> {
     console.log('SubscriptionService.getPlans() - Fetching plans from database...');
     
@@ -38,20 +70,12 @@ export class SubscriptionService {
     console.log('SubscriptionService.createPlan() - Creating plan:', planData);
     
     try {
-      // Check authentication first
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      // Check authentication (works for both demo and real auth)
+      const authCheck = await this.checkAuthentication();
       
-      if (authError) {
-        console.error('Authentication error:', authError);
-        throw new Error(`Authentication failed: ${authError.message}`);
+      if (!authCheck.isAuthenticated) {
+        throw new Error(authCheck.error || 'Authentication required');
       }
-      
-      if (!user) {
-        console.error('No authenticated user found');
-        throw new Error('You must be logged in to create subscription plans');
-      }
-      
-      console.log('Authenticated user:', user.id);
 
       const { data, error } = await supabase
         .from('subscription_plans')
@@ -106,11 +130,11 @@ export class SubscriptionService {
     console.log('SubscriptionService.updatePlan() - Updating plan:', planId, planData);
     
     try {
-      // Check authentication first
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      // Check authentication (works for both demo and real auth)
+      const authCheck = await this.checkAuthentication();
       
-      if (authError || !user) {
-        throw new Error('You must be logged in to update subscription plans');
+      if (!authCheck.isAuthenticated) {
+        throw new Error(authCheck.error || 'Authentication required');
       }
 
       const updateFields: any = {};
@@ -162,11 +186,11 @@ export class SubscriptionService {
     console.log('SubscriptionService.togglePlanStatus() - Toggling plan status:', planId, 'from', currentStatus, 'to', !currentStatus);
     
     try {
-      // Check authentication first
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      // Check authentication (works for both demo and real auth)
+      const authCheck = await this.checkAuthentication();
       
-      if (authError || !user) {
-        throw new Error('You must be logged in to update subscription plans');
+      if (!authCheck.isAuthenticated) {
+        throw new Error(authCheck.error || 'Authentication required');
       }
 
       const { data: updatedPlan, error: updateError } = await supabase
@@ -207,11 +231,11 @@ export class SubscriptionService {
     console.log('SubscriptionService.deletePlan() - Attempting to delete plan:', planId);
     
     try {
-      // Check authentication first
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      // Check authentication (works for both demo and real auth)
+      const authCheck = await this.checkAuthentication();
       
-      if (authError || !user) {
-        throw new Error('You must be logged in to delete subscription plans');
+      if (!authCheck.isAuthenticated) {
+        throw new Error(authCheck.error || 'Authentication required');
       }
 
       // Check for dependent licenses
@@ -250,11 +274,11 @@ export class SubscriptionService {
     console.log('SubscriptionService.cleanupDuplicatePlans() - Starting cleanup...');
     
     try {
-      // Check authentication first
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      // Check authentication (works for both demo and real auth)
+      const authCheck = await this.checkAuthentication();
       
-      if (authError || !user) {
-        throw new Error('You must be logged in to cleanup subscription plans');
+      if (!authCheck.isAuthenticated) {
+        throw new Error(authCheck.error || 'Authentication required');
       }
 
       // Find duplicate plans based on name and keep the most recent one
