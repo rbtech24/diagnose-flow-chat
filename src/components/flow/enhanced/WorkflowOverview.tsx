@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,8 +20,13 @@ export function WorkflowOverview({ nodes, edges, currentWorkflow }: WorkflowOver
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('button')) return; // Don't start drag if clicking the button
+    // Check if clicking on the button or dialog trigger - don't start drag
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('[role="dialog"]')) {
+      return;
+    }
     
+    e.preventDefault();
     setIsDragging(true);
     setDragStart({
       x: e.clientX - position.x,
@@ -34,26 +38,40 @@ export function WorkflowOverview({ nodes, edges, currentWorkflow }: WorkflowOver
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging) return;
       
+      e.preventDefault();
+      const newX = e.clientX - dragStart.x;
+      const newY = e.clientY - dragStart.y;
+      
+      // Keep the component within viewport bounds
+      const maxX = window.innerWidth - 200; // rough width of component
+      const maxY = window.innerHeight - 100; // rough height of component
+      
       setPosition({
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y
+        x: Math.max(0, Math.min(newX, maxX)),
+        y: Math.max(0, Math.min(newY, maxY))
       });
     };
 
-    const handleMouseUp = () => {
-      setIsDragging(false);
+    const handleMouseUp = (e: MouseEvent) => {
+      if (isDragging) {
+        e.preventDefault();
+        setIsDragging(false);
+      }
     };
 
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
+      // Prevent text selection while dragging
+      document.body.style.userSelect = 'none';
     }
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = '';
     };
-  }, [isDragging, dragStart]);
+  }, [isDragging, dragStart, position]);
 
   const getNodeTypeStats = () => {
     const stats: Record<string, number> = {};
@@ -80,23 +98,29 @@ export function WorkflowOverview({ nodes, edges, currentWorkflow }: WorkflowOver
   return (
     <div 
       ref={containerRef}
-      className={`absolute z-10 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+      className={`fixed z-50 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`}
       style={{
-        transform: `translate(${position.x}px, ${position.y}px)`,
-        userSelect: 'none'
+        left: `${position.x}px`,
+        top: `${position.y}px`,
+        transform: 'none'
       }}
       onMouseDown={handleMouseDown}
     >
       <div className="bg-white rounded-lg shadow-lg border p-2 flex items-center gap-2">
-        <GripHorizontal className="w-4 h-4 text-gray-400 flex-shrink-0" />
+        <GripHorizontal className="w-4 h-4 text-gray-400 flex-shrink-0 pointer-events-none" />
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-2 pointer-events-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
               <BarChart className="w-4 h-4" />
               Overview
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl pointer-events-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Eye className="w-5 h-5" />

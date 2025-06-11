@@ -160,15 +160,12 @@ function FlowWrapperComponent({
         onLoadTemplate={onLoadTemplate}
       />
 
-      <div className="absolute top-20 left-1/2 transform -translate-x-1/2 pointer-events-none">
-        <div className="pointer-events-auto">
-          <WorkflowOverview 
-            nodes={nodes} 
-            edges={edges} 
-            currentWorkflow={currentWorkflow}
-          />
-        </div>
-      </div>
+      {/* Move WorkflowOverview outside the ReactFlow container */}
+      <WorkflowOverview 
+        nodes={nodes} 
+        edges={edges} 
+        currentWorkflow={currentWorkflow}
+      />
 
       <ReactFlow
         nodes={nodes}

@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useCallback } from 'react';
 import { Node, useReactFlow } from '@xyflow/react';
 import {
@@ -137,13 +136,13 @@ export default function FlowEditor({
 
   // Create a wrapper function that matches the expected interface
   const handleFileImport = useCallback((file: File) => {
-    // Create a mock event object that matches what useFileHandling expects
+    // Create a proper mock event object
     const mockEvent = {
       target: {
         files: [file],
         value: ''
       }
-    } as React.ChangeEvent<HTMLInputElement>;
+    } as unknown as React.ChangeEvent<HTMLInputElement>;
     
     handleFileImportEvent(mockEvent);
   }, [handleFileImportEvent]);
