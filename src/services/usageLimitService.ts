@@ -11,6 +11,12 @@ export interface UsageData {
   diagnostics_today: number;
 }
 
+interface LicenseData {
+  subscription_plans?: {
+    limits?: Record<string, unknown>;
+  } | null;
+}
+
 export class UsageLimitService {
   static async checkCompanyLimits(companyId: string): Promise<{
     usage: UsageData;
@@ -27,7 +33,7 @@ export class UsageLimitService {
       `)
       .eq('company_id', companyId)
       .eq('status', 'active')
-      .single();
+      .single() as { data: LicenseData | null; error: any };
 
     if (licenseError || !license) {
       throw new Error('No active license found for company');
@@ -113,50 +119,58 @@ export class UsageLimitService {
     const today = new Date().toISOString().split('T')[0];
 
     // Get technician counts
-    const { data: technicianCounts } = await supabase
+    const technicianResult = await supabase
       .from('technicians')
       .select('role')
       .eq('company_id', companyId)
       .eq('status', 'active');
 
-    const technicians_active = technicianCounts?.filter(t => t.role === 'tech').length || 0;
-    const admins_active = technicianCounts?.filter(t => t.role === 'admin' || t.role === 'company_admin').length || 0;
+    const technicianCounts = technicianResult.data || [];
+    const technicians_active = technicianCounts.filter(t => t.role === 'tech').length;
+    const admins_active = technicianCounts.filter(t => t.role === 'admin' || t.role === 'company_admin').length;
 
     // Get workflow count
-    const { count: workflows_count } = await supabase
+    const workflowResult = await supabase
       .from('workflows')
       .select('*', { count: 'exact' })
       .eq('company_id', companyId);
 
+    const workflows_count = workflowResult.count || 0;
+
     // Get storage usage (approximate from file uploads)
-    const { data: fileUploads } = await supabase
+    const fileResult = await supabase
       .from('file_uploads')
       .select('size')
       .eq('company_id', companyId);
 
-    const storage_used_gb = (fileUploads?.reduce((total, file) => total + file.size, 0) || 0) / (1024 * 1024 * 1024);
+    const fileUploads = fileResult.data || [];
+    const storage_used_gb = fileUploads.reduce((total, file) => total + (file.size || 0), 0) / (1024 * 1024 * 1024);
 
     // Get today's API calls
-    const { count: api_calls_today } = await supabase
+    const apiResult = await supabase
       .from('api_usage_logs')
       .select('*', { count: 'exact' })
       .eq('company_id', companyId)
       .gte('created_at', today);
 
+    const api_calls_today = apiResult.count || 0;
+
     // Get today's diagnostics
-    const { count: diagnostics_today } = await supabase
+    const diagnosticResult = await supabase
       .from('diagnostic_sessions')
       .select('*', { count: 'exact' })
       .eq('company_id', companyId)
       .gte('created_at', today);
 
+    const diagnostics_today = diagnosticResult.count || 0;
+
     return {
       technicians_active,
       admins_active,
-      workflows_count: workflows_count || 0,
+      workflows_count,
       storage_used_gb: Math.round(storage_used_gb * 100) / 100,
-      api_calls_today: api_calls_today || 0,
-      diagnostics_today: diagnostics_today || 0
+      api_calls_today,
+      diagnostics_today
     };
   }
 
