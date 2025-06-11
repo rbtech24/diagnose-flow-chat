@@ -55,6 +55,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
+// Demo admin user IDs that cannot be deleted
+const DEMO_ADMIN_IDS = ['11111111-1111-1111-1111-111111111111'];
+
 export default function AdminAccounts() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isResetPasswordModalOpen, setIsResetPasswordModalOpen] = useState(false);
@@ -68,7 +71,7 @@ export default function AdminAccounts() {
 
   // Filter to show only admin users
   const adminUsers = users.filter(user => user.role === 'admin');
-  const MAX_ADMINS = 3;
+  const MAX_ADMINS = 5; // Increased to account for demo admin
   const canAddMoreAdmins = adminUsers.length < MAX_ADMINS;
 
   useEffect(() => {
@@ -93,6 +96,17 @@ export default function AdminAccounts() {
 
   const handleDeleteUser = async () => {
     if (selectedUser) {
+      // Check if it's a demo admin user
+      if (DEMO_ADMIN_IDS.includes(selectedUser.id)) {
+        toast({
+          title: "Cannot Delete",
+          description: "Demo admin accounts cannot be deleted.",
+          variant: "destructive",
+        });
+        handleCloseDeleteDialog();
+        return;
+      }
+
       if (adminUsers.length <= 1) {
         toast({
           title: "Cannot Delete",
@@ -145,6 +159,8 @@ export default function AdminAccounts() {
 
     return matchesSearchTerm && matchesStatus;
   });
+
+  const isDemoAdmin = (userId: string) => DEMO_ADMIN_IDS.includes(userId);
 
   return (
     <div>
@@ -235,6 +251,7 @@ export default function AdminAccounts() {
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Type</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -258,6 +275,9 @@ export default function AdminAccounts() {
                       <TableCell>
                         <Skeleton className="h-4 w-[100px]" />
                       </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-[100px]" />
+                      </TableCell>
                       <TableCell className="text-right">
                         <Skeleton className="h-8 w-[120px]" />
                       </TableCell>
@@ -267,7 +287,7 @@ export default function AdminAccounts() {
             ) : filteredUsers.length === 0 ? (
               // Show message when no admin users are found
               <TableRow>
-                <TableCell colSpan={5} className="text-center">
+                <TableCell colSpan={6} className="text-center">
                   No admin accounts found.
                 </TableCell>
               </TableRow>
@@ -287,6 +307,17 @@ export default function AdminAccounts() {
                       {user.status}
                     </Badge>
                   </TableCell>
+                  <TableCell>
+                    {isDemoAdmin(user.id) ? (
+                      <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+                        Demo
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline">
+                        Standard
+                      </Badge>
+                    )}
+                  </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -302,16 +333,18 @@ export default function AdminAccounts() {
                           <Edit className="mr-2 h-4 w-4" />
                           Edit Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleResetPasswordDialogOpen({ id: user.id, name: user.name, email: user.email })}
-                        >
-                          Reset Password
-                        </DropdownMenuItem>
+                        {!isDemoAdmin(user.id) && (
+                          <DropdownMenuItem
+                            onClick={() => handleResetPasswordDialogOpen({ id: user.id, name: user.name, email: user.email })}
+                          >
+                            Reset Password
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => handleOpenDeleteDialog({ id: user.id, name: user.name })}
-                          disabled={adminUsers.length <= 1}
-                          className={adminUsers.length <= 1 ? "opacity-50 cursor-not-allowed" : ""}
+                          disabled={adminUsers.length <= 1 || isDemoAdmin(user.id)}
+                          className={(adminUsers.length <= 1 || isDemoAdmin(user.id)) ? "opacity-50 cursor-not-allowed" : ""}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Remove Admin

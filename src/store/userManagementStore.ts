@@ -35,6 +35,19 @@ interface RawCompany {
   plan_name?: string;
 }
 
+// Demo admin users to ensure they're always available
+const DEMO_ADMIN_USERS: User[] = [
+  {
+    id: '11111111-1111-1111-1111-111111111111',
+    name: 'Super Admin',
+    email: 'admin@repairautopilot.com',
+    role: 'admin',
+    status: 'active',
+    companyId: '11111111-1111-1111-1111-111111111111',
+    activeJobs: 0,
+  }
+];
+
 interface UserManagementState {
   users: User[];
   companies: Company[];
@@ -72,21 +85,31 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
   fetchUsers: async () => {
     set({ isLoadingUsers: true });
     try {
+      // Always include demo admin users
+      let users: User[] = [...DEMO_ADMIN_USERS];
+      
       // Fetch users from the API
       const { data, error } = await supabase.from('technicians').select('*');
       
       if (error) {
         console.error('Error fetching users:', error);
-        return;
+      } else {
+        // Transform data to match User type and merge with demo users
+        const dbUsers: User[] = transformTechniciansData(data as RawTechnician[]);
+        
+        // Filter out any demo users that might be duplicated in the database
+        const filteredDbUsers = dbUsers.filter(dbUser => 
+          !DEMO_ADMIN_USERS.some(demoUser => demoUser.id === dbUser.id)
+        );
+        
+        users = [...users, ...filteredDbUsers];
       }
-      
-      // Transform data to match User type
-      const users: User[] = transformTechniciansData(data as RawTechnician[]);
       
       set({ users, isLoadingUsers: false });
     } catch (error) {
       console.error('Error in fetchUsers:', error);
-      set({ isLoadingUsers: false });
+      // Even if there's an error, ensure demo admin users are available
+      set({ users: DEMO_ADMIN_USERS, isLoadingUsers: false });
     }
   },
 
@@ -113,6 +136,12 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
 
   fetchUserById: async (id: string) => {
     try {
+      // Check if it's a demo admin user first
+      const demoUser = DEMO_ADMIN_USERS.find(user => user.id === id);
+      if (demoUser) {
+        return demoUser;
+      }
+
       const { data, error } = await supabase
         .from('technicians')
         .select('*')
@@ -370,6 +399,13 @@ export const useUserManagementStore = create<UserManagementState>((set, get) => 
 
   deleteUser: async (id: string, email?: string, role?: string) => {
     try {
+      // Prevent deletion of demo admin users
+      const isDemoUser = DEMO_ADMIN_USERS.some(user => user.id === id);
+      if (isDemoUser) {
+        console.error('Cannot delete demo admin user');
+        return false;
+      }
+
       const { error } = await supabase
         .from('technicians')
         .delete()
