@@ -38,6 +38,21 @@ export class SubscriptionService {
     console.log('SubscriptionService.createPlan() - Creating plan:', planData);
     
     try {
+      // Check authentication first
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) {
+        console.error('Authentication error:', authError);
+        throw new Error(`Authentication failed: ${authError.message}`);
+      }
+      
+      if (!user) {
+        console.error('No authenticated user found');
+        throw new Error('You must be logged in to create subscription plans');
+      }
+      
+      console.log('Authenticated user:', user.id);
+
       const { data, error } = await supabase
         .from('subscription_plans')
         .insert({
@@ -56,6 +71,12 @@ export class SubscriptionService {
 
       if (error) {
         console.error('Error creating plan in database:', error);
+        console.error('Full error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         throw new Error(`Failed to create plan: ${error.message}`);
       }
 
@@ -85,6 +106,13 @@ export class SubscriptionService {
     console.log('SubscriptionService.updatePlan() - Updating plan:', planId, planData);
     
     try {
+      // Check authentication first
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        throw new Error('You must be logged in to update subscription plans');
+      }
+
       const updateFields: any = {};
       
       if (planData.name !== undefined) updateFields.name = planData.name;
@@ -134,6 +162,13 @@ export class SubscriptionService {
     console.log('SubscriptionService.togglePlanStatus() - Toggling plan status:', planId, 'from', currentStatus, 'to', !currentStatus);
     
     try {
+      // Check authentication first
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        throw new Error('You must be logged in to update subscription plans');
+      }
+
       const { data: updatedPlan, error: updateError } = await supabase
         .from('subscription_plans')
         .update({ 
@@ -172,6 +207,13 @@ export class SubscriptionService {
     console.log('SubscriptionService.deletePlan() - Attempting to delete plan:', planId);
     
     try {
+      // Check authentication first
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        throw new Error('You must be logged in to delete subscription plans');
+      }
+
       // Check for dependent licenses
       const { data: licensesUsingPlan, error: licenseCheckError } = await supabase
         .from('licenses')
@@ -208,6 +250,13 @@ export class SubscriptionService {
     console.log('SubscriptionService.cleanupDuplicatePlans() - Starting cleanup...');
     
     try {
+      // Check authentication first
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        throw new Error('You must be logged in to cleanup subscription plans');
+      }
+
       // Find duplicate plans based on name and keep the most recent one
       const { data: plans, error: fetchError } = await supabase
         .from('subscription_plans')
