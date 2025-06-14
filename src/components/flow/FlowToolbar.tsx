@@ -6,7 +6,7 @@ import { SearchPanel } from './SearchPanel';
 import { VersionHistoryPanel } from './VersionHistoryPanel';
 import { WorkflowTemplateDialog } from './WorkflowTemplateDialog';
 import { handleSaveWorkflow } from '@/utils/flow';
-import { Download, Upload, Plus, Copy, Clipboard, Link2, Save, Trash, History, File } from 'lucide-react';
+import { Download, Upload, Plus, Copy, Clipboard, Link2, Save, Trash, History, File, BarChart } from 'lucide-react';
 import { useFlowState } from '@/hooks/useFlowState';
 import { useWorkflowValidation } from '@/hooks/useWorkflowValidation';
 import { useWorkflowSearch } from '@/hooks/useWorkflowSearch';
@@ -19,6 +19,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { toast } from '@/hooks/use-toast';
 import { Separator } from '../ui/separator';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { WorkflowOverview } from './enhanced/WorkflowOverview';
 
 interface FlowToolbarProps {
   onAddNode: () => void;
@@ -197,6 +198,11 @@ export function FlowToolbar({
 
           {/* Right Actions Group */}
           <div className="flex items-center gap-2 flex-shrink-0">
+            <WorkflowOverview 
+              nodes={nodes}
+              edges={edges}
+              currentWorkflow={currentWorkflow}
+            />
             <Button
               variant="outline"
               size="sm"
