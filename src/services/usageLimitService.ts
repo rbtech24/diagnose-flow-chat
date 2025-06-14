@@ -168,25 +168,25 @@ export class UsageLimitService {
       const storage_used_gb = files.reduce((total, file) => total + (file.size || 0), 0) / (1024 * 1024 * 1024);
 
       // Get today's API calls
-      const { count: apiCallsToday, error: apiCallsError } = await supabase
+      const apiCallsResult = await supabase
         .from('api_usage_logs')
         .select('*', { count: 'exact', head: true })
         .eq('company_id', companyId)
         .gte('created_at', today);
 
-      if (apiCallsError) {
-        console.error('Error fetching API call count:', apiCallsError);
+      if (apiCallsResult.error) {
+        console.error('Error fetching API call count:', apiCallsResult.error);
       }
       
       // Get today's diagnostics
-      const { count: diagnosticsToday, error: diagnosticsError } = await supabase
+      const diagnosticsResult = await supabase
         .from('diagnostic_sessions')
         .select('*', { count: 'exact', head: true })
         .eq('company_id', companyId)
         .gte('created_at', today);
 
-      if (diagnosticsError) {
-        console.error('Error fetching diagnostic count:', diagnosticsError);
+      if (diagnosticsResult.error) {
+        console.error('Error fetching diagnostic count:', diagnosticsResult.error);
       }
 
       const usageData: UsageData = {
@@ -194,8 +194,8 @@ export class UsageLimitService {
         admins_active,
         workflows_count,
         storage_used_gb: Math.round(storage_used_gb * 100) / 100,
-        api_calls_today: apiCallsToday || 0,
-        diagnostics_today: diagnosticsToday || 0
+        api_calls_today: apiCallsResult.count || 0,
+        diagnostics_today: diagnosticsResult.count || 0
       };
 
       return usageData;

@@ -18,7 +18,8 @@ import {
   Clock,
   LogOut,
   Edit,
-  Folder
+  Folder,
+  Info
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
@@ -60,6 +61,7 @@ export function AdminSidebar() {
         { path: "/admin/workflows", label: "All Workflows", icon: <FileText className="h-4 w-4" /> },
         { path: "/workflow-editor", label: "Workflow Editor", icon: <Edit className="h-4 w-4" /> },
         { path: "/workflows", label: "Workflow Folders", icon: <Folder className="h-4 w-4" /> },
+        { path: "/admin/workflow-instructions", label: "Workflow Instructions", icon: <Info className="h-4 w-4" /> },
       ] 
     },
     { path: "/admin/subscription-plans", label: "Subscription Plans", icon: <CreditCard className="h-5 w-5" /> },
