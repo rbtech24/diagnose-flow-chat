@@ -88,7 +88,8 @@ export class UsageLimitService {
         violations.push(`Daily diagnostics exceeded: ${usage.diagnostics_today}/${limits.diagnostics_per_day}`);
       }
 
-      const canPerformAction = (action: string): boolean => {
+      // Move function definition out of returned object, and explicitly annotate return type
+      const canPerformAction: (action: string) => boolean = (action: string) => {
         switch (action) {
           case 'add_technician':
             return usage.technicians_active < limits.technicians;
@@ -107,12 +108,14 @@ export class UsageLimitService {
         }
       };
 
-      return {
+      // **Explicit type annotation prevents TypeScript from inferring a deep/circular type**
+      const result: LimitsCheckResult = {
         usage,
         limits,
         violations,
         canPerformAction
       };
+      return result;
     } catch (error) {
       console.error('Error checking company limits:', error);
       return this.getDefaultLimits();
