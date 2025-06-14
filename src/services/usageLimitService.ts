@@ -88,34 +88,30 @@ export class UsageLimitService {
         violations.push(`Daily diagnostics exceeded: ${usage.diagnostics_today}/${limits.diagnostics_per_day}`);
       }
 
-      // Move function definition out of returned object, and explicitly annotate return type
-      const canPerformAction: (action: string) => boolean = (action: string) => {
-        switch (action) {
-          case 'add_technician':
-            return usage.technicians_active < limits.technicians;
-          case 'add_admin':
-            return usage.admins_active < limits.admins;
-          case 'create_workflow':
-            return usage.workflows_count < limits.workflows;
-          case 'upload_file':
-            return usage.storage_used_gb < limits.storage_gb;
-          case 'api_call':
-            return usage.api_calls_today < limits.api_calls;
-          case 'run_diagnostic':
-            return usage.diagnostics_today < limits.diagnostics_per_day;
-          default:
-            return true;
-        }
-      };
-
-      // **Explicit type annotation prevents TypeScript from inferring a deep/circular type**
-      const result: LimitsCheckResult = {
+      // IMPORTANT change: Use 'as LimitsCheckResult' to short-circuit inference!
+      return {
         usage,
         limits,
         violations,
-        canPerformAction
-      };
-      return result;
+        canPerformAction: (action: string) => {
+          switch (action) {
+            case 'add_technician':
+              return usage.technicians_active < limits.technicians;
+            case 'add_admin':
+              return usage.admins_active < limits.admins;
+            case 'create_workflow':
+              return usage.workflows_count < limits.workflows;
+            case 'upload_file':
+              return usage.storage_used_gb < limits.storage_gb;
+            case 'api_call':
+              return usage.api_calls_today < limits.api_calls;
+            case 'run_diagnostic':
+              return usage.diagnostics_today < limits.diagnostics_per_day;
+            default:
+              return true;
+          }
+        }
+      } as LimitsCheckResult;
     } catch (error) {
       console.error('Error checking company limits:', error);
       return this.getDefaultLimits();
