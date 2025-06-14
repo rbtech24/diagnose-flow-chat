@@ -7,7 +7,9 @@ After removing the hardcoded mock data files, the following UI features still ne
    - The link to notifications preferences exists, but robust API is still missing.
 
 2. **Training Materials Section**
-   - Links to training guides, videos, and certification programs exist in the Tech Dashboard, but full data integration is pending.
+   - The UI for training materials is now present on the Tech Dashboard.
+   - Full data integration with the API is pending to fetch real training content. The component currently uses placeholder data.
+   - The target page `/tech/training` needs to be implemented.
 
 3. **Knowledge Base**
    - Referenced in the Resources section but not fully implemented.

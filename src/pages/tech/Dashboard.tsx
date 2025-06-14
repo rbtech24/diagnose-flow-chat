@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { MobileAppDownload } from '@/components/tech/MobileAppDownload';
+import { TrainingMaterials } from '@/components/tech/TrainingMaterials';
 
 export default function TechDashboard() {
   const navigate = useNavigate();
@@ -44,6 +45,9 @@ export default function TechDashboard() {
 
       {/* Mobile App Downloads Section - Only for Tech Users */}
       <MobileAppDownload />
+
+      {/* Training and Resources Section - New */}
+      <TrainingMaterials />
 
       {/* Quick Actions Section */}
       <div className="mb-8">

@@ -160,7 +160,8 @@ export class UsageLimitService {
       const { data: fileUploads } = await supabase
         .from('file_uploads')
         .select('size')
-        .eq('company_id', companyId);
+        .eq('company_id', companyId)
+        .returns<{ size: number | null }[]>();
 
       const files = fileUploads || [];
       const storage_used_gb = files.reduce((total, file) => total + (file.size || 0), 0) / (1024 * 1024 * 1024);
