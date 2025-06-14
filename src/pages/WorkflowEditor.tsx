@@ -100,7 +100,7 @@ export default function WorkflowEditor() {
             />
           </div>
           {selectedNode && (
-            <aside className="w-[42rem] border-l border-gray-200 bg-white overflow-y-auto">
+            <aside className="w-[28rem] border-l border-gray-200 bg-white overflow-y-auto">
               <NodeConfigPanel 
                 node={selectedNode}
                 onClose={() => setSelectedNode(null)}
