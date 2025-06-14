@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { SubscriptionLimits } from '@/types/subscription-consolidated';
 
@@ -162,7 +161,6 @@ export class UsageLimitService {
         .from('file_uploads')
         .select('size')
         .eq('company_id', companyId)
-        .returns<{ size: number | null }[]>();
 
       const files = fileUploads || [];
       const storage_used_gb = files.reduce((total, file) => total + (file.size || 0), 0) / (1024 * 1024 * 1024);

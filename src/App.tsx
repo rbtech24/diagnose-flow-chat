@@ -74,6 +74,7 @@ import AdminApiKeys from './pages/admin/ApiKeys';
 import AdminProfile from './pages/admin/Profile';
 import AdminWorkflows from './pages/admin/Workflows';
 import AdminAccounts from './pages/admin/AdminAccounts';
+import AdminWorkflowInstructions from './pages/admin/WorkflowInstructions';
 
 // Shared pages
 import DiagnosticsPage from './pages/diagnostics/DiagnosticsPage';
@@ -172,6 +173,7 @@ function App() {
                 <Route path="api-keys" element={<AdminApiKeys />} />
                 <Route path="profile" element={<AdminProfile />} />
                 <Route path="workflows" element={<AdminWorkflows />} />
+                <Route path="workflow-instructions" element={<AdminWorkflowInstructions />} />
                 <Route path="admin-accounts" element={<AdminAccounts />} />
               </Route>
 
