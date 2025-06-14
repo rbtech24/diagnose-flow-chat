@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,8 +14,15 @@ interface DiagnosticStepsProps {
 
 interface NodeData {
   title?: string;
+  label?: string;
   content?: string;
   richInfo?: string;
+  fields?: {
+    id: string;
+    type: string;
+    content?: string;
+    [key: string]: unknown;
+  }[];
   technicalSpecs?: any;
   yes?: string;
   no?: string;
@@ -50,6 +58,28 @@ export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
   // Get all edges for navigation
   const edges = workflow.edges;
   
+  const getNodeContent = (data: NodeData): string => {
+    let textContent = '';
+  
+    // Check direct `content` property first.
+    if (data.content && typeof data.content === 'string') {
+      textContent = data.content;
+    }
+  
+    // If no direct content, check `fields`.
+    if (!textContent && data.fields && Array.isArray(data.fields)) {
+      const contentFromFields = data.fields
+        .filter(field => field.type === 'content' && field.content)
+        .map(field => field.content)
+        .join('\n\n');
+      if (contentFromFields) {
+        textContent = contentFromFields;
+      }
+    }
+  
+    return textContent;
+  };
+
   const handleNextStep = () => {
     if (currentStepIndex < sortedNodes.length - 1) {
       setHistory([...history, currentStepIndex + 1]);
@@ -203,7 +233,9 @@ export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
   }
 
   const currentNode = sortedNodes[currentStepIndex];
-  const { title, content, richInfo, options, type, media, warning, linkToWorkflow } = currentNode.data as NodeData;
+  const nodeData = currentNode.data as NodeData;
+  const { title, richInfo, options, type, media, warning, linkToWorkflow } = nodeData;
+  const displayContent = getNodeContent(nodeData);
 
   const isSolutionNode = type === 'solution';
   const isQuestionNode = type === 'question';
@@ -216,8 +248,8 @@ export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
             {isSolutionNode ? <CheckCircle className="h-5 w-5 text-green-500" /> : <Stethoscope className="h-5 w-5 text-blue-500" />}
             {title || 'Diagnostic Step'}
           </CardTitle>
-          <CardDescription>
-            {content || 'Follow the instructions below.'}
+          <CardDescription className="whitespace-pre-wrap">
+            {displayContent || 'Follow the instructions below.'}
           </CardDescription>
         </CardHeader>
         <CardContent>
