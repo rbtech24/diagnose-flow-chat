@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,7 +25,7 @@ interface NodeData {
   technicalSpecs?: any;
   yes?: string;
   no?: string;
-  options?: string[];
+  options?: (string | { label: string; value?: any })[];
   type?: string;
   media?: MediaItem[];
   warning?: WarningConfig;
@@ -92,7 +91,7 @@ export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
     }
   };
 
-  const handleOptionSelect = (option: string, index: number) => {
+  const handleOptionSelect = (option: string | { label: string; value?: any }, index: number) => {
     // Find edges from current node
     const currentNode = sortedNodes[currentStepIndex];
     const outgoingEdges = edges.filter(edge => edge.source === currentNode.id);
@@ -276,12 +275,12 @@ export function DiagnosticSteps({ workflow }: DiagnosticStepsProps) {
               <p className="font-semibold text-gray-700">Select an option:</p>
               {options.map((option, index) => (
                 <Button 
-                  key={index}
+                  key={typeof option === 'object' ? option.label + index : option + index}
                   variant="outline"
                   className="w-full justify-start"
-                  onClick={() => handleOptionSelect(option, index)}
+                  onClick={() => handleOptionSelect(typeof option === 'string' ? option : option.label, index)}
                 >
-                  {option}
+                  {typeof option === 'string' ? option : option.label}
                 </Button>
               ))}
             </div>

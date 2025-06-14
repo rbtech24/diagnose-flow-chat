@@ -1,4 +1,3 @@
-
 export interface TechnicalSpecs {
   range: {
     min: number;
@@ -17,12 +16,19 @@ export interface MediaItem {
   title?: string;
 }
 
+export interface Option {
+  id: string;
+  label: string;
+  value: string;
+  nextNodeId?: string;
+}
+
 export interface Field {
   id: string;
   type: 'content' | 'options' | 'media' | 'workflow-link';
   content?: string;
   placeholder?: string;
-  options?: string[];
+  options?: Array<string | Option>;
   media?: MediaItem[];
   validation?: {
     required?: boolean;
@@ -47,7 +53,7 @@ export interface NodeData extends Record<string, unknown> {
   technicalSpecs?: TechnicalSpecs;
   yes?: string;
   no?: string;
-  options?: string[];
+  options?: Array<string | Option>;
   type?: NodeType;
   media?: MediaItem[];
   warning?: WarningConfig;
