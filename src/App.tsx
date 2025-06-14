@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -81,6 +80,9 @@ import DiagnosticsPage from './pages/diagnostics/DiagnosticsPage';
 import Workflows from './pages/Workflows';
 import WorkflowEditor from './pages/WorkflowEditor';
 
+// Import the sales/marketing Index page:
+import Index from './pages/Index';
+
 function App() {
   return (
     <Router>
@@ -89,6 +91,7 @@ function App() {
           <div className="min-h-screen bg-background">
             <Routes>
               {/* Public routes */}
+              <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} errorElement={<RouteErrorBoundary />} />
               <Route path="/signup" element={<SignUp />} errorElement={<RouteErrorBoundary />} />
               <Route path="/forgot-password" element={<ForgotPassword />} errorElement={<RouteErrorBoundary />} />
@@ -192,8 +195,8 @@ function App() {
               } errorElement={<RouteErrorBoundary />} />
 
               {/* Default redirect */}
-              <Route path="/" element={<Login />} />
               
+
               {/* 404 catch-all */}
               <Route path="*" element={<NotFound />} />
             </Routes>
