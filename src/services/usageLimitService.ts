@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { SubscriptionLimits } from '@/types/subscription-consolidated';
 
@@ -167,18 +168,20 @@ export class UsageLimitService {
       const storage_used_gb = files.reduce((total, file) => total + (file.size || 0), 0) / (1024 * 1024 * 1024);
 
       // Get today's API calls
-      const { count: apiCallsToday } = await supabase
+      const apiCallsResponse = await supabase
         .from('api_usage_logs')
         .select('*', { count: 'exact', head: true })
         .eq('company_id', companyId)
         .gte('created_at', today);
+      const apiCallsToday = apiCallsResponse.count;
 
       // Get today's diagnostics
-      const { count: diagnosticsToday } = await supabase
+      const diagnosticsResponse = await supabase
         .from('diagnostic_sessions')
         .select('*', { count: 'exact', head: true })
         .eq('company_id', companyId)
         .gte('created_at', today);
+      const diagnosticsToday = diagnosticsResponse.count;
 
       const usageData: UsageData = {
         technicians_active,
