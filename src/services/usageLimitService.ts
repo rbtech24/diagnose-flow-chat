@@ -180,7 +180,7 @@ export class UsageLimitService {
         .eq('company_id', companyId)
         .gte('created_at', today);
 
-      return {
+      const usageData: UsageData = {
         technicians_active,
         admins_active,
         workflows_count,
@@ -188,6 +188,8 @@ export class UsageLimitService {
         api_calls_today: apiCallsToday || 0,
         diagnostics_today: diagnosticsToday || 0
       };
+
+      return usageData;
     } catch (error) {
       console.error('Error getting current usage:', error);
       // Return default values on error
