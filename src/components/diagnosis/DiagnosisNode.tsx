@@ -1,4 +1,3 @@
-
 import React, { memo, useCallback, useState } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -20,6 +19,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { WarningIcon } from './WarningIcons';
+import { getNodeClasses } from '@/utils/nodeStyle';
 
 export type NodeType = 
   | 'start' 
@@ -106,19 +106,6 @@ const nodeIcons = {
   action: ArrowRight
 };
 
-const nodeColors = {
-  start: 'border-green-600 bg-gradient-to-br from-green-50 to-green-100',
-  question: 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100',
-  instruction: 'border-yellow-500 bg-gradient-to-br from-yellow-50 to-yellow-100',
-  condition: 'border-orange-500 bg-gradient-to-br from-orange-50 to-orange-100',
-  end: 'border-green-600 bg-gradient-to-br from-green-100 to-green-200',
-  media: 'border-purple-500 bg-gradient-to-br from-purple-50 to-purple-100',
-  decision: 'border-indigo-500 bg-gradient-to-br from-indigo-50 to-indigo-100',
-  warning: 'border-red-500 bg-gradient-to-br from-red-50 to-red-100',
-  info: 'border-gray-500 bg-gradient-to-br from-gray-50 to-gray-100',
-  action: 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-emerald-100'
-};
-
 const nodeShapes = {
   start: 'rounded-full',
   question: 'rounded-lg',
@@ -143,7 +130,7 @@ const DiagnosisNode: React.FC<DiagnosisNodeProps> = memo(({
   const [isExpanded, setIsExpanded] = useState(false);
 
   const IconComponent = nodeIcons[data.type] || FileText;
-  const nodeColorClass = nodeColors[data.type] || nodeColors.info;
+  const nodeColorClass = getNodeClasses(data.type);
   const nodeShapeClass = nodeShapes[data.type] || 'rounded-lg';
 
   const handleAction = useCallback((action: string, actionData?: any) => {
