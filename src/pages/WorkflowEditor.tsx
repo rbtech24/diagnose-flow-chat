@@ -1,4 +1,3 @@
-
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import FlowEditor from '@/components/FlowEditor';
 import NodeConfigPanel from '@/components/NodeConfigPanel';
@@ -21,41 +20,30 @@ export default function WorkflowEditor() {
   
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [updateNodeFn, setUpdateNodeFn] = useState<((nodeId: string, newData: any) => void) | null>(null);
-  const { userRole, isLoading } = useUserRole();
-  const { folders, loadWorkflows } = useWorkflows();
+  const { userRole, isLoading: isUserRoleLoading } = useUserRole();
+  const { workflows, folders, isLoading: isWorkflowsLoading } = useWorkflows();
   const [currentWorkflow, setCurrentWorkflow] = useState<SavedWorkflow | undefined>(undefined);
 
   // Load the current workflow if name is provided
   useEffect(() => {
-    if (folder && name) {
-      // Attempt to load the workflow from localStorage
-      try {
-        const storedWorkflows = JSON.parse(localStorage.getItem('diagnostic-workflows') || '[]');
-        const matchingWorkflow = storedWorkflows.find(
-          (w: SavedWorkflow) => 
-            w.metadata.name === name && 
-            (w.metadata.folder === folder || w.metadata.appliance === folder)
-        );
-        
-        if (matchingWorkflow) {
-          setCurrentWorkflow(matchingWorkflow);
-        } else {
-          toast({
-            title: "Workflow Not Found",
-            description: `Could not locate workflow "${name}" in folder "${folder}"`,
-            variant: "destructive"
-          });
-        }
-      } catch (error) {
-        // Handle error silently or with user-friendly message
+    if (folder && name && !isWorkflowsLoading && workflows.length > 0) {
+      const matchingWorkflow = workflows.find(
+        (w: SavedWorkflow) => 
+          w.metadata.name === name && 
+          (w.metadata.folder === folder || w.metadata.appliance === folder)
+      );
+      
+      if (matchingWorkflow) {
+        setCurrentWorkflow(matchingWorkflow);
+      } else if (!isNew) {
         toast({
-          title: "Error Loading Workflow",
-          description: "Failed to load the requested workflow",
+          title: "Workflow Not Found",
+          description: `Could not locate workflow "${name}" in folder "${folder}"`,
           variant: "destructive"
         });
       }
     }
-  }, [folder, name]);
+  }, [folder, name, isWorkflowsLoading, workflows, isNew]);
 
   const handleNodeSelect = useCallback((node: Node, updateNode: (nodeId: string, newData: any) => void) => {
     setSelectedNode(node);
@@ -78,14 +66,14 @@ export default function WorkflowEditor() {
     navigate('/workflows', { replace: true });
   };
 
-  if (isLoading) {
+  if (isUserRoleLoading || (isWorkflowsLoading && !isNew)) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
   return (
     <ReactFlowProvider>
-      <div className="h-screen flex flex-col">
-        <div className="p-2 bg-slate-100 border-b flex items-center">
+      <div className="h-screen w-screen flex flex-col bg-slate-50">
+        <header className="p-2 bg-slate-100 border-b flex items-center shrink-0">
           <Button 
             variant="outline" 
             size="sm" 
@@ -99,9 +87,9 @@ export default function WorkflowEditor() {
             {isNew && "Creating New Workflow"}
             {folder && !isNew && `Editing: ${folder}${name ? ` / ${name}` : ''}`}
           </div>
-        </div>
-        <div className="flex flex-1">
-          <div className="flex-1">
+        </header>
+        <main className="flex-1 flex min-h-0">
+          <div className="flex-1 relative">
             <FlowEditor 
               folder={folder || ''} 
               name={name || ''} 
@@ -111,15 +99,15 @@ export default function WorkflowEditor() {
             />
           </div>
           {selectedNode && (
-            <div className="w-96 border-l border-gray-200 bg-white">
+            <aside className="w-96 border-l border-gray-200 bg-white overflow-y-auto">
               <NodeConfigPanel 
                 node={selectedNode}
                 onClose={() => setSelectedNode(null)}
                 onUpdate={handleNodeUpdate}
               />
-            </div>
+            </aside>
           )}
-        </div>
+        </main>
       </div>
     </ReactFlowProvider>
   );

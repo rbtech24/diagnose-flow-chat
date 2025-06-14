@@ -345,33 +345,35 @@ export default function FlowEditor({
   }, [nodes, setNodes]);
 
   return (
-    <FlowEditorContent
-      nodes={nodes}
-      edges={edges}
-      isLoading={isLoading}
-      snapToGrid={snapToGrid}
-      currentWorkflow={currentWorkflow}
-      onNodesChange={onNodesChange}
-      onEdgesChange={onEdgesChange}
-      onConnect={handleConnect}
-      onNodeClick={handleNodeClick}
-      onQuickSave={handleQuickSaveClick}
-      onAddNode={handleAddNode}
-      onSave={handleSave}
-      onFileImport={handleFileImport}
-      onFileInputClick={handleFileInputClick}
-      onCopySelected={handleCopySelected}
-      onPaste={handlePaste}
-      onDeleteSelected={handleDeleteSelected}
-      appliances={appliances}
-      onApplyNodeChanges={handleApplyNodeChanges}
-      onNodeFocus={handleNodeFocus}
-      autoSaveState={autoSaveState}
-      versions={versions}
-      onRestoreVersion={handleRestoreVersion}
-      onRemoveVersion={removeVersion}
-      onClearVersions={clearVersions}
-      onLoadTemplate={handleLoadTemplate}
-    />
+    <div className="w-full h-full flex flex-col">
+      <FlowEditorContent
+        nodes={nodes}
+        edges={edges}
+        isLoading={isLoading}
+        snapToGrid={snapToGrid}
+        currentWorkflow={currentWorkflow}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={handleConnect}
+        onNodeClick={handleNodeClick}
+        onQuickSave={handleQuickSaveClick}
+        onAddNode={handleAddNode}
+        onSave={handleSave}
+        onFileImport={handleFileImport}
+        onFileInputClick={handleFileInputClick}
+        onCopySelected={handleCopySelected}
+        onPaste={handlePaste}
+        onDeleteSelected={handleDeleteSelected}
+        appliances={appliances}
+        onApplyNodeChanges={handleApplyNodeChanges}
+        onNodeFocus={handleNodeFocus}
+        autoSaveState={autoSaveState}
+        versions={versions}
+        onRestoreVersion={handleRestoreVersion}
+        onRemoveVersion={removeVersion}
+        onClearVersions={clearVersions}
+        onLoadTemplate={handleLoadTemplate}
+      />
+    </div>
   );
 }

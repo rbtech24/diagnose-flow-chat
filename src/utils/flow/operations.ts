@@ -1,4 +1,3 @@
-
 import { Node, Edge } from '@xyflow/react';
 import { toast } from '@/hooks/use-toast';
 import { SavedWorkflow } from './types';
@@ -183,102 +182,22 @@ export const handleImportWorkflow = (
   const reader = new FileReader();
   reader.onload = (e) => {
     try {
-      const workflow = JSON.parse(e.target?.result as string);
+      const workflow: SavedWorkflow = JSON.parse(e.target?.result as string);
       console.log('Imported workflow data:', workflow);
       
-      // Check if the imported data has nodes and edges
       if (!workflow.nodes || !Array.isArray(workflow.nodes) || !workflow.edges || !Array.isArray(workflow.edges)) {
         throw new Error('Invalid workflow format: missing nodes or edges');
       }
 
-      // Convert any imported nodes to the correct format if needed
-      const processedNodes = workflow.nodes.map((node: any) => {
-        console.log('Processing node:', node);
-        
-        // Preserve all original node data
-        const processedNode = {
-          ...node,
-          // Make sure the node type is preserved exactly as in the original
-          type: node.type || 'diagnosis',
-          // Ensure position exists
-          position: node.position || { x: 0, y: 0 },
-          // Ensure all data properties are preserved
-          data: {
-            ...node.data,
-            // Only add nodeId if it doesn't exist
-            nodeId: node.data?.nodeId || `N${String(Math.random().toString(36).substr(2, 5))}`,
-          }
-        };
-
-        // Handle flowTitle, flowNode, flowAnswer specific properties
-        // These might have different field names or structures
-        if (node.type === 'flowTitle') {
-          processedNode.data = {
-            ...processedNode.data,
-            label: processedNode.data.title || 'Title',
-            title: processedNode.data.title || 'Title'
-          };
-        } 
-        else if (node.type === 'flowNode' || node.type === 'flowAnswer') {
-          processedNode.data = {
-            ...processedNode.data,
-            label: processedNode.data.title || 'Node',
-            content: processedNode.data.richInfo || processedNode.data.content || ''
-          };
-        }
-
-        console.log('Processed node:', processedNode);
-        return processedNode;
-      });
-
-      // Process edges to ensure they have all required properties
-      const processedEdges = workflow.edges.map((edge: any) => {
-        console.log('Processing edge:', edge);
-        
-        return {
-          ...edge,
-          // Add any required properties for edges here
-          type: edge.type || 'smoothstep',
-          // Ensure source and target exist
-          source: edge.source,
-          target: edge.target,
-          // Preserve sourceHandle and targetHandle if they exist
-          sourceHandle: edge.sourceHandle || null,
-          targetHandle: edge.targetHandle || null
-        };
-      });
-
-      setNodes(processedNodes);
-      setEdges(processedEdges);
-      
-      // Determine a proper nodeCounter value - use the highest number found in node IDs plus one
-      let maxNodeId = 0;
-      processedNodes.forEach(node => {
-        if (node.id) {
-          // Try to extract a number from the node ID if it follows a pattern like 'node-5'
-          const match = node.id.match(/\d+$/);
-          if (match) {
-            const idNum = parseInt(match[0], 10);
-            if (!isNaN(idNum) && idNum > maxNodeId) {
-              maxNodeId = idNum;
-            }
-          }
-        }
-      });
-      
-      const nodeCounter = workflow.nodeCounter || Math.max(maxNodeId + 1, processedNodes.length + 1);
-      setNodeCounter(nodeCounter);
+      setNodes(workflow.nodes);
+      setEdges(workflow.edges);
+      setNodeCounter(workflow.nodeCounter || workflow.nodes.length + 1);
       
       toast({
         title: "Workflow Imported",
-        description: `Successfully imported workflow with ${processedNodes.length} nodes and ${processedEdges.length} edges.`
+        description: `Successfully imported workflow with ${workflow.nodes.length} nodes and ${workflow.edges.length} edges.`
       });
       
-      console.log('Import complete:', { 
-        nodes: processedNodes.length, 
-        edges: processedEdges.length, 
-        nodeCounter
-      });
     } catch (error) {
       console.error('Error importing workflow:', error);
       toast({

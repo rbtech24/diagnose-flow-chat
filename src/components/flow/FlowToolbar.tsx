@@ -150,7 +150,7 @@ export function FlowToolbar({
   }, [onLoadTemplate, navigate]);
 
   return (
-    <div className="absolute top-0 left-0 right-0 z-10 bg-background border-b pointer-events-auto">
+    <div className="bg-background border-b pointer-events-auto">
       <div className="flex flex-col gap-3 p-3">
         {/* Top Row - Core Actions */}
         <div className="flex items-center w-full gap-3 min-h-[36px] flex-nowrap">

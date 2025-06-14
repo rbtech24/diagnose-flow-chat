@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { DiagnosticSelector } from "@/components/diagnostics/DiagnosticSelector";
 import { DiagnosticSteps } from "@/components/diagnostics/DiagnosticSteps";
 import { useWorkflows } from "@/hooks/useWorkflows";
@@ -11,10 +10,22 @@ import { SavedWorkflow } from '@/utils/flow/types';
 
 export default function DiagnosticsPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { workflows, folders } = useWorkflows();
   const { userRole } = useUserRole();
   const [selectedWorkflow, setSelectedWorkflow] = useState<SavedWorkflow | null>(null);
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const workflowName = searchParams.get('workflow');
+    if (workflowName) {
+      const wf = workflows.find(w => w.metadata.name === workflowName);
+      if (wf) {
+        setSelectedWorkflow(wf);
+        setSelectedFolder(wf.metadata.folder || wf.metadata.appliance || null);
+      }
+    }
+  }, [searchParams, workflows]);
   
   // Only show active workflows
   const activeWorkflows = workflows.filter(w => w.metadata.isActive !== false);
@@ -57,6 +68,7 @@ export default function DiagnosticsPage() {
   const handleBackToFolders = () => {
     setSelectedFolder(null);
     setSelectedWorkflow(null);
+    navigate('/diagnostics', { replace: true });
   };
 
   const getWorkflowId = (workflow: SavedWorkflow) => 
@@ -87,7 +99,12 @@ export default function DiagnosticsPage() {
             <div className="mb-4">
               <Button 
                 variant="outline" 
-                onClick={() => setSelectedWorkflow(null)}
+                onClick={() => {
+                  setSelectedWorkflow(null);
+                  if (selectedFolder) {
+                    navigate('/diagnostics');
+                  }
+                }}
               >
                 Back to Diagnostics List
               </Button>
