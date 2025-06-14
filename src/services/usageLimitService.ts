@@ -168,20 +168,26 @@ export class UsageLimitService {
       const storage_used_gb = files.reduce((total, file) => total + (file.size || 0), 0) / (1024 * 1024 * 1024);
 
       // Get today's API calls
-      const apiCallsToday = await supabase
+      const { count: apiCallsToday, error: apiCallsError } = await supabase
         .from('api_usage_logs')
         .select('*', { count: 'exact', head: true })
         .eq('company_id', companyId)
-        .gte('created_at', today)
-        .then(res => res.count);
+        .gte('created_at', today);
 
+      if (apiCallsError) {
+        console.error('Error fetching API call count:', apiCallsError);
+      }
+      
       // Get today's diagnostics
-      const diagnosticsToday = await supabase
+      const { count: diagnosticsToday, error: diagnosticsError } = await supabase
         .from('diagnostic_sessions')
         .select('*', { count: 'exact', head: true })
         .eq('company_id', companyId)
-        .gte('created_at', today)
-        .then(res => res.count);
+        .gte('created_at', today);
+
+      if (diagnosticsError) {
+        console.error('Error fetching diagnostic count:', diagnosticsError);
+      }
 
       const usageData: UsageData = {
         technicians_active,

@@ -1,10 +1,10 @@
 
-import { Field, MediaItem } from '@/types/node-config';
+import { Field, MediaItem, Option } from '@/types/node-config';
 
 export function combineFieldsData(fields: Field[]) {
   let combinedContent = '';
   const combinedMedia: MediaItem[] = [];
-  let combinedOptions: string[] = [];
+  let combinedOptions: Array<string | Option> = [];
 
   console.log("Combining fields data:", fields);
   
