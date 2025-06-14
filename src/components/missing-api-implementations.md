@@ -1,39 +1,28 @@
 
-# Components Missing API Implementation
+# Components Missing API Implementation (UPDATED)
 
-After reviewing the codebase, here are the components and features that currently don't have proper API implementation:
+After removing the hardcoded mock data files, the following UI features still need proper API implementation:
 
-1. **Tech Calendar Feature**
-   - The Quick Links in TechDashboard have a Calendar link, but the calendar page and its API implementation are missing.
+1. **Tech Notifications**
+   - The link to notifications preferences exists, but robust API is still missing.
 
-2. **Tech Notifications**
-   - The link to notifications preferences exists, but the page and API implementation are missing.
+2. **Training Materials Section**
+   - Links to training guides, videos, and certification programs exist in the Tech Dashboard, but full data integration is pending.
 
-3. **Training Materials Section**
-   - Links to training guides, videos, and certification programs exist in the Tech Dashboard, but these pages and their API implementations are missing.
+3. **Knowledge Base**
+   - Referenced in the Resources section but not fully implemented.
 
-4. **Knowledge Base**
-   - Referenced in the Resources section but missing implementation.
+4. **useCompanyTechnicians Hook**
+   - Has TypeScript type instantiation issues that should be checked.
 
-5. **useCompanyTechnicians Hook**
-   - Has TypeScript type instantiation issues that need to be fixed.
-
-6. **subscriptionStore.ts**
+5. **subscriptionStore.ts**
    - Has API integration issues with non-existent database tables.
 
-7. **featureRequestsApi.ts**
-   - Has some null safety issues with user data.
+6. **featureRequestsApi.ts**
+   - Needs more robust null safety for user data.
 
-## Recommended Next Steps:
+## Recommended Next Steps
 
-1. Implement the missing pages for:
-   - Tech Calendar
-   - Tech Notifications
-   - Training Materials
-   - Knowledge Base
+- Implement the missing pages/APIs for Tech Notifications, Training Materials, and Knowledge Base.
+- Fix types and API integration for the listed hooks and stores.
 
-2. Fix the type issues in useCompanyTechnicians hook
-
-3. Complete proper API integration for subscriptionStore.ts, ensuring database tables exist
-
-4. Add more robust null checks in API integration files like featureRequestsApi.ts
