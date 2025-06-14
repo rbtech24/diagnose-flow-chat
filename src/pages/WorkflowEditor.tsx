@@ -1,3 +1,4 @@
+
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import FlowEditor from '@/components/FlowEditor';
 import NodeConfigPanel from '@/components/NodeConfigPanel';
@@ -99,7 +100,7 @@ export default function WorkflowEditor() {
             />
           </div>
           {selectedNode && (
-            <aside className="w-96 border-l border-gray-200 bg-white overflow-y-auto">
+            <aside className="w-[34rem] border-l border-gray-200 bg-white overflow-y-auto">
               <NodeConfigPanel 
                 node={selectedNode}
                 onClose={() => setSelectedNode(null)}
