@@ -1,5 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
+import { SubscriptionLimits } from '@/types/subscription-consolidated';
 
 export interface UsageData {
   technicians_active: number;
@@ -8,15 +8,6 @@ export interface UsageData {
   storage_used_gb: number;
   api_calls_today: number;
   diagnostics_today: number;
-}
-
-export interface SubscriptionLimits {
-  technicians: number;
-  admins: number;
-  workflows: number;
-  storage_gb: number;
-  api_calls: number;
-  diagnostics_per_day: number;
 }
 
 interface LimitsCheckResult {
@@ -232,9 +223,9 @@ export class UsageLimitService {
 
   static async enforceLimit(companyId: string, action: string): Promise<boolean> {
     try {
-      const { canPerformAction } = await this.checkCompanyLimits(companyId);
+      const limitsResult = await this.checkCompanyLimits(companyId);
       
-      if (!canPerformAction(action)) {
+      if (!limitsResult.canPerformAction(action)) {
         await supabase
           .from('notifications')
           .insert({
