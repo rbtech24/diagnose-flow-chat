@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface UsageData {
@@ -88,8 +89,7 @@ export class UsageLimitService {
         violations.push(`Daily diagnostics exceeded: ${usage.diagnostics_today}/${limits.diagnostics_per_day}`);
       }
 
-      // IMPORTANT change: Use 'as LimitsCheckResult' to short-circuit inference!
-      return {
+      const result: LimitsCheckResult = {
         usage,
         limits,
         violations,
@@ -111,7 +111,9 @@ export class UsageLimitService {
               return true;
           }
         }
-      } as LimitsCheckResult;
+      };
+
+      return result;
     } catch (error) {
       console.error('Error checking company limits:', error);
       return this.getDefaultLimits();
