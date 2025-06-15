@@ -162,7 +162,7 @@ export class UsageLimitService {
         .select('size')
         .eq('company_id', companyId)
 
-      const files = fileUploads || [];
+      const files = (fileUploads as { size: number | null }[]) || [];
       const storage_used_gb = files.reduce((total, file) => total + (file.size || 0), 0) / (1024 * 1024 * 1024);
 
       // Get today's API calls
